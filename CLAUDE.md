@@ -57,8 +57,9 @@
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
 | Animation | Framer Motion |
 | Styling | Tailwind CSS v4 |
-| Desktop | Electron（待設定） |
 | Package manager | pnpm 11 |
+| Tunnel | Cloudflare Tunnel (cloudflared) |
+| DNS | Cloudflare |
 
 ### pnpm 注意事項
 
@@ -71,6 +72,45 @@ node node_modules/next/dist/bin/next dev
 # 或用 pnpm（會跳 warning 但可用）
 pnpm dev
 ```
+
+---
+
+## 部署架構
+
+**Live URL:** https://kbs0830.com
+
+```
+訪客 → Cloudflare CDN → Cloudflare Tunnel → localhost:3000（Next.js）
+```
+
+ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
+
+### 桌機服務（開機自動啟動）
+
+| 服務 | 管理方式 |
+|---|---|
+| Next.js (port 3000) | 工作排程器 `kbs0830_NextJS` |
+| Cloudflare Tunnel | Windows 服務 `Cloudflared` |
+| GitHub Actions Runner | 工作排程器 `GitHubActionsRunner`，位於 `C:\actions-runner` |
+
+### CI/CD
+
+push 到 `main` → GitHub Actions self-hosted runner → pull + build + restart 全自動。
+Workflow: `.github/workflows/deploy.yml`
+
+### 手動啟動
+
+```powershell
+# 一鍵啟動 Next.js + Tunnel
+start-server.bat
+
+# 手動部署（pull + build + restart）
+deploy.bat
+```
+
+### 區網存取問題
+
+區網內裝置需將 DNS 改為 `8.8.8.8` 才能解析 `kbs0830.com`（路由器 DNS 快取問題）。
 
 ---
 
@@ -145,5 +185,5 @@ kbs0830_web/
 2. **語言**：中文優先，雙語格式 `中文 · English`
 3. **顏色**：`#2d5a8e` 是唯一強調色，用量克制
 4. **動畫**：subtle only，60fps，不跳不彈不閃
-5. **環境**：筆電開發（Windows 11）→ 桌機 Electron `.exe` 部署
+5. **環境**：筆電開發（Windows 11）→ git push → 桌機自動部署（GitHub Actions self-hosted runner）
 6. **字元支援**：繁體中文 + 日文（Noto Serif JP）

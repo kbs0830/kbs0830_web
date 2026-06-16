@@ -1,0 +1,24 @@
+name: Deploy to Desktop
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        run: git pull origin main
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: node node_modules/next/dist/bin/next build
+
+      - name: Restart Next.js
+        run: |
+          taskkill /f /im node.exe 2>$null; true
+          Start-Sleep -Seconds 2
+          Start-Process -NoNewWindow -FilePath "node" -ArgumentList "node_modules\next\dist\bin\next start"
