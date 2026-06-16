@@ -1,0 +1,112 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+
+const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
+  ssr: false,
+});
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number], delay },
+  }),
+};
+
+export default function HeroSection() {
+  return (
+    <section
+      id="top"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+    >
+      <HeroScene />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
+        <motion.p
+          className="text-xs tracking-[0.35em] text-[--muted] mb-6 uppercase"
+          style={{ fontFamily: "var(--font-mono)" }}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.1}
+        >
+          高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
+        </motion.p>
+
+        <motion.h1
+          className="text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-[--text] mb-4"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.25}
+        >
+          PINGWEI LI
+        </motion.h1>
+
+        <motion.p
+          className="text-base font-light text-[--accent] tracking-[0.25em] mb-8"
+          style={{ fontFamily: "var(--font-mono)" }}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.35}
+        >
+          学生開発者 &nbsp;·&nbsp; Claude × Gemini
+        </motion.p>
+
+        <motion.p
+          className="text-lg sm:text-xl font-light text-[--muted] max-w-lg leading-relaxed mb-3"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.45}
+        >
+          在瀏覽器與模型層之間，構建有意義的系統。
+        </motion.p>
+
+        <motion.p
+          className="text-base font-light text-[--muted] max-w-lg leading-relaxed mb-12 opacity-70"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.5}
+        >
+          Building thoughtful systems — from the browser to the model layer.
+        </motion.p>
+
+        <motion.div
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.6}
+        >
+          <a
+            href="#portfolio"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide bg-[--accent] text-white rounded-sm hover:opacity-90 transition-opacity"
+          >
+            查看作品 · View Work
+          </a>
+          <a
+            href="#contact"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide border border-[--border] text-[--muted] rounded-sm hover:border-[--accent] hover:text-[--accent] transition-colors"
+          >
+            聯絡我 · Contact
+          </a>
+        </motion.div>
+      </div>
+
+      <motion.div
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[--muted]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
+      >
+        <div className="w-[1px] h-12 bg-[--border] animate-pulse" />
+      </motion.div>
+    </section>
+  );
+}

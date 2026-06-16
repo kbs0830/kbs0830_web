@@ -1,0 +1,3 @@
+kbs0830.com, www.kbs0830.com {
+    reverse_proxy localhost:3000
+}
