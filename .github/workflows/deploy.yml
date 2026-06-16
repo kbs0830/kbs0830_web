@@ -21,4 +21,4 @@ jobs:
         run: |
           taskkill /f /im node.exe 2>$null
           Start-Sleep -Seconds 2
-          Start-Process -NoNewWindow -FilePath "node" -ArgumentList "node_modules\next\dist\bin\next", "start" -WorkingDirectory "C:\Users\user\Desktop\kbs0830_web-master"
+          Start-ScheduledTask -TaskName "kbs0830_NextJS"
