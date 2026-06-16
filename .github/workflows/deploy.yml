@@ -7,6 +7,9 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: C:\Users\user\Desktop\kbs0830_web-master
     steps:
       - name: Pull latest code
         run: git pull origin main
@@ -15,10 +18,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: node node_modules/next/dist/bin/next build
+        run: node node_modules\next\dist\bin\next build
 
       - name: Restart Next.js
         run: |
-          taskkill /f /im node.exe 2>$null; true
+          taskkill /f /im node.exe 2>$null
           Start-Sleep -Seconds 2
-          Start-Process -NoNewWindow -FilePath "node" -ArgumentList "node_modules\next\dist\bin\next start"
+          Start-Process -NoNewWindow -FilePath "node" -ArgumentList "node_modules\next\dist\bin\next", "start" -WorkingDirectory "C:\Users\user\Desktop\kbs0830_web-master"
