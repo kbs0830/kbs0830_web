@@ -1,15 +1,10 @@
 @echo off
-echo Starting kbs0830.com...
+echo Starting kbs0830.com (silent)...
 
-start "Next.js" cmd /k "cd /d C:\Users\user\Desktop\kbs0830_web-master && node node_modules\next\dist\bin\next start"
+wscript.exe //B "C:\Users\user\Desktop\kbs0830_web-master\start-server-silent.vbs"
 
 timeout /t 3 /nobreak >nul
 
-start "Cloudflare Tunnel" cmd /k "cloudflared tunnel run --url http://localhost:3000 kbs0830"
+start /b "" cloudflared tunnel --config "C:\Users\user\.cloudflared\config.yml" run kbs0830
 
-echo.
-echo Server started!
-echo Local:   http://localhost:3000
-echo Public:  https://kbs0830.com
-echo.
-echo Close this window to keep servers running in background.
+echo Done. Server running at http://localhost:3000 and https://kbs0830.com

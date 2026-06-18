@@ -34,6 +34,24 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "PINGWEI LI",
+  url: "https://kbs0830.com",
+  email: "1394kbs@gmail.com",
+  jobTitle: "AI Engineer / Web Developer",
+  description:
+    "高雄出身的學生開發者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系。",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Kaohsiung",
+    addressCountry: "TW",
+  },
+  sameAs: ["https://github.com/kbs0830"],
+  knowsAbout: ["Python", "FastAPI", "YOLOv8", "Next.js", "React", "TypeScript", "Machine Learning"],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -42,6 +60,12 @@ export default function RootLayout({
       lang="zh-Hant"
       className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} h-full`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
