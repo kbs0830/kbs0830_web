@@ -2,9 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
+  loading: () => <div className="absolute inset-0 bg-[--bg]" />,
 });
 
 const fadeUp = {
@@ -17,12 +19,25 @@ const fadeUp = {
 };
 
 export default function HeroSection() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   return (
     <section
       id="top"
       className="relative min-h-screen flex flex-col justify-center overflow-hidden"
     >
-      <HeroScene />
+      {isMobile ? (
+        <div className="absolute inset-0 bg-gradient-to-br from-[--bg] via-[--surface] to-[--bg]" />
+      ) : (
+        <HeroScene />
+      )}
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
         <motion.p

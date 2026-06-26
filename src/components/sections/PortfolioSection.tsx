@@ -27,7 +27,7 @@ function ProjectCard({
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.1 }}
-      className="group relative border border-[--border] bg-[--bg] rounded-sm p-7 hover:border-[--accent] transition-colors duration-300 flex flex-col"
+      className="group relative border border-[--border] bg-[--bg] rounded-sm p-7 hover:border-[--accent] hover:-translate-y-1 transition-all duration-300 flex flex-col"
     >
       <div className="absolute top-0 left-0 h-[2px] w-0 bg-[--accent] group-hover:w-full transition-all duration-500 rounded-t-sm" />
 

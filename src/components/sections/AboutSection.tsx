@@ -52,6 +52,15 @@ const skills = [
   },
 ];
 
+const timeline = [
+  { year: "2021", zh: "進入市立中正高工 資訊科",                      en: "Enrolled at Zhongzheng Hi-Tech — Information" },
+  { year: "2022", zh: "加入 FRC 機器人隊 · 學校電腦工場維護志工",      en: "FRC robotics team · School lab maintenance" },
+  { year: "2023", zh: "自動跟隨機器人 · 全國専題競賽動力機械群佳作",    en: "Auto-following robot · National competition Excellence Award" },
+  { year: "2024", zh: "高工畢業 · 升讀國立高科大 智慧商務系",          en: "Graduated · Enrolled at NKUST Intelligent Commerce" },
+  { year: "2025", zh: "完成 FoodLens Advisor & 購票系統",              en: "Shipped FoodLens Advisor & ticketing platform" },
+  { year: "2026", zh: "持續建構中 · 仕事在進行",                       en: "Continuously building" },
+];
+
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
@@ -63,6 +72,37 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
       transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1], delay }}
     >
       {children}
+    </motion.div>
+  );
+}
+
+function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  return (
+    <motion.div
+      ref={ref}
+      className="flex items-start gap-6"
+      initial={{ opacity: 0, x: -12 }}
+      animate={inView ? { opacity: 1, x: 0 } : {}}
+      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.08 }}
+    >
+      <p
+        className="text-xs text-[--accent] tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
+        style={{ fontFamily: "var(--font-mono)" }}
+      >
+        {item.year}
+      </p>
+      <div className="relative pl-8">
+        <motion.div
+          className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-[--accent] bg-[--bg]"
+          initial={{ scale: 0 }}
+          animate={inView ? { scale: 1 } : {}}
+          transition={{ duration: 0.3, delay: index * 0.08 + 0.15 }}
+        />
+        <p className="text-sm font-light text-[--text] leading-snug">{item.zh}</p>
+        <p className="text-xs font-light text-[--muted] opacity-50 mt-0.5">{item.en}</p>
+      </div>
     </motion.div>
   );
 }
@@ -127,34 +167,20 @@ export default function AboutSection() {
             >
               <p className="text-xs tracking-[0.25em] text-[--accent] uppercase">現況 · Status</p>
               <div className="space-y-3 text-sm font-light">
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">就讀：國立高科大 · 智慧商務系 二年級（燕巢）</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">開放合作・技術交流・有趣對話</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">居住地：高雄 🇹🇼 ↔ 福岡 🇯🇵</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">日本語 N5 学習中</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">得意分野：AI × Web 統合</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">開発環境：Zenbook A14 ARM &nbsp;＋&nbsp; RTX 3070 Desktop</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[--accent] mt-0.5">▸</span>
-                  <span className="text-[--muted]">興趣：交通運輸 · 鐵道研究</span>
-                </div>
+                {[
+                  "就讀：國立高科大 · 智慧商務系 二年級（燕巢）",
+                  "開放合作・技術交流・有趣對話",
+                  "居住地：高雄 🇹🇼 ↔ 福岡 🇯🇵",
+                  "日本語 N5 学習中",
+                  "得意分野：AI × Web 統合",
+                  "開発環境：Zenbook A14 ARM　＋　RTX 3070 Desktop",
+                  "興趣：交通運輸 · 鐵道研究",
+                ].map((line) => (
+                  <div key={line} className="flex items-start gap-3">
+                    <span className="text-[--accent] mt-0.5">▸</span>
+                    <span className="text-[--muted]">{line}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </FadeIn>
@@ -167,34 +193,16 @@ export default function AboutSection() {
           >
             歷程 · Timeline
           </p>
-          <div className="relative mb-16">
-            <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-[--border]" />
-            <div className="space-y-6">
-              {[
-                { year: "2021", zh: "進入市立中正高工 資訊科", en: "Enrolled at Zhongzheng Hi-Tech — Information" },
-                { year: "2022", zh: "加入 FRC 機器人隊 · 學校電腦工場維護志工", en: "FRC robotics team · School lab maintenance" },
-                { year: "2023", zh: "自動跟隨機器人 · 全國専題競賽動力機械群佳作", en: "Auto-following robot · National competition Excellence Award" },
-                { year: "2024", zh: "高工畢業 · 升讀國立高科大 智慧商務系", en: "Graduated · Enrolled at NKUST Intelligent Commerce" },
-                { year: "2025", zh: "完成 FoodLens Advisor & 購票系統", en: "Shipped FoodLens Advisor & ticketing platform" },
-                { year: "2026", zh: "持續建構中 · 仕事在進行", en: "Continuously building" },
-              ].map((item) => (
-                <div key={item.year} className="flex items-start gap-6">
-                  <p
-                    className="text-xs text-[--accent] tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  >
-                    {item.year}
-                  </p>
-                  <div className="relative pl-8">
-                    <div className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-[--accent] bg-[--bg]" />
-                    <p className="text-sm font-light text-[--text] leading-snug">{item.zh}</p>
-                    <p className="text-xs font-light text-[--muted] opacity-50 mt-0.5">{item.en}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </FadeIn>
+
+        <div className="relative mb-16">
+          <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-[--border]" />
+          <div className="space-y-6">
+            {timeline.map((item, i) => (
+              <TimelineItem key={item.year} item={item} index={i} />
+            ))}
+          </div>
+        </div>
 
         <FadeIn delay={0.25}>
           <p
@@ -219,7 +227,7 @@ export default function AboutSection() {
                   {group.items.map((item) => (
                     <span
                       key={item}
-                      className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide"
+                      className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide hover:border-[--accent] hover:text-[--accent] transition-colors cursor-default"
                     >
                       {item}
                     </span>

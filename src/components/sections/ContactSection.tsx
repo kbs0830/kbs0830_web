@@ -1,11 +1,20 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 
 export default function ContactSection() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [copied, setCopied] = useState(false);
+
+  const copyEmail = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigator.clipboard.writeText("1394kbs@gmail.com").then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
 
   return (
     <section id="contact" className="py-20 md:py-32 bg-[--surface]">
@@ -37,16 +46,35 @@ export default function ContactSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <a
-              href="mailto:1394kbs@gmail.com"
-              className="inline-flex items-center justify-center gap-3 px-6 py-3 text-sm font-light tracking-wide bg-[--accent] text-white rounded-sm hover:opacity-90 transition-opacity"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="m2 7 10 7 10-7" />
-              </svg>
-              1394kbs@gmail.com
-            </a>
+            {/* Email with copy feedback */}
+            <div className="relative">
+              <button
+                onClick={copyEmail}
+                className="inline-flex items-center justify-center gap-3 px-6 py-3 text-sm font-light tracking-wide bg-[--accent] text-white rounded-sm hover:opacity-90 transition-opacity w-full sm:w-auto"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m2 7 10 7 10-7" />
+                </svg>
+                1394kbs@gmail.com
+              </button>
+              <AnimatePresence>
+                {copied && (
+                  <motion.span
+                    key="toast"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-[--accent] bg-[--bg] border border-[--border] px-3 py-1 rounded-sm whitespace-nowrap"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    已複製！
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+
             <a
               href="https://github.com/kbs0830"
               target="_blank"
