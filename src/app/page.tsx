@@ -1,4 +1,5 @@
 import NavBar from "@/components/ui/NavBar";
+import BackToTop from "@/components/ui/BackToTop";
 import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
@@ -30,6 +31,7 @@ export default function Home() {
           </p>
         </div>
       </footer>
+      <BackToTop />
     </>
   );
 }
