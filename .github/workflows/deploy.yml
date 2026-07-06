@@ -11,14 +11,8 @@ jobs:
       run:
         working-directory: C:\Users\user\Desktop\kbs0830_web-master
     steps:
-      - name: Pull latest code
-        run: git pull origin main
-
-      - name: Build
-        run: node node_modules\next\dist\bin\next build
-
-      - name: Restart Next.js
-        run: |
-          taskkill /f /im node.exe 2>$null
-          Start-Sleep -Seconds 2
-          Start-ScheduledTask -TaskName "kbs0830_NextJS"
+      # 實際邏輯都在 scripts\deploy.ps1（pull + build + restart + 健檢），
+      # manual 的 deploy.bat 也是呼叫同一份，避免兩邊各自維護、慢慢長歪。
+      # log 會寫進 repo 裡的 logs\deploy.log，方便事後查。
+      - name: Deploy
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\deploy.ps1

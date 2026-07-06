@@ -89,14 +89,45 @@ ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 
 | 服務 | 管理方式 |
 |---|---|
-| Next.js (port 3000) | 工作排程器 `kbs0830_NextJS` |
+| Next.js (port 3000) | 工作排程器 `kbs0830_NextJS`，Action **直接**執行 `node.exe scripts\server.js` |
 | Cloudflare Tunnel | Windows 服務 `Cloudflared` |
 | GitHub Actions Runner | 工作排程器 `GitHubActionsRunner`，位於 `C:\actions-runner` |
 
+Task Scheduler 的 Action：
+```
+Program:   C:\Program Files\nodejs\node.exe
+Arguments: "C:\Users\user\Desktop\kbs0830_web-master\scripts\server.js"
+```
+
+`scripts/server.js` 是包了 request/error log 的自訂 production server（programmatic Next.js API，非 `next start` CLI），
+log 寫在 `logs/server.log`（超過 5MB 自動轉存 `.log.1`）。
+
+**重要：Action 必須直接執行 node.exe，不可以透過任何 wrapper（vbs / cmd / start "..." 分離啟動）。**
+實測驗證過：只要中間多一層 wrapper process（即使是同步、不 detach 的 `.cmd`），Task Scheduler 的 `schtasks /end` /
+`Stop-ScheduledTask` 也只會殺掉它「直接」啟動的那層，不會往下砍掉 wrapper 的子行程（node.exe）——node.exe 會變成殺不掉的孤兒。
+唯有 node.exe 本身就是 Task Scheduler 直接追蹤的那個 process，stop/start 才會每次都準確生效。
+（根源：2026-07 曾發生 build 已更新但實際在跑的舊 process 沒被换掉 → 瀏覽器抓到的 JS chunk 404/500 → 頁面全白，詳見 git log）
+
 ### CI/CD
 
-push 到 `main` → GitHub Actions self-hosted runner → pull + build + restart 全自動。
-Workflow: `.github/workflows/deploy.yml`
+push 到 `main` → GitHub Actions self-hosted runner → `scripts/deploy.ps1`（pull + build + restart + 健康檢查）全自動。
+Workflow: `.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份 script，避免兩邊邏輯各自維護、慢慢長歪。
+
+重啟一律透過 Task Scheduler（`Stop-ScheduledTask` / `Start-ScheduledTask`），不要直接 `taskkill /im node.exe`
+——理由同上，且直接 taskkill 對這個 process 會 access denied（scheduled task 用較高權限啟動）。
+
+重啟後會自動跑 `scripts/verify-deploy.ps1`：確認首頁 200、內容正常、且首頁引用的 JS chunk 真的載得到（200）。
+只要有任何一項不過，CI/deploy.bat 會直接顯示失敗，不會再悄悄留著壞掉的網站沒人發現。
+
+### Log
+
+| 內容 | 位置 |
+|---|---|
+| Server 端 request/error log | `logs/server.log`（`scripts/server.js` 寫入，5MB 自動輪替） |
+| 部署紀錄 | `logs/deploy.log`（`scripts/deploy.ps1` 寫入，manual + CI 共用） |
+| 前端 render 錯誤 | 瀏覽器 console（`error.tsx` / `global-error.tsx`，含 timestamp + digest + path） |
+
+`logs/` 不進版控（見 `.gitignore`），只存在桌機本地。
 
 ### 手動啟動
 
@@ -104,7 +135,7 @@ Workflow: `.github/workflows/deploy.yml`
 # 一鍵啟動 Next.js + Tunnel
 start-server.bat
 
-# 手動部署（pull + build + restart）
+# 手動部署（pull + build + restart + 健康檢查）
 deploy.bat
 ```
 

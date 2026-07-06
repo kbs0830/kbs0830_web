@@ -83,6 +83,17 @@ body {
   }
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+
+@keyframes drift-z {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate(4px, -10px); opacity: 0; }
+}
+
 @media print {
   header, footer, canvas, #back-to-top {
     display: none !important;

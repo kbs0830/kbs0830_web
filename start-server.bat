@@ -1,7 +1,7 @@
 @echo off
 echo Starting kbs0830.com (silent)...
 
-wscript.exe //B "C:\Users\user\Desktop\kbs0830_web-master\start-server-silent.vbs"
+schtasks /run /tn "kbs0830_NextJS"
 
 timeout /t 3 /nobreak >nul
 
