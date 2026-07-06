@@ -33,25 +33,21 @@
 
 ## 🟠 中優先 — 技術品質
 
-- [ ] **自訂 404 頁面**
+- [x] **自訂 404 頁面**
   `src/app/not-found.tsx`，日式風格，帶回首頁按鈕
-  → 目前是 Next.js 預設，體驗很破碎
 
-- [ ] **Security Headers**
+- [x] **Security Headers**
   `next.config.ts` 加 `X-Frame-Options`、`X-Content-Type-Options`、`Referrer-Policy`、`Permissions-Policy`
-  → 基本防護 + Google 安全評分
 
 - [ ] **Noto Serif JP 字體子集化**
   日文字體完整版約 2–4 MB，對 LCP 影響很大
   → Google Fonts `text=` 參數只載入用到的字元
 
-- [ ] **favicon.ico 清除**
-  `src/app/` 同時有靜態 `favicon.ico` 和動態 `icon.tsx`
-  → 刪掉舊的 `favicon.ico`，只保留 `icon.tsx`
+- [x] **favicon.ico 清除**
+  刪掉舊的 `favicon.ico`，只保留 `icon.tsx`（並擴充 32/192/512 三種尺寸供 manifest 使用）
 
-- [ ] **Error Boundary for R3F**
-  HeroScene 若 WebGL 不支援或崩潰，目前整個頁面會白屏
-  → 加 React Error Boundary，fallback 到 CSS 漸層背景
+- [x] **Error Boundary for R3F**
+  HeroScene 加 `SceneErrorBoundary`，WebGL 崩潰時 fallback 到 CSS 漸層背景
 
 - [ ] **Image 格式優化**
   `public/image/大頭貼.jpg` 確認是否有 `sizes` 屬性、是否可轉 WebP
@@ -61,9 +57,8 @@
   Performance / Accessibility / Best Practices / SEO 四項目標全 90+
   → 找出低垂果實（圖片未壓縮、render-blocking font、缺 alt 等）
 
-- [ ] **Twitter / X Card meta tag**
-  目前 OG 設定對 FB/LINE 有效，但 X 需要獨立的 `twitter:card` meta
-  → `layout.tsx` 加 `twitter` metadata 欄位
+- [x] **Twitter / X Card meta tag**
+  `layout.tsx` metadata 加 `twitter` 欄位
 
 - [ ] **Uptime 監控**
   UptimeRobot 免費方案，每 5 分鐘 ping 一次，掛掉發 Email / LINE Notify
@@ -104,7 +99,7 @@
   每個技能加熟練度 bar 或點數（1–5），視覺化比純列表更直觀
   → 設計上要克制，用細線而非粗進度條
 
-- [ ] **Print / PDF 樣式**
+- [x] **Print / PDF 樣式**
   `@media print` CSS，隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
 
 - [ ] **頁面 Loading 骨架屏**
@@ -118,9 +113,8 @@
   滑鼠靠近 CTA 按鈕時微微吸引游標
   → mousemove 計算偏移量，translate3d 實現，無需額外函式庫
 
-- [ ] **自訂滾動條樣式（Mobile）**
-  目前只有 webkit 滾動條，Firefox 需要 `scrollbar-color`
-  → 兩行 CSS，統一體驗
+- [x] **自訂滾動條樣式（Mobile）**
+  Firefox 加 `scrollbar-color` / `scrollbar-width`
 
 - [ ] **頁面切換動畫**
   進入 `/projects/[slug]` 詳細頁時加 slide-in / fade 過場
@@ -138,16 +132,15 @@
   Docker 部署，隱私友好，無 cookie banner
   → 了解哪個 section 被看最久、哪個作品被點最多
 
-- [ ] **PWA Manifest**
+- [x] **PWA Manifest**
   `src/app/manifest.ts`，讓手機版可「加到主畫面」
 
-- [ ] **/now 頁面**
-  當下在做什麼、在學什麼、在聽什麼
-  → 類似 nownownow.com 傳統，保持頁面更新感
+- [x] **/now 頁面**
+  當下在做什麼、在學什麼
+  → 類似 nownownow.com 傳統
 
-- [ ] **/uses 頁面**
+- [x] **/uses 頁面**
   開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
-  → 工程師圈很受歡迎
 
 - [ ] **GitHub 貢獻熱力圖**
   About section 嵌入 contribution graph
@@ -249,3 +242,4 @@
 - [x] 暗色模式（CSS variable + localStorage toggle）
 - [x] icon.tsx + opengraph-image.tsx + BackToTop 從舊分支移植
 - [x] 刪除舊分支（master、fix/layout-width-og-image）
+- [x] About section 加入「足跡 · Footprint」— 已到訪國家（日本／泰國／香港／美國）與規劃中（韓國／新加坡／馬來西亞／越南）

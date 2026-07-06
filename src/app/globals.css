@@ -41,6 +41,8 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: var(--border) var(--surface);
+  scrollbar-width: thin;
 }
 
 body {
@@ -78,5 +80,38 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  header, footer, canvas, #back-to-top {
+    display: none !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    background: none !important;
+    color: #000 !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  section {
+    padding: 0.5cm 0 !important;
+    break-inside: avoid;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #000 !important;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
   }
 }

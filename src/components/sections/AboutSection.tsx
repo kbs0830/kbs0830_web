@@ -52,6 +52,20 @@ const skills = [
   },
 ];
 
+const visitedCountries = [
+  { flag: "🇯🇵", country: "日本", countryEn: "Japan", cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"] },
+  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"] },
+  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [] },
+  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"] },
+];
+
+const planningCountries = [
+  { flag: "🇰🇷", country: "韓國", countryEn: "South Korea" },
+  { flag: "🇸🇬", country: "新加坡", countryEn: "Singapore" },
+  { flag: "🇲🇾", country: "馬來西亞", countryEn: "Malaysia" },
+  { flag: "🇻🇳", country: "越南", countryEn: "Vietnam" },
+];
+
 const timeline = [
   { year: "2021", zh: "進入市立中正高工 資訊科",                      en: "Enrolled at Zhongzheng Hi-Tech — Information" },
   { year: "2022", zh: "加入 FRC 機器人隊 · 學校電腦工場維護志工",      en: "FRC robotics team · School lab maintenance" },
@@ -235,6 +249,73 @@ export default function AboutSection() {
                 </div>
               </div>
             ))}
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.3}>
+          <p
+            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-8 mt-16"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            足跡 · Footprint
+          </p>
+          <div className="space-y-8">
+            <div className="space-y-4">
+              {visitedCountries.map((c) => (
+                <div
+                  key={c.country}
+                  className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start"
+                >
+                  <div>
+                    <p
+                      className="text-xs tracking-[0.2em] text-[--accent] uppercase"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      {c.flag} {c.countryEn}
+                    </p>
+                    <p className="text-xs text-[--muted] font-light mt-0.5">{c.country}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {c.cities.length > 0 ? (
+                      c.cities.map((city) => (
+                        <span
+                          key={city}
+                          className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide hover:border-[--accent] hover:text-[--accent] transition-colors cursor-default"
+                        >
+                          {city}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide">
+                        已到訪
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-[--border]">
+              <div>
+                <p
+                  className="text-xs tracking-[0.2em] text-[--muted] uppercase"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                  Planning
+                </p>
+                <p className="text-xs text-[--muted] font-light mt-0.5 opacity-70">規劃中</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {planningCountries.map((c) => (
+                  <span
+                    key={c.country}
+                    className="px-3 py-1 text-xs font-light text-[--muted] border border-dashed border-[--border] rounded-sm tracking-wide opacity-70 cursor-default"
+                  >
+                    {c.flag} {c.country}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </FadeIn>
       </div>

@@ -3,11 +3,16 @@
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-[--bg]" />,
 });
+
+const SceneFallback = () => (
+  <div className="absolute inset-0 bg-gradient-to-br from-[--bg] via-[--surface] to-[--bg]" />
+);
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -34,9 +39,11 @@ export default function HeroSection() {
       className="relative min-h-screen flex flex-col justify-center overflow-hidden"
     >
       {isMobile ? (
-        <div className="absolute inset-0 bg-gradient-to-br from-[--bg] via-[--surface] to-[--bg]" />
+        <SceneFallback />
       ) : (
-        <HeroScene />
+        <SceneErrorBoundary fallback={<SceneFallback />}>
+          <HeroScene />
+        </SceneErrorBoundary>
       )}
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">

@@ -32,6 +32,11 @@ export const metadata: Metadata = {
     url: "https://kbs0830.com",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "PINGWEI LI — 学生開発者 · Portfolio",
+    description: "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。",
+  },
 };
 
 const jsonLd = {

@@ -1,9 +1,23 @@
 import { ImageResponse } from "next/og";
 
-export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-export default function Icon() {
+const variants = [
+  { id: "32", width: 32, height: 32 },
+  { id: "192", width: 192, height: 192 },
+  { id: "512", width: 512, height: 512 },
+];
+
+export function generateImageMetadata() {
+  return variants.map(({ id, width, height }) => ({
+    id,
+    size: { width, height },
+    contentType,
+  }));
+}
+
+export default function Icon({ id }: { id: string }) {
+  const { width, height } = variants.find((v) => v.id === id) ?? variants[0];
   return new ImageResponse(
     (
       <div
@@ -14,13 +28,13 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          borderRadius: "5px",
+          borderRadius: width * 0.15,
         }}
       >
         <span
           style={{
             color: "white",
-            fontSize: 13,
+            fontSize: width * 0.4,
             fontWeight: 300,
             letterSpacing: "0.06em",
             fontFamily: "Georgia, serif",
@@ -30,6 +44,6 @@ export default function Icon() {
         </span>
       </div>
     ),
-    { ...size }
+    { width, height }
   );
 }
