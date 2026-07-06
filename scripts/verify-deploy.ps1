@@ -1,6 +1,8 @@
-# 部署後健檢：確認 server 回應正常，且首頁引用的 JS chunk 真的載得到。
+﻿# 部署後健檢：確認 server 回應正常，且首頁引用的 JS chunk 真的載得到。
 # 這正是之前「process 沒重啟、chunk hash 對不上」導致全白頁面的那個 bug ——
 # 這裡直接把它變成一個會讓部署失敗的自動檢查，不會再悄悄留著壞掉的網站。
+
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $ErrorActionPreference = "Stop"
 $url = "http://localhost:3000/"
