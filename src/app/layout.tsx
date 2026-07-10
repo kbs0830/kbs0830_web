@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     title: "PINGWEI LI — Portfolio",
-    description: "高雄出身的學生開達者，專注於 AI 工具應用與網頁開發。",
+    description: "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。",
     url: "https://kbs0830.com",
     type: "website",
   },
@@ -53,7 +53,11 @@ const jsonLd = {
     addressLocality: "Kaohsiung",
     addressCountry: "TW",
   },
-  sameAs: ["https://github.com/kbs0830"],
+  sameAs: [
+    "https://github.com/kbs0830",
+    "https://www.facebook.com/tra0830",
+    "https://www.instagram.com/pingwei_0830/",
+  ],
   knowsAbout: ["Python", "FastAPI", "YOLOv8", "Next.js", "React", "TypeScript", "Machine Learning"],
 };
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "/now — PINGWEI LI",
   description: "現在在做什麼、在學什麼",
+  alternates: { canonical: "/now" },
 };
 
 const now = [

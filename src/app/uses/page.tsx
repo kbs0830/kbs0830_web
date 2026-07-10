@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "/uses — PINGWEI LI",
   description: "開発環境・硬體・軟體工具清單",
+  alternates: { canonical: "/uses" },
 };
 
 const groups = [

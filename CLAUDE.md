@@ -253,6 +253,26 @@ deploy.bat
 
 ---
 
+## SEO
+
+| 項目 | 位置 |
+|---|---|
+| 全站預設 metadata（title/description/OG/Twitter card） | `src/app/layout.tsx` |
+| Person JSON-LD（含 `sameAs` 社群連結） | `src/app/layout.tsx` 的 `jsonLd` |
+| Sitemap | `src/app/sitemap.ts` |
+| robots.txt | `src/app/robots.ts` |
+| OG 分享圖 | `src/app/opengraph-image.tsx` |
+
+**⚠️ 加新頁面時必記得設定 `alternates.canonical`。** Next.js 的 metadata 是逐層 merge，
+子頁面沒有自己宣告 `alternates` 就會直接繼承 root layout 的 `alternates.canonical: "/"`。
+2026-07 就抓到這個問題：`/now` 跟 `/uses` 都曾經在 `<head>` 裡宣告
+`<link rel="canonical" href="https://kbs0830.com"/>`，等於告訴 Google 這兩頁都是首頁的
+重複內容，實質上讓它們不會被獨立索引。**新增任何 `page.tsx` 都要在該頁的
+`export const metadata` 裡加 `alternates: { canonical: "/該頁路徑" }`**，同時記得把新頁面
+加進 `sitemap.ts`。
+
+---
+
 ## Project Structure
 
 ```
