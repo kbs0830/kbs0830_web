@@ -50,13 +50,15 @@ export default function ContactSection() {
             <div className="relative">
               <button
                 onClick={copyEmail}
-                className="inline-flex items-center justify-center gap-3 px-6 py-3 text-sm font-light tracking-wide bg-(--accent) text-white rounded-sm hover:opacity-90 transition-opacity w-full sm:w-auto"
+                className="group relative inline-flex items-center gap-3 pb-2 text-sm font-light tracking-wide text-(--text)"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="2" y="4" width="20" height="16" rx="2" />
                   <path d="m2 7 10 7 10-7" />
                 </svg>
                 1394kbs@gmail.com
+                <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
+                <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
               </button>
               <AnimatePresence>
                 {copied && (

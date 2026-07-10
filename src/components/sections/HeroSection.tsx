@@ -100,7 +100,7 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.div
-          className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center"
+          className="flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -108,15 +108,19 @@ export default function HeroSection() {
         >
           <a
             href="#portfolio"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide bg-(--accent) text-white rounded-sm hover:opacity-90 transition-opacity"
+            className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--text)"
           >
             查看作品 · View Work
+            <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
+            <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
           </a>
           <a
             href="#contact"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide border border-(--border) text-(--muted) rounded-sm hover:border-(--accent) hover:text-(--accent) transition-colors"
+            className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors"
           >
             聯絡我 · Contact
+            <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
+            <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
           </a>
         </motion.div>
       </div>
