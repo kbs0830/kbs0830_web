@@ -6,16 +6,10 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 $repo = Split-Path -Parent $PSScriptRoot
-$logDir = Join-Path $repo "logs"
-$logFile = Join-Path $logDir "deploy.log"
+$logFile = Join-Path $repo "logs\deploy.log"
 
-if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
-
-function Log($msg) {
-    $line = "[$(Get-Date -Format o)] $msg"
-    Write-Host $line
-    Add-Content -Path $logFile -Value $line -Encoding utf8
-}
+. (Join-Path $PSScriptRoot "lib\logger.ps1")
+function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
 
 Set-Location $repo
 
