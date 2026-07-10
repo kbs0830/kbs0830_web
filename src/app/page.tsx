@@ -15,16 +15,16 @@ export default function Home() {
         <PortfolioSection />
         <ContactSection />
       </main>
-      <footer className="py-8 border-t border-[--border]">
+      <footer className="py-8 border-t border-(--border)">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-between gap-2">
           <p
-            className="text-xs text-[--muted] font-light tracking-[0.2em]"
+            className="text-xs text-(--muted) font-light tracking-[0.2em]"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             © 2026 PINGWEI LI
           </p>
           <p
-            className="text-xs text-[--border] font-light tracking-[0.15em]"
+            className="text-xs text-(--border) font-light tracking-[0.15em]"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             高雄 · 福岡

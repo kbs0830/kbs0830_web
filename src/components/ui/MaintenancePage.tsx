@@ -48,32 +48,32 @@ export default function MaintenancePage({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-[--bg]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-(--bg)">
       <button
         onClick={toggle}
         aria-label="切換背景 · Toggle background"
-        className="fixed top-6 right-6 w-9 h-9 rounded-full border border-[--border] flex items-center justify-center text-[--muted] hover:text-[--accent] hover:border-[--accent] transition-colors"
+        className="fixed top-6 right-6 w-9 h-9 rounded-full border border-(--border) flex items-center justify-center text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors"
       >
         {dark ? <SunIcon /> : <MoonIcon />}
       </button>
 
-      <div className="mb-8 text-[--accent]">
+      <div className="mb-8 text-(--accent)">
         <SleepyMascot />
       </div>
 
       <p
-        className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-6"
+        className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-6"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         System · 調整中
       </p>
       <h1
-        className="text-3xl sm:text-4xl font-light text-[--text] mb-4 text-center"
+        className="text-3xl sm:text-4xl font-light text-(--text) mb-4 text-center"
         style={{ fontFamily: "var(--font-serif)" }}
       >
         少々お待ちください &nbsp;·&nbsp; One Moment
       </h1>
-      <p className="text-sm font-light text-[--muted] mb-2 text-center max-w-sm leading-relaxed">
+      <p className="text-sm font-light text-(--muted) mb-2 text-center max-w-sm leading-relaxed">
         網站暫時遇到一點小狀況，正在修復中。
         <br />
         Something went a little wrong — we&apos;re on it.
@@ -81,7 +81,7 @@ export default function MaintenancePage({
 
       {errorMessage && (
         <p
-          className="text-xs font-light text-[--muted] opacity-70 mt-4 mb-2 text-center max-w-md break-words"
+          className="text-xs font-light text-(--muted) opacity-70 mt-4 mb-2 text-center max-w-md break-words"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           {errorMessage}
@@ -92,14 +92,14 @@ export default function MaintenancePage({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="inline-flex items-center justify-center px-6 py-3 text-sm font-light tracking-wide bg-[--accent] text-white rounded-sm hover:opacity-90 transition-opacity"
+            className="inline-flex items-center justify-center px-6 py-3 text-sm font-light tracking-wide bg-(--accent) text-white rounded-sm hover:opacity-90 transition-opacity"
           >
             重新整理 · Try Again
           </button>
         )}
         <Link
           href="/"
-          className="inline-flex items-center justify-center px-6 py-3 text-sm font-light tracking-wide border border-[--border] text-[--text] rounded-sm hover:border-[--accent] hover:text-[--accent] transition-colors"
+          className="inline-flex items-center justify-center px-6 py-3 text-sm font-light tracking-wide border border-(--border) text-(--text) rounded-sm hover:border-(--accent) hover:text-(--accent) transition-colors"
         >
           返回首頁 · Back Home
         </Link>

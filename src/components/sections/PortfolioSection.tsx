@@ -5,10 +5,10 @@ import { motion, useInView } from "framer-motion";
 import { projects, personalProjects, courseProjects } from "@/lib/projects";
 
 const statusColor: Record<string, string> = {
-  "完成":     "text-[--accent] border-[--accent-lt] bg-[--accent-lt]",
+  "完成":     "text-(--accent) border-(--accent-lt) bg-(--accent-lt)",
   "製作中":   "text-amber-600 border-amber-100 bg-amber-50",
   "課程専題": "text-violet-600 border-violet-100 bg-violet-50",
-  "學習記録": "text-[--muted] border-[--border] bg-[--surface]",
+  "學習記録": "text-(--muted) border-(--border) bg-(--surface)",
 };
 
 function ProjectCard({
@@ -27,16 +27,16 @@ function ProjectCard({
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.1 }}
-      className="group relative border border-[--border] bg-[--bg] rounded-sm p-7 hover:border-[--accent] hover:-translate-y-1 transition-all duration-300 flex flex-col"
+      className="group relative border border-(--border) bg-(--bg) rounded-sm p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col"
     >
-      <div className="absolute top-0 left-0 h-[2px] w-0 bg-[--accent] group-hover:w-full transition-all duration-500 rounded-t-sm" />
+      <div className="absolute top-0 left-0 h-[2px] w-0 bg-(--accent) group-hover:w-full transition-all duration-500 rounded-t-sm" />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p
-              className="text-xs tracking-[0.25em] text-[--muted]"
+              className="text-xs tracking-[0.25em] text-(--muted)"
               style={{ fontFamily: "var(--font-mono)" }}
             >
               {project.titleJa}
@@ -48,15 +48,15 @@ function ProjectCard({
               {project.status}
             </span>
           </div>
-          <h3 className="text-base font-light text-[--text] leading-snug">{project.titleZh}</h3>
-          <p className="text-xs text-[--muted] font-light mt-0.5 opacity-60">{project.title}</p>
+          <h3 className="text-base font-light text-(--text) leading-snug">{project.titleZh}</h3>
+          <p className="text-xs text-(--muted) font-light mt-0.5 opacity-60">{project.title}</p>
         </div>
         {project.github && (
           <a
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[--border] hover:text-[--accent] transition-colors ml-3 mt-1 shrink-0"
+            className="text-(--border) hover:text-(--accent) transition-colors ml-3 mt-1 shrink-0"
             aria-label="GitHub"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -67,16 +67,16 @@ function ProjectCard({
       </div>
 
       {/* 中文說明（主） */}
-      <p className="text-[13px] font-light text-[--text] leading-relaxed mb-2">
+      <p className="text-[13px] font-light text-(--text) leading-relaxed mb-2">
         {project.descriptionZh}
       </p>
-      <p className="text-[12px] font-light text-[--muted] leading-relaxed mb-4 opacity-60">
+      <p className="text-[12px] font-light text-(--muted) leading-relaxed mb-4 opacity-60">
         {project.description}
       </p>
 
       {/* Highlight */}
       <div
-        className="text-[11px] text-[--accent] font-light mb-4 pl-3 border-l-2 border-[--accent-lt] space-y-0.5"
+        className="text-[11px] text-(--accent) font-light mb-4 pl-3 border-l-2 border-(--accent-lt) space-y-0.5"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         <div>{project.highlightZh}</div>
@@ -88,7 +88,7 @@ function ProjectCard({
         {project.tags.map((tag) => (
           <span
             key={tag}
-            className="px-2 py-0.5 text-[11px] font-light text-[--muted] bg-[--surface] border border-[--border] rounded-sm"
+            className="px-2 py-0.5 text-[11px] font-light text-(--muted) bg-(--surface) border border-(--border) rounded-sm"
           >
             {tag}
           </span>
@@ -109,9 +109,9 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
       transition={{ duration: 0.5 }}
       className="flex items-center gap-4 mb-6"
     >
-      <div className="w-5 h-[1px] bg-[--accent]" />
+      <div className="w-5 h-[1px] bg-(--accent)" />
       <p
-        className="text-xs tracking-[0.3em] text-[--accent] uppercase"
+        className="text-xs tracking-[0.3em] text-(--accent) uppercase"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         {label} &nbsp;·&nbsp; {labelZh}
@@ -137,18 +137,18 @@ export default function PortfolioSection() {
           className="mb-10 md:mb-16"
         >
           <p
-            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-4"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-4"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             Work
           </p>
           <h2
-            className="text-3xl sm:text-4xl font-light text-[--text] mb-3"
+            className="text-3xl sm:text-4xl font-light text-(--text) mb-3"
             style={{ fontFamily: "var(--font-serif)" }}
           >
             製作物 · Portfolio
           </h2>
-          <p className="text-sm font-light text-[--muted]">
+          <p className="text-sm font-light text-(--muted)">
             自分で開発した作品と、課程中の学習専題。
           </p>
         </motion.div>
@@ -174,7 +174,7 @@ export default function PortfolioSection() {
         </div>
 
         <motion.p
-          className="text-xs text-[--muted] font-light mt-10 text-center tracking-wide opacity-50"
+          className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50"
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 0.5 } : {}}
           transition={{ delay: 0.8 }}

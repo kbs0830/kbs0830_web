@@ -102,20 +102,20 @@ function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.08 }}
     >
       <p
-        className="text-xs text-[--accent] tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
+        className="text-xs text-(--accent) tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         {item.year}
       </p>
       <div className="relative pl-8">
         <motion.div
-          className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-[--accent] bg-[--bg]"
+          className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg)"
           initial={{ scale: 0 }}
           animate={inView ? { scale: 1 } : {}}
           transition={{ duration: 0.3, delay: index * 0.08 + 0.15 }}
         />
-        <p className="text-sm font-light text-[--text] leading-snug">{item.zh}</p>
-        <p className="text-xs font-light text-[--muted] opacity-50 mt-0.5">{item.en}</p>
+        <p className="text-sm font-light text-(--text) leading-snug">{item.zh}</p>
+        <p className="text-xs font-light text-(--muted) opacity-50 mt-0.5">{item.en}</p>
       </div>
     </motion.div>
   );
@@ -123,17 +123,17 @@ function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 md:py-32 bg-[--surface]">
+    <section id="about" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
         <FadeIn>
           <p
-            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-4"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-4"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             About
           </p>
           <h2
-            className="text-3xl sm:text-4xl font-light text-[--text] mb-10 md:mb-16"
+            className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16"
             style={{ fontFamily: "var(--font-serif)" }}
           >
             自己紹介 &nbsp;·&nbsp; 關於我
@@ -153,20 +153,20 @@ export default function AboutSection() {
                   priority
                 />
               </div>
-              <p className="text-[--text]">
-                在<span className="text-[--accent]">台灣高雄</span>與<span className="text-[--accent]">日本福岡</span>之間生活——
+              <p className="text-(--text)">
+                在<span className="text-(--accent)">台灣高雄</span>與<span className="text-(--accent)">日本福岡</span>之間生活——
                 兩座城市的節奏與細節，深深影響了我對軟體設計的思考方式。
               </p>
-              <p className="text-[--muted]">
+              <p className="text-(--muted)">
                 我的工作落在 AI 與網頁的交叉點：讓模型做它該做的事，
                 讓介面不妨礙使用者，讓程式碼能被下一個人讀懂。
               </p>
-              <p className="text-[--muted]">
+              <p className="text-(--muted)">
                 目前仍在學習中，持續建構 side project，
                 探索本地端 ML 推理與精緻 UI 之間的可能性。
               </p>
-              <div className="pt-2 border-t border-[--border]">
-                <p className="text-[--muted] text-sm">
+              <div className="pt-2 border-t border-(--border)">
+                <p className="text-(--muted) text-sm">
                   I'm a developer based between Kaohsiung and Fukuoka, exploring the
                   intersection of AI inference, web interfaces, and thoughtful system design.
                 </p>
@@ -176,10 +176,10 @@ export default function AboutSection() {
 
           <FadeIn delay={0.15}>
             <div
-              className="p-6 border border-[--border] rounded-sm bg-[--bg] space-y-4"
+              className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4"
               style={{ fontFamily: "var(--font-mono)" }}
             >
-              <p className="text-xs tracking-[0.25em] text-[--accent] uppercase">現況 · Status</p>
+              <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
               <div className="space-y-3 text-sm font-light">
                 {[
                   "就讀：國立高科大 · 智慧商務系 二年級（燕巢）",
@@ -191,8 +191,8 @@ export default function AboutSection() {
                   "興趣：交通運輸 · 鐵道研究",
                 ].map((line) => (
                   <div key={line} className="flex items-start gap-3">
-                    <span className="text-[--accent] mt-0.5">▸</span>
-                    <span className="text-[--muted]">{line}</span>
+                    <span className="text-(--accent) mt-0.5">▸</span>
+                    <span className="text-(--muted)">{line}</span>
                   </div>
                 ))}
               </div>
@@ -202,7 +202,7 @@ export default function AboutSection() {
 
         <FadeIn delay={0.2}>
           <p
-            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-8 mt-12"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8 mt-12"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             歷程 · Timeline
@@ -210,7 +210,7 @@ export default function AboutSection() {
         </FadeIn>
 
         <div className="relative mb-16">
-          <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-[--border]" />
+          <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--border)" />
           <div className="space-y-6">
             {timeline.map((item, i) => (
               <TimelineItem key={item.year} item={item} index={i} />
@@ -220,7 +220,7 @@ export default function AboutSection() {
 
         <FadeIn delay={0.25}>
           <p
-            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-8"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             技能 · Skills
@@ -230,18 +230,18 @@ export default function AboutSection() {
               <div key={group.category} className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start">
                 <div>
                   <p
-                    className="text-xs tracking-[0.2em] text-[--accent] uppercase"
+                    className="text-xs tracking-[0.2em] text-(--accent) uppercase"
                     style={{ fontFamily: "var(--font-mono)" }}
                   >
                     {group.categoryEn}
                   </p>
-                  <p className="text-xs text-[--muted] font-light mt-0.5">{group.category}</p>
+                  <p className="text-xs text-(--muted) font-light mt-0.5">{group.category}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {group.items.map((item) => (
                     <span
                       key={item}
-                      className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide hover:border-[--accent] hover:text-[--accent] transition-colors cursor-default"
+                      className="px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default"
                     >
                       {item}
                     </span>
@@ -254,7 +254,7 @@ export default function AboutSection() {
 
         <FadeIn delay={0.3}>
           <p
-            className="text-xs tracking-[0.35em] text-[--muted] uppercase mb-8 mt-16"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8 mt-16"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             足跡 · Footprint
@@ -268,25 +268,25 @@ export default function AboutSection() {
                 >
                   <div>
                     <p
-                      className="text-xs tracking-[0.2em] text-[--accent] uppercase"
+                      className="text-xs tracking-[0.2em] text-(--accent) uppercase"
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
                       {c.flag} {c.countryEn}
                     </p>
-                    <p className="text-xs text-[--muted] font-light mt-0.5">{c.country}</p>
+                    <p className="text-xs text-(--muted) font-light mt-0.5">{c.country}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {c.cities.length > 0 ? (
                       c.cities.map((city) => (
                         <span
                           key={city}
-                          className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide hover:border-[--accent] hover:text-[--accent] transition-colors cursor-default"
+                          className="px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default"
                         >
                           {city}
                         </span>
                       ))
                     ) : (
-                      <span className="px-3 py-1 text-xs font-light text-[--muted] border border-[--border] rounded-sm bg-[--surface] tracking-wide">
+                      <span className="px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide">
                         已到訪
                       </span>
                     )}
@@ -295,21 +295,21 @@ export default function AboutSection() {
               ))}
             </div>
 
-            <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-[--border]">
+            <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-(--border)">
               <div>
                 <p
-                  className="text-xs tracking-[0.2em] text-[--muted] uppercase"
+                  className="text-xs tracking-[0.2em] text-(--muted) uppercase"
                   style={{ fontFamily: "var(--font-mono)" }}
                 >
                   Planning
                 </p>
-                <p className="text-xs text-[--muted] font-light mt-0.5 opacity-70">規劃中</p>
+                <p className="text-xs text-(--muted) font-light mt-0.5 opacity-70">規劃中</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {planningCountries.map((c) => (
                   <span
                     key={c.country}
-                    className="px-3 py-1 text-xs font-light text-[--muted] border border-dashed border-[--border] rounded-sm tracking-wide opacity-70 cursor-default"
+                    className="px-3 py-1 text-xs font-light text-(--muted) border border-dashed border-(--border) rounded-sm tracking-wide opacity-70 cursor-default"
                   >
                     {c.flag} {c.country}
                   </span>

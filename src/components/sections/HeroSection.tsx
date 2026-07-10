@@ -7,11 +7,11 @@ import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
-  loading: () => <div className="absolute inset-0 bg-[--bg]" />,
+  loading: () => <div className="absolute inset-0 bg-(--bg)" />,
 });
 
 const SceneFallback = () => (
-  <div className="absolute inset-0 bg-gradient-to-br from-[--bg] via-[--surface] to-[--bg]" />
+  <div className="absolute inset-0 bg-gradient-to-br from-(--bg) via-(--surface) to-(--bg)" />
 );
 
 const fadeUp = {
@@ -48,7 +48,7 @@ export default function HeroSection() {
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
         <motion.p
-          className="text-xs tracking-[0.35em] text-[--muted] mb-6 uppercase"
+          className="text-xs tracking-[0.35em] text-(--muted) mb-6 uppercase"
           style={{ fontFamily: "var(--font-mono)" }}
           variants={fadeUp}
           initial="hidden"
@@ -59,7 +59,7 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.h1
-          className="text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-[--text] mb-4"
+          className="text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -69,7 +69,7 @@ export default function HeroSection() {
         </motion.h1>
 
         <motion.p
-          className="text-base font-light text-[--accent] tracking-[0.25em] mb-8"
+          className="text-base font-light text-(--accent) tracking-[0.25em] mb-8"
           style={{ fontFamily: "var(--font-mono)" }}
           variants={fadeUp}
           initial="hidden"
@@ -80,7 +80,7 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.p
-          className="text-lg sm:text-xl font-light text-[--muted] max-w-lg leading-relaxed mb-3"
+          className="text-lg sm:text-xl font-light text-(--muted) max-w-lg leading-relaxed mb-3"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -90,7 +90,7 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.p
-          className="text-base font-light text-[--muted] max-w-lg leading-relaxed mb-12 opacity-70"
+          className="text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12 opacity-70"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -108,13 +108,13 @@ export default function HeroSection() {
         >
           <a
             href="#portfolio"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide bg-[--accent] text-white rounded-sm hover:opacity-90 transition-opacity"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide bg-(--accent) text-white rounded-sm hover:opacity-90 transition-opacity"
           >
             查看作品 · View Work
           </a>
           <a
             href="#contact"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide border border-[--border] text-[--muted] rounded-sm hover:border-[--accent] hover:text-[--accent] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 text-sm font-light tracking-wide border border-(--border) text-(--muted) rounded-sm hover:border-(--accent) hover:text-(--accent) transition-colors"
           >
             聯絡我 · Contact
           </a>
@@ -122,12 +122,12 @@ export default function HeroSection() {
       </div>
 
       <motion.div
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[--muted]"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.8 }}
       >
-        <div className="w-[1px] h-12 bg-[--border] animate-pulse" />
+        <div className="w-[1px] h-12 bg-(--border) animate-pulse" />
       </motion.div>
     </section>
   );

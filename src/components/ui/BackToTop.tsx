@@ -22,7 +22,7 @@ export default function BackToTop() {
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.25 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-6 z-40 w-10 h-10 flex items-center justify-center border border-[--border] bg-[--bg] text-[--muted] hover:border-[--accent] hover:text-[--accent] transition-colors rounded-sm"
+          className="fixed bottom-8 right-6 z-40 w-10 h-10 flex items-center justify-center border border-(--border) bg-(--bg) text-(--muted) hover:border-(--accent) hover:text-(--accent) transition-colors rounded-sm"
           aria-label="返回頂端"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

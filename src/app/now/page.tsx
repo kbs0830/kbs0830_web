@@ -17,29 +17,29 @@ const now = [
 
 export default function NowPage() {
   return (
-    <div className="min-h-screen bg-[--bg] px-6 py-20">
+    <div className="min-h-screen bg-(--bg) px-6 py-20">
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="text-xs tracking-[0.2em] text-[--muted] hover:text-[--accent] transition-colors"
+          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回首頁
         </Link>
 
         <p
-          className="text-xs tracking-[0.35em] text-[--muted] uppercase mt-10 mb-4"
+          className="text-xs tracking-[0.35em] text-(--muted) uppercase mt-10 mb-4"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           Now
         </p>
         <h1
-          className="text-3xl sm:text-4xl font-light text-[--text] mb-4"
+          className="text-3xl sm:text-4xl font-light text-(--text) mb-4"
           style={{ fontFamily: "var(--font-serif)" }}
         >
           現在 &nbsp;·&nbsp; What I&apos;m doing
         </h1>
-        <p className="text-sm font-light text-[--muted] mb-14 leading-relaxed">
+        <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">
           這個頁面記錄我當下的狀態，會不定期更新。
           <br />
           靈感來自{" "}
@@ -47,7 +47,7 @@ export default function NowPage() {
             href="https://nownownow.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[--accent] hover:opacity-70 transition-opacity"
+            className="text-(--accent) hover:opacity-70 transition-opacity"
           >
             nownownow.com
           </a>{" "}
@@ -57,8 +57,8 @@ export default function NowPage() {
         <ul className="space-y-4">
           {now.map((line) => (
             <li key={line} className="flex items-start gap-3 text-sm font-light">
-              <span className="text-[--accent] mt-0.5">▸</span>
-              <span className="text-[--text]">{line}</span>
+              <span className="text-(--accent) mt-0.5">▸</span>
+              <span className="text-(--text)">{line}</span>
             </li>
           ))}
         </ul>

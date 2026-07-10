@@ -44,29 +44,29 @@ const groups = [
 
 export default function UsesPage() {
   return (
-    <div className="min-h-screen bg-[--bg] px-6 py-20">
+    <div className="min-h-screen bg-(--bg) px-6 py-20">
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="text-xs tracking-[0.2em] text-[--muted] hover:text-[--accent] transition-colors"
+          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回首頁
         </Link>
 
         <p
-          className="text-xs tracking-[0.35em] text-[--muted] uppercase mt-10 mb-4"
+          className="text-xs tracking-[0.35em] text-(--muted) uppercase mt-10 mb-4"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           Uses
         </p>
         <h1
-          className="text-3xl sm:text-4xl font-light text-[--text] mb-4"
+          className="text-3xl sm:text-4xl font-light text-(--text) mb-4"
           style={{ fontFamily: "var(--font-serif)" }}
         >
           開発環境 &nbsp;·&nbsp; 我用的工具
         </h1>
-        <p className="text-sm font-light text-[--muted] mb-14 leading-relaxed">
+        <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">
           硬體、軟體與日常開發用的工具清單。
         </p>
 
@@ -74,7 +74,7 @@ export default function UsesPage() {
           {groups.map((group) => (
             <div key={group.title}>
               <p
-                className="text-xs tracking-[0.2em] text-[--accent] uppercase mb-4"
+                className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
                 {group.title}
@@ -82,10 +82,10 @@ export default function UsesPage() {
               <ul className="space-y-2.5">
                 {group.items.map((item) => (
                   <li key={item.name} className="flex items-start gap-3 text-sm font-light">
-                    <span className="text-[--accent] mt-0.5">▸</span>
+                    <span className="text-(--accent) mt-0.5">▸</span>
                     <span>
-                      <span className="text-[--text]">{item.name}</span>
-                      <span className="text-[--muted]"> — {item.detail}</span>
+                      <span className="text-(--text)">{item.name}</span>
+                      <span className="text-(--muted)"> — {item.detail}</span>
                     </span>
                   </li>
                 ))}

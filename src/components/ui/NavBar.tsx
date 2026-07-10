@@ -31,11 +31,9 @@ export default function NavBar() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = stored === "dark" || (!stored && prefersDark);
-    setDark(isDark);
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    // 主題偵測/預設值已經由 layout.tsx 裡的 inline script 在 hydration 前處理過了，
+    // 這裡只需要讀出已經套用的結果，同步給 React state 用（icon、nav 背景色）。
+    setDark(document.documentElement.getAttribute("data-theme") === "dark");
   }, []);
 
   const toggleDark = () => {
@@ -88,14 +86,14 @@ export default function NavBar() {
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <motion.div
-        className="absolute top-0 left-0 right-0 h-[2px] bg-[--accent] origin-left"
+        className="absolute top-0 left-0 right-0 h-[2px] bg-(--accent) origin-left"
         style={{ scaleX }}
       />
 
       <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="#top"
-          className="text-sm font-light tracking-[0.2em] text-[--text] hover:text-[--accent] transition-colors"
+          className="text-sm font-light tracking-[0.2em] text-(--text) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           kbs0830
@@ -108,7 +106,7 @@ export default function NavBar() {
               <a
                 href={href}
                 className={`text-sm font-light tracking-wide transition-colors ${
-                  activeSection === id ? "text-[--accent]" : "text-[--muted] hover:text-[--accent]"
+                  activeSection === id ? "text-(--accent)" : "text-(--muted) hover:text-(--accent)"
                 }`}
               >
                 {label}
@@ -118,7 +116,7 @@ export default function NavBar() {
           <li>
             <button
               onClick={toggleDark}
-              className="w-8 h-8 flex items-center justify-center text-[--muted] hover:text-[--accent] transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
               aria-label={dark ? "切換亮色模式" : "切換暗色模式"}
             >
               {dark ? <SunIcon /> : <MoonIcon />}
@@ -130,7 +128,7 @@ export default function NavBar() {
         <div className="flex sm:hidden items-center gap-2">
           <button
             onClick={toggleDark}
-            className="w-8 h-8 flex items-center justify-center text-[--muted] hover:text-[--accent] transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
             aria-label={dark ? "切換亮色模式" : "切換暗色模式"}
           >
             {dark ? <SunIcon /> : <MoonIcon />}
@@ -141,17 +139,17 @@ export default function NavBar() {
             aria-label="選單"
           >
             <motion.span
-              className="block w-5 h-[1px] bg-[--muted]"
+              className="block w-5 h-[1px] bg-(--muted)"
               animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className="block w-5 h-[1px] bg-[--muted]"
+              className="block w-5 h-[1px] bg-(--muted)"
               animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
               transition={{ duration: 0.15 }}
             />
             <motion.span
-              className="block w-5 h-[1px] bg-[--muted]"
+              className="block w-5 h-[1px] bg-(--muted)"
               animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.2 }}
             />
@@ -161,7 +159,7 @@ export default function NavBar() {
 
       {/* Mobile drawer */}
       <motion.div
-        className="sm:hidden overflow-hidden bg-[--bg]"
+        className="sm:hidden overflow-hidden bg-(--bg)"
         initial={false}
         animate={{ height: menuOpen ? "auto" : 0 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
@@ -174,7 +172,7 @@ export default function NavBar() {
                 href={href}
                 onClick={() => setMenuOpen(false)}
                 className={`block text-sm font-light tracking-wide transition-colors ${
-                  activeSection === id ? "text-[--accent]" : "text-[--muted]"
+                  activeSection === id ? "text-(--accent)" : "text-(--muted)"
                 }`}
               >
                 {label}
