@@ -72,6 +72,14 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 `tracking-[0.2em]` 這種），不是變數參照。新增顏色相關 class 前，建議打開 `.next/static/chunks/*.css`
 或用瀏覽器 DevTools 確認該 class 真的產生了 `var(--xxx)`，而不是裸變數名稱。
 
+**⚠️ 附帶地雷：Tailwind v4 會把 `.md` 也當成 class candidate 來源。** 修上面這個 bug 時，
+`CLAUDE.md` 裡拿 `bg-[--accent]` 當反例說明文字，結果 Tailwind 的自動掃描（沒有
+`tailwind.config.js`，靠掃全 repo 找 candidate）把這段 markdown 文字誤判成真的 class，
+編譯出一條一樣壞掉的規則——連 `.next` 整個砍掉重建都沒用，因為來源就是 `CLAUDE.md` 本身，
+不是快取問題。已經在 `globals.css` 加 `@source not "../../**/*.md";` 排除所有 `.md`。
+以後在任何 `.md` 檔裡示範 Tailwind class 語法（尤其是故意寫錯的反例）都要有這個排除規則還在，
+不然文件本身會偷偷污染編譯出來的 CSS。
+
 ---
 
 ## Tech Stack

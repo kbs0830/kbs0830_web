@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind v4 掃描整個 repo（含 .md）找 class candidate，CLAUDE.md 裡拿 `bg-[--accent]`
+   當反例說明會被誤判成真的 class、生出一條垃圾規則。文件不該是 utility class 來源，全部排除。 */
+@source not "../../**/*.md";
+
 :root {
   --bg:        #fafaf8;
   --surface:   #f0ede8;
