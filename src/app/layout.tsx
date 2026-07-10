@@ -43,6 +43,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "PINGWEI LI",
+  alternateName: "李秉威",
   url: "https://kbs0830.com",
   email: "1394kbs@gmail.com",
   jobTitle: "AI Engineer / Web Developer",

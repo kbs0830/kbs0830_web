@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| Display name | **PINGWEI LI**（不顯示中文本名） |
+| Display name | **PINGWEI LI**（頁面可見內容一律不顯示中文本名；本名「李秉威」只允許出現在 SEO 用的不可見結構化資料，見 Key Constraints 第 1 條） |
 | GitHub | kbs0830 |
 | Email | 1394kbs@gmail.com |
 | Base | 高雄，台灣 🇹🇼 ↔ 福岡，日本 🇯🇵 |
@@ -311,7 +311,12 @@ kbs0830_web/
 
 ## Key Constraints
 
-1. **名稱**：只用 `PINGWEI LI`，不寫中文本名
+1. **名稱**：頁面上可見的內容（標題、內文、meta description、OG/Twitter 卡片預覽文字等任何
+   使用者或搜尋結果會直接讀到的地方）一律只用 `PINGWEI LI`，不寫中文本名「李秉威」。
+   **例外（2026-07 使用者確認）**：本名可以放在 `layout.tsx` 的 Person JSON-LD 的
+   `alternateName` 欄位——這是不會 render 出來給人看的結構化資料，只給搜尋引擎讀，
+   目的是讓「李秉威」也搜得到這個網站。新增任何本名相關內容前，先確認它是不是使用者
+   看得到的內容；只有「不可見、純給爬蟲讀」的欄位才能放本名。
 2. **語言**：中文優先，雙語格式 `中文 · English`
 3. **顏色**：`#2d5a8e` 是唯一強調色，用量克制
 4. **動畫**：subtle only，60fps，不跳不彈不閃
