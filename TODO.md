@@ -58,6 +58,21 @@
   → 目前不知道遠端 build 有沒有炸
   → 若採 Email 通知，收件位址同上用 `otemon.pcwork@gmail.com`
 
+- [ ] **Cloudflare 防火牆規則封鎖常見掃描路徑**
+  → 2026-07 log 分析發現：10 天內 39% 的請求（7799 筆）是自動化漏洞掃描器打
+    `/wp-admin`、`/.env*`、`/.git/config`、`/cgi-bin/luci` 這類路徑，全部正確
+    404、沒有任何實際洩漏，屬於任何公開 IP 都會收到的網路背景雜訊，不是被鎖定攻擊
+  → 加幾條 Cloudflare WAF/Firewall Rules 直接在邊緣擋掉這些已知路徑，能大幅減少
+    log 雜訊、省一點頻寬，非緊急，詳見 `LOG分析.md` 第 2 節
+
+- [ ] **零停機部署**
+  → 2026-07 log 分析發現：20 次部署裡有 2 次在 Task Scheduler 重啟的瞬間交接空窗
+    撞上少量請求，共 4 筆 500（占全部請求 0.02%），`verify-deploy.ps1` 每次都在
+    重啟後立刻確認恢復正常，影響範圍很小
+  → 目前架構（單一 process 給 Task Scheduler 直接管理）本來就無法完全避免這個
+    空窗，要做到零停機需要雙 process 交替之類的架構改動，複雜度是否值得由你評估，
+    詳見 `LOG分析.md` 第 3 節
+
 ---
 
 ## 🟡 中低優先 — UX 升級
@@ -178,6 +193,10 @@
 - [x] Husky + lint-staged（commit 前自動跑 lint-staged `eslint --fix` + 全專案 `tsc --noEmit`）
 - [x] Renovate Bot（`.github/workflows/renovate.yml`，用現有 self-hosted runner 跑 Renovate CLI，
   不需安裝 GitHub App，每週一自動開 PR，不自動合併）
-- [x] 訪客來源統計小工具（Footer，自己刻的，不用 Clustrmaps：`scripts/server.js` 讀 Cloudflare Tunnel
-  自動帶的 `cf-ipcountry` header，只聚合國家層級次數存 `data/visitor-stats.json`，不記 IP；
-  `/api/visitor-stats` 吐彙總資料，`VisitorStats.tsx` 顯示「訪客來自 N 國 + 前 5 名國旗」）
+- [x] 訪客來源統計小工具（Footer，自己刻的，不用 Clustrmaps：讀 Cloudflare Tunnel 自動帶的
+  `cf-ipcountry` header，只聚合國家層級次數存 `data/visitor-stats.json`，不記 IP；
+  `/api/visitor-stats` 吐彙總資料，`VisitorStats.tsx` 顯示「共 N 次造訪 · 來自 M 國 + 前 5 名國旗」）
+- [x] LOG 分析（見 `LOG分析.md`）：10 天 log 顯示應用層 0 錯誤、20 次部署全成功；發現並修好
+  訪客統計被偽裝瀏覽器 UA 的掃描器污染的問題（改成前端執行 JS 後才 POST 回報計數，
+  不執行 JS 的掃描器從根本上排除，不再只靠容易被繞過的 UA 黑名單）；順便修掉一個
+  Turbopack NFT over-trace 的 build 警告
