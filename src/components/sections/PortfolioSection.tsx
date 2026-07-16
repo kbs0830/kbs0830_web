@@ -1,8 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { projects, personalProjects, courseProjects } from "@/lib/projects";
+import RevealHeading from "@/components/ui/RevealHeading";
+
+const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
+  a.localeCompare(b, "en")
+);
 
 const statusColor: Record<string, string> = {
   "完成":     "text-(--accent) border-(--accent-lt) bg-(--accent-lt)",
@@ -120,9 +125,57 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   );
 }
 
+function TagFilterBar({
+  activeTag,
+  onSelect,
+}: {
+  activeTag: string | null;
+  onSelect: (tag: string | null) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 mb-10 md:mb-14">
+      <button
+        onClick={() => onSelect(null)}
+        className={`px-3 py-1 text-[11px] font-light rounded-sm border tracking-wide transition-colors ${
+          activeTag === null
+            ? "text-(--accent) border-(--accent) bg-(--accent-lt)"
+            : "text-(--muted) border-(--border) bg-(--surface) hover:border-(--accent) hover:text-(--accent)"
+        }`}
+        style={{ fontFamily: "var(--font-mono)" }}
+      >
+        全部 · All
+      </button>
+      {allTags.map((tag) => (
+        <button
+          key={tag}
+          onClick={() => onSelect(activeTag === tag ? null : tag)}
+          className={`px-3 py-1 text-[11px] font-light rounded-sm border tracking-wide transition-colors ${
+            activeTag === tag
+              ? "text-(--accent) border-(--accent) bg-(--accent-lt)"
+              : "text-(--muted) border-(--border) bg-(--surface) hover:border-(--accent) hover:text-(--accent)"
+          }`}
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {tag}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function PortfolioSection() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const filteredPersonal = useMemo(
+    () => (activeTag ? personalProjects.filter((p) => p.tags.includes(activeTag)) : personalProjects),
+    [activeTag]
+  );
+  const filteredCourse = useMemo(
+    () => (activeTag ? courseProjects.filter((p) => p.tags.includes(activeTag)) : courseProjects),
+    [activeTag]
+  );
 
   return (
     <section id="portfolio" className="py-20 md:py-32">
@@ -142,36 +195,47 @@ export default function PortfolioSection() {
           >
             Work
           </p>
-          <h2
+          <RevealHeading
+            text="製作物 · Portfolio"
             className="text-3xl sm:text-4xl font-light text-(--text) mb-3"
             style={{ fontFamily: "var(--font-serif)" }}
-          >
-            製作物 · Portfolio
-          </h2>
+          />
           <p className="text-sm font-light text-(--muted)">
             自分で開発した作品と、課程中の学習専題。
           </p>
         </motion.div>
 
+        <TagFilterBar activeTag={activeTag} onSelect={setActiveTag} />
+
         {/* 個人専案 */}
-        <div className="mb-10 md:mb-16">
-          <SectionLabel label="Personal Projects" labelZh="個人専案" />
-          <div className="grid md:grid-cols-2 gap-5">
-            {personalProjects.map((p, i) => (
-              <ProjectCard key={p.slug} project={p} index={i} />
-            ))}
+        {filteredPersonal.length > 0 && (
+          <div className="mb-10 md:mb-16">
+            <SectionLabel label="Personal Projects" labelZh="個人専案" />
+            <div className="grid md:grid-cols-2 gap-5">
+              {filteredPersonal.map((p, i) => (
+                <ProjectCard key={p.slug} project={p} index={i} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 課程専題 */}
-        <div>
-          <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {courseProjects.map((p, i) => (
-              <ProjectCard key={p.slug} project={p} index={i} />
-            ))}
+        {filteredCourse.length > 0 && (
+          <div>
+            <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredCourse.map((p, i) => (
+                <ProjectCard key={p.slug} project={p} index={i} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {filteredPersonal.length === 0 && filteredCourse.length === 0 && (
+          <p className="text-sm font-light text-(--muted) text-center py-12">
+            沒有符合「{activeTag}」的作品。
+          </p>
+        )}
 
         <motion.p
           className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50"

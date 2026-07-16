@@ -1,5 +1,9 @@
 import NavBar from "@/components/ui/NavBar";
 import BackToTop from "@/components/ui/BackToTop";
+import LocalClock from "@/components/ui/LocalClock";
+import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
+import KonamiEgg from "@/components/ui/KonamiEgg";
+import TerminalMode from "@/components/ui/TerminalMode";
 import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
@@ -23,15 +27,13 @@ export default function Home() {
           >
             © 2026 PINGWEI LI
           </p>
-          <p
-            className="text-xs text-(--border) font-light tracking-[0.15em]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            高雄 · 福岡
-          </p>
+          <LocalClock />
         </div>
       </footer>
       <BackToTop />
+      <KeyboardShortcuts />
+      <KonamiEgg />
+      <TerminalMode />
     </>
   );
 }

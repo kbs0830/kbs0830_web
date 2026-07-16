@@ -4,14 +4,36 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
+import Magnetic from "@/components/ui/Magnetic";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
-  loading: () => <div className="absolute inset-0 bg-(--bg)" />,
+  loading: () => <HeroSceneSkeleton />,
 });
 
 const SceneFallback = () => (
   <div className="absolute inset-0 bg-gradient-to-br from-(--bg) via-(--surface) to-(--bg)" />
+);
+
+// 稀疏細線骨架屏，呼應真正場景的視覺語言，避免載入期間是一片空白。
+const HeroSceneSkeleton = () => (
+  <div className="absolute inset-0 bg-(--bg) overflow-hidden">
+    {Array.from({ length: 7 }).map((_, i) => (
+      <span
+        key={i}
+        className="absolute h-px bg-(--accent)"
+        style={{
+          width: `${18 + ((i * 11) % 34)}%`,
+          left: `${(i * 19) % 70}%`,
+          top: `${8 + ((i * 13) % 78)}%`,
+          opacity: 0.12 + (i % 3) * 0.04,
+          transform: `rotate(${(i * 41) % 180}deg)`,
+          animation: `breathe ${2.6 + i * 0.3}s ease-in-out infinite`,
+          animationDelay: `${i * 0.2}s`,
+        }}
+      />
+    ))}
+  </div>
 );
 
 const fadeUp = {
@@ -23,8 +45,39 @@ const fadeUp = {
   }),
 };
 
+const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
+
+function useTypewriter(text: string, startDelay = 0, speed = 42) {
+  const [display, setDisplay] = useState("");
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setDisplay(text);
+      return;
+    }
+    let i = 0;
+    let interval: ReturnType<typeof setInterval>;
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        i++;
+        setDisplay(text.slice(0, i));
+        if (i >= text.length) clearInterval(interval);
+      }, speed);
+    }, startDelay);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [text, startDelay, speed]);
+
+  return display;
+}
+
 export default function HeroSection() {
   const [isMobile, setIsMobile] = useState(false);
+  const typedSubtitle = useTypewriter(SUBTITLE_TEXT, 950);
+  const subtitleDone = typedSubtitle.length === SUBTITLE_TEXT.length;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -69,14 +122,20 @@ export default function HeroSection() {
         </motion.h1>
 
         <motion.p
-          className="text-base font-light text-(--accent) tracking-[0.25em] mb-8"
+          className="text-base font-light text-(--accent) tracking-[0.25em] mb-8 min-h-[1.5em]"
           style={{ fontFamily: "var(--font-mono)" }}
           variants={fadeUp}
           initial="hidden"
           animate="visible"
           custom={0.35}
         >
-          学生開発者 &nbsp;·&nbsp; Claude × Gemini
+          {typedSubtitle}
+          <span
+            aria-hidden
+            className={`inline-block w-[2px] h-[0.9em] bg-(--accent) ml-0.5 align-middle ${
+              subtitleDone ? "opacity-0" : "animate-pulse"
+            }`}
+          />
         </motion.p>
 
         <motion.p
@@ -106,22 +165,26 @@ export default function HeroSection() {
           animate="visible"
           custom={0.6}
         >
-          <a
-            href="#portfolio"
-            className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--text)"
-          >
-            查看作品 · View Work
-            <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
-            <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
-          </a>
-          <a
-            href="#contact"
-            className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors"
-          >
-            聯絡我 · Contact
-            <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
-            <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
-          </a>
+          <Magnetic>
+            <a
+              href="#portfolio"
+              className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--text)"
+            >
+              查看作品 · View Work
+              <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
+              <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
+            </a>
+          </Magnetic>
+          <Magnetic>
+            <a
+              href="#contact"
+              className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors"
+            >
+              聯絡我 · Contact
+              <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
+              <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
+            </a>
+          </Magnetic>
         </motion.div>
       </div>
 

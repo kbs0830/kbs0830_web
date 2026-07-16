@@ -73,15 +73,15 @@
 
 ## 🟡 中低優先 — UX 升級
 
-- [ ] **專案 Tag 篩選**
+- [x] **專案 Tag 篩選**
   Portfolio section 加 filter bar，依 tag（Python / Next.js / AI…）篩選卡片
   → 讓技術面試官快速找到相關作品
 
-- [ ] **聯絡表單**
-  EmailJS 或 Formspree，訪客直接在頁面輸入留言
-  → 不是每個人都有郵件客戶端
+- [x] **聯絡表單**
+  無後端依賴的 mailto 版：填姓名／訊息後組 `mailto:` 連結開啟本機郵件客戶端
+  → 如果之後想要「不離開頁面直接送出」，仍可換成 EmailJS / Formspree（需要你申請帳號）
 
-- [ ] **Hero 副標動態打字效果**
+- [x] **Hero 副標動態打字效果**
   `学生開発者 · Claude × Gemini` 改為逐字顯示的 typewriter 效果
   → 只需 Framer Motion `staggerChildren`，成本低但視覺感強
 
@@ -89,29 +89,30 @@
   場景隨游標位置微微傾斜（lerp 平滑），尊重 prefers-reduced-motion
   → 讓 Hero 從裝飾變成可互動的名片
 
-- [ ] **Skills 分類可展開 / 收合**
-  技能列表目前全展開，加 accordion 讓頁面不那麼長
+- [x] **Skills 分類可展開 / 收合**
+  技能列表改 accordion（預設只展開第一組），標題列可點擊切換
   → 特別是手機版
 
-- [ ] **About 時間軸：hover 展開更多細節**
-  目前每筆只有兩行，hover/click 展開更多說明（成果數據、照片）
+- [x] **About 時間軸：hover 展開更多細節**
+  每筆項目 hover / click（含鍵盤 Enter/Space）展開一行補充說明
 
-- [ ] **Skills 熟練度視覺化**
-  每個技能加熟練度 bar 或點數（1–5），視覺化比純列表更直觀
+- [x] **Skills 熟練度視覺化**
+  每個技能 chip 內加 1–5 點的細小圓點指示熟練度
   → 設計上要克制，用細線而非粗進度條
+  → 熟練度數字是我依專案經驗estimate 的初稿，數字本身你比我更清楚，有需要再調
 
 - [x] **Print / PDF 樣式**
   `@media print` CSS，隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
 
-- [ ] **頁面 Loading 骨架屏**
-  首次載入時，Suspense fallback 改為有形狀的 skeleton 而非空白
+- [x] **頁面 Loading 骨架屏**
+  Hero 3D 場景載入中改成呼應真實場景的稀疏細線骨架屏，不再是空白
 
-- [ ] **Scroll-triggered 文字逐字揭示**
-  大標題或段落文字以逐字 / 逐行 reveal 動畫進場
+- [x] **Scroll-triggered 文字逐字揭示**
+  About / Portfolio / Contact 三個 section 標題改逐字 reveal 動畫進場
   → Framer Motion `staggerChildren`，日式設計感很強
 
-- [ ] **磁吸按鈕效果（Magnetic Button）**
-  滑鼠靠近 CTA 按鈕時微微吸引游標
+- [x] **磁吸按鈕效果（Magnetic Button）**
+  Hero 兩顆 CTA ＋ Contact 四個連結，滑鼠靠近時微微吸引游標
   → mousemove 計算偏移量，translate3d 實現，無需額外函式庫
 
 - [x] **自訂滾動條樣式（Mobile）**
@@ -120,10 +121,12 @@
 - [ ] **頁面切換動畫**
   進入 `/projects/[slug]` 詳細頁時加 slide-in / fade 過場
   → Framer Motion `AnimatePresence` + layout transitions
+  → 卡住：前提的 `/projects/[slug]` 詳細頁還沒蓋（見高優先清單），這項要等那個先做完
 
 - [ ] **圖片燈箱（Lightbox）**
   專案詳細頁截圖點擊後放大，支援鍵盤左右切換
   → 自製或用 yet-another-react-lightbox（輕量）
+  → 卡住：同上，依賴 `/projects/[slug]` 詳細頁
 
 ---
 
@@ -132,6 +135,7 @@
 - [ ] **Analytics（Umami 自托管）**
   Docker 部署，隱私友好，無 cookie banner
   → 了解哪個 section 被看最久、哪個作品被點最多
+  → 需要在桌機決定要不要跑 Docker、佔用資源，這個部署決定要你來拍板，先跳過
 
 - [x] **PWA Manifest**
   `src/app/manifest.ts`，讓手機版可「加到主畫面」
@@ -143,49 +147,52 @@
 - [x] **/uses 頁面**
   開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
 
-- [ ] **GitHub 貢獻熱力圖**
-  About section 嵌入 contribution graph
+- [x] **GitHub 貢獻熱力圖**
+  About section 嵌入公開無需驗證的 ghchart.rshah.org contribution graph
   → 視覺化開發活躍度，證明你在動
+  → 該服務只吐白底 SVG（不隨主題變色），暗色模式下是一塊白色卡片，算是可接受的取捨；有帳號的話之後可換 GitHub 官方 API 自己畫、跟著主題切換
 
 - [ ] **Spotify 正在聽**
   用 Spotify API 顯示「目前正在播放」或「最近在聽」
   → 裝飾性但很有個性，讓作品集有生命感
+  → 需要你去 Spotify Developer Dashboard 申請 Client ID/Secret，我這邊沒有帳號無法自己申請，先跳過
 
 - [ ] **訪客地圖 / 來源統計小工具**
   Footer 或 About 顯示訪客地圖（Clustrmaps 嵌入）
   → 很多個人網站都有，增加互動感
+  → 需要你先去 Clustrmaps 註冊帳號拿嵌入碼，先跳過
 
-- [ ] **暗色模式 OG image**
-  `opengraph-image.tsx` 固定亮色，可依系統偏好動態切換
-
-- [ ] **Keyboard Shortcuts**
+- [x] **Keyboard Shortcuts**
   `G` → GitHub、`E` → Email、`1/2/3` → section 快速跳轉
   → 工程師喜歡的細節，加 `?` 呼出快捷鍵提示浮窗
 
-- [ ] **彩蛋：Konami Code**
-  ↑↑↓↓←→←→BA 觸發特殊動畫（3D 爆炸 / 日文歡迎詞 / 隱藏頁面）
+- [x] **彩蛋：Konami Code**
+  ↑↑↓↓←→←→BA 觸發「ようこそ」日文歡迎詞全螢幕彩蛋
   → 展示個性，技術訪客一定會試
 
-- [ ] **彩蛋：終端機模式**
+- [x] **彩蛋：終端機模式**
   按 `` ` `` 叫出偽終端機，輸入指令可查看作品集資訊
   → `help` / `ls projects` / `cat about.txt` / `ssh kbs0830@kbs0830.com`
   → 很 hacker，和你的技術背景超搭
 
-- [ ] **時區 / 現地時間顯示**
-  NavBar 或 Footer 顯示高雄現在時間（或高雄 + 福岡雙時區）
+- [x] **時區 / 現地時間顯示**
+  Footer 顯示高雄 + 福岡雙時區現地時間，每 30 秒更新
   → 一句 JS，視覺效果很好
 
 - [ ] **多語言路由（i18n）**
   `/ja`、`/zh` 路由，Next.js App Router i18n
   → 針對日本訪客完整日文版
+  → 規模大（每頁都要日文全文翻譯＋路由架構），且跟目前「中文優先」語言方針要先對齊，先跳過，之後想做再開新的討論
 
 - [ ] **開源貢獻 section**
   若有 PR 合併到外部 repo，GitHub API 自動拉取展示
   → 未來加分項
+  → 抓「合併到別人 repo 的 PR」需要 GitHub Search API + 篩選邏輯，且要先確認你有沒有這類 PR 可展示，先跳過
 
 - [ ] **GitHub README 同步**
   `kbs0830/kbs0830` profile README 設計與個人網站風格統一
   → 進 GitHub 主頁也有一致體驗
+  → 這個改的是另一個 repo（`kbs0830/kbs0830`），不在這份 codebase 裡，先跳過
 
 ---
 
