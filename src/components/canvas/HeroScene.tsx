@@ -1,9 +1,49 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect, useState, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import * as THREE from "three";
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return reduced;
+}
+
+// 讓整個場景隨游標位置微微傾斜，把 Hero 從純裝飾變成可互動的名片。
+function PointerRig({ children }: { children: ReactNode }) {
+  const group = useRef<THREE.Group>(null);
+  const target = useRef({ x: 0, y: 0 });
+  const reduced = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (reduced) return;
+    const handleMove = (e: PointerEvent) => {
+      target.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      target.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener("pointermove", handleMove);
+    return () => window.removeEventListener("pointermove", handleMove);
+  }, [reduced]);
+
+  useFrame(() => {
+    if (!group.current || reduced) return;
+    const g = group.current;
+    g.rotation.y += (target.current.x * 0.18 - g.rotation.y) * 0.04;
+    g.rotation.x += (-target.current.y * 0.12 - g.rotation.x) * 0.04;
+  });
+
+  return <group ref={group}>{children}</group>;
+}
 
 function Lines() {
   const ref = useRef<THREE.Group>(null);
@@ -96,10 +136,12 @@ export default function HeroScene() {
       dpr={[1, 1.5]}
     >
       <ambientLight intensity={0.5} />
-      <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
-        <Lines />
-      </Float>
-      <Dots />
+      <PointerRig>
+        <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
+          <Lines />
+        </Float>
+        <Dots />
+      </PointerRig>
     </Canvas>
   );
 }

@@ -61,6 +61,7 @@
   `layout.tsx` metadata 加 `twitter` 欄位
 
 - [ ] **Uptime 監控**
+
   UptimeRobot 免費方案，每 5 分鐘 ping 一次，掛掉發 Email / LINE Notify
   → 桌機有時重開機會停服，要知道網站什麼時候斷了
 
@@ -84,8 +85,8 @@
   `学生開発者 · Claude × Gemini` 改為逐字顯示的 typewriter 效果
   → 只需 Framer Motion `staggerChildren`，成本低但視覺感強
 
-- [ ] **Hero 3D 場景互動**
-  點擊粒子改變顏色或形狀，滾輪控制密度
+- [x] **Hero 3D 場景互動**
+  場景隨游標位置微微傾斜（lerp 平滑），尊重 prefers-reduced-motion
   → 讓 Hero 從裝飾變成可互動的名片
 
 - [ ] **Skills 分類可展開 / 收合**
