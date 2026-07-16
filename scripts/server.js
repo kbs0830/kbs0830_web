@@ -18,42 +18,16 @@ const MAX_LOG_BYTES = 5 * 1024 * 1024; // 5MB，超過就轉存成 .log.1
 
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 
-// 訪客來源國家統計：只記國家層級的聚合次數，不記 IP、不記任何個人可識別資訊。
-// 資料來源是 Cloudflare Tunnel 轉發過來的請求本來就帶著的 `cf-ipcountry` header
-// （Cloudflare edge 加的，不需要額外串任何第三方服務、不需要註冊帳號）。
-const dataDir = path.join(projectDir, "data");
-const visitorStatsFile = path.join(dataDir, "visitor-stats.json");
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+// 訪客來源國家統計的資料檔路徑（實際讀寫在 src/app/api/visitor-stats/route.ts，
+// 由前端 VisitorStats.tsx 執行 JS 之後主動回報，不是這裡對每個 request 做判斷——
+// 2026-07 才發現舊做法只看 User-Agent 有沒有寫 "bot" 完全擋不住偽裝成瀏覽器的掃描器，
+// 混進了一筆假的訪客國家）。
 // Task Scheduler 啟動這個 process 時沒有設定 working directory（process.cwd() 會是
 // C:\Windows\System32 之類的地方，不是專案根目錄），所以把絕對路徑用環境變數傳給
-// Next.js 的 API route（/api/visitor-stats），不要讓那邊自己用 process.cwd() 猜路徑。
-process.env.VISITOR_STATS_FILE = visitorStatsFile;
-
-let visitorStats = {};
-try {
-  visitorStats = JSON.parse(fs.readFileSync(visitorStatsFile, "utf8"));
-} catch {
-  visitorStats = {};
-}
-
-const BOT_UA_PATTERN = /bot|spider|crawl|slurp|facebookexternalhit|preview/i;
-
-function recordVisit(req, res) {
-  if (req.method !== "GET") return;
-  const url = req.url || "";
-  if (url.startsWith("/api/") || url.startsWith("/_next/")) return;
-  if (/\.[a-zA-Z0-9]+$/.test(url.split("?")[0])) return; // 排除靜態資源（有副檔名的路徑）
-  if (res.statusCode !== 200) return;
-  if (BOT_UA_PATTERN.test(req.headers["user-agent"] || "")) return;
-
-  const country = (req.headers["cf-ipcountry"] || "XX").toUpperCase();
-  visitorStats[country] = (visitorStats[country] || 0) + 1;
-  try {
-    fs.writeFileSync(visitorStatsFile, JSON.stringify(visitorStats));
-  } catch (err) {
-    log(`WARN 寫入 visitor-stats.json 失敗: ${err}`);
-  }
-}
+// 那支 API route，不要讓那邊自己用 process.cwd() 猜路徑。
+const dataDir = path.join(projectDir, "data");
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+process.env.VISITOR_STATS_FILE = path.join(dataDir, "visitor-stats.json");
 
 function rotateIfNeeded() {
   try {
@@ -84,7 +58,6 @@ app
       const start = Date.now();
       res.on("finish", () => {
         log(`${req.method} ${req.url} ${res.statusCode} ${Date.now() - start}ms`);
-        recordVisit(req, res);
       });
       try {
         await handle(req, res);

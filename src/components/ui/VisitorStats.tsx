@@ -18,20 +18,23 @@ export default function VisitorStats() {
   const [stats, setStats] = useState<VisitorStatsData | null>(null);
 
   useEffect(() => {
-    fetch("/api/visitor-stats")
+    // POST 本身就是這次造訪的回報（只有真的執行這段 JS 的瀏覽器才會打到），
+    // 回傳值直接是回報後的最新彙總，不用再多打一次 GET。
+    fetch("/api/visitor-stats", { method: "POST" })
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
   }, []);
 
-  if (!stats || stats.countryCount === 0) return null;
+  if (!stats || stats.total === 0) return null;
 
   return (
     <p
       className="text-xs text-(--border) font-light tracking-[0.15em]"
       style={{ fontFamily: "var(--font-mono)" }}
     >
-      訪客來自 {stats.countryCount} 國 {stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}
+      共 {stats.total} 次造訪 · 來自 {stats.countryCount} 國{" "}
+      {stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}
     </p>
   );
 }
