@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // scripts/*.js 是直接用 `node scripts/xxx.js` 執行的 CommonJS Node 腳本，
+    // 不是 src/ 底下的 TypeScript app 程式碼，require() 在這裡是正常寫法。
+    files: ["scripts/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

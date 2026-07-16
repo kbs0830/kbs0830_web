@@ -300,6 +300,19 @@ deploy.bat
 
 ## 第三方整合
 
+### 訪客來源統計（自架，非 Clustrmaps）
+- 不用第三方服務（不需要註冊帳號）：`scripts/server.js` 的 `recordVisit()` 讀 Cloudflare Tunnel
+  轉發請求時本來就帶著的 `cf-ipcountry` header（Cloudflare edge 加的），只排除 `/api/`、
+  `/_next/`、有副檔名的靜態資源、非 200、常見 bot UA 之後，把「國家」層級的次數累加寫進
+  `data/visitor-stats.json`（`.gitignore`，只留在桌機本地，不進版控，跟 `logs/` 同等級）
+- **只存國家代碼＋次數，不存 IP、不存任何個人可識別資訊**
+- `src/app/api/visitor-stats/route.ts` 讀這份 JSON 回傳彙總（total／countryCount／前 5 名），
+  `src/components/ui/VisitorStats.tsx`（Footer）用 regional indicator symbol 公式把國碼即時轉成
+  國旗 emoji 顯示，不需要維護國碼對照表
+- 改 `scripts/server.js` 之後要記得跑一次 `node node_modules/eslint/bin/eslint.js scripts/server.js`——
+  這個檔案是 CommonJS，`eslint.config.mjs` 裡已經對 `scripts/**/*.js` 關掉
+  `@typescript-eslint/no-require-imports`，不要因為 lint 錯誤誤以為要把它改寫成 ESM
+
 ### Spotify「正在聽」
 - 元件：`src/components/ui/SpotifyNowPlaying.tsx`，後端：`src/app/api/spotify/now-playing/route.ts`
 - 用 `SPOTIFY_REFRESH_TOKEN` 換 access token，抓「正在播放／最近播放」單曲

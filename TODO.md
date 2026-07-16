@@ -86,11 +86,6 @@
   → 了解哪個 section 被看最久、哪個作品被點最多
   → 需要在桌機決定要不要跑 Docker、佔用資源，這個部署決定要你來拍板，先跳過
 
-- [ ] **訪客地圖 / 來源統計小工具**
-  Footer 或 About 顯示訪客地圖（Clustrmaps 嵌入）
-  → 很多個人網站都有，增加互動感
-  → 需要你先去 Clustrmaps 註冊帳號拿嵌入碼，先跳過
-
 - [ ] **多語言路由（i18n）**
   `/ja`、`/zh` 路由，Next.js App Router i18n
   → 針對日本訪客完整日文版
@@ -183,3 +178,6 @@
 - [x] Husky + lint-staged（commit 前自動跑 lint-staged `eslint --fix` + 全專案 `tsc --noEmit`）
 - [x] Renovate Bot（`.github/workflows/renovate.yml`，用現有 self-hosted runner 跑 Renovate CLI，
   不需安裝 GitHub App，每週一自動開 PR，不自動合併）
+- [x] 訪客來源統計小工具（Footer，自己刻的，不用 Clustrmaps：`scripts/server.js` 讀 Cloudflare Tunnel
+  自動帶的 `cf-ipcountry` header，只聚合國家層級次數存 `data/visitor-stats.json`，不記 IP；
+  `/api/visitor-stats` 吐彙總資料，`VisitorStats.tsx` 顯示「訪客來自 N 國 + 前 5 名國旗」）

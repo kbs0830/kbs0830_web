@@ -20,6 +20,9 @@
 # runtime logs
 /logs/
 
+# runtime data (visitor country counter, etc.)
+/data/
+
 # production
 /build
 
