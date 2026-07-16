@@ -147,10 +147,20 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
 }
 
 const visitedCountries = [
-  { flag: "🇯🇵", country: "日本", countryEn: "Japan", cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"] },
-  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"] },
-  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [] },
-  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"] },
+  {
+    flag: "🇯🇵",
+    country: "日本",
+    countryEn: "Japan",
+    cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"],
+    flights: [
+      "BR112", "BR119", "BR120", "BR147", "BR177", "BR183", "CI138", "EH430",
+      "GK12", "IT271", "IT700", "JL107", "JL130", "JL2174", "MM32", "MM859",
+      "NH289", "NH407", "NH462", "TR899",
+    ],
+  },
+  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"], flights: ["BR61", "EK384"] },
+  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [], flights: ["BR858", "BR891", "CI936", "EK384"] },
+  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"], flights: ["UA2498", "UA871", "UA872"] },
 ];
 
 const planningCountries = [
@@ -406,10 +416,16 @@ export default function AboutSection() {
 
         <FadeIn delay={0.3}>
           <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8 mt-16"
+            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-2 mt-16"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             足跡 · Footprint
+          </p>
+          <p
+            className="text-xs text-(--muted) font-light opacity-70 mb-8"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
           </p>
           <div className="space-y-8">
             <div className="space-y-4">
@@ -443,6 +459,14 @@ export default function AboutSection() {
                       </span>
                     )}
                   </div>
+                  {c.flights.length > 0 && (
+                    <p
+                      className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      {c.flights.join(" · ")}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
