@@ -146,21 +146,57 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
   );
 }
 
-const visitedCountries = [
+interface VisitedFlight {
+  code: string;
+  aircraft?: string; // 例如 "A350-900"、"787-9（長榮彩繪機）"
+}
+
+interface VisitedCountry {
+  flag: string;
+  country: string;
+  countryEn: string;
+  cities: string[];
+  flights: VisitedFlight[];
+}
+
+// 機型（aircraft）目前是空的：手上的航班紀錄沒有機型欄位，不亂猜。
+// 之後想到搭過哪班是什麼機型（A380、787 長榮彩繪之類的），直接告訴我對應的航班代碼，
+// 我再幫忙補上 aircraft 值；或自己在這裡編輯也可以，這份清單就是設計給手動慢慢記錄用的。
+const visitedCountries: VisitedCountry[] = [
   {
     flag: "🇯🇵",
     country: "日本",
     countryEn: "Japan",
     cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"],
     flights: [
-      "BR112", "BR119", "BR120", "BR147", "BR177", "BR183", "CI138", "EH430",
-      "GK12", "IT271", "IT700", "JL107", "JL130", "JL2174", "MM32", "MM859",
-      "NH289", "NH407", "NH462", "TR899",
+      { code: "BR112" }, { code: "BR119" }, { code: "BR120" }, { code: "BR147" },
+      { code: "BR177" }, { code: "BR183" }, { code: "CI138" }, { code: "EH430" },
+      { code: "GK12" }, { code: "IT271" }, { code: "IT700" }, { code: "JL107" },
+      { code: "JL130" }, { code: "JL2174" }, { code: "MM32" }, { code: "MM859" },
+      { code: "NH289" }, { code: "NH407" }, { code: "NH462" }, { code: "TR899" },
     ],
   },
-  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"], flights: ["BR61", "EK384"] },
-  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [], flights: ["BR858", "BR891", "CI936", "EK384"] },
-  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"], flights: ["UA2498", "UA871", "UA872"] },
+  {
+    flag: "🇹🇭",
+    country: "泰國",
+    countryEn: "Thailand",
+    cities: ["曼谷"],
+    flights: [{ code: "BR61" }, { code: "EK384" }],
+  },
+  {
+    flag: "🇭🇰",
+    country: "香港",
+    countryEn: "Hong Kong",
+    cities: [],
+    flights: [{ code: "BR858" }, { code: "BR891" }, { code: "CI936" }, { code: "EK384" }],
+  },
+  {
+    flag: "🇺🇸",
+    country: "美國",
+    countryEn: "USA",
+    cities: ["德州"],
+    flights: [{ code: "UA2498" }, { code: "UA871" }, { code: "UA872" }],
+  },
 ];
 
 const planningCountries = [
@@ -322,7 +358,7 @@ export default function AboutSection() {
               </p>
               <div className="pt-2 border-t border-(--border)">
                 <p className="text-(--muted) text-sm">
-                  I'm a developer based between Kaohsiung and Fukuoka, exploring the
+                  I&apos;m a developer based between Kaohsiung and Fukuoka, exploring the
                   intersection of AI inference, web interfaces, and thoughtful system design.
                 </p>
               </div>
@@ -464,7 +500,9 @@ export default function AboutSection() {
                       className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide"
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
-                      {c.flights.join(" · ")}
+                      {c.flights
+                        .map((f) => (f.aircraft ? `${f.code}(${f.aircraft})` : f.code))
+                        .join(" · ")}
                     </p>
                   )}
                 </div>
