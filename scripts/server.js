@@ -24,6 +24,10 @@ if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 const dataDir = path.join(projectDir, "data");
 const visitorStatsFile = path.join(dataDir, "visitor-stats.json");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+// Task Scheduler 啟動這個 process 時沒有設定 working directory（process.cwd() 會是
+// C:\Windows\System32 之類的地方，不是專案根目錄），所以把絕對路徑用環境變數傳給
+// Next.js 的 API route（/api/visitor-stats），不要讓那邊自己用 process.cwd() 猜路徑。
+process.env.VISITOR_STATS_FILE = visitorStatsFile;
 
 let visitorStats = {};
 try {
