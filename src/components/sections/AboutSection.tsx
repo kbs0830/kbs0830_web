@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import Image from "next/image";
 import RevealHeading from "@/components/ui/RevealHeading";
+import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 
 const skills = [
   {
@@ -340,6 +341,9 @@ export default function AboutSection() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="mt-4">
+              <SpotifyNowPlaying />
             </div>
           </FadeIn>
         </div>

@@ -154,9 +154,19 @@
   → 該服務只吐白底 SVG（不隨主題變色），暗色模式下是一塊白色卡片，算是可接受的取捨；有帳號的話之後可換 GitHub 官方 API 自己畫、跟著主題切換
 
 - [ ] **Spotify 正在聽**
-  用 Spotify API 顯示「目前正在播放」或「最近在聽」
+  About 現況卡片下方已加 `SpotifyNowPlaying` 元件 ＋ `/api/spotify/now-playing` route，
+  用 refresh token 換 access token，抓「正在播放／最近播放」單曲
   → 裝飾性但很有個性，讓作品集有生命感
-  → 需要你去 Spotify Developer Dashboard 申請 Client ID/Secret，我這邊沒有帳號無法自己申請，先跳過
+  → 卡在最後一步：你已經在 Spotify Developer Dashboard 建好 app（Client ID 已寫進
+    `.env.local`），還差 Client Secret 和 refresh token 沒填。步驟：
+    1. 到 Spotify Dashboard app 設定頁點「View client secret」，把值貼進
+       `.env.local` 的 `SPOTIFY_CLIENT_SECRET=`（直接編輯檔案，不要貼進對話）
+    2. 終端機跑 `node scripts/spotify-get-refresh-token.js`，打開印出來的網址登入同意
+    3. 被導到 `https://kbs0830.com/?code=...` 後複製 `code=` 後面那串
+    4. 跑 `node scripts/spotify-get-refresh-token.js <code>`，refresh token 會自動寫進
+       `.env.local`（不會印出來）
+    5. 重啟 server，小工具就會開始顯示
+    → 三個環境變數缺任何一個時 API 會直接回傳 `isPlaying:false`，元件不顯示，不影響其他功能
 
 - [ ] **訪客地圖 / 來源統計小工具**
   Footer 或 About 顯示訪客地圖（Clustrmaps 嵌入）
