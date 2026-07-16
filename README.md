@@ -17,6 +17,9 @@
 node node_modules/next/dist/bin/next dev
 ```
 
+commit 前會自動跑 Husky pre-commit hook（`lint-staged` + 全專案 `tsc --noEmit`），
+擋下型別錯誤或壞掉的程式碼，細節見 `CLAUDE.md`。
+
 ### 手動部署（桌機）
 ```powershell
 .\deploy.bat
@@ -70,6 +73,9 @@ push 到 `main` branch 後自動執行（`scripts/deploy.ps1`）：
 Workflow 設定：`.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份
 `deploy.ps1`，跟 CI 共用邏輯。
 
+另有 `.github/workflows/renovate.yml`：每週一用同一台 self-hosted runner 自動跑 Renovate
+開 dependency update PR（不需要裝 GitHub App，也不會自動合併），細節見 `CLAUDE.md`。
+
 ---
 
 ## Tech Stack
@@ -108,6 +114,15 @@ node scripts/spotify-get-refresh-token.js <code>   # 用導回網址裡的 code 
 
 三個變數缺任何一個時，`/api/spotify/now-playing` 直接回傳 `isPlaying:false`，前端不顯示，
 不影響其他功能。改完環境變數要重啟 server 才會生效。
+
+---
+
+## 訪客來源統計
+
+Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`scripts/server.js` 讀 Cloudflare Tunnel
+本來就帶著的 `cf-ipcountry` header，只聚合「國家代碼＋次數」寫進 `data/visitor-stats.json`
+（不進版控，只留在桌機本地，不存 IP、不存任何個人可識別資訊）。`/api/visitor-stats` 吐彙總
+資料給 `VisitorStats.tsx` 顯示。細節見 `CLAUDE.md`。
 
 ---
 

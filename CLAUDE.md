@@ -121,6 +121,16 @@ head -c 3 scripts/xxx.ps1 | xxd   # 應該是 efbbbf
 printf '\xef\xbb\xbf' | cat - scripts/xxx.ps1 > tmp && mv tmp scripts/xxx.ps1
 ```
 
+### Git hooks（Husky + lint-staged）
+
+`.husky/pre-commit` 在每次 commit 前跑兩件事：
+1. `lint-staged`（`package.json` 的 `lint-staged` 欄位設定）：只對 staged 的 `*.{js,jsx,ts,tsx}` 跑 `eslint --fix`
+2. 全專案 `tsc --noEmit`（型別錯誤不像 lint 只在改到的檔案發生，任何檔案都可能因為別處改動而報錯，所以這步是全專案跑，不是只跑 staged 檔案）
+
+任一步失敗都會擋下 commit。**改 `scripts/**/*.js` 這類 CommonJS 檔案時**，`eslint.config.mjs`
+已經對這個路徑關掉 `@typescript-eslint/no-require-imports`，不要因為 lint 錯誤誤以為要把
+它們改寫成 ESM `import`。
+
 ---
 
 ## 部署架構
@@ -232,6 +242,7 @@ deploy.bat
   （見上方「深色模式」章節）
 - **Scroll progress bar**：頂端 2px accent 細線
 - **Footer**：`© 2026 PINGWEI LI` ＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
+  ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
   `1/2/3` → section 快速跳轉，`?` 呼出快捷鍵提示浮窗
@@ -369,7 +380,9 @@ kbs0830_web/
 │   │   ├── robots.ts / sitemap.ts
 │   │   ├── now/page.tsx         # /now
 │   │   ├── uses/page.tsx        # /uses
-│   │   └── api/spotify/now-playing/route.ts  # Spotify 正在聽後端
+│   │   └── api/
+│   │       ├── spotify/now-playing/route.ts   # Spotify 正在聽後端
+│   │       └── visitor-stats/route.ts         # 訪客來源國家統計彙總
 │   ├── components/
 │   │   ├── canvas/
 │   │   │   ├── HeroScene.tsx           # R3F 3D 背景（細線 + 粒子），滑鼠互動
@@ -378,6 +391,7 @@ kbs0830_web/
 │   │   │   ├── NavBar.tsx
 │   │   │   ├── BackToTop.tsx
 │   │   │   ├── LocalClock.tsx          # Footer 雙時區時鐘
+│   │   │   ├── VisitorStats.tsx        # Footer 訪客來源國家統計
 │   │   │   ├── KeyboardShortcuts.tsx
 │   │   │   ├── KonamiEgg.tsx
 │   │   │   ├── TerminalMode.tsx
@@ -391,9 +405,10 @@ kbs0830_web/
 │   │       ├── PortfolioSection.tsx    # tag filter bar 邏輯在這裡
 │   │       └── ContactSection.tsx
 │   └── lib/
-│       └── projects.ts        # 作品資料（slug, title, tags, github...）
+│       ├── projects.ts        # 作品資料（slug, title, tags, github...）
+│       └── aircraft.ts        # 足跡航班機型對照表，使用者自己維護的航迷小筆記
 ├── scripts/
-│   ├── server.js                    # 自訂 production server（request/error log）
+│   ├── server.js                    # 自訂 production server（request/error log + 訪客國家統計）
 │   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
 │   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
 │   ├── watchdog.ps1                  # 每 5 分鐘健康檢查，異常自動重啟（Task Scheduler: kbs0830_Watchdog）
@@ -401,8 +416,15 @@ kbs0830_web/
 │   └── lib/
 │       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
 │       └── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
+├── .husky/pre-commit          # commit 前 lint-staged + tsc --noEmit（見上方「Git hooks」）
+├── .github/workflows/
+│   ├── deploy.yml              # push to main → 自動部署
+│   └── renovate.yml            # 每週一自動跑 Renovate CLI 開 PR（見「依賴更新」）
+├── renovate.json               # Renovate 設定
+├── data/                       # 執行期資料（gitignore，不進版控）：visitor-stats.json 等
 ├── .env.local                 # 不進版控，見「第三方整合」章節的 Spotify 環境變數
 ├── pnpm.yaml                  # onlyBuiltDependencies config（pnpm v11）
+├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
 ├── CLAUDE.md
 ├── TODO.md                   # 優先度分區的待辦清單，含已完成歸檔
 └── package.json
