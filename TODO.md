@@ -110,10 +110,6 @@
 
 ## 🛠 開發體驗
 
-- [ ] **Husky + lint-staged**
-  commit 前自動跑 `tsc --noEmit` + `eslint`
-  → 防止 broken build 推上去，跟現有 CI 自動部署架構搭配起來最有價值，排最前面
-
 - [ ] **Playwright E2E 測試**
   測 NavBar 捲動行為、Email 複製 toast、暗色模式切換
   → CI 跑，push 前確保基本功能沒壞
@@ -188,3 +184,4 @@
 - [x] 彩蛋：終端機模式（`` ` `` 叫出偽終端機）
 - [x] 時區 / 現地時間顯示（Footer 高雄 + 福岡雙時區，每 30 秒更新）
 - [x] Spotify 正在聽（SpotifyNowPlaying 元件 + `/api/spotify/now-playing` route，Client Secret + refresh token 已補齊）
+- [x] Husky + lint-staged（commit 前自動跑 lint-staged `eslint --fix` + 全專案 `tsc --noEmit`）
