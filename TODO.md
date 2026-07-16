@@ -4,50 +4,40 @@
 
 ## 🔴 高優先 — 內容 & 功能完整性
 
-- [ ] **作品集截圖 / Thumbnail**
-  卡片純文字層次感偏低，加 thumbnail 後視覺差很多
-  → 截圖放 `public/image/projects/`，在 projects.ts 加 `image?` 欄位
-
 - [ ] **專案詳細頁 `/projects/[slug]`**
   點卡片目前沒有任何動作，無法呈現完整深度
   → App Router 動態路由，展示完整說明、截圖、技術挑戰、架構圖、GitHub 統計
+  → 優先度提升：下面的「Demo 連結欄位」「專案架構圖」都是這個頁面的內容，中低優先的
+    「頁面切換動畫」「圖片燈箱」也都卡在這個頁面還沒蓋，先做完這個能一次解鎖四項
+
+- [ ] **作品集截圖 / Thumbnail**
+  卡片純文字層次感偏低，加 thumbnail 後視覺差很多
+  → 截圖放 `public/image/projects/`，在 projects.ts 加 `image?` 欄位
 
 - [ ] **Demo 連結欄位**
   projects.ts 加 `demo?` 欄位，FoodLens / 購票系統可附 live demo 或 YouTube 展示連結
   → 讓訪客直接體驗，而非只看文字
 
+- [ ] **專案架構圖**
+  每個作品加一張系統架構圖（Excalidraw / draw.io 匯出 SVG）
+  → 讓技術面試官瞬間理解你在做什麼
+
 - [ ] **履歷 PDF 下載**
   Contact section 加「下載履歷」按鈕，`public/resume.pdf`
-  → 招募方第一個問的就是這個
+  → 招募方第一個問的就是這個，獨立於上面幾項、隨時可做
 
 - [ ] **技術部落格 / 筆記 `/blog`**
   寫過什麼就記下來：踩過的坑、學到的東西、對某個技術的想法
   → Next.js MDX + gray-matter，Markdown 寫文，自動生成頁面
-  → 對 SEO 幫助最大，長期複利效果
-
-- [ ] **專案架構圖**
-  每個作品加一張系統架構圖（Excalidraw / draw.io 匯出 SVG）
-  → 讓技術面試官瞬間理解你在做什麼
+  → 對 SEO 幫助最大，長期複利效果，但範圍最大，排最後
 
 ---
 
 ## 🟠 中優先 — 技術品質
 
-- [x] **自訂 404 頁面**
-  `src/app/not-found.tsx`，日式風格，帶回首頁按鈕
-
-- [x] **Security Headers**
-  `next.config.ts` 加 `X-Frame-Options`、`X-Content-Type-Options`、`Referrer-Policy`、`Permissions-Policy`
-
 - [ ] **Noto Serif JP 字體子集化**
   日文字體完整版約 2–4 MB，對 LCP 影響很大
   → Google Fonts `text=` 參數只載入用到的字元
-
-- [x] **favicon.ico 清除**
-  刪掉舊的 `favicon.ico`，只保留 `icon.tsx`（並擴充 32/192/512 三種尺寸供 manifest 使用）
-
-- [x] **Error Boundary for R3F**
-  HeroScene 加 `SceneErrorBoundary`，WebGL 崩潰時 fallback 到 CSS 漸層背景
 
 - [ ] **Image 格式優化**
   `public/image/大頭貼.jpg` 確認是否有 `sizes` 屬性、是否可轉 WebP
@@ -57,72 +47,30 @@
   Performance / Accessibility / Best Practices / SEO 四項目標全 90+
   → 找出低垂果實（圖片未壓縮、render-blocking font、缺 alt 等）
 
-- [x] **Twitter / X Card meta tag**
-  `layout.tsx` metadata 加 `twitter` 欄位
-
 - [ ] **Uptime 監控**
-
   UptimeRobot 免費方案，每 5 分鐘 ping 一次，掛掉發 Email / LINE Notify
   → 桌機有時重開機會停服，要知道網站什麼時候斷了
+  → Email 通知收件位址用 `otemon.pcwork@gmail.com`（自動通知專用信箱），不要用
+    `1394kbs@gmail.com`（那個保留給真人聯絡）
 
 - [ ] **部署通知**
-  CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify
+  CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify，或直接寄 Email
   → 目前不知道遠端 build 有沒有炸
+  → 若採 Email 通知，收件位址同上用 `otemon.pcwork@gmail.com`
 
 ---
 
 ## 🟡 中低優先 — UX 升級
-
-- [x] **專案 Tag 篩選**
-  Portfolio section 加 filter bar，依 tag（Python / Next.js / AI…）篩選卡片
-  → 讓技術面試官快速找到相關作品
 
 - [ ] **聯絡表單**
   EmailJS 或 Formspree，訪客直接在頁面輸入留言
   → 不是每個人都有郵件客戶端
   → 曾做過 mailto 版但使用者覺得不需要，已移除；要做的話等你申請 EmailJS/Formspree 帳號再說
 
-- [x] **Hero 副標動態打字效果**
-  `学生開発者 · Claude × Gemini` 改為逐字顯示的 typewriter 效果
-  → 只需 Framer Motion `staggerChildren`，成本低但視覺感強
-
-- [x] **Hero 3D 場景互動**
-  場景隨游標位置微微傾斜（lerp 平滑），尊重 prefers-reduced-motion
-  → 讓 Hero 從裝飾變成可互動的名片
-
-- [x] **Skills 分類可展開 / 收合**
-  技能列表改 accordion（預設只展開第一組），標題列可點擊切換
-  → 特別是手機版
-
-- [x] **About 時間軸：hover 展開更多細節**
-  每筆項目 hover / click（含鍵盤 Enter/Space）展開一行補充說明
-
-- [x] **Skills 熟練度視覺化**
-  每個技能 chip 內加 1–5 點的細小圓點指示熟練度
-  → 設計上要克制，用細線而非粗進度條
-  → 熟練度數字是我依專案經驗estimate 的初稿，數字本身你比我更清楚，有需要再調
-
-- [x] **Print / PDF 樣式**
-  `@media print` CSS，隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
-
-- [x] **頁面 Loading 骨架屏**
-  Hero 3D 場景載入中改成呼應真實場景的稀疏細線骨架屏，不再是空白
-
-- [x] **Scroll-triggered 文字逐字揭示**
-  About / Portfolio / Contact 三個 section 標題改逐字 reveal 動畫進場
-  → Framer Motion `staggerChildren`，日式設計感很強
-
-- [x] **磁吸按鈕效果（Magnetic Button）**
-  Hero 兩顆 CTA ＋ Contact 四個連結，滑鼠靠近時微微吸引游標
-  → mousemove 計算偏移量，translate3d 實現，無需額外函式庫
-
-- [x] **自訂滾動條樣式（Mobile）**
-  Firefox 加 `scrollbar-color` / `scrollbar-width`
-
 - [ ] **頁面切換動畫**
   進入 `/projects/[slug]` 詳細頁時加 slide-in / fade 過場
   → Framer Motion `AnimatePresence` + layout transitions
-  → 卡住：前提的 `/projects/[slug]` 詳細頁還沒蓋（見高優先清單），這項要等那個先做完
+  → 卡住：前提的 `/projects/[slug]` 詳細頁還沒蓋（見高優先清單第一項），這項要等那個先做完
 
 - [ ] **圖片燈箱（Lightbox）**
   專案詳細頁截圖點擊後放大，支援鍵盤左右切換
@@ -138,57 +86,10 @@
   → 了解哪個 section 被看最久、哪個作品被點最多
   → 需要在桌機決定要不要跑 Docker、佔用資源，這個部署決定要你來拍板，先跳過
 
-- [x] **PWA Manifest**
-  `src/app/manifest.ts`，讓手機版可「加到主畫面」
-
-- [x] **/now 頁面**
-  當下在做什麼、在學什麼
-  → 類似 nownownow.com 傳統
-
-- [x] **/uses 頁面**
-  開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
-
-- [x] **GitHub 貢獻熱力圖**
-  About section 嵌入公開無需驗證的 ghchart.rshah.org contribution graph
-  → 視覺化開發活躍度，證明你在動
-  → 該服務只吐白底 SVG（不隨主題變色），暗色模式下是一塊白色卡片，算是可接受的取捨；有帳號的話之後可換 GitHub 官方 API 自己畫、跟著主題切換
-
-- [ ] **Spotify 正在聽**
-  About 現況卡片下方已加 `SpotifyNowPlaying` 元件 ＋ `/api/spotify/now-playing` route，
-  用 refresh token 換 access token，抓「正在播放／最近播放」單曲
-  → 裝飾性但很有個性，讓作品集有生命感
-  → 卡在最後一步：你已經在 Spotify Developer Dashboard 建好 app（Client ID 已寫進
-    `.env.local`），還差 Client Secret 和 refresh token 沒填。步驟：
-    1. 到 Spotify Dashboard app 設定頁點「View client secret」，把值貼進
-       `.env.local` 的 `SPOTIFY_CLIENT_SECRET=`（直接編輯檔案，不要貼進對話）
-    2. 終端機跑 `node scripts/spotify-get-refresh-token.js`，打開印出來的網址登入同意
-    3. 被導到 `https://kbs0830.com/?code=...` 後複製 `code=` 後面那串
-    4. 跑 `node scripts/spotify-get-refresh-token.js <code>`，refresh token 會自動寫進
-       `.env.local`（不會印出來）
-    5. 重啟 server，小工具就會開始顯示
-    → 三個環境變數缺任何一個時 API 會直接回傳 `isPlaying:false`，元件不顯示，不影響其他功能
-
 - [ ] **訪客地圖 / 來源統計小工具**
   Footer 或 About 顯示訪客地圖（Clustrmaps 嵌入）
   → 很多個人網站都有，增加互動感
   → 需要你先去 Clustrmaps 註冊帳號拿嵌入碼，先跳過
-
-- [x] **Keyboard Shortcuts**
-  `G` → GitHub、`E` → Email、`1/2/3` → section 快速跳轉
-  → 工程師喜歡的細節，加 `?` 呼出快捷鍵提示浮窗
-
-- [x] **彩蛋：Konami Code**
-  ↑↑↓↓←→←→BA 觸發「ようこそ」日文歡迎詞全螢幕彩蛋
-  → 展示個性，技術訪客一定會試
-
-- [x] **彩蛋：終端機模式**
-  按 `` ` `` 叫出偽終端機，輸入指令可查看作品集資訊
-  → `help` / `ls projects` / `cat about.txt` / `ssh kbs0830@kbs0830.com`
-  → 很 hacker，和你的技術背景超搭
-
-- [x] **時區 / 現地時間顯示**
-  Footer 顯示高雄 + 福岡雙時區現地時間，每 30 秒更新
-  → 一句 JS，視覺效果很好
 
 - [ ] **多語言路由（i18n）**
   `/ja`、`/zh` 路由，Next.js App Router i18n
@@ -209,21 +110,21 @@
 
 ## 🛠 開發體驗
 
-- [ ] **Bundle Analyzer**
-  `@next/bundle-analyzer`，看清楚哪個套件最肥
-  → Three.js + R3F 可能可以動態 import 進一步拆分
-
 - [ ] **Husky + lint-staged**
   commit 前自動跑 `tsc --noEmit` + `eslint`
-  → 防止 broken build 推上去
-
-- [ ] **Renovate Bot**
-  GitHub App，自動開 PR 更新 npm 依賴
-  → 保持套件新鮮，不要積累技術債
+  → 防止 broken build 推上去，跟現有 CI 自動部署架構搭配起來最有價值，排最前面
 
 - [ ] **Playwright E2E 測試**
   測 NavBar 捲動行為、Email 複製 toast、暗色模式切換
   → CI 跑，push 前確保基本功能沒壞
+
+- [ ] **Bundle Analyzer**
+  `@next/bundle-analyzer`，看清楚哪個套件最肥
+  → Three.js + R3F 可能可以動態 import 進一步拆分
+
+- [ ] **Renovate Bot**
+  GitHub App，自動開 PR 更新 npm 依賴
+  → 保持套件新鮮，不要積累技術債
 
 ---
 
@@ -262,3 +163,28 @@
 - [x] icon.tsx + opengraph-image.tsx + BackToTop 從舊分支移植
 - [x] 刪除舊分支（master、fix/layout-width-og-image）
 - [x] About section 加入「足跡 · Footprint」— 已到訪國家（日本／泰國／香港／美國）與規劃中（韓國／新加坡／馬來西亞／越南）
+- [x] 自訂 404 頁面（`not-found.tsx`，日式風格，帶回首頁按鈕）
+- [x] Security Headers（`next.config.ts` 加 X-Frame-Options、X-Content-Type-Options、Referrer-Policy、Permissions-Policy）
+- [x] favicon.ico 清除（改用 icon.tsx，擴充 32/192/512 三種尺寸）
+- [x] Error Boundary for R3F（HeroScene 加 SceneErrorBoundary，WebGL 崩潰時 fallback 到 CSS 漸層）
+- [x] Twitter / X Card meta tag（layout.tsx metadata）
+- [x] 專案 Tag 篩選（Portfolio section filter bar）
+- [x] Hero 副標動態打字效果（Framer Motion staggerChildren typewriter）
+- [x] Hero 3D 場景互動（隨游標位置微微傾斜，尊重 prefers-reduced-motion）
+- [x] Skills 分類可展開 / 收合（accordion，預設展開第一組）
+- [x] About 時間軸 hover 展開更多細節（含鍵盤 Enter/Space）
+- [x] Skills 熟練度視覺化（1–5 點細小圓點指示）
+- [x] Print / PDF 樣式（`@media print`，A4 履歷格式）
+- [x] 頁面 Loading 骨架屏（呼應 Hero 3D 場景的稀疏細線骨架屏）
+- [x] Scroll-triggered 文字逐字揭示（About / Portfolio / Contact 標題）
+- [x] 磁吸按鈕效果（Magnetic Button，Hero CTA + Contact 連結）
+- [x] 自訂滾動條樣式（Firefox scrollbar-color / scrollbar-width）
+- [x] PWA Manifest（`src/app/manifest.ts`）
+- [x] `/now` 頁面
+- [x] `/uses` 頁面
+- [x] GitHub 貢獻熱力圖（ghchart.rshah.org 嵌入）
+- [x] Keyboard Shortcuts（G / E / 1-2-3 快速跳轉，`?` 呼出提示浮窗）
+- [x] 彩蛋：Konami Code（↑↑↓↓←→←→BA 觸發全螢幕彩蛋）
+- [x] 彩蛋：終端機模式（`` ` `` 叫出偽終端機）
+- [x] 時區 / 現地時間顯示（Footer 高雄 + 福岡雙時區，每 30 秒更新）
+- [x] Spotify 正在聽（SpotifyNowPlaying 元件 + `/api/spotify/now-playing` route，Client Secret + refresh token 已補齊）
