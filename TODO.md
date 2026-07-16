@@ -77,9 +77,10 @@
   Portfolio section 加 filter bar，依 tag（Python / Next.js / AI…）篩選卡片
   → 讓技術面試官快速找到相關作品
 
-- [x] **聯絡表單**
-  無後端依賴的 mailto 版：填姓名／訊息後組 `mailto:` 連結開啟本機郵件客戶端
-  → 如果之後想要「不離開頁面直接送出」，仍可換成 EmailJS / Formspree（需要你申請帳號）
+- [ ] **聯絡表單**
+  EmailJS 或 Formspree，訪客直接在頁面輸入留言
+  → 不是每個人都有郵件客戶端
+  → 曾做過 mailto 版但使用者覺得不需要，已移除；要做的話等你申請 EmailJS/Formspree 帳號再說
 
 - [x] **Hero 副標動態打字效果**
   `学生開発者 · Claude × Gemini` 改為逐字顯示的 typewriter 效果

@@ -15,61 +15,6 @@ const Underline = () => (
   </>
 );
 
-function MessageForm() {
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const subject = encodeURIComponent(`網站聯絡・Portfolio Contact${name ? ` — ${name}` : ""}`);
-    const body = encodeURIComponent(message);
-    window.location.href = `mailto:1394kbs@gmail.com?subject=${subject}&body=${body}`;
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-12 max-w-md space-y-5 p-6 border border-(--border) rounded-sm bg-(--bg)"
-    >
-      <p
-        className="text-xs tracking-[0.25em] text-(--accent) uppercase"
-        style={{ fontFamily: "var(--font-mono)" }}
-      >
-        或直接留言 · Message
-      </p>
-      <div>
-        <label htmlFor="contact-name" className="sr-only">姓名</label>
-        <input
-          id="contact-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="你的名字（可選）"
-          className="w-full bg-transparent border-b border-(--border) pb-2 text-sm font-light text-(--text) placeholder:text-(--muted) focus:border-(--accent) outline-none transition-colors"
-        />
-      </div>
-      <div>
-        <label htmlFor="contact-message" className="sr-only">訊息</label>
-        <textarea
-          id="contact-message"
-          required
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="想聊聊的內容⋯⋯"
-          rows={3}
-          className="w-full bg-transparent border-b border-(--border) pb-2 text-sm font-light text-(--text) placeholder:text-(--muted) focus:border-(--accent) outline-none transition-colors resize-none"
-        />
-      </div>
-      <button type="submit" className={linkClass}>
-        送出 · 開啟郵件
-        <Underline />
-      </button>
-      <p className="text-[11px] text-(--muted) font-light opacity-60">
-        送出將開啟你的郵件客戶端，內容不會經由本站伺服器傳送。
-      </p>
-    </form>
-  );
-}
-
 export default function ContactSection() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
@@ -184,8 +129,6 @@ export default function ContactSection() {
               </a>
             </Magnetic>
           </div>
-
-          <MessageForm />
         </motion.div>
       </div>
     </section>
