@@ -118,10 +118,6 @@
   `@next/bundle-analyzer`，看清楚哪個套件最肥
   → Three.js + R3F 可能可以動態 import 進一步拆分
 
-- [ ] **Renovate Bot**
-  GitHub App，自動開 PR 更新 npm 依賴
-  → 保持套件新鮮，不要積累技術債
-
 ---
 
 ## ✅ 已完成
@@ -185,3 +181,5 @@
 - [x] 時區 / 現地時間顯示（Footer 高雄 + 福岡雙時區，每 30 秒更新）
 - [x] Spotify 正在聽（SpotifyNowPlaying 元件 + `/api/spotify/now-playing` route，Client Secret + refresh token 已補齊）
 - [x] Husky + lint-staged（commit 前自動跑 lint-staged `eslint --fix` + 全專案 `tsc --noEmit`）
+- [x] Renovate Bot（`.github/workflows/renovate.yml`，用現有 self-hosted runner 跑 Renovate CLI，
+  不需安裝 GitHub App，每週一自動開 PR，不自動合併）

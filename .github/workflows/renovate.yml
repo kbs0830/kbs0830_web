@@ -1,0 +1,22 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: "0 22 * * 0" # 每週一 06:00（台北時間 UTC+8）
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: C:\Users\user\Desktop\kbs0830_web-master
+    steps:
+      # 用 self-hosted runner 直接跑 Renovate CLI，不需要安裝 Renovate GitHub App。
+      # 只開 PR，不自動合併——合併前請照常在本機跑一次 build 確認沒問題。
+      - name: Run Renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: kbs0830/kbs0830_web
+        run: npx --yes renovate
