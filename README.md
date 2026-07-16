@@ -37,12 +37,16 @@ node node_modules/next/dist/bin/next dev
 
 | 服務 | 管理方式 | 說明 |
 |---|---|---|
-| Next.js | 工作排程器 `kbs0830_NextJS` | port 3000 |
+| Next.js | 工作排程器 `kbs0830_NextJS` | port 3000，Action 直接執行 `node.exe scripts\server.js`（不可加 wrapper，見 CLAUDE.md） |
 | Cloudflare Tunnel | Windows 服務 `Cloudflared` | Tunnel ID: `925b8046-8d6f-487f-8a88-70bb3d70410c` |
 | GitHub Actions Runner | 工作排程器 `GitHubActionsRunner` | `C:\actions-runner` |
+| 健康監控 Watchdog | 工作排程器 `kbs0830_Watchdog` | 每 5 分鐘跑 `scripts\watchdog.ps1`，異常自動重啟 Next.js |
+
+重啟 Next.js 一律透過 `Stop-ScheduledTask` / `Start-ScheduledTask`，不要直接 `taskkill /im node.exe`
+（會 access denied，且殺不乾淨孤兒行程，細節見 `CLAUDE.md`）。
 
 ### 開機自動啟動
-三個服務皆已設定開機/登入自動啟動，重開機後無需手動操作。
+四個服務皆已設定開機/登入自動啟動，重開機後無需手動操作。
 
 手動一鍵啟動（若需要）：
 ```
@@ -55,13 +59,16 @@ start-server.bat
 
 GitHub Actions self-hosted runner 跑在桌機上。
 
-push 到 `main` branch 後自動執行：
+push 到 `main` branch 後自動執行（`scripts/deploy.ps1`）：
 1. `git pull origin main`
 2. `pnpm install`
 3. `next build`
-4. 重啟 Next.js server
+4. 透過 Task Scheduler 重啟 `kbs0830_NextJS`
+5. `scripts/verify-deploy.ps1` 健康檢查（首頁 200、JS chunk 載得到）——沒過就算部署失敗，
+   不會悄悄留著壞掉的網站沒人發現
 
-Workflow 設定：`.github/workflows/deploy.yml`
+Workflow 設定：`.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份
+`deploy.ps1`，跟 CI 共用邏輯。
 
 ---
 
@@ -80,8 +87,33 @@ Workflow 設定：`.github/workflows/deploy.yml`
 
 ---
 
+## Spotify「正在聽」設定
+
+About section 的 Spotify 小工具需要三個環境變數（`.env.local`，不進版控，範本見
+`.env.local.example`）：
+
+```
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+SPOTIFY_REFRESH_TOKEN=
+```
+
+`SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` 從 [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+的 app 設定頁取得；`SPOTIFY_REFRESH_TOKEN` 用 `scripts/spotify-get-refresh-token.js` 取得：
+
+```powershell
+node scripts/spotify-get-refresh-token.js          # 印出授權網址，登入同意
+node scripts/spotify-get-refresh-token.js <code>   # 用導回網址裡的 code 換 refresh token
+```
+
+三個變數缺任何一個時，`/api/spotify/now-playing` 直接回傳 `isPlaying:false`，前端不顯示，
+不影響其他功能。改完環境變數要重啟 server 才會生效。
+
+---
+
 ## 注意事項
 
 - pnpm v11：`dev` / `build` / `start` 直接呼叫 `node node_modules/next/dist/bin/next`
 - ISP 封鎖 inbound port 80/443，故改用 Cloudflare Tunnel
 - 區網內裝置需將 DNS 改為 `8.8.8.8` 才能解析 `kbs0830.com`
+- 待辦事項與優先順序見 `TODO.md`；架構細節、設計規範、踩過的坑見 `CLAUDE.md`
