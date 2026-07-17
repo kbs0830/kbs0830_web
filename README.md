@@ -133,6 +133,21 @@ Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`script
 
 ---
 
+## 技術部落格與履歷 PDF
+
+`/blog`：文章放在 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析），`next-mdx-remote/rsc`
+渲染。新增文章請放真的踩過的坑，不要為了湊數編內容。
+
+`/resume`：內容取自網站上已有的真實資料（教育／技能／作品），套用既有的 `@media print` 樣式。
+`public/resume.pdf` 是靜態快照，**改了 `/resume` 頁面內容不會自動更新 PDF**，要記得重跑：
+
+```powershell
+pnpm resume:pdf                              # 預設打 http://localhost:3000
+node scripts/generate-resume-pdf.js <url>    # 或指定其他 URL（例如本機 next dev 的 port）
+```
+
+---
+
 ## 注意事項
 
 - pnpm v11：`dev` / `build` / `start` 直接呼叫 `node node_modules/next/dist/bin/next`

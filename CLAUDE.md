@@ -319,15 +319,40 @@ deploy.bat
 **⚠️ `projects.ts` 曾列過的「麵包店電商網站」課程専題已依使用者要求移除**，改動這份清單前
 先確認 `src/lib/projects.ts` 目前實際內容，不要照這份文件的舊描述回填。
 
+`/projects/[slug]` 詳細頁（`src/app/projects/[slug]/page.tsx`）：`generateStaticParams`
+把全部作品 SSG 成獨立頁面，卡片整張可點擊（overlay `<Link>`，GitHub icon 用 z-index
+疊在上面保持獨立可點）。有 `image` 的作品卡片頂部會顯示縮圖（hover 灰階轉全彩）。
+`detail.architectureDiagram`（Mermaid flowchart 語法，`MermaidDiagram.tsx` 動態 import
+mermaid 渲染）只有 FoodLens／YARTIX／日圓匯率／記帳系統這 4 個有真實詳細資料的作品才有；
+FRC／自動跟隨機器人／school 沒有足夠真實架構資訊可畫，故意沒加，不要為了「補齊」而編。
+
 ### 4. Contact（連絡先）
 - 中文主文，英文次之
 - Email + GitHub 按鈕（磁吸效果），Email 複製回饋（clipboard + 已複製！toast）
 - 沒有留言表單：曾做過 mailto 版，使用者覺得不需要已移除；見 `TODO.md` 中低優先「聯絡表單」
+- 「下載履歷」按鈕連到 `/resume.pdf`，見下方「履歷 PDF」章節
 
-### 5. `/now`、`/uses`（獨立頁面，非首頁 section）
+### 5. `/blog`（獨立頁面，非首頁 section）
+內容來源 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析，`src/lib/blog.ts` 讀取），
+`/blog` 列表頁 + `/blog/[slug]` 用 `next-mdx-remote/rsc` 渲染，`generateStaticParams` SSG。
+**文章內容必須是真的踩過的坑，不能編造**——目前 3 篇都是實際 debug 過程的記錄（Next.js
+`params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題）。新增文章前
+先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的
+`Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
+但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。
+
+### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
 - 兩者都要記得設定 `alternates.canonical`，見下方 SEO 章節
+
+### 7. `/resume`（獨立頁面）
+教育／技能／作品，內容全部取自網站上已經有的真實資料（timeline、skills、projects.ts），
+**沒有編造任何新的經歷、證照或年資**。套用 `globals.css` 既有的 `@media print` 樣式
+（列印時去色、A4 排版）。`public/resume.pdf` 是用 `scripts/generate-resume-pdf.js`
+（Playwright headless Chromium 印 `/resume` 頁面）產生的**靜態快照**，不是即時渲染——
+`/resume` 頁面內容改了之後，PDF **不會自動更新**，要記得重跑
+`pnpm resume:pdf`（預設打 `http://localhost:3000`，可傳其他 URL 當參數）。
 
 ---
 
@@ -397,6 +422,13 @@ kbs0830_web/
 │   │   ├── robots.ts / sitemap.ts
 │   │   ├── now/page.tsx         # /now
 │   │   ├── uses/page.tsx        # /uses
+│   │   ├── resume/page.tsx      # /resume，見「第三方整合」章節的「履歷 PDF」
+│   │   ├── blog/
+│   │   │   ├── page.tsx         # /blog 列表
+│   │   │   └── [slug]/page.tsx  # /blog/[slug]，next-mdx-remote/rsc 渲染
+│   │   ├── projects/[slug]/
+│   │   │   ├── page.tsx         # 專案詳細頁
+│   │   │   └── template.tsx     # 進場 fade+slide-up 動畫（每次導覽都重新 mount）
 │   │   └── api/
 │   │       ├── spotify/now-playing/route.ts   # Spotify 正在聽後端
 │   │       └── visitor-stats/route.ts         # 訪客來源國家統計彙總
@@ -413,6 +445,7 @@ kbs0830_web/
 │   │   │   ├── KonamiEgg.tsx
 │   │   │   ├── TerminalMode.tsx
 │   │   │   ├── SpotifyNowPlaying.tsx
+│   │   │   ├── MermaidDiagram.tsx      # 專案架構圖，動態 import mermaid
 │   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果共用邏輯
 │   │   │   ├── RevealHeading.tsx       # scroll-triggered 逐字 reveal 標題
 │   │   │   └── MaintenancePage.tsx
@@ -422,23 +455,30 @@ kbs0830_web/
 │   │       ├── PortfolioSection.tsx    # tag filter bar 邏輯在這裡
 │   │       └── ContactSection.tsx
 │   └── lib/
-│       ├── projects.ts        # 作品資料（slug, title, tags, github...）
-│       └── aircraft.ts        # 足跡航班機型對照表，使用者自己維護的航迷小筆記
+│       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram...）
+│       ├── aircraft.ts        # 足跡航班機型對照表，使用者自己維護的航迷小筆記
+│       └── blog.ts            # 讀 content/blog/*.mdx，gray-matter 解析 frontmatter
+├── content/
+│   └── blog/*.mdx             # 部落格文章，內容必須是真的踩過的坑，不能編造
 ├── scripts/
 │   ├── server.js                    # 自訂 production server（request/error log + 訪客國家統計）
 │   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
 │   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
 │   ├── watchdog.ps1                  # 每 5 分鐘健康檢查，異常自動重啟（Task Scheduler: kbs0830_Watchdog）
 │   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
+│   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
 │   └── lib/
 │       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
 │       └── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
 ├── .husky/pre-commit          # commit 前 lint-staged + tsc --noEmit（見上方「Git hooks」）
 ├── .github/workflows/
 │   ├── deploy.yml              # push to main → 自動部署
-│   └── renovate.yml            # 每週一自動跑 Renovate CLI 開 PR（見「依賴更新」）
+│   ├── renovate.yml            # 每週一自動跑 Renovate CLI 開 PR（見「依賴更新」）
+│   └── e2e.yml                 # push to main → 平行跑 Playwright，不擋部署
+├── e2e/*.spec.ts               # Playwright E2E 測試（pnpm test:e2e）
 ├── renovate.json               # Renovate 設定
 ├── data/                       # 執行期資料（gitignore，不進版控）：visitor-stats.json 等
+├── public/resume.pdf           # generate-resume-pdf.js 產生的靜態快照，不會自動更新
 ├── .env.local                 # 不進版控，見「第三方整合」章節的 Spotify 環境變數
 ├── pnpm.yaml                  # onlyBuiltDependencies config（pnpm v11）
 ├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）

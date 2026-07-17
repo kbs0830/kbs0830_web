@@ -8,6 +8,7 @@ export interface ProjectDetail {
   intro: string;
   sections: ProjectDetailSection[];
   context?: string; // 課程/團隊背景等補充說明，不含第三方姓名
+  architectureDiagram?: string; // Mermaid flowchart 語法，內容須對應 sections 裡已經寫的真實架構，不要編造新細節
 }
 
 export interface Project {
@@ -79,6 +80,14 @@ export const projects: Project[] = [
           ],
         },
       ],
+      architectureDiagram: `flowchart TD
+  A["使用者上傳照片"] --> B["瀏覽器端<br/>ONNX Runtime Web (YOLOv8)"]
+  B -->|"偵測到食物"| D["文字標籤"]
+  B -->|"偵測為零"| C["TensorFlow.js<br/>COCO-SSD 備援"]
+  C --> D
+  D -->|"POST 純文字標籤<br/>圖片不上傳"| E["FastAPI 後端"]
+  E --> F["Gemini 2.5 Flash Lite"]
+  F --> G["熱量／營養素／飲食建議"]`,
     },
   },
   {
@@ -130,6 +139,15 @@ export const projects: Project[] = [
           ],
         },
       ],
+      architectureDiagram: `flowchart TD
+  U["訪客"] -->|"填寫報名表單"| F["前端<br/>frontend/ 靜態頁面"]
+  F -->|"POST /api/register"| B["Flask API<br/>backend/app.py"]
+  B --> R["registration_service"]
+  R --> S["sheet_service"]
+  S --> G[("Google Sheets")]
+  R --> E["email_service"]
+  E -->|"付款確認信"| U
+  E -.失敗重試.-> Q["/api/retry-email-queue"]`,
     },
   },
 
@@ -238,6 +256,14 @@ export const projects: Project[] = [
         },
       ],
       context: "「大數據倉儲」課程期末専題。",
+      architectureDiagram: `flowchart TD
+  C["並行爬蟲<br/>crawler.py"] -->|"多家銀行"| D[("SQLite<br/>db_manager.py")]
+  Y["Yahoo Finance API"] -->|"歷史資料回補"| D
+  D --> S["rate_service.py<br/>快取 + LKG 回退"]
+  S --> E["購買力決策引擎"]
+  E -->|"現在就買 / 再等等"| U["Flask 前端<br/>app.py"]
+  S --> T["trend_chart.py<br/>趨勢圖"]
+  T --> U`,
     },
   },
   {
@@ -280,6 +306,14 @@ export const projects: Project[] = [
         },
       ],
       context: "「程式設計(三)」智商二乙 第十一組期末専題，與組員共同完成。",
+      architectureDiagram: `flowchart TD
+  UI["PyQt5 主視窗"] -->|"新增／刪除紀錄"| DM["data_manager.py"]
+  DM --> DB[("SQLite")]
+  DB --> DM
+  DM --> CU["chart_utils.py<br/>圓餅圖"]
+  CU --> UI
+  DM -->|"比對月度預算"| BW["三段式警示<br/>良好／接近／超支"]
+  BW --> UI`,
     },
   },
   {

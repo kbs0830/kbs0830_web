@@ -1,0 +1,50 @@
+---
+title: "訪客統計被機器人污染：一次 log 分析的實戰"
+titleEn: "How a scanner bot polluted my visitor stats"
+date: "2026-07-17"
+description: "Footer 的訪客國家統計出現一筆奇怪的「土耳其」，追查後發現是舊版統計邏輯完全擋不住偽裝成瀏覽器的漏洞掃描器。"
+tags: ["Security", "Next.js", "隱私"]
+---
+
+作品集 Footer 有一個自己刻的訪客來源國家統計小工具，不用 Clustrmaps 之類的第三方服務——直接讀 Cloudflare Tunnel 轉發請求時本來就帶著的 `cf-ipcountry` header，只聚合「國家代碼＋次數」，不存 IP、不存任何個人可識別資訊。上線一陣子後，畫面上出現「訪客來自 2 國 🇹🇼 🇹🇷」。
+
+台灣沒問題，但土耳其是怎麼回事？
+
+## 先查 log，不要先猜
+
+與其猜測，先去看 `logs/server.log` 統計狀態碼分佈。10 天內接近 **19,887 筆請求**，其中 **39% 是 404**——細看路徑，幾乎都是自動化漏洞掃描器在打：
+
+```
+481  /cgi-bin/luci/;stok=/locale        ← 家用路由器已知漏洞
+192  /SDK/webLanguage                    ← IoT 裝置漏洞掃描
+115  /wp-admin/install.php?step=1        ← WordPress 掃描
+ 62  /.env
+ 32  /.git/config
+ ...
+```
+
+這是任何公開在網路上的伺服器都會收到的背景雜訊，不是針對這個網站的定向攻擊——這些路徑在 Next.js 專案裡本來就不存在，全部正確回 404，沒有任何東西真的洩漏。
+
+## 但這跟土耳其有什麼關係？
+
+舊版的訪客計數邏輯在 `scripts/server.js` 對**每一個**打到首頁的 request 做判斷：方法是 GET、路徑不是 `/api/` 或 `/_next/`、沒有副檔名、狀態碼 200、User-Agent 沒有明顯寫 "bot" 字樣——符合就算一次訪客。
+
+問題在最後一條：大量自動化掃描器為了避開這種簡單的 UA 黑名單，會直接偽裝成一般瀏覽器的 User-Agent 字串。這種掃描器完全不會被舊邏輯擋下來——只要它剛好也打了一次首頁（很多掃描工具會先打 `/` 做初步 fingerprint，再開始掃已知漏洞路徑），就會被算進「訪客」統計。
+
+## 修法：從「伺服器猜」改成「瀏覽器主動回報」
+
+與其繼續加強 UA 黑名單（本質上是打地鼠，永遠會有新的偽裝方式），改成訪客計數只在**瀏覽器真的執行 JS 之後**才算數：
+
+```tsx
+useEffect(() => {
+  fetch("/api/visitor-stats", { method: "POST" })
+    .then((r) => r.json())
+    .then(setStats);
+}, []);
+```
+
+`POST /api/visitor-stats` 這個請求本身就是「這次造訪」的回報。絕大多數自動化掃描工具（curl、python-requests、各種漏洞掃描器）根本不執行 JavaScript，從架構上就不會打到這支 API——不是「比較難繞過」，是「這類流量從一開始就不會出現」。UA 黑名單留著當第二道防線（擴充了 curl/wget/python-requests/axios/scrapy/headless 等關鍵字），但已經不是唯一防線。
+
+## 結果
+
+清空重新累計後，正式站的統計乾淨了。之後如果又出現看起來奇怪的國家，比較可能是 Cloudflare 對某個 IP 的地理定位判斷剛好不準（VPN、CGNAT 之類），而不是統計邏輯本身的漏洞——這兩種情況分得清楚，之後比較好排查。

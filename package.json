@@ -7,6 +7,7 @@
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "analyze": "node node_modules/next/dist/bin/next experimental-analyze",
+    "resume:pdf": "node scripts/generate-resume-pdf.js",
     "test:e2e": "node node_modules/@playwright/test/cli.js test",
     "lint": "eslint",
     "prepare": "husky"
@@ -15,7 +16,10 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "framer-motion": "^12.40.0",
+    "gray-matter": "^4.0.3",
+    "mermaid": "^11.16.0",
     "next": "16.2.9",
+    "next-mdx-remote": "^6.0.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "three": "^0.184.0"
@@ -34,6 +38,7 @@
     "eslint-config-next": "16.2.9",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

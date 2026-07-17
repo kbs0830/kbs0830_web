@@ -87,6 +87,16 @@ export default function ContactSection() {
             </div>
 
             <Magnetic>
+              <a href="/resume.pdf" download className={linkClass}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 3v12m0 0-4-4m4 4 4-4" />
+                  <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                </svg>
+                下載履歷 · Resume
+                <Underline />
+              </a>
+            </Magnetic>
+            <Magnetic>
               <a
                 href="https://github.com/kbs0830"
                 target="_blank"

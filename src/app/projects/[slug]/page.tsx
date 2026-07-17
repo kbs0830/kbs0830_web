@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { projects } from "@/lib/projects";
+import MermaidDiagram from "@/components/ui/MermaidDiagram";
 
 const statusColor: Record<string, string> = {
   "完成": "text-(--accent) border-(--accent-lt) bg-(--accent-lt)",
@@ -118,6 +119,18 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <p className="text-xs font-light text-(--muted) leading-relaxed mb-10 opacity-60">
             {project.description}
           </p>
+        )}
+
+        {project.detail?.architectureDiagram && (
+          <div className="mt-12">
+            <p
+              className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              架構圖<span className="text-(--muted) normal-case tracking-normal"> · Architecture</span>
+            </p>
+            <MermaidDiagram chart={project.detail.architectureDiagram} />
+          </div>
         )}
 
         {/* Sections */}

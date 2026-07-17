@@ -1,0 +1,33 @@
+---
+title: "跑一次 Lighthouse：抓到 3 個真的存在的對比度問題"
+titleEn: "Running Lighthouse turned up 3 real WCAG contrast bugs"
+date: "2026-07-17"
+description: "Accessibility 分數 96 分看起來已經很高，但實際跑了 Lighthouse 才發現 Footer 文字對比度只有 1.37:1——暗色模式下幾乎看不見。"
+tags: ["Accessibility", "WCAG", "Lighthouse"]
+---
+
+「找時間跑一次 Lighthouse」這種待辦事項很容易一直往後拖，因為分數看起來「應該還好」。實際跑了才知道，96 分的 Accessibility 底下藏著 3 個真的會讓人看不到內容的問題。
+
+## 先看 LCP breakdown，不要只看總分
+
+Performance 只有 74 分，細看 `lcp-breakdown-insight`，LCP 元素是 Hero 副標下面那段英文介紹文字，「element render delay」高達 1.75 秒。直接原因：Hero 那組進場動畫本身的 `delay`（0.1〜0.6 秒不等）加上 `duration`（0.8 秒）——這段文字要等動畫播完才算「視覺上完成渲染」。這是刻意的設計選擇（gentle fade-in 是整個網站的動畫語言），不是 bug，所以沒有動它，留著跟自己討論要不要為了分數犧牲設計。
+
+## 但 Accessibility 的 3 個問題是真的 bug
+
+### 1. Footer 文字對比度只有 1.37:1
+
+`LocalClock.tsx` 跟 `VisitorStats.tsx`（顯示雙時區時鐘、訪客統計）用 `text-(--border)` 當文字顏色。`--border` 這個 design token 是設計給邊框線用的極低對比色，拿來當文字顏色，暗色模式下對比度只有 **1.37:1**（WCAG AA 文字要求 4.5:1）——不是「不太好讀」，是幾乎看不見。改成 `text-(--muted)`（本來就是給次要文字用的 token）就修好了。
+
+這個問題告訴我一件事：**design token 的命名本身就是一種文件**。`--border` 這個名字已經在暗示「這是給邊框用的」，用在文字上從一開始就是用錯地方，只是視覺上沒有明顯到讓人一眼發現。
+
+### 2. 暗色模式的強調色差一點點沒過
+
+Portfolio 的 tag 篩選按鈕，active 狀態在暗色模式下對比度是 4.32:1，只差一點點沒到 4.5:1 的門檻。把 `--accent` 從 `#5b8fc7` 微調到 `#6295cc`——色差小到肉眼幾乎看不出來，但確實從 4.32 推到 4.66，過關。
+
+### 3. GitHub 熱力圖圖片沒有 `width`/`height`
+
+第三方嵌入的 GitHub 貢獻熱力圖 `<img>` 沒有寫明尺寸，會造成 layout shift（圖片載入前後頁面內容跳動）。查了它實際回應的 SVG，`width="663" height="104"`，補上就好。
+
+## 收穫
+
+修完這 3 個之後，Accessibility 從 96 分變 100 分——但比分數更重要的是，這些問題修之前是**真的會影響使用者**的（尤其對比度不足，直接影響視力不好或在強光環境下使用手機的訪客）。「分數已經 90 幾了應該還好」是我差點放棄跑這次稽核的理由，結果證明分數高不代表沒有真的會讓人看不到內容的 bug。

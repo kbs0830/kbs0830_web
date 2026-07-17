@@ -1,0 +1,77 @@
+---
+title: "Next.js 的 params 變成 Promise：一個 tsc 跟 build 都抓不到的 404 陷阱"
+titleEn: "Next.js params is now a Promise"
+date: "2026-07-17"
+description: "幫作品集加 /projects/[slug] 動態路由時踩到的一個坑：型別檢查過、build 也成功產生了所有頁面，但每一頁實際上都是 404。"
+tags: ["Next.js", "TypeScript", "Debugging"]
+---
+
+幫作品集加 `/projects/[slug]` 動態路由的時候踩到一個很隱蔽的坑，記錄一下，因為它有一個共同點：**每一個自動化檢查都過了，只有真的用瀏覽器點進去才會發現壞掉**。
+
+## 一開始長這樣
+
+App Router 的動態路由頁面照著我之前寫過無數次的方式寫：
+
+```tsx
+export default function ProjectDetailPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const project = projects.find((p) => p.slug === params.slug);
+  if (!project) notFound();
+  // ...
+}
+```
+
+`generateStaticParams()` 回傳全部 7 個作品的 slug，`next build` 跑完顯示：
+
+```
+├ ● /projects/[slug]
+│ ├ /projects/foodlens-advisor
+│ ├ /projects/yartix-ticketing
+│ ├ /projects/frc-robot
+│ └ [+4 more paths]
+```
+
+`tsc --noEmit` 沒有任何錯誤。看起來一切正常，commit、push、部署。
+
+## 但實際上全部都是 404
+
+直到我實際 `curl` 每一個路徑才發現：**連合法的 slug 都回傳 404**。查了 `.next/server/app/projects/foodlens-advisor.meta`：
+
+```json
+{
+  "status": 404,
+  ...
+}
+```
+
+不是某一頁壞掉，是全部 7 頁都壞掉——包含明明有對應資料的合法 slug。
+
+## 根因：`params` 現在是 `Promise`
+
+Next.js 15 開始，App Router 的 `params`（以及 `searchParams`）改成非同步的 `Promise`，這是為了未來 Partial Prerendering 之類的功能鋪路。舊的寫法 `{ params: { slug: string } }` 在型別上「結構性地」還是能通過檢查——TypeScript 不會因為少了 `Promise<...>` 就報錯，因為只是存取 `.slug` 這個動作本身沒有語法錯誤，只是拿到的值一直是 `undefined`（因為 `params` 實際上是一個 Promise 物件，不是解析後的資料）。
+
+`projects.find((p) => p.slug === params.slug)` 永遠找不到東西，因為 `params.slug` 永遠是 `undefined`。`notFound()` 於是每次都被觸發——包括合法的 slug。
+
+## 修法
+
+```tsx
+type ProjectPageProps = { params: Promise<{ slug: string }> };
+
+export default async function ProjectDetailPage({ params }: ProjectPageProps) {
+  const { slug } = await params;
+  const project = projects.find((p) => p.slug === slug);
+  if (!project) notFound();
+  // ...
+}
+```
+
+`generateMetadata` 也要一起改成 `async` 並 `await params`。
+
+## 學到的事
+
+- **型別檢查抓不到「結構性相容但語意錯誤」的問題。** `params.slug` 在兩種寫法下都是合法的 TypeScript 語法，只是一個拿到字串、一個拿到 `undefined`。
+- **`next build` 顯示「產生了 N 個頁面」不代表這些頁面真的能用。** build 只確認能夠成功產生靜態輸出，不會幫你驗證輸出內容的正確性。
+- 最後是用 `curl` 每一個實際路徑、看 HTTP 狀態碼才抓到的——這提醒我之後上線任何新路由，除了看 build log 之外，一定要至少打一次真正的請求確認狀態碼。
