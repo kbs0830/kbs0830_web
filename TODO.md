@@ -52,12 +52,6 @@
     的風險我不想在沒跟你確認前就引入，先維持現狀（Google Fonts 自動 unicode-range
     已經是合理的折衷）
 
-- [ ] **Uptime 監控**
-  UptimeRobot 免費方案，每 5 分鐘 ping 一次，掛掉發 Email / LINE Notify
-  → 桌機有時重開機會停服，要知道網站什麼時候斷了
-  → Email 通知收件位址用 `otemon.pcwork@gmail.com`（自動通知專用信箱），不要用
-    `1394kbs@gmail.com`（那個保留給真人聯絡）
-
 - [ ] **部署通知**
   CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify，或直接寄 Email
   → 目前不知道遠端 build 有沒有炸
@@ -257,3 +251,7 @@
     要拆分需要更大幅度的 CSS 架構調整。這兩個都不是我想在沒問過你之前就動的東西——
     前者要削弱你已經明確要的動畫效果，後者是牽動全站的架構改動，都先停在這裡等你
     決定要不要犧牲設計/花更大力氣換 Performance 分數
+- [x] Uptime 監控（使用者自己申請 UptimeRobot 帳號完成，每 5 分鐘檢查
+  `https://kbs0830.com`）——這步驟需要外部帳號，我沒辦法代辦，是使用者自己完成的
+  → 記得確認 Alert Contact 收件信箱設成 `otemon.pcwork@gmail.com`（自動通知專用），
+    不是 `1394kbs@gmail.com`（真人聯絡用），我這邊看不到帳號設定沒辦法直接確認
