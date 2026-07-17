@@ -316,7 +316,6 @@ export default function AboutSection() {
                   width={108}
                   height={108}
                   className="rounded-sm object-cover object-top grayscale-[15%]"
-                  priority
                 />
               </div>
               <p className="text-(--text)">
@@ -413,7 +412,9 @@ export default function AboutSection() {
             <img
               src="https://ghchart.rshah.org/2d5a8e/kbs0830"
               alt="kbs0830 的 GitHub 貢獻熱力圖"
-              className="min-w-[640px] w-full"
+              width={663}
+              height={104}
+              className="min-w-[640px] w-full h-auto"
               loading="lazy"
             />
           </div>

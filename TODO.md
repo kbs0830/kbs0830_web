@@ -38,17 +38,19 @@
 
 ## 🟠 中優先 — 技術品質
 
-- [ ] **Noto Serif JP 字體子集化**
-  日文字體完整版約 2–4 MB，對 LCP 影響很大
-  → Google Fonts `text=` 參數只載入用到的字元
-
-- [ ] **Image 格式優化**
-  `public/image/大頭貼.jpg` 確認是否有 `sizes` 屬性、是否可轉 WebP
-  → 改善 LCP 分數
-
-- [ ] **Lighthouse 全站跑一次**
-  Performance / Accessibility / Best Practices / SEO 四項目標全 90+
-  → 找出低垂果實（圖片未壓縮、render-blocking font、缺 alt 等）
+- [ ] **Noto Serif JP 字體子集化** → 調查過，故意先不做，原因見下
+  → 查了 build 產物：`next/font/google` 對 Noto Serif JP 其實已經自動切成 374 個
+    `@font-face`（3 個字重 × 每個字重按 unicode-range 切成一百多塊），瀏覽器只會
+    下載頁面上「實際出現的字」對應的那幾塊，不是整包 7.2MB 全下載，這部分已經是
+    Google Fonts 內建幫你做掉的
+  → 加 `text=` 參數會把這一百多塊壓成 1 塊更小的自訂子集，理論上更好，但實際試了發現
+    這個字體不是只用在少數幾個固定的日文漢字標籤——`/projects/[slug]` 的 `<h1>`
+    直接把 `project.titleZh`（動態、隨 `projects.ts` 增減專案而變）用這個字體渲染，
+    其他 11 個檔案也有混用固定標籤跟動態內容。手動列一份「目前用到的字」的固定字元
+    清單來 subset，之後你在 `projects.ts` 加新專案、標題用到清單外的字，就會悄悄
+    fallback 到別的字體、你可能不會馬上發現——這種「現在測起來沒事，未來悄悄壞掉」
+    的風險我不想在沒跟你確認前就引入，先維持現狀（Google Fonts 自動 unicode-range
+    已經是合理的折衷）
 
 - [ ] **Uptime 監控**
   UptimeRobot 免費方案，每 5 分鐘 ping 一次，掛掉發 Email / LINE Notify
@@ -84,11 +86,6 @@
   EmailJS 或 Formspree，訪客直接在頁面輸入留言
   → 不是每個人都有郵件客戶端
   → 曾做過 mailto 版但使用者覺得不需要，已移除；要做的話等你申請 EmailJS/Formspree 帳號再說
-
-- [ ] **頁面切換動畫**
-  進入 `/projects/[slug]` 詳細頁時加 slide-in / fade 過場
-  → Framer Motion `AnimatePresence` + layout transitions
-  → 前提的 `/projects/[slug]` 詳細頁已經蓋好（2026-07），這項不再卡住，可以隨時做
 
 - [ ] **圖片燈箱（Lightbox）**
   專案詳細頁截圖點擊後放大，支援鍵盤左右切換
@@ -232,3 +229,31 @@
     只是保留下來當比較好的寫法。這顆 chunk 的大小本質上就是「用 R3F 做 3D 背景」
     這個決定要付的成本，已經是目前架構下能做的最大程度延遲載入，要再更小需要換掉
     R3F（大改，不在這次範圍內）
+- [x] 頁面切換動畫（`src/app/projects/[slug]/template.tsx`，進入詳細頁 fade + slide-up）
+  → App Router 沒有原生穩定支援退場動畫的方式（`AnimatePresence` 要保留舊畫面到動畫
+    結束才卸載，跟 App Router 的導覽模型會打架），只做進場動畫，沒做 TODO 原本寫的
+    「退場」那半段
+- [x] Lighthouse 全站跑一次（`npx lighthouse`，production build，桌機模式）
+  → 修之前：Performance 74 / Accessibility 96 / Best Practices 100 / SEO 100
+  → 修之後：Performance 74（原因見下，故意先不動）/ **Accessibility 100**
+    / Best Practices 100 / SEO 100
+  → 真的抓到並修好 3 個 WCAG AA 對比度不足的問題：
+    1. `LocalClock.tsx`／`VisitorStats.tsx`（Footer）用 `text-(--border)` 當文字顏色——
+       `--border` 是設計給邊框線用的極低對比色，拿來當文字對比度只有 1.37:1（需要
+       4.5:1），暗色模式下幾乎看不見，改成 `text-(--muted)`
+    2. Portfolio tag 篩選 active 狀態在暗色模式對比度 4.32:1，差一點點沒過 4.5:1，
+       把 `globals.css` 暗色模式的 `--accent` 從 `#5b8fc7` 微調到 `#6295cc`（色差小到
+       肉眼幾乎看不出來，只有這一個 token，改動範圍最小）
+    3. GitHub 熱力圖 `<img>` 沒有 `width`/`height`，補上（663×104，實際查 SVG 回應
+       header 取得的真實尺寸），順便加 `h-auto` 維持比例
+  → Performance 沒動的原因（決策點，等你回覆）：LCP 量到 6.9s、分數只有 0.07，
+    細查 `lcp-breakdown-insight` 抓到 LCP 元素是 Hero 副標下面那段英文介紹文字，
+    「element render delay」高達 1.75s——直接原因是 Hero 那組 `fadeUp` 進場動畫
+    本身的 `delay`(0.1~0.6s 不等) + `duration`(0.8s)，這段文字要等動畫播完才算
+    「視覺上完成渲染」，跟 CLAUDE.md 設計原則明講的「gentle fade-in」是同一件事的
+    兩面；另外還有一個 102KB 的全域 CSS 檔案是 render-blocking，量到浪費 1.5s，
+    這是 Tailwind 把全站（含終端機彩蛋、Konami 彩蛋、列印樣式等）所有用到的
+    utility class 都打包進同一個透過 root layout 載入的 `globals.css` 的架構性代價，
+    要拆分需要更大幅度的 CSS 架構調整。這兩個都不是我想在沒問過你之前就動的東西——
+    前者要削弱你已經明確要的動畫效果，後者是牽動全站的架構改動，都先停在這裡等你
+    決定要不要犧牲設計/花更大力氣換 Performance 分數

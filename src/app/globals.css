@@ -23,7 +23,9 @@
   --border:    #2e2c29;
   --text:      #e8e6e1;
   --muted:     #8a8880;
-  --accent:    #5b8fc7;
+  --accent:    #6295cc; /* 比 light mode 手動微調亮一點：#5b8fc7 在 --accent-lt 背景上
+                            對比度只有 4.32:1，WCAG AA 文字要求 4.5:1，差一點點沒過
+                            （2026-07 跑 Lighthouse 抓到），這個色差極小、肉眼幾乎看不出來 */
   --accent-lt: #1a2a3a;
 }
 

@@ -30,7 +30,7 @@ export default function VisitorStats() {
 
   return (
     <p
-      className="text-xs text-(--border) font-light tracking-[0.15em]"
+      className="text-xs text-(--muted) font-light tracking-[0.15em]"
       style={{ fontFamily: "var(--font-mono)" }}
     >
       共 {stats.total} 次造訪 · 來自 {stats.countryCount} 國{" "}

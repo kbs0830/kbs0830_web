@@ -23,7 +23,7 @@ export default function LocalClock() {
 
   return (
     <p
-      className="text-xs text-(--border) font-light tracking-[0.15em]"
+      className="text-xs text-(--muted) font-light tracking-[0.15em]"
       style={{ fontFamily: "var(--font-mono)" }}
     >
       {times ? `高雄 ${times.kh} ・ 福岡 ${times.fk}` : "高雄 · 福岡"}
