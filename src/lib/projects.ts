@@ -148,6 +148,7 @@ export const projects: Project[] = [
     highlightZh: "2023 FRC · 全國冠軍聯盟",
     status: "完成",
     isPersonal: true,
+    image: "/image/projects/frc-robot.jpg",
     detail: {
       intro:
         "參與 FIRST Robotics Competition（FRC）機器人競賽，負責 Raspberry Pi 視覺系統與 LabVIEW 程式，並參與機構的 CNC 加工與氬焊製作。團隊在 2023 年賽季拿下全國冠軍聯盟。",

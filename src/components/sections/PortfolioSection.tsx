@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { projects, personalProjects, courseProjects } from "@/lib/projects";
 import RevealHeading from "@/components/ui/RevealHeading";
 
@@ -43,6 +44,17 @@ function ProjectCard({
       <div className="absolute top-0 left-0 h-[2px] w-0 bg-(--accent) group-hover:w-full transition-all duration-500 rounded-t-sm" />
 
       <div className="relative z-10 flex flex-col flex-1 pointer-events-none">
+        {project.image && (
+          <div className="relative -mx-7 -mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
+            <Image
+              src={project.image}
+              alt={`${project.titleZh} 截圖`}
+              fill
+              className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
