@@ -4,23 +4,26 @@
 
 ## 🔴 高優先 — 內容 & 功能完整性
 
-- [ ] **專案詳細頁 `/projects/[slug]`**
-  點卡片目前沒有任何動作，無法呈現完整深度
-  → App Router 動態路由，展示完整說明、截圖、技術挑戰、架構圖、GitHub 統計
-  → 優先度提升：下面的「Demo 連結欄位」「專案架構圖」都是這個頁面的內容，中低優先的
-    「頁面切換動畫」「圖片燈箱」也都卡在這個頁面還沒蓋，先做完這個能一次解鎖四項
-
 - [ ] **作品集截圖 / Thumbnail**
   卡片純文字層次感偏低，加 thumbnail 後視覺差很多
-  → 截圖放 `public/image/projects/`，在 projects.ts 加 `image?` 欄位
+  → `Project.image?` 欄位已存在（`/projects/[slug]` 詳細頁已支援顯示），目前只有
+    YARTIX（`public/image/projects/yartix.png`，從 `kbs0830/YARTIX-TICKETING-TEST`
+    repo 裡的 `frontend/static/www.png` 取來）有真實截圖
+  → 其餘 6 個作品缺截圖：FoodLens / 日圓匯率 / 記帳系統都是本機或已下線的服務，
+    需要你自己跑起來截圖；FRC / 自動跟隨機器人是實體硬體，需要你提供比賽照片
 
 - [ ] **Demo 連結欄位**
   projects.ts 加 `demo?` 欄位，FoodLens / 購票系統可附 live demo 或 YouTube 展示連結
   → 讓訪客直接體驗，而非只看文字
+  → 查過 YARTIX 的 `render.yaml`，只有部署設定沒有找到目前還活著的公開網址，而且那是
+    真實售票活動用的系統（處理過真人報名/付款資料），就算 Render 上還留著也不該公開連過去；
+    FoodLens README 沒提到任何 live demo。這欄位目前沒有安全可用的真實連結可以填，先跳過
 
 - [ ] **專案架構圖**
   每個作品加一張系統架構圖（Excalidraw / draw.io 匯出 SVG）
-  → 讓技術面試官瞬間理解你在做什麼
+  → `/projects/[slug]` 詳細頁目前用條列文字呈現架構重點（從各專案真實 README 整理），
+    不是視覺化 SVG 圖表，讓面試官「瞬間理解」的效果打了折扣。要做真的圖表需要你確認
+    要不要投入時間畫（或用 AI 產生示意圖再微調），先維持文字版
 
 - [ ] **履歷 PDF 下載**
   Contact section 加「下載履歷」按鈕，`public/resume.pdf`
@@ -85,12 +88,13 @@
 - [ ] **頁面切換動畫**
   進入 `/projects/[slug]` 詳細頁時加 slide-in / fade 過場
   → Framer Motion `AnimatePresence` + layout transitions
-  → 卡住：前提的 `/projects/[slug]` 詳細頁還沒蓋（見高優先清單第一項），這項要等那個先做完
+  → 前提的 `/projects/[slug]` 詳細頁已經蓋好（2026-07），這項不再卡住，可以隨時做
 
 - [ ] **圖片燈箱（Lightbox）**
   專案詳細頁截圖點擊後放大，支援鍵盤左右切換
   → 自製或用 yet-another-react-lightbox（輕量）
-  → 卡住：同上，依賴 `/projects/[slug]` 詳細頁
+  → 目前只有 YARTIX 一個作品有真實截圖可以點，其他 6 個要等「作品集截圖」那項補上圖片
+    才有意義，先跳過
 
 ---
 
@@ -198,5 +202,20 @@
   `/api/visitor-stats` 吐彙總資料，`VisitorStats.tsx` 顯示「共 N 次造訪 · 來自 M 國 + 前 5 名國旗」）
 - [x] LOG 分析（見 `LOG分析.md`）：10 天 log 顯示應用層 0 錯誤、20 次部署全成功；發現並修好
   訪客統計被偽裝瀏覽器 UA 的掃描器污染的問題（改成前端執行 JS 後才 POST 回報計數，
-  不執行 JS 的掃描器從根本上排除，不再只靠容易被繞過的 UA 黑名單）；順便修掉一個
-  Turbopack NFT over-trace 的 build 警告
+  不執行 JS 的掃描器從根本上排除，不再只靠容易被繞過的 UA 黑名單）
+  → 順帶一提：`/api/visitor-stats/route.ts` 的 Turbopack NFT over-trace build 警告當時
+    以為修好了，後來加了 POST handler（多了 `fs.readFileSync`/`writeFileSync`/`mkdirSync`）
+    warning 又跑出來，`turbopackIgnore` 註解只蓋到那一行 `path.join`，沒有全面解決；
+    不影響這個專案的部署方式（沒用 `output: standalone`），純粹是 build log 裡的雜訊，
+    先不繼續花時間
+- [x] 專案詳細頁 `/projects/[slug]`（App Router 動態路由，`generateStaticParams` 全站
+  7 個作品都 SSG 出獨立頁面）——內容來自實際 clone `kbs0830/school`、
+  `kbs0830/FoodLens-Advisor`、`kbs0830/YARTIX-TICKETING-TEST` 三個 repo 讀到的真實
+  README/原始碼，不是編造的；FRC 機器人／自動跟隨機器人沒有原始碼倉庫（實體硬體專案），
+  詳細頁維持原本卡片上就有的內容，沒有虛構新細節。YARTIX 附真實截圖（`www.png`）。
+  卡片改成整張可點擊（overlay `<Link>` + GitHub icon 保留獨立可點）
+  → 開發時抓到一個真的會讓「每一個」slug（包括合法的）都變成 404 的 bug：Next 16 的
+    `params` 是 `Promise`，一開始沒 `await` 就直接讀 `.slug`，SSG 出來的每一頁
+    `.meta` 都寫著 `"status": 404`，本機沒有真的用瀏覽器點過去測絕對不會發現——
+    純打字檢查跟 `next build` 的 TypeScript 檢查都沒抓到這個，是實際 `curl` 每個
+    路徑確認 200 才抓到的
