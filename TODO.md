@@ -128,9 +128,6 @@
   測 NavBar 捲動行為、Email 複製 toast、暗色模式切換
   → CI 跑，push 前確保基本功能沒壞
 
-- [ ] **Bundle Analyzer**
-  `@next/bundle-analyzer`，看清楚哪個套件最肥
-  → Three.js + R3F 可能可以動態 import 進一步拆分
 
 ---
 
@@ -219,3 +216,19 @@
     `.meta` 都寫著 `"status": 404`，本機沒有真的用瀏覽器點過去測絕對不會發現——
     純打字檢查跟 `next build` 的 TypeScript 檢查都沒抓到這個，是實際 `curl` 每個
     路徑確認 200 才抓到的
+- [x] 404 頁面排版統一（跟 `/uses`、`/now`、`/projects/[slug]` 這幾個 standalone page
+  共用同一套排版：左上角「← 返回首頁」小連結、mono 標籤、serif 標題，不再是整頁垂直
+  置中＋一顆突兀的實心大按鈕）——用 Playwright 實際跑 production build 截圖（亮/暗、
+  桌機/手機）比對過，不是只看程式碼猜
+- [x] Bundle Analyzer（`pnpm analyze`）
+  → 一開始裝了 `@next/bundle-analyzer`，結果它官方明講不支援 Turbopack（這專案 build
+    預設就是走 Turbopack），只會印警告、不產生報表，裝了等於沒用，已經移除。改用
+    Next 16 內建的 `next experimental-analyze`（互動式 treemap，預設 port 4000）
+  → 最大的 chunk 確實是 Three.js + @react-three（884KB，第二名的兩倍多），但已經是
+    `HeroSection.tsx` 用 `next/dynamic({ssr:false})` 動態載入、手機版完全不載入的
+    狀態，不是沒做過優化；試過把 `HeroScene.tsx` 的 `import * as THREE` 改成具名
+    import（只引入實際用到的 7 個 class），重新 build 比對位元組數完全沒變化——
+    Turbopack 對這個套件的 tree-shaking 已經做得夠好，具名 import 沒有實際幫助，
+    只是保留下來當比較好的寫法。這顆 chunk 的大小本質上就是「用 R3F 做 3D 背景」
+    這個決定要付的成本，已經是目前架構下能做的最大程度延遲載入，要再更小需要換掉
+    R3F（大改，不在這次範圍內）

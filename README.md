@@ -20,6 +20,10 @@ node node_modules/next/dist/bin/next dev
 commit 前會自動跑 Husky pre-commit hook（`lint-staged` + 全專案 `tsc --noEmit`），
 擋下型別錯誤或壞掉的程式碼，細節見 `CLAUDE.md`。
 
+想看哪個套件佔了多少 bundle 大小：`pnpm analyze`。沒用 `@next/bundle-analyzer`——
+它官方明講不支援 Turbopack（這專案的 build 就是走 Turbopack），改用 Next 16 內建的
+`next experimental-analyze`，跑起來會開一個互動式 treemap 網頁（預設 port 4000）。
+
 ### 手動部署（桌機）
 ```powershell
 .\deploy.bat
