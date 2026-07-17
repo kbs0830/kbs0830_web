@@ -7,6 +7,7 @@
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "analyze": "node node_modules/next/dist/bin/next experimental-analyze",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test",
     "lint": "eslint",
     "prepare": "husky"
   },
@@ -23,6 +24,7 @@
     "*.{js,jsx,ts,tsx}": "eslint --fix"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

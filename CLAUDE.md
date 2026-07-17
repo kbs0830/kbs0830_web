@@ -131,6 +131,23 @@ printf '\xef\xbb\xbf' | cat - scripts/xxx.ps1 > tmp && mv tmp scripts/xxx.ps1
 已經對這個路徑關掉 `@typescript-eslint/no-require-imports`，不要因為 lint 錯誤誤以為要把
 它們改寫成 ESM `import`。
 
+### E2E 測試（Playwright）
+
+`e2e/*.spec.ts`，`pnpm test:e2e` 執行（`playwright.config.ts` 會自動起一個 `next dev`
+在 port 3100，跑完關掉；本機開發中已經有 dev server 在跑的話會直接重用，不會衝突）。
+目前測：NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
+後記住選擇。CI 是獨立的 `.github/workflows/e2e.yml`，push 到 main 時跟 `deploy.yml`
+平行跑，**不會**擋部署——`deploy.yml` 是已經很小心調過的正式站部署關鍵路徑（見上方
+「Action 必須直接執行 node.exe」），E2E 測試本身跑瀏覽器比較慢也比較容易不穩，故意
+不掛在同一條 pipeline 上，測試結果純粹是給你看的訊號。
+
+**⚠️ 不要在正式站在跑的這份工作目錄裡反覆執行 `next build` 而不重啟 Task Scheduler
+服務。** 2026-07 測 Lighthouse/Bundle Analyzer/Playwright 時在這裡連續跑了好幾次
+`next build`，其中一次跟當下還在跑的正式站 process 的 build 對不上，watchdog 抓到
+一次 chunk 500（4 秒內自動重啟恢復，細節見 `logs/watchdog.log`）。需要反覆本機 build
+測試時，要嘛每次測完馬上重啟正式站對齊，要嘛換一份獨立目錄/worktree 跑，不要讓正式站
+跟著測試 build 一起震盪。
+
 ---
 
 ## 部署架構

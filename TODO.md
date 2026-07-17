@@ -115,11 +115,6 @@
 
 ## 🛠 開發體驗
 
-- [ ] **Playwright E2E 測試**
-  測 NavBar 捲動行為、Email 複製 toast、暗色模式切換
-  → CI 跑，push 前確保基本功能沒壞
-
-
 ---
 
 ## ✅ 已完成
@@ -255,3 +250,17 @@
   `https://kbs0830.com`）——這步驟需要外部帳號，我沒辦法代辦，是使用者自己完成的
   → 記得確認 Alert Contact 收件信箱設成 `otemon.pcwork@gmail.com`（自動通知專用），
     不是 `1394kbs@gmail.com`（真人聯絡用），我這邊看不到帳號設定沒辦法直接確認
+- [x] Playwright E2E 測試（`e2e/*.spec.ts`，`pnpm test:e2e`）——測了 NavBar 捲動變色、
+  NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理後記住選擇，4 個測試，
+  本機跑過 dev/production build 都過。開發時有一個測試（捲動變色）用完整套件平行跑
+  會偶發失敗、單獨跑不會，改用 `window.scrollTo` 取代 `mouse.wheel` 後穩定重跑 3 次
+  都過，不是邏輯錯誤只是事件模擬時機的問題
+  → CI 沒有塞進 `deploy.yml`（那是已經很小心調過的正式站部署關鍵路徑），另外開一個
+    `.github/workflows/e2e.yml` 平行跑，測試結果只是給你看的訊號，失敗不會擋掉部署
+  → ⚠️ 副作用記錄：這次為了測這個跟前面 Lighthouse/Bundle Analyzer，在這個資料夾
+    （就是正式站 Task Scheduler 服務在跑的同一份）反覆執行了好幾次 `next build`，
+    中間有一次跟正在跑的正式站 process 的 build 對不上，watchdog 在 11:31 抓到
+    一次 chunk 500（4 秒內自動重啟恢復，訪客應該沒感覺到），細節見
+    `logs/watchdog.log`。以後這種需要反覆本機 build 測試的工作，要嘛做完馬上重啟
+    正式站對齊，要嘛換一份獨立目錄跑，不要讓正式站在同一份目錄上跟著我的測試 build
+    一起震盪

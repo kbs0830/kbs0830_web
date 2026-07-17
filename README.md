@@ -24,6 +24,9 @@ commit 前會自動跑 Husky pre-commit hook（`lint-staged` + 全專案 `tsc --
 它官方明講不支援 Turbopack（這專案的 build 就是走 Turbopack），改用 Next 16 內建的
 `next experimental-analyze`，跑起來會開一個互動式 treemap 網頁（預設 port 4000）。
 
+E2E 測試：`pnpm test:e2e`（Playwright，`e2e/*.spec.ts`）。CI 是獨立的
+`.github/workflows/e2e.yml`，跟部署 pipeline 平行跑、不會互相擋，細節見 `CLAUDE.md`。
+
 ### 手動部署（桌機）
 ```powershell
 .\deploy.bat

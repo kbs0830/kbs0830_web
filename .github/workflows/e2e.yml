@@ -1,0 +1,21 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: C:\Users\user\Desktop\kbs0830_web-master
+    steps:
+      # 故意獨立成自己的 workflow，不塞進 deploy.yml：deploy.yml 是已經很小心調過的
+      # 正式站部署關鍵路徑（見 CLAUDE.md「Action 必須直接執行 node.exe」那段），
+      # E2E 測試本身跑瀏覽器、比較慢也比較容易不穩，掛進同一條 pipeline 萬一測試
+      # flaky 就會連帶擋掉部署。這裡失敗只會讓這個 workflow 顯示紅色，不會影響
+      # deploy.yml 照常執行、正式站照常更新——測試結果純粹是給你看的訊號，
+      # 不是部署的硬性關卡。
+      - name: Run Playwright E2E tests
+        run: node node_modules/@playwright/test/cli.js test
