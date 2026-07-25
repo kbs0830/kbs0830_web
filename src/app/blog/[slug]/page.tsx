@@ -77,12 +77,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    url: `https://kbs0830.com/blog/${post.slug}`,
+    author: {
+      "@type": "Person",
+      name: "PINGWEI LI",
+      url: "https://kbs0830.com",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-(--bg) px-6 py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-2xl mx-auto">
         <Link
           href="/blog"
-          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
+          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回部落格

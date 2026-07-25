@@ -393,6 +393,19 @@ export default function AboutSection() {
           >
             技能 · Skills
           </p>
+          <p
+            className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            <span className="inline-flex items-center">
+              <ProficiencyDots level={5} />
+              <span className="ml-1.5">熟練 Proficient</span>
+            </span>
+            <span className="inline-flex items-center">
+              <ProficiencyDots level={2} />
+              <span className="ml-1.5">学習中 Learning</span>
+            </span>
+          </p>
           <div className="space-y-3 divide-y divide-(--border)">
             {skills.map((group, i) => (
               <SkillGroup key={group.category} group={group} defaultOpen={i === 0} />

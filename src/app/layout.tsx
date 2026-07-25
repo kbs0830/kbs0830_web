@@ -69,6 +69,7 @@ export default function RootLayout({
     <html
       lang="zh-Hant"
       className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} h-full`}
+      suppressHydrationWarning
     >
       <head>
         {/* 在 hydration 前同步套用主題，避免先閃一次淺色再切換造成的 FOUC。

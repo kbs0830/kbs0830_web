@@ -16,6 +16,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/projects/yartix-ticketing",
+        destination: "/projects/ticketing-system",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

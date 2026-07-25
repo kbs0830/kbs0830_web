@@ -43,12 +43,26 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const project = projects.find((p) => p.slug === slug);
   if (!project) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "首頁", item: "https://kbs0830.com" },
+      { "@type": "ListItem", position: 2, name: "製作物", item: "https://kbs0830.com/#portfolio" },
+      { "@type": "ListItem", position: 3, name: project.titleZh, item: `https://kbs0830.com/projects/${project.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-(--bg) px-6 py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-2xl mx-auto">
         <Link
           href="/#portfolio"
-          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
+          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回作品集
@@ -78,16 +92,18 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <p className="text-sm font-light text-(--muted) mb-8">{project.title}</p>
 
         {project.github && (
-          <a
-            href={project.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-(--muted) hover:text-(--accent) transition-colors mb-10"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            <GitHubIcon />
-            {project.github.replace("https://", "")}
-          </a>
+          <div className="mb-8">
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 py-2 -my-2 text-xs text-(--muted) hover:text-(--accent) transition-colors"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              <GitHubIcon />
+              {project.github.replace("https://", "")}
+            </a>
+          </div>
         )}
 
         {project.image && (

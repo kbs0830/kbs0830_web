@@ -1,13 +1,74 @@
 # TODO — kbs0830_web
 
-**2026-07 現況：** 下面所有還沒打勾的項目都卡在需要使用者提供素材（截圖／履歷 PDF／
-架構圖）、申請外部帳號（Cloudflare／EmailJS 等）、或做設計/架構決定（犧牲動畫效果換
-Performance 分數、要不要零停機部署）——不是還沒空做，是純技術上已經沒有能自己接著做
-的項目了。每項底下都有具體卡在哪、需要你做什麼決定。
+**2026-07-25 更新：** 收到一份外部 Portfolio review（5 個痛點），連同 UI/UX、SEO、
+手機版、新技術升級一起整理進清單。每項標註：**⚙️ 可直接做**（不需等素材/決定，可直接
+動工）或 **🙋 需要你**（卡在素材、外部帳號、或要你先拍板的決定）。
+
+---
+
+## 📋 外部回饋對照（2026-07 Portfolio review 5 痛點 → 現況與對應待辦）
+
+| # | 回饋 | 現況 | 對應待辦 |
+|---|---|---|---|
+| 1 | 定位聚焦，不要泛泛的「學生開發者」 | Hero 副標與 `<title>`/OG 都是「学生開発者 · Claude × Gemini」 | 🔴 定位聚焦 |
+| 2 | 專案寫量化成果，不要只列功能 | 只有 FoodLens 有（token 成本 ~300–1000×），其餘多是功能描述 | 🔴 專案量化成果 |
+| 3 | 技術棧分類＋標熟練度 | **已完成大半**：5 組分類 accordion＋每個 chip 有 1–5 圓點熟練度，缺文字圖例說明圓點意義 | 🟠 熟練度圖例 |
+| 4 | 每個專案附 GitHub 連結＋commit 乾淨 | 7 個作品 5 個有連結；FRC／自動跟隨機器人是實體硬體無 repo（詳細頁已註明） | 🟠 GitHub repo 品質 |
+| 5 | RWD 不能跑位＋優化載入效能 | **2026-07-25 體檢完成**：全站 16 頁 × 4 斷點（360/390/768/1024）0 個跑版/橫向捲動；手機 Lighthouse Performance 74（跟桌機幾乎一致），A11y/BP/SEO 皆 100 | 🟠 LCP 決策點（沿用既有分析，這次用真實手機數據確認） |
 
 ---
 
 ## 🔴 高優先 — 內容 & 功能完整性
+
+- [ ] **定位聚焦（回饋 #1）** 🙋 需要你先拍板
+  Hero 副標（`HeroSection.tsx` 的 `SUBTITLE_TEXT`）與 `layout.tsx` 的 `<title>`／OG／
+  Twitter title 目前都是「学生開発者 · Claude × Gemini」，HR 視角一眼看不出核心武器
+  → 技術上改起來很快，卡在「定位是什麼」要你決定。候選方向：
+    `Full-stack Developer · AI × Web`／`Frontend Developer`／`AI Application Developer`
+  → 依你的背景（FastAPI/Flask 後端 + Next.js/React 前端 + YOLO/Gemini AI 應用）比較貼的
+    是「Full-stack Developer · AI × Web」這類；`Claude × Gemini` 可以留作副註不用全刪
+  → 決定後要同步改的地方：Hero 副標、`layout.tsx` title/OG/Twitter、Person JSON-LD 的
+    `jobTitle`、`/resume` 頁、重跑 `pnpm resume:pdf`
+
+- [ ] **專案量化成果（回饋 #2）** 🙋 需要你提供／確認真實數據
+  → ⚠️ 原則同 blog：數據必須是真的量測過或真的發生過的，**不能為了好看編造**
+  → 目前只有 FoodLens 有量化亮點（token 成本 ~300–1000×）
+  → 可以往這些方向找真實數字（每一條都要你確認屬實或提供）：
+    - YARTIX：實際處理過幾筆報名／售出幾張票、email 重試佇列救回幾封信
+    - 日圓匯率：並行爬蟲 vs 逐一抓取的實測時間差、整合了幾家銀行資料源
+    - FRC／自動跟隨：名次本身已是量化成果，可補「隊伍規模」「開發週期」類背景數字
+    - 本站自己也是作品：Lighthouse A11y/BP/SEO 三項 100、watchdog 異常 4 秒自動恢復、
+      自架部署 pipeline——這些在 log／`LOG分析.md` 都有真實記錄可引用
+  → 有數字後改 `projects.ts` 的 `highlightZh`／`detail`，並同步 `/resume` + 重跑 resume.pdf
+
+- [x] **RWD 手機版全面體檢＋行動版 Lighthouse（回饋 #5）**——2026-07-25 完成
+  → Playwright 對全站 16 個頁面（首頁、`/projects/[slug]`×7、`/blog` 列表＋3 篇文章、
+    `/now`、`/uses`、`/resume`、404）在 360／390／768／1024 四個斷點各跑一次，共 64 組：
+    **0 個橫向捲動／跑版**，`scrollWidth` 在所有組合下都沒超出 `clientWidth`
+  → 順手抓到並修掉兩個真的問題（不是 RWD 本身，但體檢過程中發現）：
+    1. 每一頁在每個斷點都有 React hydration mismatch console warning（`data-theme` 屬性）
+       ——原因是 `layout.tsx` 的深色模式 inline script 在 hydration 前就直接改了
+       `<html data-theme>`，這是文件裡明講的既有設計，只是少加了 `suppressHydrationWarning`；
+       補上後 warning 全部消失，不影響任何行為
+    2. 全站「← 返回OO」、GitHub repo 連結這類文字連結，實際可點擊高度只有 12–18px
+       （在手機上偏難點準），加 `py-3 -my-3`（或 wrapper + `py-2 -my-2`）撐開點擊區域，
+       不影響視覺間距
+  → Lighthouse **mobile** 模式（之前只跑過桌機）：Performance 74（跟桌機幾乎打平，LCP
+    6.8s vs 桌機 6.9s，根因跟桌機版記錄的一樣：Hero fade-in 動畫 delay + 102KB
+    render-blocking CSS，見下面「LCP 決策點」）、**Accessibility 100 / Best Practices 100
+    / SEO 100**，跟桌機版一致，代表之前的 WCAG 對比度修復在手機視窗下同樣有效
+  → 還剩幾個非緊急的小 touch target（都在 WCAG 2.2 AA 的 24×24px 底線之上，只是沒到
+    44×44 理想值），設計上是刻意的小圖示/文字連結，不擅自改視覺，列給你參考：
+    NavBar 深色模式切換鈕／漢堡選單（32×32）、Portfolio「全部」篩選 chip（88×27）、
+    About 時間軸項目點擊區（~37px 高）、Skills 分類 accordion 按鈕（~34px 高）
+  → 縮圖 `sizes` 設定沒發現手機多抓桌機尺寸圖的問題，`next/image` 預設行為已經在處理
+
+- [ ] **Google Search Console 註冊＋提交 sitemap（SEO 起手式）** 🙋 需要你的 Google 帳號
+  → 目前完全不知道 Google 收錄了哪些頁、什麼關鍵字搜得到；GSC 是後續所有 SEO 動作的儀表板
+  → 步驟：用 1394kbs@gmail.com 到 https://search.google.com/search-console 新增資源
+    `kbs0830.com`（選 DNS 驗證，去 Cloudflare 加一筆 TXT 記錄即可）→ 提交
+    `https://kbs0830.com/sitemap.xml`
+  → 你註冊完之後我能接手的：查索引狀態、找出沒被收錄的頁面、看實際進站關鍵字再回頭調 metadata
 
 - [ ] **作品集截圖 / Thumbnail**
   卡片純文字層次感偏低，加 thumbnail 後視覺差很多
@@ -29,6 +90,34 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 ---
 
 ## 🟠 中優先 — 技術品質
+
+- [ ] **技術棧熟練度文字圖例（回饋 #3 收尾）** ⚙️ 可直接做
+  → 分類（5 組 accordion）＋每個 chip 的 1–5 圓點**已經做完**，但圓點沒有任何文字說明，
+    HR 不一定意會到那是熟練度
+  → 在 Skills 區塊加一行小字圖例（例：`●●●●● 熟練 Proficient ・ ●●○○○ 学習中 Learning`），
+    mono 字體、muted 色，跟現有設計語彙一致即可，不用大改
+
+- [ ] **GitHub repo 品質（回饋 #4 的另一半）** 🙋 改動在其他 repo
+  → 站內連結部分已齊：5/7 作品有 GitHub 連結；FRC／自動跟隨機器人是實體硬體專案、
+    沒有倉庫（詳細頁已誠實註明），不硬造空 repo
+  → 剩下的是 repo 本身的門面：`FoodLens-Advisor`／`YARTIX-TICKETING-TEST` 的 README
+    是否有截圖、架構圖、安裝步驟；commit 訊息是否乾淨有條理
+  → 順手做：GitHub profile 把這兩個主力 repo **pin** 起來，讓人點進 kbs0830 第一眼就看到
+  → 這些改動不在這份 codebase，要另外開工作處理（本機有憑證，技術上我可以協助）
+
+- [ ] **SEO 結構化資料擴充** ⚙️ 可直接做
+  → 目前只有 `layout.tsx` 的 Person JSON-LD
+  → `/blog/[slug]` 加 **BlogPosting** JSON-LD（headline／datePublished／author）
+  → `/projects/[slug]` 加 **BreadcrumbList**（首頁 → 製作物 → 專案名），搜尋結果可顯示層級
+  → GSC 註冊完後可用「複合式搜尋結果測試」驗證有沒有被吃到
+
+- [ ] **Blog 持續累積（SEO 長尾主力）** 🙋 要有真的踩過的坑才寫
+  → 目前 3 篇。個人站被 Google 搜到的主力就是長尾技術關鍵字
+  → 題材庫（全部是真實發生過、CLAUDE.md／log 有記錄可展開的）：
+    Tailwind v4 `[--var]`→`(--var)` 全站 116 處踩坑、Task Scheduler wrapper 孤兒 process、
+    pnpm v11 native build 限制、PowerShell 5.1 無 BOM 的 Big5 parse error、
+    node.exe 無聲死掉 4 小時→自寫 watchdog 的過程
+  → 一篇一篇來，寫之前跟我核對細節，不硬掰
 
 - [ ] **Noto Serif JP 字體子集化** → 調查過，故意先不做，原因見下
   → 查了 build 產物：`next/font/google` 對 Noto Serif JP 其實已經自動切成 374 個
@@ -63,6 +152,35 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
   → 目前架構（單一 process 給 Task Scheduler 直接管理）本來就無法完全避免這個
     空窗，要做到零停機需要雙 process 交替之類的架構改動，複雜度是否值得由你評估，
     詳見 `LOG分析.md` 第 3 節
+
+---
+
+- [ ] **首頁 LCP／Performance 決策點（回饋 #5 的效能面）** 🙋 等你拍板
+  → 背景見「已完成」的 Lighthouse 項目：桌機 Performance 74，LCP 6.9s，兩個原因都查清楚了
+  → **2026-07-25 補：行動版 Lighthouse 實測數字出來了**——Performance 74、LCP 6.8s，
+    跟桌機幾乎一模一樣，代表這不是「手機比較慢」的問題，是同一組根因（動畫 delay ＋
+    render-blocking CSS）在兩種裝置上都成立，不用再猜手機會不會更慘，數字已經拿到了
+  → 選項 A：把 Hero 進場動畫的 delay/duration 縮短（例如 delay 全部 ≤0.2s、duration 0.4s），
+    LCP 直接受益，但會削弱你明確要過的「gentle fade-in」質感——幅度可以先做給你看再決定
+  → 選項 B：102KB render-blocking 全域 CSS 拆分（mobile Lighthouse 額外標出 ~100KB 未用到
+    的 CSS、~49KB 未用到的 JS，量體對得上，不是新問題只是同一件事的更細數字）——牽動全站
+    架構，工程大、風險高，不建議先動
+  → 兩個選項都需要你拍板要不要犧牲設計/花力氣換分數，我不會自己選一邊動手
+
+---
+
+## 🧪 新技術升級評估
+
+- [ ] **View Transitions**（Next.js `experimental.viewTransition`）⚙️ 可在分支試
+  → 之前「頁面切換退場動畫」做不了的原因（`AnimatePresence` 要保留舊畫面、跟 App Router
+    導覽模型打架）正是這個瀏覽器原生 API 要解的問題
+  → 仍是 experimental flag，先開分支驗證效果與穩定性（含 Safari/Firefox 支援度），OK 再上正式站
+- [ ] **React Compiler** — 優先度低
+  → 自動 memoization，理論上可拿掉手動 `useMemo`/`useCallback`
+  → 本站互動元件不多、HeroScene 已手動 useMemo 過，收益不確定；R3F 相容性要先查，先觀望
+- [x] **Partial Prerendering（PPR）— 評估後不採用**（記錄結論免得之後重查）
+  → 本站頁面幾乎全部 SSG，只有 2 個 API route 是動態的，沒有「靜態殼＋動態洞」的頁面
+    形態，PPR 沒有適用場景
 
 ---
 
@@ -107,7 +225,32 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 
 ## ✅ 已完成
 
+- [x] **2026-07-25：技術棧熟練度圖例 ＋ SEO 結構化資料擴充 ＋ RWD 手機體檢**（見上面回饋
+  對照表跟各自條目的詳細記錄，這裡只記重點）
+  → Skills 區塊加文字圖例（`●●●●● 熟練 Proficient` / `●●○○○ 学習中 Learning`），
+    復用既有的 `ProficiencyDots` 元件，不是重做一套
+  → `/blog/[slug]` 加 BlogPosting JSON-LD、`/projects/[slug]` 加 BreadcrumbList JSON-LD
+  → **這次順手做的動作比原本規劃的大**：跑 RWD 體檢時你在中途提醒 YARTIX 去識別化沒做完
+    （見下一條），修完後為了讓行動版 Lighthouse 反映當天所有改動，跑了一次
+    `next build` 並用 Task Scheduler 安全重啟正式站對齊——代表這次 session 修的東西
+    （去識別化、hydration warning、touch target、SEO 結構化資料等）現在已經是
+    **kbs0830.com 正式站在跑的版本**，但這些改動目前只存在於工作目錄，**還沒 git commit
+    也沒 push**。正式站的程式碼跟 GitHub main branch 目前不同步，之後任何一次
+    `git push` 到 main 觸發的 CI/CD 都會用 repo 裡的版本覆蓋掉現在正式站跑的這份——
+    內容相同所以不會變差，但如果你打算先手動改點別的東西再 commit，要注意目前線上
+    跑的已經是超前 git 一個版本的狀態，建議儘快 commit + push 讓兩邊對齊
 - [x] YARTIX 去識別化 & 改名為「購票系統」
+  → **2026-07-25 補追：原本只做了一半。** `titleZh`／`descriptionZh` 早就改成「購票系統」，
+    但英文 `title` 欄位（`"YARTIX Ticketing"`）跟詳細頁 intro 文字裡的真實客戶名稱
+    「台灣鐵道文化意象 TWRIC」其實一直還在，會顯示在作品卡片副標題、詳細頁副標題、
+    分頁 `<title>` 標籤／SEO metadata 上——這次全部清乾淨，同時把 URL slug
+    `yartix-ticketing` → `ticketing-system`、圖片檔名 `yartix.png` →
+    `ticketing-system.png`，`next.config.ts` 加 301/308 redirect 保留舊網址（避免已收錄的
+    舊網址直接變 404）
+  → **還沒做完，需要你動手（我這台機器沒裝 `gh` CLI，且這是外部系統，不會自己動）**：
+    GitHub repo `kbs0830/YARTIX-TICKETING-TEST` 名稱本身還是會顯示在詳細頁的連結文字上。
+    到 repo → Settings → 改名成 `ticketing-system`（GitHub 會自動幫舊網址做 redirect，
+    不用擔心壞連結），改完告訴我新名稱，我把 `src/lib/projects.ts` 的 `github` 欄位同步更新
 - [x] 麵包店電商網站移除
 - [x] FRC 機器人加入作品集（2023 全國冠軍聯盟）
 - [x] 時間軸加入 About（2021–2026）

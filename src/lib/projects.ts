@@ -91,8 +91,8 @@ export const projects: Project[] = [
     },
   },
   {
-    slug: "yartix-ticketing",
-    title: "YARTIX Ticketing",
+    slug: "ticketing-system",
+    title: "Ticketing Platform",
     titleJa: "チケットシステム",
     titleZh: "購票系統",
     description:
@@ -105,10 +105,10 @@ export const projects: Project[] = [
     highlightZh: "完整報名流程：填表 → 付款確認 → Email 通知",
     status: "完成",
     isPersonal: true,
-    image: "/image/projects/yartix.png",
+    image: "/image/projects/ticketing-system.png",
     detail: {
       intro:
-        "為「台灣鐵道文化意象 TWRIC」活動製作的線上報名售票系統，前後端分離架構：後端 Flask API 處理報名、付款與通知邏輯，前端純 HTML/CSS/JS 頁面，部署在 Render（gunicorn 啟動）。",
+        "為文化活動主辦單位製作的線上報名售票系統，前後端分離架構：後端 Flask API 處理報名、付款與通知邏輯，前端純 HTML/CSS/JS 頁面，部署在 Render（gunicorn 啟動）。",
       sections: [
         {
           heading: "架構",

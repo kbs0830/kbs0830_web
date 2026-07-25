@@ -22,7 +22,7 @@ export default function NowPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
+          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回首頁

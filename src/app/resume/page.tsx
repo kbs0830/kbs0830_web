@@ -31,7 +31,7 @@ const skillGroups = [
 ];
 
 const featured = projects.filter((p) =>
-  ["foodlens-advisor", "yartix-ticketing", "frc-robot", "auto-following-robot"].includes(p.slug)
+  ["foodlens-advisor", "ticketing-system", "frc-robot", "auto-following-robot"].includes(p.slug)
 );
 
 export default function ResumePage() {
@@ -40,7 +40,7 @@ export default function ResumePage() {
       <div className="max-w-2xl mx-auto print:max-w-none">
         <Link
           href="/"
-          className="text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors print:hidden"
+          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors print:hidden"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           ← 返回首頁
