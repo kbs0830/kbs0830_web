@@ -203,9 +203,9 @@ const timeline = [
     detailEn: "Graduated from the vocational IT program and enrolled at NKUST Intelligent Commerce.",
   },
   {
-    year: "2025", zh: "完成 FoodLens Advisor & 購票系統",              en: "Shipped FoodLens Advisor & ticketing platform",
-    detailZh: "FoodLens Advisor（YOLOv8 ＋ Gemini）與購票系統（Flask ＋ LINE Pay）皆完成部署。",
-    detailEn: "Shipped FoodLens Advisor (YOLOv8 + Gemini) and a Flask + LINE Pay ticketing platform.",
+    year: "2025", zh: "完成 FoodLens Advisor & 活動報名系統",              en: "Shipped FoodLens Advisor & event registration system",
+    detailZh: "FoodLens Advisor（YOLOv8 ＋ Gemini）與活動報名系統（Flask ＋ LINE Pay）皆完成部署。",
+    detailEn: "Shipped FoodLens Advisor (YOLOv8 + Gemini) and a Flask + LINE Pay event registration system.",
   },
   {
     year: "2026", zh: "持續建構中 · 仕事在進行",                       en: "Continuously building",

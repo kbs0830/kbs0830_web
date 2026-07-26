@@ -266,12 +266,19 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
   → **2026-07-26 補：詳細頁的連結文字已改成「原始碼 · Source Code」**（`src/app/projects/
     [slug]/page.tsx`），不再把 `project.github.replace("https://", "")` 這種會直接印出
     repo 完整路徑的寫法當連結文字——不管 repo 實際叫什麼名字，畫面上都不會顯示
+  → **2026-07-26 再補：使用者要求進一步去識別化。**
+    1. `github` 欄位暫時清空（`""`）——卡片跟詳細頁的 GitHub 按鈕在 repo 改名前直接不顯示，
+       徹底不留 href 可以 hover／複製連結看到舊 repo 名稱這條路
+    2. 移除卡片縮圖與詳細頁截圖（`image` 欄位拿掉，`public/image/projects/
+       ticketing-system.png` 已刪除）
+    3. 顯示名稱從「購票系統 / Ticketing Platform」改成更中性的「活動報名系統 /
+       Event Registration System」（`titleJa` 同步改成「イベント受付システム」），
+       不再直接對應原產品「Ticketing」的命名
   → **還沒做完，需要你動手（我這台機器沒裝 `gh` CLI，且這是外部系統，不會自己動）**：
-    GitHub repo `kbs0830/YARTIX-TICKETING-TEST` 這個名稱本身還在，`href` 連結還是會指過去
-    （hover 時瀏覽器狀態列、或右鍵複製連結網址都看得到），只是不會再印成畫面上的可見文字了。
-    到 repo → Settings → 改名（不要用專案代號類名稱，用純技術性描述，例如
-    `flask-ticketing-api` 這類），GitHub 會自動幫舊網址做 redirect，不用擔心壞連結，
-    改完告訴我新名稱，我把 `src/lib/projects.ts` 的 `github` 欄位同步更新
+    GitHub repo `kbs0830/YARTIX-TICKETING-TEST` 這個名稱本身還在。到 repo → Settings →
+    改名（不要用專案代號類名稱，用純技術性描述，例如 `flask-registration-api` 這類），
+    GitHub 會自動幫舊網址做 redirect，不用擔心壞連結，改完告訴我新名稱，我把
+    `src/lib/projects.ts` 的 `github` 欄位填回去，GitHub 按鈕才會重新出現
 - [x] 麵包店電商網站移除
 - [x] FRC 機器人加入作品集（2023 全國冠軍聯盟）
 - [x] 時間軸加入 About（2021–2026）

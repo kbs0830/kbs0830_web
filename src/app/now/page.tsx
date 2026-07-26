@@ -13,7 +13,7 @@ const now = [
   "學習 React Three Fiber 進階、WebGL Shader",
   "研究本地端 ML 推理（edge AI）與 Electron 打包部署",
   "日本語 N5 学習中",
-  "維護 FoodLens Advisor 與購票系統兩個個人専案",
+  "維護 FoodLens Advisor 與活動報名系統兩個個人専案",
 ];
 
 export default function NowPage() {

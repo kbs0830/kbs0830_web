@@ -92,20 +92,19 @@ export const projects: Project[] = [
   },
   {
     slug: "ticketing-system",
-    title: "Ticketing Platform",
-    titleJa: "チケットシステム",
-    titleZh: "購票系統",
+    title: "Event Registration System",
+    titleJa: "イベント受付システム",
+    titleZh: "活動報名系統",
     description:
-      "Event registration and ticketing platform for a cultural event organizer. Handles registration, LINE & email payment confirmation, Google Sheets storage, and retry queue.",
+      "Event registration system for a cultural event organizer. Handles registration, LINE & email payment confirmation, Google Sheets storage, and retry queue.",
     descriptionZh:
-      "文化活動線上報名售票平台。支援 LINE／Email 付款確認、Google Sheets 資料儲存、Email 重試機制，部署至 Render。",
+      "文化活動線上報名系統。支援 LINE／Email 付款確認、Google Sheets 資料儲存、Email 重試機制，部署至 Render。",
     tags: ["Python", "Flask", "JavaScript", "Google Sheets API", "LINE Pay", "Gunicorn"],
-    github: "https://github.com/kbs0830/YARTIX-TICKETING-TEST",
+    github: "",
     highlight: "Full registration flow: form → payment → email notification",
     highlightZh: "完整報名流程：填表 → 付款確認 → Email 通知",
     status: "完成",
     isPersonal: true,
-    image: "/image/projects/ticketing-system.png",
     detail: {
       intro:
         "為文化活動主辦單位製作的線上報名售票系統，前後端分離架構：後端 Flask API 處理報名、付款與通知邏輯，前端純 HTML/CSS/JS 頁面，部署在 Render（gunicorn 啟動）。",
