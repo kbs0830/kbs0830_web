@@ -63,6 +63,22 @@
     About 時間軸項目點擊區（~37px 高）、Skills 分類 accordion 按鈕（~34px 高）
   → 縮圖 `sizes` 設定沒發現手機多抓桌機尺寸圖的問題，`next/image` 預設行為已經在處理
 
+- [ ] **GitHub Actions self-hosted runner 監控空缺** 🙋 等你決定要不要做
+  → **2026-07-25 發現**：這次 push 完去查 Actions 狀態，發現 `Deploy to Desktop`／
+    `E2E Tests` 兩個 workflow 卡在 `queued` 動不了。查了才知道 `GitHubActionsRunner`
+    這個工作排程器任務雖然顯示 `Ready`，但 `Runner.Listener.exe` 進程其實沒在跑——
+    上次真正啟動是 **2026-07-19**，之後某個時間點無聲掛掉，性質很像 `kbs0830_Watchdog`
+    當初要解決的「node.exe 無聲死掉」那種問題，只是這次死的是 runner 不是網站本身
+  → 手動 `Start-ScheduledTask` 重啟後 runner 立刻復活，排隊的 job 也正常跑完
+    （`Deploy to Desktop` 成功，`https://kbs0830.com` 已更新）
+  → **監控空缺**：`kbs0830_Watchdog` 只檢查網站本身（port 3000），沒有東西在盯這個
+    runner 死活。如果不是這次手動查 GitHub API，runner 可能會一直停在那邊，之後每次
+    `git push` 都不會自動部署，要等你自己發現才知道
+  → 可行方向：比照 `kbs0830_Watchdog` 的模式，加一段檢查邏輯確認
+    `Runner.Listener.exe` 進程存在，沒有就 `Start-ScheduledTask` 重啟——可以是獨立的
+    工作排程器任務，或併進現有 `watchdog.ps1` 一起檢查。要不要做、要不要跟現有
+    watchdog 合併，由你評估
+
 - [ ] **Google Search Console 註冊＋提交 sitemap（SEO 起手式）** 🙋 需要你的 Google 帳號
   → 目前完全不知道 Google 收錄了哪些頁、什麼關鍵字搜得到；GSC 是後續所有 SEO 動作的儀表板
   → 步驟：用 1394kbs@gmail.com 到 https://search.google.com/search-console 新增資源
@@ -247,10 +263,15 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     `yartix-ticketing` → `ticketing-system`、圖片檔名 `yartix.png` →
     `ticketing-system.png`，`next.config.ts` 加 301/308 redirect 保留舊網址（避免已收錄的
     舊網址直接變 404）
+  → **2026-07-26 補：詳細頁的連結文字已改成「原始碼 · Source Code」**（`src/app/projects/
+    [slug]/page.tsx`），不再把 `project.github.replace("https://", "")` 這種會直接印出
+    repo 完整路徑的寫法當連結文字——不管 repo 實際叫什麼名字，畫面上都不會顯示
   → **還沒做完，需要你動手（我這台機器沒裝 `gh` CLI，且這是外部系統，不會自己動）**：
-    GitHub repo `kbs0830/YARTIX-TICKETING-TEST` 名稱本身還是會顯示在詳細頁的連結文字上。
-    到 repo → Settings → 改名成 `ticketing-system`（GitHub 會自動幫舊網址做 redirect，
-    不用擔心壞連結），改完告訴我新名稱，我把 `src/lib/projects.ts` 的 `github` 欄位同步更新
+    GitHub repo `kbs0830/YARTIX-TICKETING-TEST` 這個名稱本身還在，`href` 連結還是會指過去
+    （hover 時瀏覽器狀態列、或右鍵複製連結網址都看得到），只是不會再印成畫面上的可見文字了。
+    到 repo → Settings → 改名（不要用專案代號類名稱，用純技術性描述，例如
+    `flask-ticketing-api` 這類），GitHub 會自動幫舊網址做 redirect，不用擔心壞連結，
+    改完告訴我新名稱，我把 `src/lib/projects.ts` 的 `github` 欄位同步更新
 - [x] 麵包店電商網站移除
 - [x] FRC 機器人加入作品集（2023 全國冠軍聯盟）
 - [x] 時間軸加入 About（2021–2026）

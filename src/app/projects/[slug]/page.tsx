@@ -101,7 +101,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               style={{ fontFamily: "var(--font-mono)" }}
             >
               <GitHubIcon />
-              {project.github.replace("https://", "")}
+              原始碼 · Source Code
             </a>
           </div>
         )}
