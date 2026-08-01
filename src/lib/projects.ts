@@ -189,30 +189,57 @@ export const projects: Project[] = [
     titleJa: "自動追従ロボット",
     titleZh: "自動跟隨機器人",
     description:
-      "Jetson Nano + Python vision system with Arduino relay-driven chassis. Real-time object tracking via camera. Won Excellence Award at the 2024 National Special Projects Competition (動力機械群).",
+      "Jetson Nano + YOLOv8 real-time person tracking driving a repurposed FRC chassis via Arduino and an H-bridge motor driver. Won Excellence Award at the 2024 National Special Projects Competition (動力機械群).",
     descriptionZh:
-      "Jetson Nano 搭配 Python 即時辨識系統，透過 Arduino 繼電器驅動底盤追蹤目標。參加 2024 年全國專題競賽，獲動力機械群全國佳作。",
-    tags: ["Python", "Jetson Nano", "Arduino", "OpenCV", "Raspberry Pi"],
+      "Jetson Nano 執行 YOLOv8 即時人員辨識，透過 Arduino ＋ H 橋馬達驅動器控制沿用自 FRC 的底盤追蹤目標。參加 2024 年全國專題競賽，獲動力機械群全國佳作。",
+    tags: ["Python", "Jetson Nano", "YOLOv8", "OpenCV", "Arduino"],
     github: "",
     highlight: "2024 National Special Projects Competition — Excellence Award",
     highlightZh: "2024 全國專題競賽 · 動力機械群全國佳作",
     status: "完成",
     isPersonal: true,
+    image: "/image/projects/auto-following-robot.jpg",
     detail: {
       intro:
-        "以 Jetson Nano 搭配 Python 建置即時視覺辨識系統，透過 Arduino 繼電器驅動底盤，讓機器人可以即時追蹤鏡頭前的目標移動。參加 2024 年全國專題競賽動力機械群，獲得全國佳作。",
+        "原始競賽作品名稱為「小跟班（跟隨工具車）」：以 Jetson Nano 執行 YOLOv8 即時物件追蹤辨識人員，透過 GPIO 訊號交由 Arduino 判斷，再用 BTS-7960 馬達驅動器控制沿用自 FRC 的 AM14U5 底盤與 CIM 馬達追蹤目標移動。發想自汽修廠工具車多仰賴人力搬運、易生工安風險，參加 112 學年度全國高級中等學校專業群科專題實作及創意競賽動力機械群，獲得全國佳作。",
       sections: [
         {
           heading: "系統組成",
           headingEn: "Components",
           body: [
-            "Jetson Nano：即時影像辨識運算",
-            "OpenCV：目標偵測與追蹤",
-            "Arduino：接收辨識結果，透過繼電器驅動底盤馬達",
+            "Jetson Nano 4GB ＋ Logitech C270（720p）：即時影像辨識運算來源",
+            "YOLOv8（Ultralytics 訓練、Roboflow 建立資料集）＋ OpenCV：物件偵測與追蹤，輸出辨識框高度／數量／信心值",
+            "Arduino UNO ＋ BTS-7960 馬達驅動器（最大電流 43A）：接收 GPIO 訊號並以 PWM 控制底盤",
+            "底盤沿用 FRC 競賽用 AndyMark AM14U5 六輪底盤 ＋ AM0255 2.5 吋 CIM 馬達（自由轉速 5310 RPM）＋ 6 吋 HiGrip 輪胎",
+          ],
+        },
+        {
+          heading: "辨識與控制邏輯",
+          headingEn: "Detection & Control",
+          body: [
+            "YOLOv8 持續追蹤畫面中人員，輸出辨識框高度 H",
+            "H 與預設值 X 比較後，Jetson Nano 透過 GPIO 輸出高／低電位給 Arduino",
+            "Arduino 判讀電位：高電位前進、低電位後退、無訊號停止，並用 PWM 訊號控制底盤速度",
+            "另設實體停止按鈕，按下即中斷底盤動作",
+          ],
+        },
+        {
+          heading: "硬體製作",
+          headingEn: "Fabrication",
+          body: [
+            "上半部收納結構以角鋼／鋼板裁切、鑽孔、點焊自製，分上中下三層收納工具、零部件與空壓機",
+            "馬達控制器經過三次迭代：Spark SPX（PWM 不相容 Arduino）→ L298N（電流不足以驅動底盤馬達）→ 最終採用 BTS-7960",
           ],
         },
       ],
-      context: "這是實體硬體競賽專案，沒有公開程式碼倉庫，細節以團隊比賽紀錄為主。",
+      architectureDiagram: `flowchart TD
+  C["Logitech C270<br/>攝影機"] --> J["Jetson Nano<br/>YOLOv8 物件追蹤"]
+  J -->|"辨識框高度 H"| G["GPIO 輸出<br/>高／低電位"]
+  G --> A["Arduino UNO"]
+  A -->|"PWM 訊號"| M["BTS-7960<br/>馬達驅動器"]
+  M --> D["AM0255 CIM 馬達<br/>+ AM14U5 底盤"]
+  A -.按下停止鈕.-> S["停止"]`,
+      context: "這是實體硬體競賽專案，沒有公開程式碼倉庫，技術細節整理自實際參賽的競賽作品說明書。",
     },
   },
 
