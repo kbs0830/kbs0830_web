@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
-import { aircraftByFlight } from "@/lib/aircraft";
+import { formatFlightCode } from "@/lib/aircraft";
 
 const skills = [
   {
@@ -489,9 +489,7 @@ export default function AboutSection() {
                       className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide"
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
-                      {c.flights
-                        .map((code) => (aircraftByFlight[code] ? `${code}(${aircraftByFlight[code]})` : code))
-                        .join(" · ")}
+                      {c.flights.map(formatFlightCode).join(" · ")}
                     </p>
                   )}
                 </div>

@@ -9,6 +9,7 @@
     "analyze": "node node_modules/next/dist/bin/next experimental-analyze",
     "resume:pdf": "node scripts/generate-resume-pdf.js",
     "test:e2e": "node node_modules/@playwright/test/cli.js test",
+    "test:unit": "node node_modules/vitest/vitest.mjs run",
     "lint": "eslint",
     "prepare": "husky"
   },
@@ -18,7 +19,7 @@
     "framer-motion": "^12.40.0",
     "gray-matter": "^4.0.3",
     "mermaid": "^11.16.0",
-    "next": "16.2.9",
+    "next": "16.3.1",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -40,6 +41,7 @@
     "lint-staged": "^17.0.8",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

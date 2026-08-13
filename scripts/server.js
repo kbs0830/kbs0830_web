@@ -71,6 +71,24 @@ app
     server.listen(port, () => {
       log(`server ready on http://localhost:${port} (pid ${process.pid})`);
     });
+
+    // 2026-08 發現整站每隔約 3 天會完全沒回應一次（watchdog 自動重啟恢復，見
+    // watchdog.log），process 沒有崩潰也沒有任何例外 log，事發前後都很安靜——
+    // 懷疑是 Next.js 16.x 已知的幾個 fetch()/stream 相關 memory leak
+    // （這個專案唯一的 server-side fetch() 在 /api/spotify/now-playing）。
+    // 這段只是低成本的診斷用途：定期把記憶體/uptime 寫進同一份 server.log，
+    // 下次再發生時才有實際數據可以比對，而不是像現在這樣事發前一片空白。
+    // 不持有任何會累積的狀態，只是讀取 process 內建計數器後寫 log，不會自己
+    // 變成新的洩漏來源。
+    setInterval(() => {
+      const m = process.memoryUsage();
+      const mb = (n) => (n / 1048576).toFixed(1);
+      log(
+        `MEM rss=${mb(m.rss)}MB heapUsed=${mb(m.heapUsed)}MB ` +
+          `external=${mb(m.external)}MB arrayBuffers=${mb(m.arrayBuffers)}MB ` +
+          `uptime=${(process.uptime() / 3600).toFixed(1)}h`
+      );
+    }, 30 * 60 * 1000).unref();
   })
   .catch((err) => {
     log(`FATAL startup error: ${err && err.stack ? err.stack : err}`);

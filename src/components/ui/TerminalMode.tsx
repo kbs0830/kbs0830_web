@@ -120,6 +120,7 @@ export default function TerminalMode() {
             </div>
             <div
               ref={scrollRef}
+              data-testid="terminal-output"
               className="p-4 h-64 sm:h-72 overflow-y-auto text-xs whitespace-pre-wrap leading-relaxed"
               style={{ fontFamily: "var(--font-mono)" }}
             >

@@ -13,3 +13,10 @@
 export const aircraftByFlight: Record<string, string> = {
   // "BR112": "A330-300",
 };
+
+// AboutSection.tsx 的足跡區塊用這個把航班代碼轉成「代碼(機型)」的顯示字串；
+// 對照表裡查不到的代碼（還沒填、或打錯字）就照原樣顯示代碼本身，不會噴錯。
+export function formatFlightCode(code: string): string {
+  const aircraft = aircraftByFlight[code];
+  return aircraft ? `${code}(${aircraft})` : code;
+}
