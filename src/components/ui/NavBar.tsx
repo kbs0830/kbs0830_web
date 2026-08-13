@@ -3,24 +3,13 @@
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import Link from "next/link";
+import { MoonIcon, SunIcon } from "@/components/ui/icons";
 
 const links = [
   { href: "#about",     label: "自己紹介", id: "about" },
   { href: "#portfolio", label: "製作物",   id: "portfolio" },
   { href: "#contact",   label: "連絡先",   id: "contact" },
 ];
-
-const MoonIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-  </svg>
-);
-const SunIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-  </svg>
-);
 
 export default function NavBar() {
   const { scrollY, scrollYProgress } = useScroll();
@@ -33,6 +22,11 @@ export default function NavBar() {
   useEffect(() => {
     // 主題偵測/預設值已經由 layout.tsx 裡的 inline script 在 hydration 前處理過了，
     // 這裡只需要讀出已經套用的結果，同步給 React state 用（icon、nav 背景色）。
+    // 跟 HeroScene.tsx 的 matchMedia pattern 同理：SSR 沒有 document，必須先用
+    // false 完成首次 render 才不會 hydration mismatch，改成 lazy initializer
+    // 會在 client 端 render 階段就讀 document，跟 SSR 產生的 markup 對不上——
+    // 這是這個 lint rule 的已知偽陽性情境。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(document.documentElement.getAttribute("data-theme") === "dark");
   }, []);
 

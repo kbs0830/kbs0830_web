@@ -12,6 +12,7 @@ const CODE = [
 export default function KonamiEgg() {
   const [active, setActive] = useState(false);
   const progress = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -22,14 +23,18 @@ export default function KonamiEgg() {
         if (progress.current === CODE.length) {
           progress.current = 0;
           setActive(true);
-          setTimeout(() => setActive(false), 3200);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(() => setActive(false), 3200);
         }
       } else {
         progress.current = key === CODE[0] ? 1 : 0;
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   return (

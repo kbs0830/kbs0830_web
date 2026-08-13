@@ -44,6 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(summarize(readStats()));
   }
 
+  // 這段 read-modify-write 中間刻意不夾雜任何 await，靠 fs.*Sync 的同步阻塞特性
+  // 讓 Node.js 事件迴圈不會在兩次 request 的 handler 之間交錯執行，藉此避免
+  // lost update 競態條件——這個正確性依賴「同步 fs 呼叫」+「scripts/server.js
+  // 是單一 process、沒有 cluster」這兩個目前成立的前提。不要為了風格一致把
+  // readFileSync/writeFileSync 改成 fs.promises 版本，也不要改成多 process 模式，
+  // 除非同時把這段改成真正的原子操作（例如檔案鎖或換成資料庫）。
   const country = (req.headers.get("cf-ipcountry") || "XX").toUpperCase();
   const stats = readStats();
   stats[country] = (stats[country] || 0) + 1;

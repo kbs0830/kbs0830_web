@@ -14,6 +14,11 @@ export default function Magnetic({
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
+    // SSR 沒有 window.matchMedia，必須先用預設值（enabled=true）完成首次 render
+    // 才不會 hydration mismatch，這裡讀出 client 端的實際偏好再同步進 state——
+    // 跟 HeroScene.tsx／NavBar.tsx 的 matchMedia pattern 同理，是這個 lint
+    // rule 的已知偽陽性情境。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEnabled(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
 

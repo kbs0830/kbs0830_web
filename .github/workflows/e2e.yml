@@ -17,5 +17,16 @@ jobs:
       # flaky 就會連帶擋掉部署。這裡失敗只會讓這個 workflow 顯示紅色，不會影響
       # deploy.yml 照常執行、正式站照常更新——測試結果純粹是給你看的訊號，
       # 不是部署的硬性關卡。
+      #
+      # 這個 workflow 跟 deploy.yml 一樣用 push:main 觸發、共用同一個持久化
+      # working directory，但 GitHub Actions 不保證兩個獨立 workflow 的執行順序，
+      # 所以不能假設 deploy.ps1 的 git pull 已經跑完。這裡自己補一個跟
+      # deploy.ps1 完全同樣的 `git pull origin main`（保持在 main 分支上，
+      # 不用 checkout 到單一 commit 進 detached HEAD，避免這份持久化 clone
+      # 之後被 deploy.ps1 的 git pull 操作搞混），確保測到的一定是最新
+      # push 上去的程式碼，不管 deploy.yml 有沒有先跑完。
+      - name: Sync working directory (git pull origin main)
+        run: git pull origin main
+
       - name: Run Playwright E2E tests
         run: node node_modules/@playwright/test/cli.js test

@@ -63,25 +63,43 @@ function PointerRig({ children }: { children: ReactNode }) {
 function Lines() {
   const ref = useRef<Group>(null);
 
-  const lines = useMemo(() => {
-    const data: { start: Vector3; end: Vector3 }[] = [];
+  // 建好的 Line 物件（含各自的 geometry/material）記在 useMemo 裡，只在 mount 時
+  // 產生一次；<primitive> 掛載的物件不是 R3F 自己宣告式建立的節點，R3F 不會自動
+  // dispose，所以下面另外用 useEffect cleanup 手動處理，避免之後改成可以動態
+  // 更新資料時漏掉 GPU 資源回收。
+  const lineObjects = useMemo(() => {
+    const built: Line[] = [];
     for (let i = 0; i < 18; i++) {
       const x = (Math.random() - 0.5) * 12;
       const y = (Math.random() - 0.5) * 8;
       const z = (Math.random() - 0.5) * 4 - 2;
       const len = 0.8 + Math.random() * 2;
       const angle = Math.random() * Math.PI * 2;
-      data.push({
-        start: new Vector3(x, y, z),
-        end: new Vector3(
-          x + Math.cos(angle) * len,
-          y + Math.sin(angle) * len,
-          z
-        ),
+      const start = new Vector3(x, y, z);
+      const end = new Vector3(
+        x + Math.cos(angle) * len,
+        y + Math.sin(angle) * len,
+        z
+      );
+      const geometry = new BufferGeometry().setFromPoints([start, end]);
+      const material = new LineBasicMaterial({
+        color: "#2d5a8e",
+        transparent: true,
+        opacity: 0.25 + Math.random() * 0.2,
       });
+      built.push(new Line(geometry, material));
     }
-    return data;
+    return built;
   }, []);
+
+  useEffect(() => {
+    return () => {
+      lineObjects.forEach((line) => {
+        line.geometry.dispose();
+        (line.material as LineBasicMaterial).dispose();
+      });
+    };
+  }, [lineObjects]);
 
   useFrame((_, delta) => {
     if (ref.current) {
@@ -92,17 +110,9 @@ function Lines() {
 
   return (
     <group ref={ref}>
-      {lines.map((l, i) => {
-        const points = [l.start, l.end];
-        const geometry = new BufferGeometry().setFromPoints(points);
-        const material = new LineBasicMaterial({
-          color: "#2d5a8e",
-          transparent: true,
-          opacity: 0.25 + Math.random() * 0.2,
-        });
-        const lineObj = new Line(geometry, material);
-        return <primitive key={i} object={lineObj} />;
-      })}
+      {lineObjects.map((lineObj, i) => (
+        <primitive key={i} object={lineObj} />
+      ))}
     </group>
   );
 }
@@ -110,17 +120,15 @@ function Lines() {
 function Dots() {
   const ref = useRef<Points>(null);
 
-  const [positions, opacities] = useMemo(() => {
+  const positions = useMemo(() => {
     const count = 60;
     const pos = new Float32Array(count * 3);
-    const ops = new Float32Array(count);
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 14;
       pos[i * 3 + 1] = (Math.random() - 0.5) * 10;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 6 - 2;
-      ops[i] = 0.1 + Math.random() * 0.3;
     }
-    return [pos, ops];
+    return pos;
   }, []);
 
   useFrame((state) => {

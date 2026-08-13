@@ -53,6 +53,9 @@ function useTypewriter(text: string, startDelay = 0, speed = 42) {
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
+      // 同樣是 SSR 沒有 window.matchMedia 的 hydration-safe pattern（見
+      // Magnetic.tsx／HeroScene.tsx／NavBar.tsx 的同款註解），已知偽陽性。
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplay(text);
       return;
     }
