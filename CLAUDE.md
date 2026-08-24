@@ -239,6 +239,22 @@ native-level crash），但 Cloudflare Tunnel 完全正常，持續把流量轉�
 - 只有「異常 / 重啟 / 恢復」才會寫進 `logs/watchdog.log`，健康時不寫，避免每 5 分鐘一筆灌爆 log
 - 重啟後仍然異常 → log 記錄 `[FAILED] ... 需要人工介入`，代表 watchdog 自己修不好，要手動查
 
+**2026-08-24 補上第二個監控空缺：GitHub Actions self-hosted runner 存活檢查。**
+2026-07-25 曾發現 `GitHubActionsRunner` 這個工作排程器任務雖然顯示 `Ready`，但實際負責
+接工作的 `Runner.Listener.exe` 進程已經無聲掛掉，導致 `git push` 到 main 都不會觸發自動
+部署，是手動查 GitHub Actions 頁面卡在 `queued` 才發現、手動 `Start-ScheduledTask` 重啟
+才復活。跟網站健康檢查性質一樣（都是「Task Scheduler 工作顯示正常但底下的 process 其實
+死了」），所以併進同一支 `watchdog.ps1`、共用同一個 5 分鐘排程，不另外開新的 Task
+Scheduler 任務：
+- 每次執行順便用 `Get-Process -Name Runner.Listener` 確認進程還在
+- 沒偵測到 → `Stop-ScheduledTask` / `Start-ScheduledTask` 重啟 `GitHubActionsRunner`，
+  5 秒後再確認一次進程是否出現
+- 一樣只在異常/重啟/恢復時寫 log，健康時不寫；重啟後仍抓不到進程 → `[FAILED]` 記錄
+  需要人工介入
+- 網站檢查跟 runner 檢查各自獨立判斷、互不影響對方的重啟邏輯，只有兩者共用同一個
+  `$exitCode`（任一項最終失敗，腳本就以非 0 結束，方便之後如果要接 Task Scheduler
+  的失敗通知）
+
 若要暫停監控（例如要手動除錯、不想被自動重啟打斷）：
 ```powershell
 Disable-ScheduledTask -TaskName "kbs0830_Watchdog"
@@ -505,7 +521,7 @@ kbs0830_web/
 │   ├── server.js                    # 自訂 production server（request/error log + 訪客國家統計 + 30 分鐘一次的 MEM 診斷 log）
 │   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
 │   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
-│   ├── watchdog.ps1                  # 每 5 分鐘健康檢查，異常自動重啟（Task Scheduler: kbs0830_Watchdog）
+│   ├── watchdog.ps1                  # 每 5 分鐘健康檢查（網站 + GitHub Actions runner 存活），異常自動重啟（Task Scheduler: kbs0830_Watchdog）
 │   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
 │   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
 │   └── lib/

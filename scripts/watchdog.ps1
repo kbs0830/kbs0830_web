@@ -1,9 +1,15 @@
 ﻿# 定期健康檢查：確認 kbs0830.com 的 origin（localhost:3000）還活著，
-# 如果沒有回應就自動透過 Task Scheduler 重啟 kbs0830_NextJS。
+# 如果沒有回應就自動透過 Task Scheduler 重啟 kbs0830_NextJS；同時也確認 GitHub Actions
+# self-hosted runner 還在跑，沒有就重啟 GitHubActionsRunner。
 #
-# 背景：Cloudflare Tunnel 跟 Next.js server 是兩個獨立的行程，tunnel 掛了不代表
+# 背景（網站）：Cloudflare Tunnel 跟 Next.js server 是兩個獨立的行程，tunnel 掛了不代表
 # origin 也會掛——之前發生過 node.exe 無聲死掉、tunnel 卻繼續轉發，導致訪客
 # 看了好幾小時的 "connection refused" 都沒人發現。這支腳本補上那個監控空缺。
+#
+# 背景（runner）：2026-07-25 發現 GitHubActionsRunner 這個 Task Scheduler 工作雖然顯示
+# Ready，但 Runner.Listener.exe 進程其實已經無聲掛掉，導致 push 到 main 都不會觸發自動
+# 部署，是手動查 GitHub Actions 才發現、手動重啟才復活。這裡跟網站檢查共用同一個 5 分鐘
+# 排程一起巡，不另外開一個 Task Scheduler 任務。
 #
 # 健康檢查邏輯共用 scripts/lib/health-check.ps1（跟 verify-deploy.ps1 同一份，
 # 只維護一份邏輯）。由 Task Scheduler 排程「kbs0830_Watchdog」每 5 分鐘執行一次。
@@ -12,38 +18,65 @@
 
 $repo = Split-Path -Parent $PSScriptRoot
 $logFile = Join-Path $repo "logs\watchdog.log"
-$taskName = "kbs0830_NextJS"
+$siteTaskName = "kbs0830_NextJS"
+$runnerTaskName = "GitHubActionsRunner"
+$runnerProcessName = "Runner.Listener"
 
 . (Join-Path $PSScriptRoot "lib\logger.ps1")
 . (Join-Path $PSScriptRoot "lib\health-check.ps1")
 
 function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
 
+$exitCode = 0
+
+# --- 網站健康檢查 ---
 $result = Test-SiteHealth -Url "http://localhost:3000/" -MaxWaitSeconds 10
 
-if ($result.Success) {
+if (-not $result.Success) {
     # 正常時不寫 log，避免每 5 分鐘一筆灌爆 watchdog.log；只在異常/處理過程才記錄。
-    exit 0
-}
+    Log "[WARN] 網站健康檢查失敗：$($result.Reason)"
+    Log "嘗試重啟 Task Scheduler 工作 '$siteTaskName'"
 
-Log "[WARN] 健康檢查失敗：$($result.Reason)"
-Log "嘗試重啟 Task Scheduler 工作 '$taskName'"
+    try {
+        Stop-ScheduledTask -TaskName $siteTaskName -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        Start-ScheduledTask -TaskName $siteTaskName
 
-try {
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
-    Start-ScheduledTask -TaskName $taskName
+        $recovery = Test-SiteHealth -Url "http://localhost:3000/" -MaxWaitSeconds 30
 
-    $recovery = Test-SiteHealth -Url "http://localhost:3000/" -MaxWaitSeconds 30
-
-    if ($recovery.Success) {
-        Log "[RECOVERED] 重啟後恢復正常：$($recovery.Reason)"
-        exit 0
-    } else {
-        Log "[FAILED] 重啟後仍然異常：$($recovery.Reason) —— 需要人工介入"
-        exit 1
+        if ($recovery.Success) {
+            Log "[RECOVERED] 網站重啟後恢復正常：$($recovery.Reason)"
+        } else {
+            Log "[FAILED] 網站重啟後仍然異常：$($recovery.Reason) —— 需要人工介入"
+            $exitCode = 1
+        }
+    } catch {
+        Log "[FAILED] 網站重啟過程發生錯誤：$($_.Exception.Message)"
+        $exitCode = 1
     }
-} catch {
-    Log "[FAILED] 重啟過程發生錯誤：$($_.Exception.Message)"
-    exit 1
 }
+
+# --- GitHub Actions self-hosted runner 存活檢查 ---
+if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
+    Log "[WARN] GitHub Actions runner（$runnerProcessName.exe）沒有偵測到在跑"
+    Log "嘗試重啟 Task Scheduler 工作 '$runnerTaskName'"
+
+    try {
+        Stop-ScheduledTask -TaskName $runnerTaskName -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        Start-ScheduledTask -TaskName $runnerTaskName
+        Start-Sleep -Seconds 5
+
+        if (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue) {
+            Log "[RECOVERED] GitHub Actions runner 重啟後恢復"
+        } else {
+            Log "[FAILED] GitHub Actions runner 重啟後仍然沒有偵測到進程 —— 需要人工介入"
+            $exitCode = 1
+        }
+    } catch {
+        Log "[FAILED] 重啟 GitHub Actions runner 過程發生錯誤：$($_.Exception.Message)"
+        $exitCode = 1
+    }
+}
+
+exit $exitCode

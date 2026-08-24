@@ -72,21 +72,8 @@
     About 時間軸項目點擊區（~37px 高）、Skills 分類 accordion 按鈕（~34px 高）
   → 縮圖 `sizes` 設定沒發現手機多抓桌機尺寸圖的問題，`next/image` 預設行為已經在處理
 
-- [ ] **GitHub Actions self-hosted runner 監控空缺** 🙋 等你決定要不要做
-  → **2026-07-25 發現**：這次 push 完去查 Actions 狀態，發現 `Deploy to Desktop`／
-    `E2E Tests` 兩個 workflow 卡在 `queued` 動不了。查了才知道 `GitHubActionsRunner`
-    這個工作排程器任務雖然顯示 `Ready`，但 `Runner.Listener.exe` 進程其實沒在跑——
-    上次真正啟動是 **2026-07-19**，之後某個時間點無聲掛掉，性質很像 `kbs0830_Watchdog`
-    當初要解決的「node.exe 無聲死掉」那種問題，只是這次死的是 runner 不是網站本身
-  → 手動 `Start-ScheduledTask` 重啟後 runner 立刻復活，排隊的 job 也正常跑完
-    （`Deploy to Desktop` 成功，`https://kbs0830.com` 已更新）
-  → **監控空缺**：`kbs0830_Watchdog` 只檢查網站本身（port 3000），沒有東西在盯這個
-    runner 死活。如果不是這次手動查 GitHub API，runner 可能會一直停在那邊，之後每次
-    `git push` 都不會自動部署，要等你自己發現才知道
-  → 可行方向：比照 `kbs0830_Watchdog` 的模式，加一段檢查邏輯確認
-    `Runner.Listener.exe` 進程存在，沒有就 `Start-ScheduledTask` 重啟——可以是獨立的
-    工作排程器任務，或併進現有 `watchdog.ps1` 一起檢查。要不要做、要不要跟現有
-    watchdog 合併，由你評估
+- [x] **GitHub Actions self-hosted runner 監控空缺**——2026-08-24 已實作，見下方
+  「已完成」區塊
 
 - [ ] **Google Search Console 註冊＋提交 sitemap（SEO 起手式）** 🙋 需要你的 Google 帳號
   → 目前完全不知道 Google 收錄了哪些頁、什麼關鍵字搜得到；GSC 是後續所有 SEO 動作的儀表板
@@ -248,6 +235,23 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 ---
 
 ## ✅ 已完成
+
+- [x] **2026-08-24：GitHub Actions self-hosted runner 存活監控**
+  → 背景：2026-07-25 曾發現 `GitHubActionsRunner` 這個工作排程器任務顯示 `Ready`，但
+    實際接工作的 `Runner.Listener.exe` 進程已經無聲掛掉，`push` 到 main 都不會觸發
+    自動部署，是手動查 GitHub Actions 頁面卡在 `queued` 才發現
+  → 併進現有 `scripts/watchdog.ps1`，跟網站健康檢查共用同一個 `kbs0830_Watchdog`
+    5 分鐘排程，不另開新的 Task Scheduler 任務：每次執行順便 `Get-Process -Name
+    Runner.Listener` 確認進程還在，沒偵測到就 `Stop-ScheduledTask`/`Start-ScheduledTask`
+    重啟 `GitHubActionsRunner`，5 秒後再確認一次；一樣只在異常/重啟/恢復時寫
+    `logs/watchdog.log`，健康時不寫
+  → 網站檢查跟 runner 檢查各自獨立判斷，互不影響對方要不要重啟，只共用最終的
+    `$exitCode`
+  → PowerShell parser 語法檢查過（`[System.Management.Automation.Language.Parser]::
+    ParseFile`）沒有錯誤，BOM 編碼確認保留（`efbbbf` 開頭，避免 PowerShell 5.1 用
+    Big5 讀檔炸掉，見上方「PowerShell script 編碼注意事項」），也現場確認過這台機器上
+    `Runner.Listener` 進程名稱、`GitHubActionsRunner` 工作排程器任務名稱都對得上
+    （目前 runner 正常在跑，沒有觸發過重啟邏輯，還沒有真的異常情境驗證過重啟路徑）
 
 - [x] **2026-08-24：重複程式碼收斂（Eyebrow / TagBadge）**
   → 派 agent 掃過 `src/components/`、`src/app/` 找逐字重複的 UI 標記（`statusColor`／
