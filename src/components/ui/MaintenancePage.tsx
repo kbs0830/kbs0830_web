@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MoonIcon, SunIcon } from "@/components/ui/icons";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 // 睡著的小臉：稀疏細線 + 飄浮 zzz，呼應首頁 3D 場景的細線美學
 const SleepyMascot = () => (
@@ -50,12 +51,7 @@ export default function MaintenancePage({
         <SleepyMascot />
       </div>
 
-      <p
-        className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-6"
-        style={{ fontFamily: "var(--font-mono)" }}
-      >
-        System · 調整中
-      </p>
+      <Eyebrow className="mb-6">System · 調整中</Eyebrow>
       <h1
         className="text-3xl sm:text-4xl font-light text-(--text) mb-4 text-center"
         style={{ fontFamily: "var(--font-serif)" }}

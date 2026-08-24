@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 export default function NotFound() {
   return (
@@ -12,12 +13,7 @@ export default function NotFound() {
           ← 返回首頁
         </Link>
 
-        <p
-          className="text-xs tracking-[0.35em] text-(--muted) uppercase mt-10 mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          404
-        </p>
+        <Eyebrow className="mt-10 mb-4">404</Eyebrow>
         <h1
           className="text-3xl sm:text-4xl font-light text-(--text) mb-4"
           style={{ fontFamily: "var(--font-serif)" }}

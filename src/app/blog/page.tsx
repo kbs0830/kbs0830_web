@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
+import Eyebrow from "@/components/ui/Eyebrow";
+import TagBadge from "@/components/ui/TagBadge";
 
 export const metadata: Metadata = {
   title: "技術部落格 · Blog — PINGWEI LI",
@@ -22,12 +24,7 @@ export default function BlogIndexPage() {
           ← 返回首頁
         </Link>
 
-        <p
-          className="text-xs tracking-[0.35em] text-(--muted) uppercase mt-10 mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          Blog
-        </p>
+        <Eyebrow className="mt-10 mb-4">Blog</Eyebrow>
         <h1
           className="text-3xl sm:text-4xl font-light text-(--text) mb-4"
           style={{ fontFamily: "var(--font-serif)" }}
@@ -55,12 +52,7 @@ export default function BlogIndexPage() {
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 text-[11px] font-light text-(--muted) bg-(--surface) border border-(--border) rounded-sm"
-                  >
-                    {tag}
-                  </span>
+                  <TagBadge key={tag}>{tag}</TagBadge>
                 ))}
               </div>
             </Link>

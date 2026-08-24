@@ -477,6 +477,8 @@ kbs0830_web/
 │   │   ├── ui/
 │   │   │   ├── NavBar.tsx
 │   │   │   ├── icons.tsx               # GitHub/Moon/Sun 共用 SVG icon（原本三處各自複製一份 SVG path，已收斂成單一來源）
+│   │   │   ├── Eyebrow.tsx             # 標題上方小標籤（mono 字＋寬字距＋uppercase），原本 9 個檔案 13 處逐字重複，已收斂
+│   │   │   ├── TagBadge.tsx            # tag/skill 小徽章樣式，原本 4 個檔案逐字重複，已收斂
 │   │   │   ├── BackToTop.tsx
 │   │   │   ├── LocalClock.tsx          # Footer 雙時區時鐘
 │   │   │   ├── VisitorStats.tsx        # Footer 訪客來源國家統計

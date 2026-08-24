@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
   title: "/uses — PINGWEI LI",
@@ -55,12 +56,7 @@ export default function UsesPage() {
           ← 返回首頁
         </Link>
 
-        <p
-          className="text-xs tracking-[0.35em] text-(--muted) uppercase mt-10 mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          Uses
-        </p>
+        <Eyebrow className="mt-10 mb-4">Uses</Eyebrow>
         <h1
           className="text-3xl sm:text-4xl font-light text-(--text) mb-4"
           style={{ fontFamily: "var(--font-serif)" }}

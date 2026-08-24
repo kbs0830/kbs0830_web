@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { projects, statusColor } from "@/lib/projects";
 import MermaidDiagram from "@/components/ui/MermaidDiagram";
 import { GitHubIcon } from "@/components/ui/icons";
+import Eyebrow from "@/components/ui/Eyebrow";
+import TagBadge from "@/components/ui/TagBadge";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -55,12 +57,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </Link>
 
         <div className="flex items-center gap-2 mt-10 mb-4 flex-wrap">
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            {project.titleJa}
-          </p>
+          <Eyebrow>{project.titleJa}</Eyebrow>
           <span
             className={`text-[10px] px-2 py-0.5 border rounded-sm font-light tracking-wide ${statusColor[project.status]}`}
             style={{ fontFamily: "var(--font-mono)" }}
@@ -171,12 +168,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5 mt-12">
           {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-0.5 text-[11px] font-light text-(--muted) bg-(--surface) border border-(--border) rounded-sm"
-            >
-              {tag}
-            </span>
+            <TagBadge key={tag}>{tag}</TagBadge>
           ))}
         </div>
       </div>

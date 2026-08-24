@@ -5,6 +5,7 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import Magnetic from "@/components/ui/Magnetic";
 import RevealHeading from "@/components/ui/RevealHeading";
 import { GitHubIcon } from "@/components/ui/icons";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 const linkClass =
   "group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors";
@@ -46,12 +47,7 @@ export default function ContactSection() {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-4"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            Contact
-          </p>
+          <Eyebrow className="mb-4">Contact</Eyebrow>
           <RevealHeading
             text="連絡先 · Get in Touch"
             className="text-3xl sm:text-4xl font-light text-(--text) mb-6"

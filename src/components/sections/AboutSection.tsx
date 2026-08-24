@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
+import Eyebrow from "@/components/ui/Eyebrow";
 import { formatFlightCode } from "@/lib/aircraft";
 
 const skills = [
@@ -293,12 +294,7 @@ export default function AboutSection() {
     <section id="about" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
         <FadeIn>
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-4"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            About
-          </p>
+          <Eyebrow className="mb-4">About</Eyebrow>
           <RevealHeading
             text="自己紹介　·　關於我"
             className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16"
@@ -369,12 +365,7 @@ export default function AboutSection() {
         </div>
 
         <FadeIn delay={0.2}>
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8 mt-12"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            歷程 · Timeline
-          </p>
+          <Eyebrow className="mb-8 mt-12">歷程 · Timeline</Eyebrow>
         </FadeIn>
 
         <div className="relative mb-16">
@@ -387,12 +378,7 @@ export default function AboutSection() {
         </div>
 
         <FadeIn delay={0.25}>
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-8"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            技能 · Skills
-          </p>
+          <Eyebrow className="mb-8">技能 · Skills</Eyebrow>
           <p
             className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6"
             style={{ fontFamily: "var(--font-mono)" }}
@@ -414,12 +400,7 @@ export default function AboutSection() {
         </FadeIn>
 
         <FadeIn delay={0.28}>
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-6 mt-16"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            開発活動 · Activity
-          </p>
+          <Eyebrow className="mb-6 mt-16">開発活動 · Activity</Eyebrow>
           <div className="p-4 border border-(--border) rounded-sm bg-white overflow-x-auto">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -440,12 +421,7 @@ export default function AboutSection() {
         </FadeIn>
 
         <FadeIn delay={0.3}>
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-2 mt-16"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            足跡 · Footprint
-          </p>
+          <Eyebrow className="mb-2 mt-16">足跡 · Footprint</Eyebrow>
           <p
             className="text-xs text-(--muted) font-light opacity-70 mb-8"
             style={{ fontFamily: "var(--font-mono)" }}

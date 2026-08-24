@@ -7,6 +7,8 @@ import Image from "next/image";
 import { projects, personalProjects, courseProjects, statusColor } from "@/lib/projects";
 import RevealHeading from "@/components/ui/RevealHeading";
 import { GitHubIcon } from "@/components/ui/icons";
+import Eyebrow from "@/components/ui/Eyebrow";
+import TagBadge from "@/components/ui/TagBadge";
 
 const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
   a.localeCompare(b, "en")
@@ -104,12 +106,7 @@ function ProjectCard({
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5 mt-auto mb-3">
           {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-0.5 text-[11px] font-light text-(--muted) bg-(--surface) border border-(--border) rounded-sm"
-            >
-              {tag}
-            </span>
+            <TagBadge key={tag}>{tag}</TagBadge>
           ))}
         </div>
 
@@ -210,12 +207,7 @@ export default function PortfolioSection() {
           transition={{ duration: 0.7 }}
           className="mb-10 md:mb-16"
         >
-          <p
-            className="text-xs tracking-[0.35em] text-(--muted) uppercase mb-4"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            Work
-          </p>
+          <Eyebrow className="mb-4">Work</Eyebrow>
           <RevealHeading
             text="製作物 · Portfolio"
             className="text-3xl sm:text-4xl font-light text-(--text) mb-3"

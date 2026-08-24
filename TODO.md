@@ -119,11 +119,8 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 
 ## 🟠 中優先 — 技術品質
 
-- [ ] **技術棧熟練度文字圖例（回饋 #3 收尾）** ⚙️ 可直接做
-  → 分類（5 組 accordion）＋每個 chip 的 1–5 圓點**已經做完**，但圓點沒有任何文字說明，
-    HR 不一定意會到那是熟練度
-  → 在 Skills 區塊加一行小字圖例（例：`●●●●● 熟練 Proficient ・ ●●○○○ 学習中 Learning`），
-    mono 字體、muted 色，跟現有設計語彙一致即可，不用大改
+- [x] **技術棧熟練度文字圖例（回饋 #3 收尾）**——已完成，見下方「已完成」區塊
+  （`AboutSection.tsx` 的 `ProficiencyDots` + 文字圖例）
 
 - [ ] **GitHub repo 品質（回饋 #4 的另一半）** 🙋 改動在其他 repo
   → 站內連結部分已齊：5/7 作品有 GitHub 連結；FRC／自動跟隨機器人是實體硬體專案、
@@ -133,11 +130,10 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
   → 順手做：GitHub profile 把這兩個主力 repo **pin** 起來，讓人點進 kbs0830 第一眼就看到
   → 這些改動不在這份 codebase，要另外開工作處理（本機有憑證，技術上我可以協助）
 
-- [ ] **SEO 結構化資料擴充** ⚙️ 可直接做
-  → 目前只有 `layout.tsx` 的 Person JSON-LD
-  → `/blog/[slug]` 加 **BlogPosting** JSON-LD（headline／datePublished／author）
-  → `/projects/[slug]` 加 **BreadcrumbList**（首頁 → 製作物 → 專案名），搜尋結果可顯示層級
-  → GSC 註冊完後可用「複合式搜尋結果測試」驗證有沒有被吃到
+- [x] **SEO 結構化資料擴充**——已完成，見下方「已完成」區塊
+  （`/blog/[slug]` BlogPosting JSON-LD、`/projects/[slug]` BreadcrumbList JSON-LD）
+  → 還沒做的收尾：GSC 註冊完後可用「複合式搜尋結果測試」驗證有沒有被吃到（卡在下面
+    「Google Search Console 註冊」那項，需要你的 Google 帳號）
 
 - [ ] **Blog 持續累積（SEO 長尾主力）** 🙋 要有真的踩過的坑才寫
   → 目前 3 篇。個人站被 Google 搜到的主力就是長尾技術關鍵字
@@ -252,6 +248,35 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 ---
 
 ## ✅ 已完成
+
+- [x] **2026-08-24：重複程式碼收斂（Eyebrow / TagBadge）**
+  → 派 agent 掃過 `src/components/`、`src/app/` 找逐字重複的 UI 標記（`statusColor`／
+    GitHub·Moon·Sun icon 這幾組先前已經收斂過，見 `icons.tsx`／`projects.ts`），找到兩組
+    還沒處理的：
+    1. 標題上方的小標籤（mono 字體、寬字距、uppercase，例：`About`／`Blog`／`404`／
+       `技能 · Skills`）在 9 個檔案共 13 處逐字重複，只有外層 margin class 不同
+       → 抽成 `src/components/ui/Eyebrow.tsx`，接受 `className` 覆蓋 margin
+    2. tag/skill 徽章 `<span>` 樣式在 4 個檔案逐字重複
+       → 抽成 `src/components/ui/TagBadge.tsx`
+    改動的檔案：`blog/page.tsx`、`blog/[slug]/page.tsx`、`uses/page.tsx`、`now/page.tsx`、
+    `not-found.tsx`、`MaintenancePage.tsx`、`projects/[slug]/page.tsx`、
+    `PortfolioSection.tsx`、`ContactSection.tsx`、`AboutSection.tsx`；純重構、行為沒變，
+    `tsc --noEmit`／eslint／`next build`／`pnpm test:unit`／`pnpm test:e2e` 全部跑過確認
+    （e2e 裡 `keyboard-shortcuts.spec.ts` 的 1/2/3 跳轉那條第一次平行跑時因為 viewport
+    timing 花了超過 5 秒判定失敗，單獨重跑秒過，是既有的 flaky 案例，跟這次改動無關，
+    這次沒動任何 scroll/id 邏輯）
+  → **這次探索過程中額外發現、判斷不值得現在動的近似重複**（記錄下來，不是遺漏）：
+    - `AboutSection.tsx` 內部的技能/城市 pill 徽章樣式在同一檔案出現 3-4 次近似（不完全
+      相同，有 dashed border 變體），同檔案內重複、風險較低，先不動
+    - `HeroSection.tsx` inline 重寫了 `ContactSection.tsx` 裡已經抽出來的 `Underline`／
+      `linkClass` 底線 hover 效果，兩處目前各自維護；要真的共用需要把這兩個從
+      `ContactSection.tsx` 搬到 `components/ui/`，屬於中風險、要判斷值不值得的改動
+    - `RevealHeading.tsx`／`FadeIn`（AboutSection）／`TimelineItem`／`ProjectCard`／
+      `SectionLabel`（PortfolioSection）／ContactSection 都各自重新實作一份
+      `useInView + motion.div` 淡入包裝，margin/delay/位移量都不同，屬於「相似但不同參數」
+      而非逐字重複，硬收斂成單一 `useFadeInView` 需要吞掉這些差異，先不做
+    這三項如果之後要處理，屬於「要判斷、可能改變一點寫法」的中風險重構，不是這次
+    「逐字重複、零風險」的範圍，需要你評估要不要花時間
 
 - [x] **2026-07-25：技術棧熟練度圖例 ＋ SEO 結構化資料擴充 ＋ RWD 手機體檢**（見上面回饋
   對照表跟各自條目的詳細記錄，這裡只記重點）
