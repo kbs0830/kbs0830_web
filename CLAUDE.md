@@ -184,6 +184,23 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 
 ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 
+**✅ 2026-09 發現並修復：`www.kbs0830.com` 在 Google Search Console 被回報 404。** 根因是 DNS
+上 `www.kbs0830.com` 是有效的 proxied 記錄（跟裸網域指向同一組 Cloudflare anycast IP），但
+`~/.cloudflared/config.yml` 的 ingress 規則只寫了 `kbs0830.com` 一條、其餘一律
+`http_status:404`——任何打到 `www.kbs0830.com` 的請求會在 Cloudflare Tunnel 這一層直接被
+404，根本傳不到 Next.js（`https://www.kbs0830.com/` 和 `http://www.kbs0830.com/` 都中）。
+
+**修法：Cloudflare Dashboard → Rules → Redirect Rules 加了一條**：Custom filter expression
+`http.host eq "www.kbs0830.com"` → Dynamic 目標 `concat("https://kbs0830.com", http.request.uri.path)`，
+301，**Preserve query string 開關要手動打開**（預設關閉）。在 edge 層把 www 導去裸網域，沒有動
+`config.yml`——網站唯一的正式網址只有不帶 www 的 `kbs0830.com`（`layout.tsx`／`sitemap.ts`／
+`robots.ts` 全部只用這個），www 只需要導回去，不需要真的服務內容。
+
+跟上面 Task Scheduler 的 `ExecutionTimeLimit` 一樣，**這個 Redirect Rule 只存在 Cloudflare
+帳號的 dashboard 設定裡，不在任何 repo 檔案內、也不會被 git pull 或部署動到**——換帳號或
+重建 DNS/Tunnel 設定時要記得手動補這條規則。已在 Search Console 對該筆「找不到網頁」issue
+按「已修正 (Validate Fix)」，等 Google 重新檢索確認解除。
+
 ### 桌機服務（開機自動啟動）
 
 | 服務 | 管理方式 |
@@ -275,17 +292,34 @@ Enable-ScheduledTask -TaskName "kbs0830_Watchdog"
 `scripts/lib/logger.ps1` 的 `Write-TimestampedLog`（`deploy.ps1` / `watchdog.ps1` 共用；`server.js` 是
 Node 環境，邏輯獨立實作但規則一致）。
 
-**⚠️ 2026-08 發現的待觀察問題：整站每隔約 3 天會完全無回應一次。** 分析 `watchdog.log`
-發現 07-22 之後固定每「3 天 + 5 分鐘」觸發一次健康檢查失敗（首頁 10 秒內沒回應），process
-沒有崩潰、事發前後 `server.log` 都是空的，watchdog 3～4 秒內自動重啟就恢復——對訪客影響
-極小，但根因不明。查證後懷疑是 Next.js 16.x 已知的幾個 server-side `fetch()`/stream
-memory leak（這個專案唯一的 server-side fetch 在 `/api/spotify/now-playing`，`SpotifyNowPlaying.tsx`
-每 60 秒 poll 一次），已將 Next.js 從 16.2.9 升級到 16.3.1（社群回報同一批修復已 backport
-進 16.x 穩定分支），並在 `scripts/server.js` 加了低成本診斷：每 30 分鐘把
-`process.memoryUsage()`（rss/heapUsed/external/arrayBuffers）跟 uptime 寫一行 `MEM ...`
-進 `logs/server.log`。如果升級後 `watchdog.log` 還是每 3 天發作一次，就去翻 `server.log`
-裡事發前的 `MEM` 那幾行——如果記憶體數字真的一路漲上去，才是這個 leak 假說成立的鐵證；
-如果沒有，代表是別的原因（要重新排查）。
+**✅ 2026-08 發現、2026-09 已定位並修復：整站每隔約 3 天無回應一次，根因不是 memory leak，
+是 Task Scheduler 的預設 72 小時執行時間上限。** 原本懷疑 Next.js 16.x 的 server-side
+`fetch()`/stream memory leak，已將 Next.js 升級到 16.3.1 並在 `scripts/server.js` 加了
+`MEM ...` 診斷 log（每 30 分鐘記一次 `process.memoryUsage()` + uptime），但升級後問題依舊
+發生，比對 `MEM` log 發現 crash 前記憶體數字根本沒有持續往上漲（在 47～50MB 之間打轉了
+整整 3 天才 crash，不是漸進式耗盡）——排除 leak 假說。
+
+真正根因：`kbs0830_NextJS` 和 `GitHubActionsRunner` 這兩個排程工作在建立時都沒有取消勾選
+Windows Task Scheduler 精靈的預設選項「如果工作執行超過：3 天」，即
+`Settings.ExecutionTimeLimit = PT72H`。工作跑滿 72 小時後被 Task Scheduler **強制砍掉**，
+跟程式健不健康、有沒有洩漏完全無關；`server.log` 的 `uptime` 也證實 crash 是瞬間發生（`MEM`
+數字沒有爬升趨勢），而且是精準卡在 72 小時整。這也解釋了為什麼網站跟 GitHub Actions
+runner 兩個「無關」的服務總是同時故障——它們用的是同一個 `PT72H` 預設值，同時被砍。
+`watchdog.log` 對這類 crash **完全沒有記錄**（不是 watchdog 救回來的），代表原本文件裡「3～4
+秒自動恢復」的說法其實是另一批不同性質的雜訊事件（見下段），兩者被誤判成同一個問題。
+
+修復：把兩個工作的 `ExecutionTimeLimit` 改成 `PT0S`（無限制）：
+```powershell
+$s1 = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+Set-ScheduledTask -TaskName kbs0830_NextJS -Settings $s1
+Set-ScheduledTask -TaskName GitHubActionsRunner -Settings $s1
+```
+這個設定不在任何一支 repo 內的腳本裡建立（兩個工作都是手動用 GUI/命令建立的），純粹活在
+桌機的 Task Scheduler 設定裡，不會被 git pull 或部署覆蓋，**但也不會被這份文件同步**——
+以後如果要在別台機器上重建這兩個排程工作，記得手動把這個上限拿掉，不要重蹈覆轍。
+
+`scripts/server.js` 裡的 `MEM` 診斷 log 予以保留（診斷過程證明它有用，且成本低），但
+**不要**再假設它是為了追蹤 memory leak；現在它單純是通用的健康度觀察數據。
 
 ### 手動啟動
 
@@ -448,6 +482,10 @@ FRC／自動跟隨機器人／school 沒有足夠真實架構資訊可畫，故�
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
 | OG 分享圖 | `src/app/opengraph-image.tsx` |
+
+**⚠️ Google Search Console「網頁索引狀態」看到 `www.kbs0830.com` 404 是 DNS/Tunnel 層問題，
+不是這裡的 code 問題**——根因跟修法見上方「部署架構」章節那則 `www` DNS/Redirect Rule 說明，
+不要在這裡加 rewrite/redirect code 去處理，Cloudflare edge 解決就好。
 
 **⚠️ 加新頁面時必記得設定 `alternates.canonical`。** Next.js 的 metadata 是逐層 merge，
 子頁面沒有自己宣告 `alternates` 就會直接繼承 root layout 的 `alternates.canonical: "/"`。
