@@ -28,5 +28,10 @@ jobs:
       - name: Sync working directory (git pull origin main)
         run: git pull origin main
 
+      # Playwright 每次升版都綁定新的 Chromium build，沒裝到對應版本會直接
+      # 報「Executable doesn't exist」。已經裝過的話這步幾秒內就結束。
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install chromium
+
       - name: Run Playwright E2E tests
         run: node node_modules/@playwright/test/cli.js test
