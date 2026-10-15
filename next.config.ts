@@ -8,6 +8,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // React Compiler：自動 memoization，取代手寫 useMemo/useCallback（2026-10 升級加入）
+  reactCompiler: true,
   async headers() {
     return [
       {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import { projects, statusColor } from "@/lib/projects";
 import MermaidDiagram from "@/components/ui/MermaidDiagram";
@@ -66,12 +67,15 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </span>
         </div>
 
-        <h1
-          className="text-3xl sm:text-4xl font-light text-(--text) mb-2"
-          style={{ fontFamily: "var(--font-serif)" }}
-        >
-          {project.titleZh}
-        </h1>
+        {/* 跟 PortfolioSection 作品卡片的 <h3> 同名，從卡片點進來時標題會 morph 過來 */}
+        <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
+          <h1
+            className="text-3xl sm:text-4xl font-light text-(--text) mb-2"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            {project.titleZh}
+          </h1>
+        </ViewTransition>
         <p className="text-sm font-light text-(--muted) mb-8">{project.title}</p>
 
         {project.github && (
@@ -90,15 +94,17 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         )}
 
         {project.image && (
-          <div className="mb-10 border border-(--border) rounded-sm overflow-hidden">
-            <Image
-              src={project.image}
-              alt={`${project.titleZh} screenshot`}
-              width={1200}
-              height={800}
-              className="w-full h-auto"
-            />
-          </div>
+          <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
+            <div className="mb-10 border border-(--border) rounded-sm overflow-hidden">
+              <Image
+                src={project.image}
+                alt={`${project.titleZh} screenshot`}
+                width={1200}
+                height={800}
+                className="w-full h-auto"
+              />
+            </div>
+          </ViewTransition>
         )}
 
         {/* Highlight */}

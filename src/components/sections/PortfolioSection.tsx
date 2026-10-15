@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, ViewTransition } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -41,15 +41,17 @@ function ProjectCard({
 
       <div className="relative z-10 flex flex-col flex-1 pointer-events-none">
         {project.image && (
-          <div className="relative -mx-7 -mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
-            <Image
-              src={project.image}
-              alt={`${project.titleZh} 截圖`}
-              fill
-              className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
+          <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
+            <div className="relative -mx-7 -mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
+              <Image
+                src={project.image}
+                alt={`${project.titleZh} 截圖`}
+                fill
+                className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
+          </ViewTransition>
         )}
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -68,9 +70,12 @@ function ProjectCard({
                 {project.status}
               </span>
             </div>
-            <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
-              {project.titleZh}
-            </h3>
+            {/* 跟 /projects/[slug] 的 <h1> 同名，點進詳細頁時標題會 morph 過去 */}
+            <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
+              <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
+                {project.titleZh}
+              </h3>
+            </ViewTransition>
             <p className="text-xs text-(--muted) font-light mt-0.5 opacity-60">{project.title}</p>
           </div>
           {project.github && (

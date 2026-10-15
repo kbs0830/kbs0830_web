@@ -87,6 +87,32 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* View Transitions 的偽元素不在 * 的範圍內，要另外關 */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ── View Transitions（React <ViewTransition>，見 projects/[slug]/template.tsx）──
+   作品卡片 → 詳細頁：標題、縮圖 morph（.morph），其餘內容 fade + slide-up（.page-enter）。
+   時間跟原本 framer 版一致（0.45s、同一條 easing），維持「gentle fade-in」不跳不彈。 */
+::view-transition-group(.morph) {
+  animation-duration: 450ms;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: vt-soften;
+}
+@keyframes vt-soften {
+  30% { filter: blur(2px); }
+}
+::view-transition-new(.page-enter) {
+  animation: vt-fade-up 450ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+@keyframes vt-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
 }
 
 @keyframes breathe {

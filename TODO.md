@@ -6,6 +6,99 @@
 
 ---
 
+## 🚨 2026-10-15 — 全站升級＋維運體檢（分支 `upgrade/2026-10`）
+
+背景：使用者貼了 cloudflared log，要求「全面升級新技術、解決 Google 索引、Claude Code 遠端
+session、開機自動起整個站、自動備份」。實際查下去發現 9 月文件寫「已修復」的兩件事
+（72 小時被砍、www 404）其實都**沒有真的生效**。
+
+### 🙋 需要你動手（我這邊權限/帳號不夠）
+
+- [ ] **在桌機用「系統管理員」PowerShell 跑一次 `scripts\setup-autostart.ps1`** 🔴 最優先
+  → 一次解決三件事，腳本跑完會自己印檢查結果：
+    1. `kbs0830_NextJS`／`GitHubActionsRunner` 的 `ExecutionTimeLimit` 還是預設 `PT72H`
+       （`schtasks /query /xml` 查到 Settings 裡根本沒有這個欄位）。10/07 21:31、10/10 21:36、
+       10/13 21:41 整站跟 runner 一起被砍，都是 watchdog 5 分鐘後救回——每次晚 5 分鐘剛好是
+       watchdog 間隔。9 月的 `Set-ScheduledTask` 推測是在非管理員視窗跑、失敗了沒人發現
+       （這次我在一般權限重跑，確實是 `PermissionDenied 0x80070005`）
+    2. **開機自動起站其實沒做到**：Windows 服務 `Cloudflared` 雖然 AUTO_START、RUNNING，但
+       binPath 沒帶任何參數、LocalSystem 底下也沒有 config.yml，等於空轉；真正在扛流量的是
+       `start-server.bat` 開的 console 版 cloudflared（metrics 20241 的 connectorId 跟那個視窗的
+       log 對得上）。重開機後沒人登入點 bat → Tunnel 不通 → 整站掛
+    3. `kbs0830_Watchdog`／`GitHubActionsRunner` 是 `InteractiveToken`（只在登入時跑），Runner
+       觸發條件還是「登入時」→ 重開機沒登入的話，監控跟自動部署都不會動。改成 S4U
+       （不論是否登入都執行、不用存密碼）＋開機觸發
+  → 跑完之後：關掉 bat 開的 cloudflared 黑視窗；**找一天實際重開機一次、不登入**，用手機開
+    https://kbs0830.com 確認站有起來，才算驗證完成
+  → ⚠️ Runner 改成 S4U 之後沒有實際跑過一次部署驗證，第一次 push 後看一下 Actions 有沒有正常接到
+
+- [ ] **`www.kbs0830.com` 還是 404** 🔴（Google 索引問題的主因）
+  → 2026-10-15 實測 `curl https://www.kbs0830.com/` → `404`，而且是 Cloudflare 回的（沒有
+    redirect）。CLAUDE.md 寫的 Redirect Rule 要嘛沒存成功、要嘛被停用了
+  → Cloudflare Dashboard → kbs0830.com → Rules → Redirect Rules：確認那條規則存在且是
+    **Enabled**；沒有就照 CLAUDE.md「部署架構」那段重建（filter `http.host eq "www.kbs0830.com"`、
+    301、Dynamic `concat("https://kbs0830.com", http.request.uri.path)`、Preserve query string 打開）
+  → 改完 `curl -sI https://www.kbs0830.com/` 應該看到 `301` + `location: https://kbs0830.com/`，
+    再去 Search Console 對該 issue 按「驗證修正」
+
+- [ ] **`http://kbs0830.com` 沒有轉 https** 🟠（同一份內容兩個網址，Google 要自己猜哪個是正本）
+  → 實測 `http://kbs0830.com/` 直接回 `200`。Cloudflare Dashboard → SSL/TLS → Edge Certificates →
+    打開 **Always Use HTTPS**（edge 層一個開關，不用改 code）。canonical 已經都指 https，
+    所以不是急事，但開了比較乾淨
+
+- [ ] **桌機 GitHub push 認證**（`upgrade/2026-10` 分支要上線就卡這個）
+  → 桌機 GCM 沒有 GitHub 帳號，只能 pull。需要你遠端桌面進桌機，在本機終端機跑一次
+    `git push`（會跳 GCM 登入視窗），或改用 SSH key / fine-grained PAT
+
+### ⚙️ 已在分支 `upgrade/2026-10` 完成（等你 review → merge → push 才會上線）
+
+- [x] **套件全面升級**：Next 16.3.1→16.4.0、React 19.2.4→19.3.0、framer-motion 12→14、
+  Mermaid 11→12、three 0.184→0.186、R3F 9.6→9.8、Tailwind 4.3.3、ESLint 9→10、
+  Vitest 4→5、Playwright 1.64、TypeScript 5.9→**6.0**（見下方 TS 7 說明）
+  → `tsc`／`eslint`／`vitest`（16/16）／`next build`／Playwright（12/12，連跑 4 次）全過
+- [x] **View Transitions（React 19.3 原生 `<ViewTransition>`）**：作品卡片點進詳細頁時，
+  標題跟縮圖會 morph 過去；詳細頁其餘內容 fade + slide-up。`template.tsx` 從 framer
+  `motion.div` 改成 `<ViewTransition enter="page-enter">`（framer 的 `opacity:0` 起始
+  狀態會讓瀏覽器拍到透明快照、跟 morph 打架）。時間沿用原本 0.45s 跟同一條 easing；
+  `prefers-reduced-motion` 也關掉了 view transition 偽元素的動畫。不支援的瀏覽器照常
+  換頁、只是沒動畫。新增 `e2e/project-detail.spec.ts` 確認換頁後標題可見
+- [x] **React Compiler**（`reactCompiler: true` + `babel-plugin-react-compiler`）
+  → 副作用：dev 模式第一次編譯變慢，原本 Playwright 預設開 10 個 worker 打同一個
+    dev server 開始隨機失敗（production build 平行跑完全穩定，不是行為壞掉）。
+    `playwright.config.ts` 設 `workers: 3`；Konami 測試原本只留 0.3 秒緩衝
+    （元件 3.7 秒才消失、測試等 4 秒），放寬到 6 秒
+- [x] **sitemap**：補上漏掉的 `/resume`；拿掉每次 build 都變成「現在」的假
+  `lastModified`（只留 blog 文章的真實日期）——Google 判定 lastmod 不可信會整份忽略
+
+### 🟠 之後再做
+
+- [ ] **Claude Code 遠端 session（從筆電操作桌機）** 🙋 需要你描述症狀
+  → 使用者回報有問題，但還不知道具體是「斷線」「重開機後 session 不見」「權限提示卡住」
+    還是別的。已知相關的限制：這個 session 沒有管理員權限（改排程/服務都會 Access
+    denied，所以才需要上面那支腳本讓你手動跑）、桌機不能 push
+  → 下次發生時把畫面上的錯誤訊息或狀況記下來，再來對症處理
+- [ ] **自動備份** 🙋 需要你決定要備份什麼、放哪裡
+  → 不在 git 裡、壞了會真的不見的東西：`.env.local`（Spotify token）、
+    `data/visitor-stats.json`、`~/.cloudflared/`（tunnel 憑證，遺失要重建 tunnel）、
+    `logs/`。候選：每天複製到另一顆硬碟／Google Drive 桌面版同步資料夾，保留最近 N 份
+  → ⚠️ tunnel 憑證 json 等同 tunnel 的密碼，備份位置不能是公開或共享的地方
+- [ ] **cloudflared 升級**（2026.7.1 → 2026.10.0，log 每天在提醒）
+  → 跑完 setup-autostart.ps1 之後：`Stop-Service Cloudflared` →
+    `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`（服務 binPath 指的是
+    WinGet Packages 裡的實體檔，升級後路徑不變）
+- [ ] **watchdog 加上 Tunnel 監控**
+  → 目前 watchdog 只看 localhost:3000 跟 runner；Tunnel 掛了它看不出來（origin 健康）。
+    可以加：`Get-Service Cloudflared` 不是 Running 就 `Start-Service`，或打
+    `http://127.0.0.1:20241/ready` 看 `readyConnections`
+- [ ] **TypeScript 7（Go 原生編譯器）** — 等 typescript-eslint 支援
+  → 試過直接升 7.0.2：`tsc` 本身沒問題，但 TS 7 沒有 JS API，typescript-eslint 8.x 直接
+    crash（peer 範圍 `<6.1.0`）。先停在 6.0，等 typescript-eslint 宣布支援再升
+- [ ] **`THREE.Clock` deprecation warning** — 等 R3F 更新
+  → three 0.186 把 `Clock` 標成 deprecated，警告來自 R3F 內部的 `state.clock`，
+    不是我們的 code；R3F 出新版改用 `THREE.Timer` 之後就會消失
+
+---
+
 ## 📋 外部回饋對照（2026-07 Portfolio review 5 痛點 → 現況與對應待辦）
 
 | # | 回饋 | 現況 | 對應待辦 |
@@ -182,13 +275,11 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 
 ## 🧪 新技術升級評估
 
-- [ ] **View Transitions**（Next.js `experimental.viewTransition`）⚙️ 可在分支試
-  → 之前「頁面切換退場動畫」做不了的原因（`AnimatePresence` 要保留舊畫面、跟 App Router
-    導覽模型打架）正是這個瀏覽器原生 API 要解的問題
-  → 仍是 experimental flag，先開分支驗證效果與穩定性（含 Safari/Firefox 支援度），OK 再上正式站
-- [ ] **React Compiler** — 優先度低
-  → 自動 memoization，理論上可拿掉手動 `useMemo`/`useCallback`
-  → 本站互動元件不多、HeroScene 已手動 useMemo 過，收益不確定；R3F 相容性要先查，先觀望
+- [x] **View Transitions**——2026-10-15 在 `upgrade/2026-10` 完成（React 19.3 起 `<ViewTransition>`
+  已是穩定 API，不需要 experimental flag），細節見最上方 2026-10-15 區塊
+  → 還沒做：手動在 Safari／Firefox 實際點一次看效果（官方註明 Safari 可能有差異）
+- [x] **React Compiler**——2026-10-15 在 `upgrade/2026-10` 開啟，R3F 場景／E2E 全過
+  → 還沒做：既有的手寫 `useMemo`/`useCallback` 理論上可以拿掉，但沒有效能問題，不急著動
 - [x] **Partial Prerendering（PPR）— 評估後不採用**（記錄結論免得之後重查）
   → 本站頁面幾乎全部 SSG，只有 2 個 API route 是動態的，沒有「靜態殼＋動態洞」的頁面
     形態，PPR 沒有適用場景

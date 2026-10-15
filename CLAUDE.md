@@ -88,9 +88,10 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript |
+| Language | TypeScript 6.0（TS 7 暫不升：typescript-eslint 還不支援，見 TODO.md） |
+| React | React 19.3 + React Compiler（`next.config.ts` 的 `reactCompiler: true`） |
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
-| Animation | Framer Motion |
+| Animation | Framer Motion；換頁用 React 原生 `<ViewTransition>`（見 `projects/[slug]/template.tsx`） |
 | Styling | Tailwind CSS v4 |
 | Package manager | pnpm 11 |
 | Tunnel | Cloudflare Tunnel (cloudflared) |
@@ -135,7 +136,9 @@ printf '\xef\xbb\xbf' | cat - scripts/xxx.ps1 > tmp && mv tmp scripts/xxx.ps1
 
 `e2e/*.spec.ts`，`pnpm test:e2e` 執行（`playwright.config.ts` 會自動起一個 `next dev`
 在 port 3100，跑完關掉；本機開發中已經有 dev server 在跑的話會直接重用，不會衝突）。
-目前測：NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
+`workers: 3` 是刻意的：全部測試共用一個 dev server，開 React Compiler 之後 dev 首次編譯變慢，
+worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（production build 平行跑是穩定的）。
+目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋。`TerminalMode.tsx` 的輸出區塊有一個
 `data-testid="terminal-output"`，純粹是給這批測試定位用的——輸出文字（例如「PINGWEI
@@ -184,7 +187,11 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 
 ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 
-**✅ 2026-09 發現並修復：`www.kbs0830.com` 在 Google Search Console 被回報 404。** 根因是 DNS
+**⚠️ 2026-10-15 實測仍然 404**：`curl https://www.kbs0830.com/` 回的是 Cloudflare 的 404、沒有
+301——下面這條 Redirect Rule 實際上沒有生效（沒存成功或被停用），要回 dashboard 確認，見 TODO.md。
+改完一定要 `curl -sI https://www.kbs0830.com/` 看到 301 才算數，不要只看 dashboard 有沒有那條規則。
+
+**2026-09 發現：`www.kbs0830.com` 在 Google Search Console 被回報 404。** 根因是 DNS
 上 `www.kbs0830.com` 是有效的 proxied 記錄（跟裸網域指向同一組 Cloudflare anycast IP），但
 `~/.cloudflared/config.yml` 的 ingress 規則只寫了 `kbs0830.com` 一條、其餘一律
 `http_status:404`——任何打到 `www.kbs0830.com` 的請求會在 Cloudflare Tunnel 這一層直接被
@@ -205,10 +212,18 @@ ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 
 | 服務 | 管理方式 |
 |---|---|
-| Next.js (port 3000) | 工作排程器 `kbs0830_NextJS`，Action **直接**執行 `node.exe scripts\server.js` |
-| Cloudflare Tunnel | Windows 服務 `Cloudflared` |
+| Next.js (port 3000) | 工作排程器 `kbs0830_NextJS`，開機觸發、S4U，Action **直接**執行 `node.exe scripts\server.js` |
+| Cloudflare Tunnel | Windows 服務 `Cloudflared`（binPath 必須帶 `tunnel --config ... run`，見下） |
 | GitHub Actions Runner | 工作排程器 `GitHubActionsRunner`，位於 `C:\actions-runner` |
 | 健康監控 | 工作排程器 `kbs0830_Watchdog`，每 5 分鐘執行 `scripts\watchdog.ps1` |
+
+**這些服務的設定統一由 `scripts/setup-autostart.ps1` 建立（要用系統管理員 PowerShell 跑）。**
+2026-10-15 查到「開機自動啟動」其實一直沒做到：`Cloudflared` 服務 binPath 沒帶任何參數（空轉），
+真正扛流量的是 `start-server.bat` 開的 console 版 cloudflared；Watchdog／Runner 是
+InteractiveToken（沒登入就不跑）；72 小時上限也還在（見下方 Log 章節）。
+**⚠️ 這個 session（Claude Code）沒有管理員權限**，`Set-ScheduledTask`／`sc config` 都會
+Access denied——不要自己跑完就以為改好了，要請使用者用管理員視窗執行，跑完再用
+`schtasks /query /tn <name> /xml` 回查 Settings 真的有 `ExecutionTimeLimit>PT0S`。
 
 Task Scheduler 的 Action：
 ```
@@ -292,7 +307,12 @@ Enable-ScheduledTask -TaskName "kbs0830_Watchdog"
 `scripts/lib/logger.ps1` 的 `Write-TimestampedLog`（`deploy.ps1` / `watchdog.ps1` 共用；`server.js` 是
 Node 環境，邏輯獨立實作但規則一致）。
 
-**✅ 2026-08 發現、2026-09 已定位並修復：整站每隔約 3 天無回應一次，根因不是 memory leak，
+**⚠️ 2026-10-15：下面寫的修復當時沒有真的套用上去。** 10/07、10/10、10/13 依然每 72 小時被砍
+（watchdog 5 分鐘後救回），`schtasks /xml` 查到 Settings 裡沒有 `ExecutionTimeLimit`（= 預設
+PT72H）。推測 9 月是在非管理員視窗跑 `Set-ScheduledTask`，失敗了沒注意到。現在改由
+`scripts/setup-autostart.ps1`（管理員執行）統一設定，見上方「桌機服務」。
+
+**2026-08 發現、2026-09 定位：整站每隔約 3 天無回應一次，根因不是 memory leak，
 是 Task Scheduler 的預設 72 小時執行時間上限。** 原本懷疑 Next.js 16.x 的 server-side
 `fetch()`/stream memory leak，已將 Next.js 升級到 16.3.1 並在 `scripts/server.js` 加了
 `MEM ...` 診斷 log（每 30 分鐘記一次 `process.memoryUsage()` + uptime），但升級後問題依舊
@@ -324,7 +344,8 @@ Set-ScheduledTask -TaskName GitHubActionsRunner -Settings $s1
 ### 手動啟動
 
 ```powershell
-# 一鍵啟動 Next.js + Tunnel
+# 跑過 setup-autostart.ps1 之後開機就會自己起來，這支只留給手動拉起服務用
+# （Cloudflared 服務還沒設定好時，會退回舊做法在前景開一個 cloudflared）
 start-server.bat
 
 # 手動部署（pull + build + restart + 健康檢查）
@@ -520,7 +541,7 @@ kbs0830_web/
 │   │   │   └── [slug]/page.tsx  # /blog/[slug]，next-mdx-remote/rsc 渲染
 │   │   ├── projects/[slug]/
 │   │   │   ├── page.tsx         # 專案詳細頁
-│   │   │   └── template.tsx     # 進場 fade+slide-up 動畫（每次導覽都重新 mount）
+│   │   │   └── template.tsx     # <ViewTransition enter="page-enter">，配合卡片標題/縮圖 morph（CSS 在 globals.css）
 │   │   └── api/
 │   │       ├── spotify/now-playing/route.ts   # Spotify 正在聽後端（+ route.test.ts）
 │   │       └── visitor-stats/route.ts         # 訪客來源國家統計彙總（+ route.test.ts）
@@ -560,6 +581,7 @@ kbs0830_web/
 │   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
 │   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
 │   ├── watchdog.ps1                  # 每 5 分鐘健康檢查（網站 + GitHub Actions runner 存活），異常自動重啟（Task Scheduler: kbs0830_Watchdog）
+│   ├── setup-autostart.ps1           # 一次性（管理員執行）：排程工作取消 72h 上限/改 S4U、Cloudflared 服務帶 tunnel 參數
 │   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
 │   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
 │   └── lib/
