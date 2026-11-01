@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { isTyping } from "@/lib/isTyping";
+import Modal from "@/components/ui/Modal";
 
 const sectionKeys: Record<string, string> = {
   "1": "about",
@@ -21,81 +21,48 @@ const shortcuts = [
 export default function KeyboardShortcuts() {
   const [showHelp, setShowHelp] = useState(false);
 
+  // Esc 關閉由 <dialog> 原生處理
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping()) return;
 
-      if (e.key === "?") {
-        if (isTyping()) return;
-        setShowHelp((v) => !v);
-        return;
-      }
-      if (e.key === "Escape") {
-        setShowHelp(false);
-        return;
-      }
-      if (isTyping()) return;
-
-      if (e.key === "g" || e.key === "G") {
-        window.open("https://github.com/kbs0830", "_blank", "noopener,noreferrer");
-      } else if (e.key === "e" || e.key === "E") {
-        window.location.href = "mailto:1394kbs@gmail.com";
-      } else if (sectionKeys[e.key]) {
-        document.getElementById(sectionKeys[e.key])?.scrollIntoView({ behavior: "smooth" });
-      }
+      const key = e.key.toLowerCase();
+      if (key === "?") setShowHelp((v) => !v);
+      else if (key === "g") window.open("https://github.com/kbs0830", "_blank", "noopener,noreferrer");
+      else if (key === "e") window.location.href = "mailto:1394kbs@gmail.com";
+      else if (sectionKeys[key]) document.getElementById(sectionKeys[key])?.scrollIntoView({ behavior: "smooth" });
     };
     window.addEventListener("keydown", onKeyDown);
+    // 給 E2E 用的「已經可以互動」標記（e2e/helpers.ts gotoReady）：同一次 commit 的
+    // passive effects 會一起跑，這裡執行時 TerminalMode/KonamiEgg 的鍵盤監聽也都掛好了。
+    // 測試如果 goto 完馬上按鍵，按鍵可能比 hydration 早到、直接被丟掉。
+    document.documentElement.dataset.hydrated = "";
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   return (
-    <AnimatePresence>
-      {showHelp && (
-        <motion.div
-          className="fixed inset-0 z-[998] flex items-center justify-center px-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
+    <Modal open={showHelp} onClose={() => setShowHelp(false)} label="鍵盤快捷鍵" className="w-[calc(100%-3rem)] max-w-sm">
+      <div className="p-6 border border-(--border) rounded-sm bg-(--surface)">
+        <p
+          className="text-xs tracking-[0.25em] text-(--accent) uppercase mb-5"
+          style={{ fontFamily: "var(--font-mono)" }}
         >
-          <motion.div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--bg)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.85 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => setShowHelp(false)}
-          />
-          <motion.div
-            className="relative w-full max-w-sm p-6 border border-(--border) rounded-sm bg-(--surface)"
-            initial={{ opacity: 0, y: 10, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.97 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <p
-              className="text-xs tracking-[0.25em] text-(--accent) uppercase mb-5"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              Keyboard Shortcuts
-            </p>
-            <div className="space-y-3">
-              {shortcuts.map((s) => (
-                <div key={s.key} className="flex items-center gap-4">
-                  <kbd
-                    className="shrink-0 min-w-[2.5rem] text-center px-2 py-1 text-[11px] text-(--accent) border border-(--accent-lt) bg-(--accent-lt) rounded-sm"
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  >
-                    {s.key}
-                  </kbd>
-                  <span className="text-sm font-light text-(--muted)">{s.desc}</span>
-                </div>
-              ))}
+          Keyboard Shortcuts
+        </p>
+        <div className="space-y-3">
+          {shortcuts.map((s) => (
+            <div key={s.key} className="flex items-center gap-4">
+              <kbd
+                className="shrink-0 min-w-[2.5rem] text-center px-2 py-1 text-[11px] text-(--accent) border border-(--accent-lt) bg-(--accent-lt) rounded-sm"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                {s.key}
+              </kbd>
+              <span className="text-sm font-light text-(--muted)">{s.desc}</span>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          ))}
+        </div>
+      </div>
+    </Modal>
   );
 }

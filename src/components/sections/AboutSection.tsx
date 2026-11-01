@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Image from "next/image";
+import Reveal from "@/components/ui/Reveal";
+import Collapse from "@/components/ui/Collapse";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 import Eyebrow from "@/components/ui/Eyebrow";
@@ -80,6 +81,10 @@ const skills = [
   },
 ];
 
+// 技能 chip、到訪城市共用的小膠囊樣式
+const pill = "px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide";
+const pillHover = "hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default";
+
 function ProficiencyDots({ level }: { level: number }) {
   return (
     <span className="inline-flex gap-[2px] ml-1.5 align-middle" aria-hidden>
@@ -103,13 +108,9 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
-          <motion.span
-            className="text-(--accent) text-xs"
-            animate={{ rotate: open ? 90 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <span className={`inline-block text-(--accent) text-xs transition-[rotate] duration-200 ${open ? "rotate-90" : ""}`}>
             ▸
-          </motion.span>
+          </span>
           <span>
             <p
               className="text-xs tracking-[0.2em] text-(--accent) uppercase"
@@ -126,24 +127,19 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
           </p>
         )}
       </button>
-      <motion.div
-        initial={false}
-        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-        className="overflow-hidden"
-      >
+      <Collapse open={open}>
         <div className="flex flex-wrap gap-2 pt-4 sm:pl-[204px]">
           {group.items.map((item) => (
             <span
               key={item.name}
-              className="inline-flex items-center px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default"
+              className={`inline-flex items-center ${pill} ${pillHover}`}
             >
               {item.name}
               <ProficiencyDots level={item.level} />
             </span>
           ))}
         </div>
-      </motion.div>
+      </Collapse>
     </div>
   );
 }
@@ -215,32 +211,15 @@ const timeline = [
   },
 ];
 
-function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1], delay }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
   const [open, setOpen] = useState(false);
   return (
-    <motion.div
-      ref={ref}
-      className="flex items-start gap-6"
-      initial={{ opacity: 0, x: -12 }}
-      animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.08 }}
+    <Reveal
+      from="left"
+      duration={0.5}
+      delay={index * 0.08}
+      margin={60}
+      className="group/tl flex items-start gap-6"
     >
       <p
         className="text-xs text-(--accent) tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
@@ -263,29 +242,23 @@ function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number
           }
         }}
       >
-        <motion.div
-          className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg)"
-          initial={{ scale: 0 }}
-          animate={inView ? { scale: 1 } : {}}
-          transition={{ duration: 0.3, delay: index * 0.08 + 0.15 }}
+        {/* 外層 Reveal 加上 data-shown 時，圓點跟著放大出現 */}
+        <div
+          className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg) scale-0 transition-[scale] duration-300 group-data-shown/tl:scale-100"
+          style={{ transitionDelay: `${index * 0.08 + 0.15}s` } as CSSProperties}
         />
         <p className="text-sm font-light text-(--text) leading-snug group-hover/item:text-(--accent) transition-colors">
           {item.zh}
         </p>
         <p className="text-xs font-light text-(--muted) opacity-50 mt-0.5">{item.en}</p>
-        <motion.div
-          initial={false}
-          animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="overflow-hidden"
-        >
+        <Collapse open={open}>
           <div className="pt-2 mt-2 border-t border-(--border) space-y-0.5">
             <p className="text-xs font-light text-(--muted)">{item.detailZh}</p>
             <p className="text-[11px] font-light text-(--muted) opacity-60">{item.detailEn}</p>
           </div>
-        </motion.div>
+        </Collapse>
       </div>
-    </motion.div>
+    </Reveal>
   );
 }
 
@@ -293,17 +266,17 @@ export default function AboutSection() {
   return (
     <section id="about" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
-        <FadeIn>
+        <Reveal>
           <Eyebrow className="mb-4">About</Eyebrow>
           <RevealHeading
             text="自己紹介　·　關於我"
             className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16"
             style={{ fontFamily: "var(--font-serif)" }}
           />
-        </FadeIn>
+        </Reveal>
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-12 md:mb-20">
-          <FadeIn delay={0.1}>
+          <Reveal delay={0.1}>
             <div className="space-y-5 font-light leading-relaxed text-[15px]">
               <div className="mb-6">
                 <Image
@@ -333,9 +306,9 @@ export default function AboutSection() {
                 </p>
               </div>
             </div>
-          </FadeIn>
+          </Reveal>
 
-          <FadeIn delay={0.15}>
+          <Reveal delay={0.15}>
             <div
               className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4"
               style={{ fontFamily: "var(--font-mono)" }}
@@ -361,12 +334,12 @@ export default function AboutSection() {
             <div className="mt-4">
               <SpotifyNowPlaying />
             </div>
-          </FadeIn>
+          </Reveal>
         </div>
 
-        <FadeIn delay={0.2}>
+        <Reveal delay={0.2}>
           <Eyebrow className="mb-8 mt-12">歷程 · Timeline</Eyebrow>
-        </FadeIn>
+        </Reveal>
 
         <div className="relative mb-16">
           <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--border)" />
@@ -377,7 +350,7 @@ export default function AboutSection() {
           </div>
         </div>
 
-        <FadeIn delay={0.25}>
+        <Reveal delay={0.25}>
           <Eyebrow className="mb-8">技能 · Skills</Eyebrow>
           <p
             className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6"
@@ -397,9 +370,9 @@ export default function AboutSection() {
               <SkillGroup key={group.category} group={group} defaultOpen={i === 0} />
             ))}
           </div>
-        </FadeIn>
+        </Reveal>
 
-        <FadeIn delay={0.28}>
+        <Reveal delay={0.28}>
           <Eyebrow className="mb-6 mt-16">開発活動 · Activity</Eyebrow>
           <div className="p-4 border border-(--border) rounded-sm bg-white overflow-x-auto">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -418,9 +391,9 @@ export default function AboutSection() {
           >
             github.com/kbs0830 · 公開貢獻紀錄
           </p>
-        </FadeIn>
+        </Reveal>
 
-        <FadeIn delay={0.3}>
+        <Reveal delay={0.3}>
           <Eyebrow className="mb-2 mt-16">足跡 · Footprint</Eyebrow>
           <p
             className="text-xs text-(--muted) font-light opacity-70 mb-8"
@@ -449,13 +422,13 @@ export default function AboutSection() {
                       c.cities.map((city) => (
                         <span
                           key={city}
-                          className="px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default"
+                          className={`${pill} ${pillHover}`}
                         >
                           {city}
                         </span>
                       ))
                     ) : (
-                      <span className="px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide">
+                      <span className={pill}>
                         已到訪
                       </span>
                     )}
@@ -494,7 +467,7 @@ export default function AboutSection() {
               </div>
             </div>
           </div>
-        </FadeIn>
+        </Reveal>
       </div>
     </section>
   );

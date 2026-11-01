@@ -6,6 +6,45 @@
 
 ---
 
+## 🚨 2026-11-02 — 精簡重構＋一次 4 天的斷線（同一個分支 `upgrade/2026-10`）
+
+### 🔴 先看這個：網站從 10/29 02:15 到 11/02 01:52 斷線約 4 天
+- UptimeRobot 的 `HEAD /` 最後一筆是 10/29 02:10（台灣時間），之後 server 在 02:15／02:17
+  重啟（看起來是桌機重開機），**`start-server.bat` 開的 console 版 cloudflared 沒人重開**，
+  Tunnel 就一直斷著（訪客看到 Cloudflare 530）——就是 10-15 那段預言的「開機自動起站沒做到」
+- 11/02 已手動在背景重開一個 cloudflared 恢復，但它掛在目前的登入 session 底下，
+  **下次重開機一樣會斷**。真正的修法還是下面那條：系統管理員身分跑 `scripts\setup-autostart.ps1`
+- 🙋 確認 UptimeRobot 有沒有寄告警到 otemon.pcwork@gmail.com；4 天都沒人發現的話，
+  要檢查 Alert Contact 設定
+- ⚙️ 之後可以做：watchdog 加上 Tunnel 檢查（見下方「watchdog 加上 Tunnel 監控」），
+  這次就是 origin 健康、Tunnel 死掉，watchdog 完全看不出來
+
+### 🔴 Next.js 16.4.0 有已知安全漏洞
+- `next build` 直接拒絕建置（`SecurityFatalError: Your version of Next.js is affected by a known
+  security vulnerability`），分支已升到 **16.4.3**。正式站目前跑的是 main 的 16.3.1，build 時間
+  早於這個檢查，**很可能也在受影響範圍**——這是這個分支要儘快 merge/部署的另一個理由
+
+### ⚙️ 已完成：拿掉 framer-motion，動畫全部改成瀏覽器原生
+- `src/` 14 個檔案 −824／+663 行；首頁 JS 傳輸量 桌機 454→428 KB、手機 225→191 KB（−15%）
+- 6 份各自重寫的 `useInView + motion.div` → 一個 `<Reveal>`；AnimatePresence 彈窗 → 原生
+  `<dialog>`（focus 管理、Esc、遮罩都由瀏覽器處理）；捲動進度條 → CSS scroll-driven animation；
+  高度動畫 → `<Collapse>`（grid-rows）；細節見 CLAUDE.md「動畫架構」
+- Hero 進場改純 CSS：不必等 hydration 才開始播，對 LCP（見下方「LCP 決策點」）是直接的改善，
+  而且沒有改動動畫時間，不需要犧牲設計
+- 4 處 `useEffect` 裡同步 setState + `eslint-disable` 的 matchMedia 寫法 → `useSyncExternalStore`
+  （`lib/hooks.ts`）；HeroScene 的 `react-hooks/purity` disable 也拿掉了
+- Magnetic 不再每次 mousemove 都 re-render；只對滑鼠生效（觸控拖曳不會亂跑）
+- 順手修的既有 bug：
+  1. **Hero 3D 背景一直只有 150px 高**（正式站現在也是）：R3F `<Canvas>` 的 inline style 蓋掉了
+     `absolute inset-0`。修好之後背景會鋪滿整個 Hero——**畫面看起來會跟現在差很多**，這才是原本
+     設計的樣子，上線後如果覺得線條太搶眼再調密度/透明度
+  2. 手機第一次 render 其實會觸發 three.js chunk 下載（`isMobile` 初始值是 false）
+  3. 列印時還沒捲到的區塊是透明的（opacity:0）
+  4. 手機選單收合時，裡面的連結還是 Tab 得到（現在收合時 `inert`）
+- E2E：加 `gotoReady()` 等 hydration 完成再操作，修掉「開 trace 就穩定失敗」的既有時機問題
+
+---
+
 ## 🚨 2026-10-15 — 全站升級＋維運體檢（分支 `upgrade/2026-10`）
 
 背景：使用者貼了 cloudflared log，要求「全面升級新技術、解決 Google 索引、Claude Code 遠端

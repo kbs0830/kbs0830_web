@@ -38,8 +38,7 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- chart/id 在這個元件的生命週期內不會變
-  }, []);
+  }, [chart, id]);
 
   if (failed) return null;
 

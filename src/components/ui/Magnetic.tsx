@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useRef, type PointerEvent, type ReactNode } from "react";
 
+// 滑鼠靠近時元素微微被吸過去。直接改 DOM 的 style.translate，不經過 React state——
+// 原本每次 mousemove 都 setState 觸發一次 re-render。只對滑鼠生效（觸控拖曳不會亂跑），
+// prefers-reduced-motion 在事件當下查，不用另外存 state。
 export default function Magnetic({
   children,
   strength = 0.35,
@@ -10,40 +13,27 @@ export default function Magnetic({
   strength?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-  const [enabled, setEnabled] = useState(true);
 
-  useEffect(() => {
-    // SSR 沒有 window.matchMedia，必須先用預設值（enabled=true）完成首次 render
-    // 才不會 hydration mismatch，這裡讀出 client 端的實際偏好再同步進 state——
-    // 跟 HeroScene.tsx／NavBar.tsx 的 matchMedia pattern 同理，是這個 lint
-    // rule 的已知偽陽性情境。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEnabled(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-
-  const handleMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!enabled) return;
+  const handleMove = (e: PointerEvent<HTMLDivElement>) => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || e.pointerType !== "mouse") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const rect = el.getBoundingClientRect();
-    const relX = e.clientX - rect.left - rect.width / 2;
-    const relY = e.clientY - rect.top - rect.height / 2;
-    setPos({ x: relX * strength, y: relY * strength });
+    const x = (e.clientX - rect.left - rect.width / 2) * strength;
+    const y = (e.clientY - rect.top - rect.height / 2) * strength;
+    el.style.translate = `${x}px ${y}px`;
   };
 
-  const handleLeave = () => setPos({ x: 0, y: 0 });
+  const handleLeave = () => {
+    if (ref.current) ref.current.style.translate = "";
+  };
 
   return (
     <div
       ref={ref}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      className="inline-block"
-      style={{
-        transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
-        transition: "transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)",
-      }}
+      onPointerMove={handleMove}
+      onPointerLeave={handleLeave}
+      className="inline-block transition-[translate] duration-250 ease-(--ease-ma)"
     >
       {children}
     </div>

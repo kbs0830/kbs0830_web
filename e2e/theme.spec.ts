@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { gotoReady } from "./helpers";
 
 test("暗色模式切換：切換 html[data-theme] 並寫入 localStorage", async ({ page }) => {
-  await page.goto("/");
+  await gotoReady(page, "/");
 
   const initialTheme = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
   expect(["light", "dark"]).toContain(initialTheme);

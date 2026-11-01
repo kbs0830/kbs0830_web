@@ -13,8 +13,13 @@
   --accent:    #2d5a8e;
   --accent-lt: #e8f0f8;
 
+  --nav-bg:    rgb(250 250 248 / 0.88);
+
   --font-serif: "Noto Serif JP", "Noto Serif TC", Georgia, serif;
   --font-mono:  "JetBrains Mono", monospace;
+
+  /* 全站唯一一條動畫 easing（原本 framer 每個元件各寫一次 [0.25, 0.1, 0.25, 1]） */
+  --ease-ma: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 [data-theme="dark"] {
@@ -27,6 +32,14 @@
                             對比度只有 4.32:1，WCAG AA 文字要求 4.5:1，差一點點沒過
                             （2026-07 跑 Lighthouse 抓到），這個色差極小、肉眼幾乎看不出來 */
   --accent-lt: #1a2a3a;
+  --nav-bg:    rgb(15 15 13 / 0.9);
+}
+
+/* 主題切換鈕：兩個 icon 都 render，由 CSS 依 data-theme 決定顯示哪個——
+   不用在 React 裡另外存一份 dark state、也不用 hydration 後再同步 */
+[data-theme="dark"] .theme-icon-moon,
+:root:not([data-theme="dark"]) .theme-icon-sun {
+  display: none;
 }
 
 @theme inline {
@@ -115,6 +128,108 @@ body {
   from { opacity: 0; transform: translateY(16px); }
 }
 
+/* ── 動畫（2026-11 拿掉 framer-motion，全部改成 CSS）──────────────────────── */
+
+/* 進場：Hero 文字、NavBar。純 CSS keyframes，不必等 JS hydration 完才開始播
+   （framer 版要等 React 掛上才動，LCP 元素的 render delay 就是卡在這裡） */
+.enter-up {
+  animation: enter-up var(--enter-duration, 0.8s) var(--ease-ma) var(--enter-delay, 0s) backwards;
+}
+@keyframes enter-up {
+  from { opacity: 0; translate: 0 var(--enter-distance, 24px); }
+}
+.enter-fade {
+  animation: enter-fade var(--enter-duration, 0.8s) ease var(--enter-delay, 0s) backwards;
+}
+@keyframes enter-fade {
+  from { opacity: 0; }
+}
+
+/* 捲動到才淡入（<Reveal> / <RevealHeading>，由 useRevealOnce 加上 data-shown） */
+[data-reveal] {
+  opacity: 0;
+  transition:
+    opacity var(--reveal-duration, 0.7s) var(--ease-ma) var(--reveal-delay, 0s),
+    translate var(--reveal-duration, 0.7s) var(--ease-ma) var(--reveal-delay, 0s);
+}
+[data-reveal="up"]   { translate: 0 var(--reveal-distance, 20px); }
+[data-reveal="left"] { translate: calc(var(--reveal-distance, 12px) * -1) 0; }
+
+[data-reveal-chars] > span {
+  display: inline-block;
+  opacity: 0;
+  translate: 0 10px;
+  transition:
+    opacity 0.4s var(--ease-ma),
+    translate 0.4s var(--ease-ma);
+  transition-delay: calc(var(--reveal-delay, 0s) + var(--i) * 20ms);
+}
+
+[data-reveal][data-shown],
+[data-reveal-chars][data-shown] > span {
+  opacity: 1;
+  translate: none;
+}
+
+/* 頂端捲動進度條：CSS scroll-driven animation，零 JS。
+   不支援的瀏覽器（目前主要是 Firefox）就不顯示這條細線，其他功能不受影響。 */
+.scroll-progress {
+  transform-origin: left;
+  scale: 0 1;
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: grow-x linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes grow-x {
+  to { scale: 1 1; }
+}
+
+/* 原生 <dialog>（<Modal>）：@starting-style 做進場、allow-discrete 讓 display/overlay
+   等到退場動畫播完才切換，取代 framer 的 AnimatePresence。
+   放在 @layer components：寬度/位置交給呼叫端的 Tailwind utility（w-full、sm:max-w-xl、
+   mb-0…）覆寫——沒包 layer 的話這裡的 max-width:none 會壓過所有 utility。
+   margin:auto 要自己補回來：Tailwind preflight 把 UA 預設的置中 margin 歸零了。 */
+@layer components {
+  dialog.modal {
+    margin: auto;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    opacity: 0;
+    translate: 0 20px;
+    transition:
+      opacity 0.3s var(--ease-ma),
+      translate 0.3s var(--ease-ma),
+      overlay 0.3s allow-discrete,
+      display 0.3s allow-discrete;
+  }
+  dialog.modal[open] {
+    opacity: 1;
+    translate: none;
+  }
+  dialog.modal::backdrop {
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    opacity: 0;
+    transition:
+      opacity 0.25s ease,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+  dialog.modal[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    dialog.modal[open] { opacity: 0; translate: 0 20px; }
+    dialog.modal[open]::backdrop { opacity: 0; }
+  }
+}
+
 @keyframes breathe {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50%      { transform: scale(1.04); opacity: 1; }
@@ -141,6 +256,16 @@ body {
 
   body {
     background: #fff !important;
+  }
+
+  /* 還沒捲到的區塊停在 opacity:0，不強制顯示的話列印出來是空白
+     （framer 版也有同樣的問題，只是當時沒發現） */
+  [data-reveal],
+  [data-reveal-chars] > span,
+  .enter-up,
+  .enter-fade {
+    opacity: 1 !important;
+    translate: none !important;
   }
 
   section {

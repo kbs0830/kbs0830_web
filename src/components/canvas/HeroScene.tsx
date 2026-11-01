@@ -1,13 +1,6 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/purity --
-   既有寫法（matchMedia 初始值同步 setState、useMemo 內用 Math.random 產生一次性裝飾用
-   隨機座標），跟這次調整 three.js import 方式無關，是新版 eslint-plugin-react-hooks
-   規則變嚴格後才浮現的既有債務（HeroSection.tsx / Magnetic.tsx 也有一樣的 matchMedia
-   pattern）。這兩種寫法在這個情境下都不是真的 bug：mount 一次的裝飾性隨機生成、
-   讀取現有 matchMedia 狀態的初始化，不影響正確性，這裡先不做更大範圍的 hook 重構。 */
-
-import { useRef, useMemo, useEffect, useState, type ReactNode } from "react";
+import { useRef, useMemo, useEffect, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import {
@@ -19,20 +12,25 @@ import {
   Points,
   Vector3,
 } from "three";
+import { usePrefersReducedMotion } from "@/lib/hooks";
 
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
+// 裝飾用的隨機座標在 module 載入時產生一次（這個檔案只在桌機、client 端載入）。
+// 放在 component 外面，render 才是純函式——原本寫在 useMemo 裡呼叫 Math.random，
+// 要整段壓 eslint react-hooks/purity。
+const rand = (spread: number, offset = 0) => (Math.random() - 0.5) * spread + offset;
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+const LINE_SPECS = Array.from({ length: 18 }, () => ({
+  x: rand(12),
+  y: rand(8),
+  z: rand(4, -2),
+  len: 0.8 + Math.random() * 2,
+  angle: Math.random() * Math.PI * 2,
+  opacity: 0.25 + Math.random() * 0.2,
+}));
 
-  return reduced;
-}
+const DOT_POSITIONS = Float32Array.from({ length: 60 * 3 }, (_, i) =>
+  i % 3 === 0 ? rand(14) : i % 3 === 1 ? rand(10) : rand(6, -2),
+);
 
 // 讓整個場景隨游標位置微微傾斜，把 Hero 從純裝飾變成可互動的名片。
 function PointerRig({ children }: { children: ReactNode }) {
@@ -67,30 +65,18 @@ function Lines() {
   // 產生一次；<primitive> 掛載的物件不是 R3F 自己宣告式建立的節點，R3F 不會自動
   // dispose，所以下面另外用 useEffect cleanup 手動處理，避免之後改成可以動態
   // 更新資料時漏掉 GPU 資源回收。
-  const lineObjects = useMemo(() => {
-    const built: Line[] = [];
-    for (let i = 0; i < 18; i++) {
-      const x = (Math.random() - 0.5) * 12;
-      const y = (Math.random() - 0.5) * 8;
-      const z = (Math.random() - 0.5) * 4 - 2;
-      const len = 0.8 + Math.random() * 2;
-      const angle = Math.random() * Math.PI * 2;
-      const start = new Vector3(x, y, z);
-      const end = new Vector3(
-        x + Math.cos(angle) * len,
-        y + Math.sin(angle) * len,
-        z
-      );
-      const geometry = new BufferGeometry().setFromPoints([start, end]);
-      const material = new LineBasicMaterial({
-        color: "#2d5a8e",
-        transparent: true,
-        opacity: 0.25 + Math.random() * 0.2,
-      });
-      built.push(new Line(geometry, material));
-    }
-    return built;
-  }, []);
+  const lineObjects = useMemo(
+    () =>
+      LINE_SPECS.map(({ x, y, z, len, angle, opacity }) => {
+        const geometry = new BufferGeometry().setFromPoints([
+          new Vector3(x, y, z),
+          new Vector3(x + Math.cos(angle) * len, y + Math.sin(angle) * len, z),
+        ]);
+        const material = new LineBasicMaterial({ color: "#2d5a8e", transparent: true, opacity });
+        return new Line(geometry, material);
+      }),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -120,28 +106,17 @@ function Lines() {
 function Dots() {
   const ref = useRef<Points>(null);
 
-  const positions = useMemo(() => {
-    const count = 60;
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 14;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 6 - 2;
-    }
-    return pos;
-  }, []);
-
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.rotation.y = state.clock.elapsedTime * 0.015;
-    }
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += delta * 0.015;
   });
 
   const geo = useMemo(() => {
     const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(positions, 3));
+    g.setAttribute("position", new BufferAttribute(DOT_POSITIONS, 3));
     return g;
-  }, [positions]);
+  }, []);
+
+  useEffect(() => () => geo.dispose(), [geo]);
 
   return (
     <points ref={ref} geometry={geo}>
@@ -150,21 +125,22 @@ function Dots() {
   );
 }
 
+// <Canvas> 會在自己的外層 div 加 inline style `position:relative; height:100%`，
+// className="absolute inset-0" 直接給 Canvas 會被蓋掉；section 只有 min-height，
+// height:100% 算不出來，canvas 就退回預設的 150px 高（2026-11 才發現 Hero 3D 背景
+// 一直只佔畫面最上面一條）。外面多包一層真正 absolute 的 div，Canvas 填滿它。
 export default function HeroScene() {
   return (
-    <Canvas
-      camera={{ position: [0, 0, 6], fov: 55 }}
-      style={{ background: "transparent" }}
-      className="absolute inset-0"
-      dpr={[1, 1.5]}
-    >
-      <ambientLight intensity={0.5} />
-      <PointerRig>
-        <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
-          <Lines />
-        </Float>
-        <Dots />
-      </PointerRig>
-    </Canvas>
+    <div className="absolute inset-0">
+      <Canvas camera={{ position: [0, 0, 6], fov: 55 }} style={{ background: "transparent" }} dpr={[1, 1.5]}>
+        <ambientLight intensity={0.5} />
+        <PointerRig>
+          <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
+            <Lines />
+          </Float>
+          <Dots />
+        </PointerRig>
+      </Canvas>
+    </div>
   );
 }

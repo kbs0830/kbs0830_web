@@ -91,11 +91,34 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Language | TypeScript 6.0（TS 7 暫不升：typescript-eslint 還不支援，見 TODO.md） |
 | React | React 19.3 + React Compiler（`next.config.ts` 的 `reactCompiler: true`） |
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
-| Animation | Framer Motion；換頁用 React 原生 `<ViewTransition>`（見 `projects/[slug]/template.tsx`） |
+| Animation | **純 CSS，沒有動畫函式庫**（2026-11 移除 framer-motion），見下方「動畫架構」；換頁用 React 原生 `<ViewTransition>` |
 | Styling | Tailwind CSS v4 |
 | Package manager | pnpm 11 |
 | Tunnel | Cloudflare Tunnel (cloudflared) |
 | DNS | Cloudflare |
+
+### 動畫架構（2026-11 拿掉 framer-motion 後）
+
+新增動畫前先看這裡有沒有現成的，**不要再把 framer-motion 裝回來**：
+
+| 需求 | 用什麼 | 位置 |
+|---|---|---|
+| 捲動到才淡入 | `<Reveal from delay distance duration>` | `components/ui/Reveal.tsx` + `globals.css [data-reveal]` |
+| 標題逐字淡入 | `<RevealHeading>` | 同上 `[data-reveal-chars]` |
+| 頁面一載入就播的進場（Hero、NavBar） | `className="enter-up"` / `"enter-fade"` + CSS 變數 `--enter-delay` 等 | `globals.css`（純 CSS，不必等 hydration） |
+| 展開/收合 | `<Collapse open>`（grid-rows 0fr↔1fr，收合時 `inert`） | `components/ui/Collapse.tsx` |
+| 彈窗 | `<Modal open onClose label>`（原生 `<dialog>` + `@starting-style`） | `components/ui/Modal.tsx` + `globals.css dialog.modal` |
+| 捲動進度條 | CSS `animation-timeline: scroll()` | `globals.css .scroll-progress` |
+| 讀 matchMedia / scrollY | `useMediaQuery` / `useScrolledPast`（`useSyncExternalStore`） | `lib/hooks.ts` |
+
+- `useRevealOnce` 直接在 DOM 加 `data-shown`，不走 React state，捲動時零 re-render
+- 全站唯一一條 easing 是 `--ease-ma`（`cubic-bezier(0.25, 0.1, 0.25, 1)`），Tailwind 用 `ease-(--ease-ma)`
+- `.enter-*` 的 fill-mode 是 `backwards`，不是 `both`：`both` 會在動畫結束後一直鎖住 opacity，
+  之後同一個元素的 transition（例如 Konami 退場）就不會動
+- **`dialog.modal` 一定要留在 `@layer components` 裡**：沒包 layer 的 CSS 會壓過所有 Tailwind
+  utility（`sm:max-w-xl` 失效）；而且 Tailwind preflight 會把 `<dialog>` 預設的置中 margin
+  歸零，`margin: auto` 要自己補（第一版沒注意到，終端機跑到左上角、佔滿全寬）
+- 列印樣式會強制把 `[data-reveal]`／`.enter-*` 顯示出來，不然還沒捲到的區塊印出來是空白
 
 ### pnpm 注意事項
 
@@ -138,6 +161,13 @@ printf '\xef\xbb\xbf' | cat - scripts/xxx.ps1 > tmp && mv tmp scripts/xxx.ps1
 在 port 3100，跑完關掉；本機開發中已經有 dev server 在跑的話會直接重用，不會衝突）。
 `workers: 3` 是刻意的：全部測試共用一個 dev server，開 React Compiler 之後 dev 首次編譯變慢，
 worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（production build 平行跑是穩定的）。
+**每個測試都用 `e2e/helpers.ts` 的 `gotoReady(page, path)`，不要直接 `page.goto`**：`load` 事件
+不代表 React hydration 完成，goto 完馬上按鍵/點擊，事件會比監聽器先到、直接被丟掉（開 trace 時
+頁面變慢，就會穩定重現）。`gotoReady` 等的是 `KeyboardShortcuts` 掛好監聽後在 `<html>` 加的
+`data-hydrated`。
+**本機用 port 3100 跑 `next start` 測 production build 時**，重新 build 之前一定要先把舊的
+`next start` 關掉——舊 process 會拿舊 manifest 去讀新的 `.next`，所有 chunk 都 500（跟 2026-07
+正式站那次同一個原因），測試結果完全不能看。
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋。`TerminalMode.tsx` 的輸出區塊有一個
@@ -377,9 +407,13 @@ deploy.bat
 
 ### 1. Hero
 - 全螢幕 R3F 3D 背景：稀疏細線 + 靛藍粒子，慢速旋轉，隨游標位置微微傾斜（lerp 平滑，
-  尊重 `prefers-reduced-motion`）
+  尊重 `prefers-reduced-motion`）。**`<Canvas>` 外面一定要包一層 `absolute inset-0` 的 div**：
+  直接把 className 給 Canvas 會被它自己的 inline `position:relative; height:100%` 蓋掉，
+  canvas 退回 150px 高——2026-11 才發現 3D 背景一直只佔畫面最上面一條
+- 只在桌機（≥768px）載入 3D 場景；server 端還不知道裝置時先畫骨架屏（`useMediaQuery` 回傳 `null`），
+  手機不會下載 three.js chunk
 - 標題：`PINGWEI LI`（大字，無本名）
-- 副標：`学生開発者 · Claude × Gemini`，Framer Motion `staggerChildren` 逐字打字效果
+- 副標：`学生開発者 · Claude × Gemini`，`useTypewriter` 逐字打字效果
 - CTA：`查看作品 · View Work` / `聯絡我 · Contact`（磁吸按鈕效果，滑鼠靠近微微吸引游標）
 - 載入中：呼應真實場景的稀疏細線骨架屏（非空白）；R3F 崩潰時 `SceneErrorBoundary` fallback
   到 CSS 漸層背景
@@ -562,8 +596,12 @@ kbs0830_web/
 │   │   │   ├── TerminalMode.tsx
 │   │   │   ├── SpotifyNowPlaying.tsx
 │   │   │   ├── MermaidDiagram.tsx      # 專案架構圖，動態 import mermaid
-│   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果共用邏輯
+│   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果（直接改 style.translate，不 re-render）
+│   │   │   ├── Reveal.tsx              # 捲動淡入（見「動畫架構」）
 │   │   │   ├── RevealHeading.tsx       # scroll-triggered 逐字 reveal 標題
+│   │   │   ├── Collapse.tsx            # 展開/收合
+│   │   │   ├── Modal.tsx               # 原生 <dialog> 彈窗（終端機、快捷鍵說明）
+│   │   │   ├── Underline.tsx           # 文字連結 hover 底線（Hero/Contact 共用）
 │   │   │   └── MaintenancePage.tsx
 │   │   └── sections/
 │   │       ├── HeroSection.tsx
@@ -573,6 +611,8 @@ kbs0830_web/
 │   └── lib/
 │       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram、statusColor...）
 │       ├── aircraft.ts        # 足跡航班機型對照表 + formatFlightCode()（+ aircraft.test.ts）
+│       ├── hooks.ts           # useMediaQuery / useScrolledPast / useRevealOnce
+│       ├── isTyping.ts        # 鍵盤快捷鍵的「正在輸入」防呆
 │       └── blog.ts            # 讀 content/blog/*.mdx，gray-matter 解析 frontmatter（+ blog.test.ts）
 ├── content/
 │   └── blog/*.mdx             # 部落格文章，內容必須是真的踩過的坑，不能編造

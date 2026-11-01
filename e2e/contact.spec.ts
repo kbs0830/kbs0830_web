@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { gotoReady } from "./helpers";
 
 test("點 Email 按鈕會複製到剪貼簿並顯示「已複製！」toast", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/#contact");
+  await gotoReady(page, "/#contact");
 
   const emailButton = page.locator("button", { hasText: "1394kbs@gmail.com" });
   await emailButton.scrollIntoViewIfNeeded();

@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
 import Magnetic from "@/components/ui/Magnetic";
+import Underline, { underlineLinkClass } from "@/components/ui/Underline";
+import { useMediaQuery } from "@/lib/hooks";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
@@ -36,35 +37,26 @@ const HeroSceneSkeleton = () => (
   </div>
 );
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number], delay },
-  }),
-};
+// 進場淡入改成純 CSS（globals.css .enter-up），HTML 一到就開始播、不必等 hydration
+const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProperties;
 
-const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
+const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
 
 function useTypewriter(text: string, startDelay = 0, speed = 42) {
-  const [display, setDisplay] = useState("");
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      // 同樣是 SSR 沒有 window.matchMedia 的 hydration-safe pattern（見
-      // Magnetic.tsx／HeroScene.tsx／NavBar.tsx 的同款註解），已知偽陽性。
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDisplay(text);
-      return;
+    // prefers-reduced-motion：不打字，下一個 tick 直接顯示全文
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const t = setTimeout(() => setCount(text.length));
+      return () => clearTimeout(t);
     }
     let i = 0;
     let interval: ReturnType<typeof setInterval>;
     const timeout = setTimeout(() => {
       interval = setInterval(() => {
         i++;
-        setDisplay(text.slice(0, i));
+        setCount(i);
         if (i >= text.length) clearInterval(interval);
       }, speed);
     }, startDelay);
@@ -74,131 +66,96 @@ function useTypewriter(text: string, startDelay = 0, speed = 42) {
     };
   }, [text, startDelay, speed]);
 
-  return display;
+  return text.slice(0, count);
 }
 
 export default function HeroSection() {
-  const [isMobile, setIsMobile] = useState(false);
+  // server 端還不知道是不是手機 → 先畫骨架屏；確定是桌機才載入 3D 場景。
+  // 原本 isMobile 初始值是 false，手機也會在第一次 render 時觸發 three.js chunk 下載。
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const typedSubtitle = useTypewriter(SUBTITLE_TEXT, 950);
   const subtitleDone = typedSubtitle.length === SUBTITLE_TEXT.length;
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
   return (
-    <section
-      id="top"
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
-    >
-      {isMobile ? (
-        <SceneFallback />
-      ) : (
+    <section id="top" className="relative min-h-screen flex flex-col justify-center overflow-hidden">
+      {isDesktop === null ? (
+        <HeroSceneSkeleton />
+      ) : isDesktop ? (
         <SceneErrorBoundary fallback={<SceneFallback />}>
           <HeroScene />
         </SceneErrorBoundary>
+      ) : (
+        <SceneFallback />
       )}
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
-        <motion.p
-          className="text-xs tracking-[0.35em] text-(--muted) mb-6 uppercase"
-          style={{ fontFamily: "var(--font-mono)" }}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.1}
+        <p
+          className="enter-up text-xs tracking-[0.35em] text-(--muted) mb-6 uppercase"
+          style={{ ...enter(0.1), fontFamily: "var(--font-mono)" }}
         >
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
-        </motion.p>
+        </p>
 
-        <motion.h1
-          className="text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.25}
+        <h1
+          className="enter-up text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"
+          style={enter(0.25)}
         >
           PINGWEI LI
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          className="text-base font-light text-(--accent) tracking-[0.25em] mb-8 min-h-[1.5em]"
-          style={{ fontFamily: "var(--font-mono)" }}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.35}
+        <p
+          className="enter-up text-base font-light text-(--accent) tracking-[0.25em] mb-8 min-h-[1.5em]"
+          style={{ ...enter(0.35), fontFamily: "var(--font-mono)" }}
+          aria-label={SUBTITLE_TEXT}
         >
-          {typedSubtitle}
+          <span aria-hidden>{typedSubtitle}</span>
           <span
             aria-hidden
             className={`inline-block w-[2px] h-[0.9em] bg-(--accent) ml-0.5 align-middle ${
               subtitleDone ? "opacity-0" : "animate-pulse"
             }`}
           />
-        </motion.p>
+        </p>
 
-        <motion.p
-          className="text-lg sm:text-xl font-light text-(--muted) max-w-lg leading-relaxed mb-3"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.45}
+        <p
+          className="enter-up text-lg sm:text-xl font-light text-(--muted) max-w-lg leading-relaxed mb-3"
+          style={enter(0.45)}
         >
           在瀏覽器與模型層之間，構建有意義的系統。
-        </motion.p>
+        </p>
 
-        <motion.p
-          className="text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12 opacity-70"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.5}
+        <p
+          className="enter-up text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12 opacity-70"
+          style={enter(0.5)}
         >
           Building thoughtful systems — from the browser to the model layer.
-        </motion.p>
+        </p>
 
-        <motion.div
-          className="flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.6}
+        <div
+          className="enter-up flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center"
+          style={enter(0.6)}
         >
           <Magnetic>
-            <a
-              href="#portfolio"
-              className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--text)"
-            >
+            <a href="#portfolio" className={`${underlineLinkClass} text-(--text)`}>
               查看作品 · View Work
-              <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
-              <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
+              <Underline />
             </a>
           </Magnetic>
           <Magnetic>
-            <a
-              href="#contact"
-              className="group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors"
-            >
+            <a href="#contact" className={`${underlineLinkClass} text-(--muted) hover:text-(--text)`}>
               聯絡我 · Contact
-              <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
-              <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
+              <Underline />
             </a>
           </Magnetic>
-        </motion.div>
+        </div>
       </div>
 
-      <motion.div
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
+      <div
+        className="enter-fade absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
+        style={enter(1.2)}
       >
         <div className="w-[1px] h-12 bg-(--border) animate-pulse" />
-      </motion.div>
+      </div>
     </section>
   );
 }

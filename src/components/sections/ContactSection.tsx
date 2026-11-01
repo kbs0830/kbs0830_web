@@ -1,37 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
 import Magnetic from "@/components/ui/Magnetic";
+import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
-import { GitHubIcon } from "@/components/ui/icons";
+import Underline, { underlineLinkClass } from "@/components/ui/Underline";
+import { DownloadIcon, FacebookIcon, GitHubIcon, InstagramIcon, MailIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 
-const linkClass =
-  "group relative inline-flex items-center gap-2 pb-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--text) transition-colors";
+const EMAIL = "1394kbs@gmail.com";
+const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 
-const Underline = () => (
-  <>
-    <span className="absolute left-0 bottom-0 h-px w-full bg-(--border)" />
-    <span className="absolute left-0 bottom-0 h-px w-0 bg-(--accent) group-hover:w-full transition-all duration-500" />
-  </>
-);
+const links = [
+  { href: "/resume.pdf", label: "下載履歷 · Resume", icon: <DownloadIcon />, download: true },
+  { href: "https://github.com/kbs0830", label: "GitHub", icon: <GitHubIcon size={15} /> },
+  { href: "https://www.facebook.com/tra0830", label: "Facebook", icon: <FacebookIcon /> },
+  { href: "https://www.instagram.com/pingwei_0830/", label: "Instagram", icon: <InstagramIcon /> },
+];
 
 export default function ContactSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+  useEffect(() => () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  const copyEmail = (e: React.MouseEvent) => {
-    e.preventDefault();
-    navigator.clipboard.writeText("1394kbs@gmail.com").then(() => {
+  const copyEmail = () => {
+    navigator.clipboard.writeText(EMAIL).then(() => {
       setCopied(true);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setCopied(false), 1800);
@@ -41,12 +37,7 @@ export default function ContactSection() {
   return (
     <section id="contact" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-        >
+        <Reveal>
           <Eyebrow className="mb-4">Contact</Eyebrow>
           <RevealHeading
             text="連絡先 · Get in Touch"
@@ -62,87 +53,41 @@ export default function ContactSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-5 sm:gap-8">
-            {/* Email with copy feedback */}
+            {/* Email：點了複製到剪貼簿，上方跳「已複製！」 */}
             <div className="relative">
               <Magnetic>
                 <button onClick={copyEmail} className={linkClass}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <path d="m2 7 10 7 10-7" />
-                  </svg>
-                  1394kbs@gmail.com
+                  <MailIcon />
+                  {EMAIL}
                   <Underline />
                 </button>
               </Magnetic>
-              <AnimatePresence>
-                {copied && (
-                  <motion.span
-                    key="toast"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-(--accent) bg-(--bg) border border-(--border) px-3 py-1 rounded-sm whitespace-nowrap"
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  >
-                    已複製！
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <span
+                role="status"
+                className={`absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-(--accent) bg-(--bg) border border-(--border) px-3 py-1 rounded-sm whitespace-nowrap transition-[opacity,translate,visibility] duration-200 ${
+                  copied ? "opacity-100 translate-y-0" : "invisible opacity-0 translate-y-1.5"
+                }`}
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                已複製！
+              </span>
             </div>
 
-            <Magnetic>
-              <a href="/resume.pdf" download className={linkClass}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M12 3v12m0 0-4-4m4 4 4-4" />
-                  <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                </svg>
-                下載履歷 · Resume
-                <Underline />
-              </a>
-            </Magnetic>
-            <Magnetic>
-              <a
-                href="https://github.com/kbs0830"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={linkClass}
-              >
-                <GitHubIcon size={15} />
-                GitHub
-                <Underline />
-              </a>
-            </Magnetic>
-            <Magnetic>
-              <a
-                href="https://www.facebook.com/tra0830"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={linkClass}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-                Facebook
-                <Underline />
-              </a>
-            </Magnetic>
-            <Magnetic>
-              <a
-                href="https://www.instagram.com/pingwei_0830/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={linkClass}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-                Instagram
-                <Underline />
-              </a>
-            </Magnetic>
+            {links.map(({ href, label, icon, download }) => (
+              <Magnetic key={href}>
+                <a
+                  href={href}
+                  className={linkClass}
+                  {...(download ? { download: true } : { target: "_blank", rel: "noopener noreferrer" })}
+                >
+                  {icon}
+                  {label}
+                  <Underline />
+                </a>
+              </Magnetic>
+            ))}
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

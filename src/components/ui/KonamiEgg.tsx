@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 const CODE = [
   "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
@@ -9,74 +8,68 @@ const CODE = [
   "b", "a",
 ];
 
+const SHOW_MS = 3200;
+const LEAVE_MS = 500;
+
 export default function KonamiEgg() {
-  const [active, setActive] = useState(false);
+  // hidden → shown（CSS 進場）→ leaving（CSS 退場）→ hidden（卸載）
+  const [phase, setPhase] = useState<"hidden" | "shown" | "leaving">("hidden");
   const progress = useRef(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
+    const clearTimers = () => timers.current.forEach(clearTimeout);
     const onKeyDown = (e: KeyboardEvent) => {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      const expected = CODE[progress.current];
-      if (key === expected) {
-        progress.current += 1;
-        if (progress.current === CODE.length) {
-          progress.current = 0;
-          setActive(true);
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = setTimeout(() => setActive(false), 3200);
-        }
-      } else {
+      if (key !== CODE[progress.current]) {
         progress.current = key === CODE[0] ? 1 : 0;
+        return;
       }
+      progress.current += 1;
+      if (progress.current < CODE.length) return;
+
+      progress.current = 0;
+      clearTimers();
+      setPhase("shown");
+      timers.current = [
+        setTimeout(() => setPhase("leaving"), SHOW_MS),
+        setTimeout(() => setPhase("hidden"), SHOW_MS + LEAVE_MS),
+      ];
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearTimers();
     };
   }, []);
 
+  if (phase === "hidden") return null;
+
   return (
-    <AnimatePresence>
-      {active && (
-        <motion.div
-          className="fixed inset-0 z-[999] flex items-center justify-center pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
+    <div
+      className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-opacity duration-500 enter-fade ${
+        phase === "leaving" ? "opacity-0" : ""
+      }`}
+      style={{ "--enter-duration": "0.4s" } as CSSProperties}
+    >
+      <div className="absolute inset-0 bg-(--bg) opacity-92" />
+      <div
+        className="relative text-center px-8 enter-up"
+        style={{ "--enter-duration": "0.5s", "--enter-distance": "12px" } as CSSProperties}
+      >
+        <p
+          className="text-4xl sm:text-5xl font-light text-(--accent)"
+          style={{ fontFamily: "var(--font-serif)" }}
         >
-          <motion.div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--bg)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.92 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          />
-          <motion.div
-            className="relative text-center px-8"
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <p
-              className="text-4xl sm:text-5xl font-light text-(--accent)"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              ようこそ
-            </p>
-            <p
-              className="text-sm text-(--muted) font-light mt-4 tracking-widest"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              隠しコマンドを見つけましたね。
-            </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          ようこそ
+        </p>
+        <p
+          className="text-sm text-(--muted) font-light mt-4 tracking-widest"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          隠しコマンドを見つけましたね。
+        </p>
+      </div>
+    </div>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useScroll, useSpring } from "framer-motion";
 import Link from "next/link";
 import { MoonIcon, SunIcon } from "@/components/ui/icons";
+import Collapse from "@/components/ui/Collapse";
+import { useMediaQuery, useScrolledPast } from "@/lib/hooks";
 
 const links = [
   { href: "#about",     label: "自己紹介", id: "about" },
@@ -11,78 +12,59 @@ const links = [
   { href: "#contact",   label: "連絡先",   id: "contact" },
 ];
 
+// 主題偵測只在 layout.tsx 的 inline script 一份；這裡切換時直接讀寫 <html data-theme>，
+// icon 由 CSS 依 data-theme 決定顯示哪個（globals.css .theme-icon-*），React 不存 dark state。
+function toggleTheme() {
+  const root = document.documentElement;
+  const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  root.setAttribute("data-theme", next);
+  localStorage.setItem("theme", next);
+}
+
+function ThemeToggle() {
+  return (
+    <button
+      onClick={toggleTheme}
+      className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
+      aria-label="切換亮色／暗色模式"
+    >
+      <MoonIcon className="theme-icon-moon" />
+      <SunIcon className="theme-icon-sun" />
+    </button>
+  );
+}
+
+const lineClass = "block w-5 h-px bg-(--muted) transition duration-200";
+
 export default function NavBar() {
-  const { scrollY, scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30 });
-  const [solid, setSolid] = useState(false);
+  const solid = useScrolledPast(60);
+  const isDesktop = useMediaQuery("(min-width: 640px)");
   const [activeSection, setActiveSection] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dark, setDark] = useState(false);
+  const drawerOpen = menuOpen && !isDesktop;
 
   useEffect(() => {
-    // 主題偵測/預設值已經由 layout.tsx 裡的 inline script 在 hydration 前處理過了，
-    // 這裡只需要讀出已經套用的結果，同步給 React state 用（icon、nav 背景色）。
-    // 跟 HeroScene.tsx 的 matchMedia pattern 同理：SSR 沒有 document，必須先用
-    // false 完成首次 render 才不會 hydration mismatch，改成 lazy initializer
-    // 會在 client 端 render 階段就讀 document，跟 SSR 產生的 markup 對不上——
-    // 這是這個 lint rule 的已知偽陽性情境。
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDark(document.documentElement.getAttribute("data-theme") === "dark");
-  }, []);
-
-  const toggleDark = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
-    localStorage.setItem("theme", next ? "dark" : "light");
-  };
-
-  useEffect(() => {
-    const unsub = scrollY.on("change", (v) => setSolid(v > 60));
-    return unsub;
-  }, [scrollY]);
-
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    links.forEach(({ id }) => {
+    const observers = links.flatMap(({ id }) => {
       const el = document.getElementById(id);
-      if (!el) return;
+      if (!el) return [];
       const obs = new IntersectionObserver(
         ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
         { rootMargin: "-40% 0px -55% 0px" }
       );
       obs.observe(el);
-      observers.push(obs);
+      return [obs];
     });
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
-  useEffect(() => {
-    const onResize = () => { if (window.innerWidth >= 640) setMenuOpen(false); };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const navBg = solid
-    ? dark ? "rgba(15,15,13,0.9)" : "rgba(250,250,248,0.88)"
-    : "transparent";
-
   return (
-    <motion.header
-      className="fixed top-0 left-0 right-0 z-50 transition-colors duration-500"
-      style={{
-        backgroundColor: navBg,
-        backdropFilter: solid ? "blur(12px)" : "none",
-        borderBottom: solid ? "1px solid var(--border)" : "none",
-      }}
-      initial={{ opacity: 0, y: -16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 enter-up transition-colors duration-500 border-b ${
+        solid ? "bg-(--nav-bg) backdrop-blur-md border-(--border)" : "border-transparent"
+      }`}
+      style={{ "--enter-duration": "0.6s", "--enter-distance": "-16px" } as React.CSSProperties}
     >
-      <motion.div
-        className="absolute top-0 left-0 right-0 h-[2px] bg-(--accent) origin-left"
-        style={{ scaleX }}
-      />
+      <div className="scroll-progress absolute top-0 left-0 right-0 h-[2px] bg-(--accent)" />
 
       <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
@@ -108,57 +90,28 @@ export default function NavBar() {
             </li>
           ))}
           <li>
-            <button
-              onClick={toggleDark}
-              className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
-              aria-label={dark ? "切換亮色模式" : "切換暗色模式"}
-            >
-              {dark ? <SunIcon /> : <MoonIcon />}
-            </button>
+            <ThemeToggle />
           </li>
         </ul>
 
         {/* Mobile controls */}
         <div className="flex sm:hidden items-center gap-2">
-          <button
-            onClick={toggleDark}
-            className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
-            aria-label={dark ? "切換亮色模式" : "切換暗色模式"}
-          >
-            {dark ? <SunIcon /> : <MoonIcon />}
-          </button>
+          <ThemeToggle />
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="w-8 h-8 flex flex-col items-center justify-center gap-[5px]"
+            className="group w-8 h-8 flex flex-col items-center justify-center gap-[5px]"
             aria-label="選單"
+            aria-expanded={drawerOpen}
           >
-            <motion.span
-              className="block w-5 h-[1px] bg-(--muted)"
-              animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.2 }}
-            />
-            <motion.span
-              className="block w-5 h-[1px] bg-(--muted)"
-              animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
-              transition={{ duration: 0.15 }}
-            />
-            <motion.span
-              className="block w-5 h-[1px] bg-(--muted)"
-              animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.2 }}
-            />
+            <span className={`${lineClass} group-aria-expanded:translate-y-[6px] group-aria-expanded:rotate-45`} />
+            <span className={`${lineClass} group-aria-expanded:opacity-0`} />
+            <span className={`${lineClass} group-aria-expanded:-translate-y-[6px] group-aria-expanded:-rotate-45`} />
           </button>
         </div>
       </nav>
 
-      {/* Mobile drawer */}
-      <motion.div
-        className="sm:hidden overflow-hidden bg-(--bg)"
-        initial={false}
-        animate={{ height: menuOpen ? "auto" : 0 }}
-        transition={{ duration: 0.25, ease: "easeInOut" }}
-        style={{ borderTop: menuOpen ? "1px solid var(--border)" : "none" }}
-      >
+      {/* Mobile drawer（視窗拉寬到桌機版時自動收起） */}
+      <Collapse open={drawerOpen} className={`sm:hidden bg-(--bg) ${drawerOpen ? "border-t border-(--border)" : ""}`}>
         <ul className="px-6 py-5 space-y-5">
           {links.map(({ href, label, id }) => (
             <li key={href}>
@@ -174,7 +127,7 @@ export default function NavBar() {
             </li>
           ))}
         </ul>
-      </motion.div>
-    </motion.header>
+      </Collapse>
+    </header>
   );
 }
