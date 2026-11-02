@@ -24,8 +24,11 @@ $runnerProcessName = "Runner.Listener"
 
 . (Join-Path $PSScriptRoot "lib\logger.ps1")
 . (Join-Path $PSScriptRoot "lib\health-check.ps1")
+. (Join-Path $PSScriptRoot "lib\notify.ps1")
 
 function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
+# 通知結果也記進 log；沒寄（Clear-Alert 回 $null）就不寫
+function Notify($result) { if ($result) { Log "通知：$result" } }
 
 $exitCode = 0
 
@@ -46,15 +49,23 @@ if (-not $result.Success) {
 
         if ($recovery.Success) {
             Log "[RECOVERED] 網站重啟後恢復正常：$($recovery.Reason)"
+            # 自己修好的也通知一聲（冷卻 1 小時）：72 小時被砍那種事件，靠這個才會被注意到
+            Notify (Send-Alert -Key "site-restarted" -Subject "網站曾無回應，已自動重啟恢復" `
+                -Body "健康檢查失敗：$($result.Reason)`n重啟後：$($recovery.Reason)`n`n詳見 logs\watchdog.log")
         } else {
             Log "[FAILED] 網站重啟後仍然異常：$($recovery.Reason) —— 需要人工介入"
+            Notify (Send-Alert -Key "site" -Subject "🔴 網站掛了，自動重啟救不回來" `
+                -Body "健康檢查失敗：$($result.Reason)`n重啟後仍然異常：$($recovery.Reason)`n`n需要人工介入。之後恢復會再寄一封通知。")
             $exitCode = 1
         }
     } catch {
         Log "[FAILED] 網站重啟過程發生錯誤：$($_.Exception.Message)"
+        Notify (Send-Alert -Key "site" -Subject "🔴 網站掛了，自動重啟救不回來" `
+            -Body "健康檢查失敗：$($result.Reason)`n重啟過程錯誤：$($_.Exception.Message)`n`n需要人工介入。之後恢復會再寄一封通知。")
         $exitCode = 1
     }
 }
+if ($exitCode -eq 0) { Notify (Clear-Alert -Key "site" -Subject "✅ 網站已恢復正常") }
 
 # --- GitHub Actions self-hosted runner 存活檢查 ---
 if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
@@ -71,12 +82,18 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
             Log "[RECOVERED] GitHub Actions runner 重啟後恢復"
         } else {
             Log "[FAILED] GitHub Actions runner 重啟後仍然沒有偵測到進程 —— 需要人工介入"
+            Notify (Send-Alert -Key "runner" -Subject "🔴 GitHub Actions runner 停了，自動部署不會動" `
+                -Body "Runner.Listener 不在，重啟 '$runnerTaskName' 之後還是沒起來。`npush 到 main 的部署會一直排隊。")
             $exitCode = 1
         }
     } catch {
         Log "[FAILED] 重啟 GitHub Actions runner 過程發生錯誤：$($_.Exception.Message)"
+        Notify (Send-Alert -Key "runner" -Subject "🔴 GitHub Actions runner 停了，自動部署不會動" `
+            -Body "重啟 '$runnerTaskName' 過程錯誤：$($_.Exception.Message)`npush 到 main 的部署會一直排隊。")
         $exitCode = 1
     }
+} else {
+    Notify (Clear-Alert -Key "runner" -Subject "✅ GitHub Actions runner 已恢復")
 }
 
 exit $exitCode

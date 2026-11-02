@@ -9,6 +9,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 $logFile = Join-Path $repo "logs\deploy.log"
 
 . (Join-Path $PSScriptRoot "lib\logger.ps1")
+. (Join-Path $PSScriptRoot "lib\notify.ps1")
 function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
 
 Set-Location $repo
@@ -61,10 +62,18 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Deployment verification failed" }
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
+    $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"
+    if ($notified) { Log "通知：$notified" }
     exit 0
 }
 catch {
     Log "[FAILED] $($_.Exception.Message)"
     Log "===== Deploy FAILED ====="
+    # 附上這次部署的 log 尾巴（從 Deploy started 那行起），收信就看得到卡在哪
+    $lines = Get-Content $logFile -Encoding utf8
+    $start = ($lines | Select-String -Pattern "===== Deploy started =====" | Select-Object -Last 1).LineNumber
+    $tail = if ($start) { $lines[($start - 1)..($lines.Count - 1)] | Select-Object -Last 40 } else { $lines | Select-Object -Last 40 }
+    $body = "commit：$(git log --oneline -1)`n錯誤：$($_.Exception.Message)`n`n完整 log：logs\deploy.log`n`n$($tail -join "`n")"
+    Log "通知：$(Send-Alert -Key 'deploy' -CooldownMinutes 0 -Subject '部署失敗' -Body $body)"
     exit 1
 }

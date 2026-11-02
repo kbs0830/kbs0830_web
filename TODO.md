@@ -22,6 +22,9 @@
     或只給這個 repo 的 Deploy key + 寫入權限，範圍更小），remote 改成 SSH
   → 之後「改 → 測 → push → CI 部署 → 回查」整圈不用等人
 - [ ] **A2. 部署失敗／網站掛掉主動通知**｜🙋 需要你選管道
+  → 2026-11-03 選 Email，程式已完成（`scripts/lib/notify.ps1`，接進 deploy/watchdog）。
+    🙋 剩：otemon 開應用程式密碼寫進 `.env.local`、測試寄信；UptimeRobot 監控設定要檢查
+    （10 月月報 0% uptime 但網站實際只斷 10/29–11/01 約 3 天，監控本身設錯）
   → 11/02 CI build 失敗是 Claude 剛好去翻 log 才發現；10 月斷線 4 天也沒人知道
   → 選項：Email 寄到 `otemon.pcwork@gmail.com`（要在該 Gmail 開「應用程式密碼」給 SMTP 用）
     或 Discord webhook。觸發點：`deploy.ps1` 失敗、`watchdog.ps1` 出現 `[FAILED]`

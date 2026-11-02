@@ -351,6 +351,19 @@ Scheduler 任務：
   `$exitCode`（任一項最終失敗，腳本就以非 0 結束，方便之後如果要接 Task Scheduler
   的失敗通知）
 
+**Email 通知（2026-11-03，`scripts/lib/notify.ps1`）**：以下狀況寄信，收寄件都是
+`otemon.pcwork@gmail.com`（Gmail SMTP + 應用程式密碼）：
+- `deploy.ps1` 失敗（每次都寄，附這次部署的 log 尾巴）；下一次部署成功會補一封「已恢復」
+- watchdog 網站自動重啟成功（冷卻 1 小時，讓「曾經掛過」這件事被看見）
+- watchdog 網站／runner 重啟後還是壞（冷卻 1 小時，不會每 5 分鐘一封）；恢復時補一封
+- 帳密在 `.env.local` 的 `ALERT_SMTP_USER` / `ALERT_SMTP_PASS`（`ALERT_EMAIL_TO` 選填，預設寄給自己）。
+  **沒設定就不寄、只在 log 寫 skipped，不影響部署/監控本身**
+- 為什麼放 `.env.local` 而不是 Windows 認證管理員／`Export-Clixml`：watchdog 是 S4U 身分執行，
+  沒有使用者的 DPAPI 金鑰，解不開那兩種加密
+- 冷卻狀態檔在 `data/alerts/<key>.last`（檔案存在＝已通知、尚未恢復）
+- 腳本是 Windows PowerShell 5.1 跑的：**不能用 `??`、`?.`、三元運算子**這些 PS 7 語法
+- 測試寄信：`powershell -NoProfile -Command ". .\scripts\lib\notify.ps1; Send-AlertMail -Subject 測試 -Body 測試"`
+
 若要暫停監控（例如要手動除錯、不想被自動重啟打斷）：
 ```powershell
 Disable-ScheduledTask -TaskName "kbs0830_Watchdog"
@@ -662,7 +675,8 @@ kbs0830_web/
 │   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
 │   └── lib/
 │       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
-│       └── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
+│       ├── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
+│       └── notify.ps1          # Email 告警＋冷卻（deploy.ps1 / watchdog.ps1 共用），見「健康監控」
 ├── .husky/pre-commit          # commit 前 lint-staged + tsc --noEmit（見上方「Git hooks」）
 ├── .github/workflows/
 │   ├── deploy.yml              # push to main → 自動部署
