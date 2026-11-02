@@ -9,8 +9,11 @@ const geistSans = Geist({
   weight: ["300", "400", "500"],
 });
 
+// 變數直接叫 --font-mono（Tailwind 的 font-mono 對到它）。2026-11 之前叫 --font-geist-mono、
+// globals.css 另外把 --font-mono 寫成 "JetBrains Mono"——那個字體根本沒載入，全站等寬字
+// 其實都是訪客電腦的 Consolas／細明體，Geist Mono 每次被 preload 卻沒人用
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
   weight: ["300", "400"],
 });

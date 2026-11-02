@@ -34,6 +34,32 @@ function Switch-Slot($slot) {
     Start-ScheduledTask -TaskName "kbs0830_NextJS"
 }
 
+# public/resume.pdf 是 /resume 的列印快照，不會自己更新。內容來源跟上次部署比有變，
+# 就對剛上線的正式站重印一份、commit + push（push 會再觸發一次部署把新 PDF 帶上線，
+# 那次只改到 PDF，不會再重印）。PDF 每次產生 bytes 都不同，所以不能每次部署都印。
+# 失敗只記 log，不影響這次部署的結果。
+function Update-ResumePdf {
+    $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
+    $head = (git rev-parse HEAD).Trim()
+    try {
+        $sources = "src/app/resume", "src/lib/about.ts", "src/lib/projects.ts", "src/app/globals.css", "src/app/fonts.ts"
+        $changed = if (Test-Path $lastFile) { git diff --name-only (Get-Content $lastFile -Raw).Trim() $head -- $sources }
+        if ($changed) {
+            Log "resume 內容有變（$($changed -join ', ')），重新產生 public/resume.pdf"
+            node scripts\generate-resume-pdf.js 2>&1 | ForEach-Object { Log "  $_" }
+            if ($LASTEXITCODE -ne 0) { throw "generate-resume-pdf.js 失敗 (exit $LASTEXITCODE)" }
+            git add public/resume.pdf
+            git commit -q -m "chore: 自動重新產生 resume.pdf（/resume 內容有變）" 2>&1 | ForEach-Object { Log "  $_" }
+            git push -q origin HEAD:main 2>&1 | ForEach-Object { Log "  $_" }
+            if ($LASTEXITCODE -ne 0) { throw "push resume.pdf 失敗" }
+        }
+        # 只有成功（或沒變）才記下這次的 commit；失敗的話下次部署會再試一次
+        Set-Content -Path $lastFile -Value $head -NoNewline
+    } catch {
+        Log "[WARN] 履歷 PDF 沒有更新：$($_.Exception.Message)"
+    }
+}
+
 function Test-Deploy {
     & (Join-Path $repo "scripts\verify-deploy.ps1") *>&1 | ForEach-Object { Log "  $_" }
     return $LASTEXITCODE -eq 0
@@ -98,6 +124,7 @@ try {
     }
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
+    Update-ResumePdf
     $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"
     if ($notified) { Log "通知：$notified" }
     exit 0

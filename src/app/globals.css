@@ -16,7 +16,7 @@
   --nav-bg:    rgb(250 250 248 / 0.88);
 
   --font-serif: "Noto Serif JP", "Noto Serif TC", Georgia, serif;
-  --font-mono:  "JetBrains Mono", monospace;
+  /* --font-mono 由 next/font（app/fonts.ts 的 Geist Mono）掛在 <html> 上，這裡不要再定義 */
 
   /* 全站唯一一條動畫 easing（原本 framer 每個元件各寫一次 [0.25, 0.1, 0.25, 1]） */
   --ease-ma: cubic-bezier(0.25, 0.1, 0.25, 1);

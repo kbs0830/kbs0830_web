@@ -22,6 +22,9 @@ const outputPath = path.join(__dirname, "..", "public", "resume.pdf");
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/resume`, { waitUntil: "networkidle" });
   await page.emulateMedia({ media: "print" });
+  // 網頁字體（Geist／Noto Serif JP）按 unicode-range 分段、用到才下載，切到列印樣式後
+  // 要等它們載完再印，不然 PDF 裡全是系統備用字體（2026-11 之前的 PDF 就是這樣）
+  await page.evaluate(() => document.fonts.ready);
   await page.pdf({
     path: outputPath,
     format: "A4",
