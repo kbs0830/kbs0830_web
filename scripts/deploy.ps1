@@ -16,18 +16,21 @@ Set-Location $repo
 Log "===== Deploy started ====="
 
 try {
-    $lockBefore = (Get-FileHash (Join-Path $repo "pnpm-lock.yaml")).Hash
-
     Log "git pull origin main"
     git pull origin main 2>&1 | ForEach-Object { Log "  $_" }
     if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
 
-    # 套件有變（pnpm-lock.yaml 雜湊不同）才重新安裝，平常部署不多花這一步。
+    # 套件有變才重新安裝，平常部署不多花這一步。比對的是「上次成功 install 時的
+    # lockfile 雜湊」（存在 node_modules 裡），不是 pull 前後有沒有變——2026-11 在正式站
+    # 目錄直接 git merge，pull 回報 Already up to date，舊判斷就跳過 install、build 失敗。
     # 安裝前先停掉正式站：Windows 會鎖住執行中 process 載入的 native .node 檔
     # （@next/swc、sharp 等），不停掉直接裝會 EPERM，或裝出新舊混雜的 node_modules。
     # 代價是套件更新那次部署會有「install + build」這段時間的停機，換來不會裝壞。
-    if ((Get-FileHash (Join-Path $repo "pnpm-lock.yaml")).Hash -ne $lockBefore) {
-        Log "pnpm-lock.yaml changed — stopping Next.js before pnpm install"
+    $lockHash = (Get-FileHash (Join-Path $repo "pnpm-lock.yaml")).Hash
+    $stampFile = Join-Path $repo "node_modules\.deploy-lock-hash"
+    $installedHash = if (Test-Path $stampFile) { (Get-Content $stampFile -Raw).Trim() } else { "" }
+    if ($lockHash -ne $installedHash) {
+        Log "node_modules out of date with pnpm-lock.yaml — stopping Next.js before pnpm install"
         Stop-ScheduledTask -TaskName "kbs0830_NextJS" -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
 
@@ -41,6 +44,7 @@ try {
             pnpm install --frozen-lockfile 2>&1 | ForEach-Object { Log "  $_" }
         }
         if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
+        Set-Content -Path $stampFile -Value $lockHash -NoNewline
     }
 
     Log "next build"
