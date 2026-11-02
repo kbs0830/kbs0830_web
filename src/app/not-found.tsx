@@ -1,20 +1,19 @@
 import Link from "next/link";
-import Eyebrow from "@/components/ui/Eyebrow";
 import PageShell from "@/components/ui/PageShell";
 
 export default function NotFound() {
   return (
-    <PageShell>
-      <Eyebrow className="mt-10 mb-4">404</Eyebrow>
-      <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">
-        迷子 &nbsp;·&nbsp; Page Not Found
-      </h1>
-      <p className="text-sm font-light text-(--muted) mb-10 leading-relaxed">
-        這個頁面不存在，或已經被移動了。
-        <br />
-        This page doesn&apos;t exist, or has been moved.
-      </p>
-
+    <PageShell
+      eyebrow="404"
+      title={<>迷子 &nbsp;·&nbsp; Page Not Found</>}
+      intro={
+        <>
+          這個頁面不存在，或已經被移動了。
+          <br />
+          This page doesn&apos;t exist, or has been moved.
+        </>
+      }
+    >
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-sm font-light tracking-wide text-(--accent) hover:opacity-70 transition-opacity"

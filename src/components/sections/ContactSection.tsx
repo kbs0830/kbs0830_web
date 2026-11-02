@@ -6,14 +6,15 @@ import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import { DownloadIcon, FacebookIcon, GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
+import { EMAIL, FACEBOOK_URL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 
 const links = [
   { href: "/resume.pdf", label: "下載履歷 · Resume", icon: <DownloadIcon />, download: true },
-  { href: "https://github.com/kbs0830", label: "GitHub", icon: <GitHubIcon size={15} /> },
-  { href: "https://www.facebook.com/tra0830", label: "Facebook", icon: <FacebookIcon /> },
-  { href: "https://www.instagram.com/pingwei_0830/", label: "Instagram", icon: <InstagramIcon /> },
+  { href: GITHUB_URL, label: "GitHub", icon: <GitHubIcon size={15} /> },
+  { href: FACEBOOK_URL, label: "Facebook", icon: <FacebookIcon /> },
+  { href: INSTAGRAM_URL, label: "Instagram", icon: <InstagramIcon /> },
 ];
 
 export default function ContactSection() {
@@ -32,7 +33,7 @@ export default function ContactSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-5 sm:gap-8">
-            <CopyEmailButton email="1394kbs@gmail.com" className={linkClass} />
+            <CopyEmailButton email={EMAIL}className={linkClass} />
             {links.map(({ href, label, icon, download }) => (
               <Magnetic key={href}>
                 <a

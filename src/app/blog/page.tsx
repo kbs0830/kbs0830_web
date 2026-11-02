@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
-import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
 import PageShell from "@/components/ui/PageShell";
 
@@ -15,14 +14,7 @@ export default function BlogIndexPage() {
   const posts = getAllPosts();
 
   return (
-    <PageShell>
-      <Eyebrow className="mt-10 mb-4">Blog</Eyebrow>
-      <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">
-        技術部落格 &nbsp;·&nbsp; 筆記
-      </h1>
-      <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">
-        踩過的坑、學到的東西、對某個技術的想法。
-      </p>
+    <PageShell eyebrow="Blog" title={<>技術部落格 &nbsp;·&nbsp; 筆記</>} intro="踩過的坑、學到的東西、對某個技術的想法。">
 
       <div className="space-y-10">
         {posts.map((post) => (

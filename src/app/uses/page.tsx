@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Eyebrow from "@/components/ui/Eyebrow";
+import { Fragment } from "react";
 import PageShell from "@/components/ui/PageShell";
+import SectionHeading from "@/components/ui/SectionHeading";
+import BulletList from "@/components/ui/BulletList";
 
 export const metadata: Metadata = {
   title: "/uses — PINGWEI LI",
@@ -39,39 +41,26 @@ const groups = [
       { name: "Next.js 16 + TypeScript", detail: "本網站" },
       { name: "FastAPI / Flask", detail: "後端 API" },
       { name: "YOLOv8 / ONNX Runtime / Gemini API", detail: "AI 推論" },
-      { name: "Tailwind CSS v4 + Framer Motion", detail: "樣式與動畫" },
+      { name: "Tailwind CSS v4 + 原生 CSS 動畫 / View Transitions", detail: "樣式與動畫" },
     ],
   },
 ];
 
 export default function UsesPage() {
   return (
-    <PageShell>
-      <Eyebrow className="mt-10 mb-4">Uses</Eyebrow>
-      <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">
-        開発環境 &nbsp;·&nbsp; 我用的工具
-      </h1>
-      <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">
-        硬體、軟體與日常開發用的工具清單。
-      </p>
-
+    <PageShell eyebrow="Uses" title={<>開発環境 &nbsp;·&nbsp; 我用的工具</>} intro="硬體、軟體與日常開發用的工具清單。">
       <div className="space-y-10">
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 font-mono">
-              {group.title}
-            </p>
-            <ul className="space-y-2.5">
-              {group.items.map((item) => (
-                <li key={item.name} className="flex items-start gap-3 text-sm font-light">
-                  <span className="text-(--accent) mt-0.5">▸</span>
-                  <span>
-                    <span className="text-(--text)">{item.name}</span>
-                    <span className="text-(--muted)"> — {item.detail}</span>
-                  </span>
-                </li>
+            <SectionHeading>{group.title}</SectionHeading>
+            <BulletList
+              items={group.items.map((item) => (
+                <Fragment key={item.name}>
+                  {item.name}
+                  <span className="text-(--muted)"> — {item.detail}</span>
+                </Fragment>
               ))}
-            </ul>
+            />
           </div>
         ))}
       </div>

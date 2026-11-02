@@ -3,12 +3,14 @@
 import { ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { projects, personalProjects, courseProjects, statusColor } from "@/lib/projects";
+import { projects, personalProjects, courseProjects } from "@/lib/projects";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import { GitHubIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
+import StatusBadge from "@/components/ui/StatusBadge";
+import ProjectHighlight from "@/components/ui/ProjectHighlight";
 import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
 
 const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
@@ -54,11 +56,7 @@ function ProjectCard({
                 <p className="text-xs tracking-[0.25em] text-(--muted) font-mono">
                   {project.titleJa}
                 </p>
-                <span
-                  className={`text-[10px] px-2 py-0.5 border rounded-sm font-light tracking-wide ${statusColor[project.status]} font-mono`}
-                >
-                  {project.status}
-                </span>
+                <StatusBadge status={project.status} />
               </div>
               {/* 跟 /projects/[slug] 的 <h1> 同名，點進詳細頁時標題會 morph 過去 */}
               <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
@@ -89,11 +87,7 @@ function ProjectCard({
             {project.description}
           </p>
 
-          {/* Highlight */}
-          <div className="text-[11px] text-(--accent) font-light mb-4 pl-3 border-l-2 border-(--accent-lt) space-y-0.5 font-mono">
-            <div>{project.highlightZh}</div>
-            <div className="opacity-50">{project.highlight}</div>
-          </div>
+          <ProjectHighlight project={project} className="text-[11px] mb-4" />
 
           {/* Tags */}
           <div className="flex flex-wrap gap-1.5 mt-auto mb-3">

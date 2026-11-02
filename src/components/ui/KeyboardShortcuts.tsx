@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { isTyping } from "@/lib/isTyping";
+import { EMAIL, GITHUB_URL } from "@/lib/site";
 import Modal from "@/components/ui/Modal";
 
 const sectionKeys: Record<string, string> = {
@@ -28,8 +29,8 @@ export default function KeyboardShortcuts() {
 
       const key = e.key.toLowerCase();
       if (key === "?") setShowHelp((v) => !v);
-      else if (key === "g") window.open("https://github.com/kbs0830", "_blank", "noopener,noreferrer");
-      else if (key === "e") window.location.href = "mailto:1394kbs@gmail.com";
+      else if (key === "g") window.open(GITHUB_URL, "_blank", "noopener,noreferrer");
+      else if (key === "e") window.location.href = `mailto:${EMAIL}`;
       else if (sectionKeys[key]) document.getElementById(sectionKeys[key])?.scrollIntoView({ behavior: "smooth" });
     };
     window.addEventListener("keydown", onKeyDown);

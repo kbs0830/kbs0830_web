@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Eyebrow from "@/components/ui/Eyebrow";
 import PageShell from "@/components/ui/PageShell";
+import BulletList from "@/components/ui/BulletList";
 
 export const metadata: Metadata = {
   title: "/now — PINGWEI LI",
@@ -19,34 +19,27 @@ const now = [
 
 export default function NowPage() {
   return (
-    <PageShell>
-      <Eyebrow className="mt-10 mb-4">Now</Eyebrow>
-      <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">
-        現在 &nbsp;·&nbsp; What I&apos;m doing
-      </h1>
-      <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">
-        這個頁面記錄我當下的狀態，會不定期更新。
-        <br />
-        靈感來自{" "}
-        <a
-          href="https://nownownow.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-(--accent) hover:opacity-70 transition-opacity"
-        >
-          nownownow.com
-        </a>{" "}
-        的傳統。
-      </p>
-
-      <ul className="space-y-4">
-        {now.map((line) => (
-          <li key={line} className="flex items-start gap-3 text-sm font-light">
-            <span className="text-(--accent) mt-0.5">▸</span>
-            <span className="text-(--text)">{line}</span>
-          </li>
-        ))}
-      </ul>
+    <PageShell
+      eyebrow="Now"
+      title={<>現在 &nbsp;·&nbsp; What I&apos;m doing</>}
+      intro={
+        <>
+          這個頁面記錄我當下的狀態，會不定期更新。
+          <br />
+          靈感來自{" "}
+          <a
+            href="https://nownownow.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-(--accent) hover:opacity-70 transition-opacity"
+          >
+            nownownow.com
+          </a>{" "}
+          的傳統。
+        </>
+      }
+    >
+      <BulletList items={now} className="space-y-4" />
     </PageShell>
   );
 }

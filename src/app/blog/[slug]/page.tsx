@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { SITE_URL } from "@/lib/site";
 import TagBadge from "@/components/ui/TagBadge";
+import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/ui/PageShell";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
@@ -75,27 +77,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    dateModified: post.date,
-    url: `https://kbs0830.com/blog/${post.slug}`,
-    author: {
-      "@type": "Person",
-      name: "PINGWEI LI",
-      url: "https://kbs0830.com",
-    },
-  };
-
   return (
     <PageShell backHref="/blog" backLabel="返回部落格">
-  <script
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-  />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.description,
+          datePublished: post.date,
+          dateModified: post.date,
+          url: `${SITE_URL}/blog/${post.slug}`,
+          author: { "@type": "Person", name: "PINGWEI LI", url: SITE_URL },
+        }}
+      />
 
       <p className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4 font-mono">
         {post.date}

@@ -1,7 +1,6 @@
 // Server Component：整個 section 在 server 產生 HTML，不進 client bundle。
 // 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）跟 <SpotifyNowPlaying>，
 // 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
@@ -62,7 +61,7 @@ function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: numb
         {/* 外層 Reveal 加上 data-shown 時，圓點跟著放大出現 */}
         <div
           className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg) scale-0 transition-[scale] duration-300 group-data-shown/tl:scale-100"
-          style={{ transitionDelay: `${index * 0.08 + 0.15}s` } as CSSProperties}
+          style={{ transitionDelay: `${index * 0.08 + 0.15}s` }}
         />
         <p className="text-sm font-light text-(--text) leading-snug transition-colors group-hover/item:text-(--accent) group-focus/item:text-(--accent)">
           {item.zh}

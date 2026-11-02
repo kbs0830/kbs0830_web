@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { isTyping } from "@/lib/isTyping";
+import { EMAIL, GITHUB_URL } from "@/lib/site";
 import Modal from "@/components/ui/Modal";
 
 const HELP_TEXT = [
@@ -33,7 +34,7 @@ function runCommand(raw: string, projectListing: string): Result {
   }
   if (cmd === "cat about.txt") return print(ABOUT_TXT);
   if (cmd.startsWith("ssh")) {
-    return print("connecting to kbs0830@kbs0830.com...\n→ 1394kbs@gmail.com ・ github.com/kbs0830");
+    return print(`connecting to kbs0830@kbs0830.com...\n→ ${EMAIL} ・ ${GITHUB_URL.replace("https://", "")}`);
   }
   if (cmd === "clear") return { type: "clear" };
   if (cmd === "exit") return { type: "exit" };

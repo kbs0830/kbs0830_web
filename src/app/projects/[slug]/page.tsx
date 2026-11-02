@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
-import { projects, statusColor } from "@/lib/projects";
+import { projects } from "@/lib/projects";
+import { SITE_URL } from "@/lib/site";
 import MermaidDiagram from "@/components/ui/MermaidDiagram";
 import { GitHubIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
+import StatusBadge from "@/components/ui/StatusBadge";
+import SectionHeading from "@/components/ui/SectionHeading";
+import BulletList from "@/components/ui/BulletList";
+import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/ui/PageShell";
+import ProjectHighlight from "@/components/ui/ProjectHighlight";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -32,30 +38,23 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const project = projects.find((p) => p.slug === slug);
   if (!project) notFound();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "首頁", item: "https://kbs0830.com" },
-      { "@type": "ListItem", position: 2, name: "製作物", item: "https://kbs0830.com/#portfolio" },
-      { "@type": "ListItem", position: 3, name: project.titleZh, item: `https://kbs0830.com/projects/${project.slug}` },
-    ],
-  };
-
   return (
     <PageShell backHref="/#portfolio" backLabel="返回作品集">
-  <script
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-  />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "製作物", item: `${SITE_URL}/#portfolio` },
+            { "@type": "ListItem", position: 3, name: project.titleZh, item: `${SITE_URL}/projects/${project.slug}` },
+          ],
+        }}
+      />
 
       <div className="flex items-center gap-2 mt-10 mb-4 flex-wrap">
         <Eyebrow>{project.titleJa}</Eyebrow>
-        <span
-          className={`text-[10px] px-2 py-0.5 border rounded-sm font-light tracking-wide ${statusColor[project.status]} font-mono`}
-        >
-          {project.status}
-        </span>
+        <StatusBadge status={project.status} />
       </div>
 
       {/* 跟 PortfolioSection 作品卡片的 <h3> 同名，從卡片點進來時標題會 morph 過來 */}
@@ -94,11 +93,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </ViewTransition>
       )}
 
-      {/* Highlight */}
-      <div className="text-[13px] text-(--accent) font-light mb-10 pl-3 border-l-2 border-(--accent-lt) space-y-0.5 font-mono">
-        <div>{project.highlightZh}</div>
-        <div className="opacity-50">{project.highlight}</div>
-      </div>
+      <ProjectHighlight project={project} className="text-[13px] mb-10" />
 
       {/* Intro */}
       <p className="text-sm font-light text-(--text) leading-relaxed mb-4">
@@ -112,32 +107,17 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       {project.detail?.architectureDiagram && (
         <div className="mt-12">
-          <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 font-mono">
-            架構圖<span className="text-(--muted) normal-case tracking-normal"> · Architecture</span>
-          </p>
+          <SectionHeading en="Architecture">架構圖</SectionHeading>
           <MermaidDiagram chart={project.detail.architectureDiagram} />
         </div>
       )}
 
-      {/* Sections */}
       {project.detail && (
         <div className="space-y-10 mt-12">
           {project.detail.sections.map((section) => (
             <div key={section.heading}>
-              <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 font-mono">
-                {section.heading}
-                {section.headingEn && (
-                  <span className="text-(--muted) normal-case tracking-normal"> · {section.headingEn}</span>
-                )}
-              </p>
-              <ul className="space-y-2.5">
-                {section.body.map((line, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm font-light">
-                    <span className="text-(--accent) mt-0.5">▸</span>
-                    <span className="text-(--text)">{line}</span>
-                  </li>
-                ))}
-              </ul>
+              <SectionHeading en={section.headingEn}>{section.heading}</SectionHeading>
+              <BulletList items={section.body} />
             </div>
           ))}
         </div>
@@ -149,7 +129,6 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </p>
       )}
 
-      {/* Tags */}
       <div className="flex flex-wrap gap-1.5 mt-12">
         {project.tags.map((tag) => (
           <TagBadge key={tag}>{tag}</TagBadge>

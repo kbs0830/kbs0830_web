@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { projects } from "@/lib/projects";
+import { EMAIL, GITHUB_URL } from "@/lib/site";
 import PageShell from "@/components/ui/PageShell";
+import SectionHeading from "@/components/ui/SectionHeading";
 
 export const metadata: Metadata = {
   title: "履歷 · Resume — PINGWEI LI",
@@ -35,6 +38,15 @@ const featured = projects.filter((p) =>
   ["foodlens-advisor", "ticketing-system", "frc-robot", "auto-following-robot"].includes(p.slug)
 );
 
+function ResumeSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mb-10 print:mb-6">
+      <SectionHeading className="mb-4 print:mb-2">{title}</SectionHeading>
+      {children}
+    </section>
+  );
+}
+
 export default function ResumePage() {
   return (
     <PageShell printable>
@@ -46,16 +58,13 @@ export default function ResumePage() {
           AI 工程師 · 網頁開發者 &nbsp;/&nbsp; AI Engineer · Web Developer
         </p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted) font-mono">
-          <span>1394kbs@gmail.com</span>
-          <span>github.com/kbs0830</span>
+          <span>{EMAIL}</span>
+          <span>{GITHUB_URL.replace("https://", "")}</span>
           <span>高雄，台灣 ↔ 福岡，日本</span>
         </div>
       </div>
 
-      <section className="mb-10 print:mb-6">
-        <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 print:mb-2 font-mono">
-          教育 · Education
-        </p>
+      <ResumeSection title="教育 · Education">
         <div className="space-y-4 print:space-y-2">
           {education.map((e) => (
             <div key={e.school} className="grid sm:grid-cols-[1fr_auto] gap-1">
@@ -69,12 +78,9 @@ export default function ResumePage() {
             </div>
           ))}
         </div>
-      </section>
+      </ResumeSection>
 
-      <section className="mb-10 print:mb-6">
-        <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 print:mb-2 font-mono">
-          技能 · Skills
-        </p>
+      <ResumeSection title="技能 · Skills">
         <div className="space-y-2">
           {skillGroups.map((g) => (
             <div key={g.label} className="grid sm:grid-cols-[100px_1fr] gap-1 sm:gap-3">
@@ -83,26 +89,19 @@ export default function ResumePage() {
             </div>
           ))}
         </div>
-      </section>
+      </ResumeSection>
 
-      <section className="mb-10 print:mb-6">
-        <p className="text-xs tracking-[0.2em] text-(--accent) uppercase mb-4 print:mb-2 font-mono">
-          作品 · Projects
-        </p>
+      <ResumeSection title="作品 · Projects">
         <div className="space-y-5 print:space-y-3">
           {featured.map((p) => (
             <div key={p.slug} className="break-inside-avoid">
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                <p className="text-sm text-(--text)">{p.titleZh}　{p.title}</p>
-              </div>
+              <p className="text-sm text-(--text)">{p.titleZh}　{p.title}</p>
               <p className="text-xs text-(--muted) leading-relaxed mt-0.5">{p.descriptionZh}</p>
-              <p className="text-xs text-(--accent) mt-1 font-mono">
-                {p.highlightZh}
-              </p>
+              <p className="text-xs text-(--accent) mt-1 font-mono">{p.highlightZh}</p>
             </div>
           ))}
         </div>
-      </section>
+      </ResumeSection>
 
       <p className="text-xs text-(--muted) opacity-60 print:hidden">
         完整作品說明與技術細節請見{" "}
