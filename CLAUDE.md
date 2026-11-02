@@ -302,6 +302,13 @@ log 寫在 `logs/server.log`（超過 5MB 自動轉存 `.log.1`）。
 push 到 `main` → GitHub Actions self-hosted runner → `scripts/deploy.ps1`（pull + build + restart + 健康檢查）全自動。
 Workflow: `.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份 script，避免兩邊邏輯各自維護、慢慢長歪。
 
+**桌機 push 認證（2026-11-03）**：正式站目錄 `origin` 的 **fetch 是 https、push 是 SSH**
+（`git remote set-url --push`），`core.sshCommand` 指定只用 `C:/Users/user/.ssh/kbs0830_web_deploy`
+這把無密碼金鑰，對應 GitHub repo 的 Deploy key `desktop-claude-push`（只限這個 repo、有寫入權限）。
+Claude session 讀不到 GCM 的互動式登入，靠這把才能自己 push。pull 刻意留 https（公開 repo 不用認證），
+CI 的 `git pull` 完全不受影響。撤銷：GitHub repo Settings → Deploy keys 刪掉即可。
+⚠️ 這兩個設定在 `.git/config`，不進版控，重新 clone 要重設。
+
 重啟一律透過 Task Scheduler（`Stop-ScheduledTask` / `Start-ScheduledTask`），不要直接 `taskkill /im node.exe`
 ——理由同上，且直接 taskkill 對這個 process 會 access denied（scheduled task 用較高權限啟動）。
 

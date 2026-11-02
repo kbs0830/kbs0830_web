@@ -14,7 +14,8 @@
 
 ### A. 自動化
 
-- [ ] **A1. 讓 Claude session 自己 push** ⭐ 效益最大｜🙋 需要你貼一次公鑰
+- [x] **A1. 讓 Claude session 自己 push** ⭐ 效益最大｜🙋 需要你貼一次公鑰
+  → ✅ 2026-11-03 完成：repo Deploy key `desktop-claude-push`（寫入權限），設定見 CLAUDE.md「CI/CD」
   → 現況：你在桌機自己的 PowerShell 可以 push，但 Claude 這邊讀不到 GCM 的登入
     （`Cannot prompt because user interactivity has been disabled`），每次改完都要等你
   → 做法：桌機產生一把 ed25519 SSH key，你把公鑰加到 GitHub（Settings → SSH keys，
