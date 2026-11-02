@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // deploy.ps1 輪流使用的兩個 build 槽（見 next.config.ts distDir）
+    ".next-a/**",
+    ".next-b/**",
   ]),
   {
     // scripts/*.js 是直接用 `node scripts/xxx.js` 執行的 CommonJS Node 腳本，

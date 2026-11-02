@@ -16,8 +16,11 @@
 /playwright-report/
 /playwright/.cache/
 
-# next.js
+# next.js（.next-a／.next-b 是 deploy.ps1 輪流使用的兩個 build 槽，見 next.config.ts）
 /.next/
+/.next-a/
+/.next-b/
+/tsconfig.deploy.json
 /out/
 
 # runtime logs

@@ -2,6 +2,9 @@
 # 避免兩邊邏輯各自維護、慢慢長歪。所有步驟都會帶時間戳寫進 logs/deploy.log，
 # 之後要查「上次到底幾點部署的、有沒有過健檢」直接看這個檔案就好。
 
+# -TestRollback：切換新版之後故意當成健檢失敗，驗證自動退回上一版真的會動（只給手動測試用）
+param([switch]$TestRollback)
+
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -11,6 +14,30 @@ $logFile = Join-Path $repo "logs\deploy.log"
 . (Join-Path $PSScriptRoot "lib\logger.ps1")
 . (Join-Path $PSScriptRoot "lib\notify.ps1")
 function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
+
+# 兩個 build 槽 .next-a / .next-b 輪流用：build 到「沒在線上」那槽（線上照常服務，build 失敗
+# 完全不影響），成功才改 data\next-dist-dir.txt 指過去、重啟；健檢沒過就指回原本那槽再重啟。
+# 不搬資料夾：VS Code 的 TypeScript 服務會鎖住 tsconfig 收進去的 <distDir>/types，
+# 2026-11 第一版用「.next-build 改名成 .next」就是撞到這個鎖（Access denied）。
+$pointerFile = Join-Path $repo "data\next-dist-dir.txt"
+$activeSlot = if (Test-Path $pointerFile) { (Get-Content $pointerFile -Raw).Trim() } else { ".next" }
+$targetSlot = if ($activeSlot -eq ".next-a") { ".next-b" } else { ".next-a" }
+
+function Stop-Site {
+    Stop-ScheduledTask -TaskName "kbs0830_NextJS" -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+}
+
+function Switch-Slot($slot) {
+    Stop-Site
+    Set-Content -Path $pointerFile -Value $slot -NoNewline
+    Start-ScheduledTask -TaskName "kbs0830_NextJS"
+}
+
+function Test-Deploy {
+    & (Join-Path $repo "scripts\verify-deploy.ps1") *>&1 | ForEach-Object { Log "  $_" }
+    return $LASTEXITCODE -eq 0
+}
 
 Set-Location $repo
 
@@ -48,18 +75,27 @@ try {
         Set-Content -Path $stampFile -Value $lockHash -NoNewline
     }
 
-    Log "next build"
+    Log "next build → $targetSlot（線上是 $activeSlot，照常服務）"
+    $targetPath = Join-Path $repo $targetSlot
+    if (Test-Path $targetPath) { Remove-Item $targetPath -Recurse -Force }
+    # tsconfig.deploy.json：Next 會往裡面加 <distDir>/types，用副本才不會弄髒 tsconfig.json（見 next.config.ts）
+    Copy-Item (Join-Path $repo "tsconfig.json") (Join-Path $repo "tsconfig.deploy.json") -Force
+    $env:NEXT_DIST_DIR = $targetSlot
     node node_modules\next\dist\bin\next build 2>&1 | ForEach-Object { Log "  $_" }
-    if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)" }
+    $buildExit = $LASTEXITCODE
+    Remove-Item Env:NEXT_DIST_DIR
+    if ($buildExit -ne 0) { throw "Build failed (exit $buildExit)，線上沒動、還是 $activeSlot" }
 
-    Log "restarting Next.js (Task Scheduler: kbs0830_NextJS)"
-    Stop-ScheduledTask -TaskName "kbs0830_NextJS" -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
-    Start-ScheduledTask -TaskName "kbs0830_NextJS"
+    Log "switching $activeSlot → $targetSlot, restarting Next.js (Task Scheduler: kbs0830_NextJS)"
+    Switch-Slot $targetSlot
 
     Log "verifying deployment"
-    & (Join-Path $repo "scripts\verify-deploy.ps1") *>&1 | ForEach-Object { Log "  $_" }
-    if ($LASTEXITCODE -ne 0) { throw "Deployment verification failed" }
+    if (-not (Test-Deploy) -or $TestRollback) {
+        Log "[ROLLBACK] 健檢沒過，指回 $activeSlot"
+        Switch-Slot $activeSlot
+        $rolledBack = Test-Deploy
+        throw "Deployment verification failed，$(if ($rolledBack) { "已自動退回 $activeSlot，網站正常" } else { '退回上一版後健檢還是沒過，需要人工介入' })"
+    }
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
     $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"
@@ -68,6 +104,11 @@ try {
 }
 catch {
     Log "[FAILED] $($_.Exception.Message)"
+    # pnpm install 那條路會先停站；之後 build 失敗的話站還是停著，至少把舊版拉起來
+    if ((Get-ScheduledTask -TaskName "kbs0830_NextJS").State -ne "Running") {
+        Log "Next.js 沒在跑，用現有的 .next 重新啟動"
+        Start-ScheduledTask -TaskName "kbs0830_NextJS"
+    }
     Log "===== Deploy FAILED ====="
     # 附上這次部署的 log 尾巴（從 Deploy started 那行起），收信就看得到卡在哪
     $lines = Get-Content $logFile -Encoding utf8

@@ -67,6 +67,24 @@ if (-not $result.Success) {
 }
 if ($exitCode -eq 0) { Notify (Clear-Alert -Key "site" -Subject "✅ 網站已恢復正常") }
 
+# --- 從外網經 Cloudflare Tunnel 打一次 ---
+# 2026-10-29 那次是 origin 健康、Tunnel 斷了 4 天，上面的 localhost 檢查完全看不出來。
+# origin 本身壞掉時上面已經處理過，這裡只在 origin 正常時看「外面連不連得進來」。
+# Test-SiteHealth 會在 30 秒內重試，偶發的網路抖動不會誤報。
+# 不自動重啟 Cloudflared：服務本身有「當機自動重啟」，而且一般權限重啟不了服務；這裡只負責讓人知道。
+if ($exitCode -eq 0) {
+    $public = Test-SiteHealth -Url "https://kbs0830.com/" -MaxWaitSeconds 30
+    if ($public.Success) {
+        Notify (Clear-Alert -Key "tunnel" -Subject "✅ 外網已經連得到網站")
+    } else {
+        $svc = (Get-Service Cloudflared -ErrorAction SilentlyContinue).Status
+        Log "[FAILED] origin 正常但外網連不到：$($public.Reason)（Cloudflared 服務：$svc）"
+        Notify (Send-Alert -Key "tunnel" -Subject "🔴 外網連不到網站（origin 正常，疑似 Tunnel）" `
+            -Body "localhost:3000 正常，但 https://kbs0830.com/ 失敗：$($public.Reason)`nCloudflared 服務狀態：$svc`n`n先試：系統管理員 PowerShell 跑 Restart-Service Cloudflared")
+        $exitCode = 1
+    }
+}
+
 # --- GitHub Actions self-hosted runner 存活檢查 ---
 if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
     Log "[WARN] GitHub Actions runner（$runnerProcessName.exe）沒有偵測到在跑"
@@ -95,5 +113,8 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
 } else {
     Notify (Clear-Alert -Key "runner" -Subject "✅ GitHub Actions runner 已恢復")
 }
+
+# --- 每日備份（超過 24 小時沒成功備份才真的跑，失敗由 backup.ps1 自己寄信，不影響監控結果）---
+& (Join-Path $PSScriptRoot "backup.ps1") -IfOlderThanHours 24 | Out-Null
 
 exit $exitCode

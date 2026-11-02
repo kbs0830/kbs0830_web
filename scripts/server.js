@@ -29,6 +29,13 @@ const dataDir = path.join(projectDir, "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 process.env.VISITOR_STATS_FILE = path.join(dataDir, "visitor-stats.json");
 
+// deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
+// （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。
+const distDirFile = path.join(dataDir, "next-dist-dir.txt");
+if (!process.env.NEXT_DIST_DIR && fs.existsSync(distDirFile)) {
+  process.env.NEXT_DIST_DIR = fs.readFileSync(distDirFile, "utf8").trim();
+}
+
 function rotateIfNeeded() {
   try {
     if (fs.statSync(logFile).size > MAX_LOG_BYTES) {
