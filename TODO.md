@@ -6,6 +6,63 @@
 
 ---
 
+## 🧭 2026-11-03 — 自動化／新技術候選清單（慢慢選，選好跟 Claude 說編號）
+
+背景：11/02 上線 `upgrade/2026-10` 時又踩到幾個「要有人剛好去看才會發現」的洞——CI build
+失敗沒人通知、每次 push 都要你親自來、build 直接蓋在正式站目錄上。下面依效益排序，
+建議先做 **A1 → A3 → A4**。
+
+### A. 自動化
+
+- [ ] **A1. 讓 Claude session 自己 push** ⭐ 效益最大｜🙋 需要你貼一次公鑰
+  → 現況：你在桌機自己的 PowerShell 可以 push，但 Claude 這邊讀不到 GCM 的登入
+    （`Cannot prompt because user interactivity has been disabled`），每次改完都要等你
+  → 做法：桌機產生一把 ed25519 SSH key，你把公鑰加到 GitHub（Settings → SSH keys，
+    或只給這個 repo 的 Deploy key + 寫入權限，範圍更小），remote 改成 SSH
+  → 之後「改 → 測 → push → CI 部署 → 回查」整圈不用等人
+- [ ] **A2. 部署失敗／網站掛掉主動通知**｜🙋 需要你選管道
+  → 11/02 CI build 失敗是 Claude 剛好去翻 log 才發現；10 月斷線 4 天也沒人知道
+  → 選項：Email 寄到 `otemon.pcwork@gmail.com`（要在該 Gmail 開「應用程式密碼」給 SMTP 用）
+    或 Discord webhook。觸發點：`deploy.ps1` 失敗、`watchdog.ps1` 出現 `[FAILED]`
+  → 跟下方中優先的「部署通知」是同一件事，做了就一起勾掉
+- [ ] **A3. 原子化部署＋自動回滾**｜⚙️ 可直接做
+  → 現況：`next build` 直接寫進正式站的 `.next`，build 到一半失敗可能留下半套檔案
+    （跟 2026-07 chunk 500 是同一類風險）
+  → 做法：先 build 到另一個目錄，成功才切換；`verify-deploy.ps1` 沒過就自動切回上一版。
+    停站時間只剩重啟那 2～3 秒，也順便解掉中優先的「零停機部署」大半
+- [ ] **A4. watchdog 從外網檢查（含 Tunnel）**｜⚙️ 可直接做，重啟服務要你授權一次
+  → 現況：watchdog 只打 `localhost:3000`；10 月是 Tunnel 斷、origin 健康，完全看不出來
+  → 做法：加一項打 `https://kbs0830.com`（或 cloudflared metrics `/ready`），Tunnel 不通就
+    重啟 `Cloudflared` 服務。watchdog 是一般使用者權限，要用管理員跑一次
+    `sc sdset` 授權它能啟停這個服務
+  → 就是下方「watchdog 加上 Tunnel 監控」，做了一起勾掉
+- [ ] **A5. 自動備份**｜🙋 需要你決定放哪（OneDrive／Google Drive 同步資料夾／另一顆硬碟）
+  → 內容：`.env.local`、`~/.cloudflared/*.json`（tunnel 憑證）、`data/visitor-stats.json`、
+    排程工作 XML 匯出。細節見下方「自動備份」
+- [ ] **A6. 履歷 PDF 自動重產**｜⚙️ 可直接做
+  → 現況：`/resume` 內容改了，`public/resume.pdf` 不會跟著變，要手動 `pnpm resume:pdf`
+  → 做法：部署時偵測 `src/app/resume/`、`lib/about.ts`、`lib/projects.ts` 有變就自動重產
+- [ ] **A7. Renovate patch 更新自動合併**｜⚙️ 可直接做
+  → patch 版本更新在 E2E 全過時自動 merge，minor/major 照舊開 PR 等你看
+  → 有 A3 的自動回滾當安全網再開比較放心
+
+### B. 新技術
+
+- [ ] **B1. 捲動淡入改用 CSS `animation-timeline: view()`**｜⚙️ 可直接做
+  → 取代 `<Reveal>`／`useRevealOnce` 的 IntersectionObserver，動畫完全不用 JS 驅動
+  → 不支援的瀏覽器直接顯示內容（progressive enhancement），不會壞
+- [ ] **B2. TypeScript 7 原生編譯器（tsgo）只用在型別檢查**｜⚙️ 可直接做
+  → pre-commit 的 `tsc --noEmit` 改用 `@typescript/native-preview`，快 5～10 倍；
+    ESLint 繼續用 TS 6，不用等 typescript-eslint 支援（見下方 TS 7 那條）
+- [ ] **B3. Cloudflare 設定寫成腳本進 repo**｜🙋 需要你建一組 Cloudflare API token
+  → www 導向規則之前「以為存了其實沒存」；把 Redirect Rules、HTTP→HTTPS、擋掃描器的
+    WAF 規則用 Cloudflare API 寫成腳本，部署時順便檢查還在不在
+  → 一起解掉中優先的「Cloudflare 防火牆規則封鎖常見掃描路徑」
+
+已確認不用做：Turbopack build 快取（Next 16.4 已預設開啟）、PPR（見下方評估）。
+
+---
+
 ## 🚨 2026-11-02 — 精簡重構＋一次 4 天的斷線（同一個分支 `upgrade/2026-10`）
 
 ### ⚙️ 已完成（第二輪）：Server Components 化
@@ -27,6 +84,8 @@
   Tunnel 就一直斷著（訪客看到 Cloudflare 530）——就是 10-15 那段預言的「開機自動起站沒做到」
 - 11/02 已手動在背景重開一個 cloudflared 恢復，但它掛在目前的登入 session 底下，
   **下次重開機一樣會斷**。真正的修法還是下面那條：系統管理員身分跑 `scripts\setup-autostart.ps1`
+- ✅ 11/02 深夜已跑完 setup-autostart，Tunnel 改由 `Cloudflared` 服務承載（關掉背景 cloudflared
+  後外網連打 12 次都 200）。剩「重開機不登入」的實測，見下方 setup-autostart 那條
 - 🙋 確認 UptimeRobot 有沒有寄告警到 otemon.pcwork@gmail.com；4 天都沒人發現的話，
   要檢查 Alert Contact 設定
 - ⚙️ 之後可以做：watchdog 加上 Tunnel 檢查（見下方「watchdog 加上 Tunnel 監控」），
@@ -36,6 +95,9 @@
 - `next build` 直接拒絕建置（`SecurityFatalError: Your version of Next.js is affected by a known
   security vulnerability`），分支已升到 **16.4.3**。正式站目前跑的是 main 的 16.3.1，build 時間
   早於這個檢查，**很可能也在受影響範圍**——這是這個分支要儘快 merge/部署的另一個理由
+- ✅ 11/02 已部署，正式站跑 16.4.3。第一次 CI 部署因為「在正式站目錄直接 merge → pull 回報
+  Already up to date → 跳過 pnpm install」build 失敗，`deploy.ps1` 已改成比對上次 install 的
+  lockfile 雜湊（b18fbbe）
 
 ### ⚙️ 已完成：拿掉 framer-motion，動畫全部改成瀏覽器原生
 - `src/` 14 個檔案 −824／+663 行；首頁 JS 傳輸量 桌機 454→428 KB、手機 225→191 KB（−15%）
@@ -66,7 +128,9 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
 
 ### 🙋 需要你動手（我這邊權限/帳號不夠）
 
-- [ ] **在桌機用「系統管理員」PowerShell 跑一次 `scripts\setup-autostart.ps1`** 🔴 最優先
+- [x] **在桌機用「系統管理員」PowerShell 跑一次 `scripts\setup-autostart.ps1`** 🔴 最優先
+  → ✅ 2026-11-02 跑完並回查：NextJS／Runner `PT0S`+S4U、Watchdog S4U、Cloudflared 服務帶
+    tunnel 參數。Runner 改 S4U 後第一次 CI 部署也正常接到。**還沒做：重開機不登入的實測**
   → 一次解決三件事，腳本跑完會自己印檢查結果：
     1. `kbs0830_NextJS`／`GitHubActionsRunner` 的 `ExecutionTimeLimit` 還是預設 `PT72H`
        （`schtasks /query /xml` 查到 Settings 裡根本沒有這個欄位）。10/07 21:31、10/10 21:36、
@@ -84,7 +148,10 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
     https://kbs0830.com 確認站有起來，才算驗證完成
   → ⚠️ Runner 改成 S4U 之後沒有實際跑過一次部署驗證，第一次 push 後看一下 Actions 有沒有正常接到
 
-- [ ] **`www.kbs0830.com` 還是 404** 🔴（Google 索引問題的主因）
+- [x] **`www.kbs0830.com` 還是 404** 🔴（Google 索引問題的主因）
+  → ✅ 2026-11-02 用 Rules 範本「Redirect from WWW to root」重建（Overview 頁沒有任何既有規則，
+    之前那條從來沒存成功），`https://www.kbs0830.com/blog?x=1` → 301 保留路徑和 query。
+    🙋 剩：Search Console 對該 issue 按「驗證修正」
   → 2026-10-15 實測 `curl https://www.kbs0830.com/` → `404`，而且是 Cloudflare 回的（沒有
     redirect）。CLAUDE.md 寫的 Redirect Rule 要嘛沒存成功、要嘛被停用了
   → Cloudflare Dashboard → kbs0830.com → Rules → Redirect Rules：確認那條規則存在且是
@@ -97,8 +164,12 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
   → 實測 `http://kbs0830.com/` 直接回 `200`。Cloudflare Dashboard → SSL/TLS → Edge Certificates →
     打開 **Always Use HTTPS**（edge 層一個開關，不用改 code）。canonical 已經都指 https，
     所以不是急事，但開了比較乾淨
+  → 2026-11-02 仍未生效：`http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404（www 範本只比對
+    https）。Rules → Overview 點「Redirect from HTTP to HTTPS」範本 → **Deploy**（不是 Save as Draft）
 
-- [ ] **桌機 GitHub push 認證**（`upgrade/2026-10` 分支要上線就卡這個）
+- [x] **桌機 GitHub push 認證**（`upgrade/2026-10` 分支要上線就卡這個）
+  → ✅ 2026-11-02 你在桌機自己的 PowerShell 登入並 push 成功；但 Claude session 仍然不能 push，
+    要整圈自動化見最上方 A1
   → 桌機 GCM 沒有 GitHub 帳號，只能 pull。需要你遠端桌面進桌機，在本機終端機跑一次
     `git push`（會跳 GCM 登入視窗），或改用 SSH key / fine-grained PAT
 
