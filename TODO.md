@@ -29,41 +29,45 @@
   → 選項：Email 寄到 `otemon.pcwork@gmail.com`（要在該 Gmail 開「應用程式密碼」給 SMTP 用）
     或 Discord webhook。觸發點：`deploy.ps1` 失敗、`watchdog.ps1` 出現 `[FAILED]`
   → 跟下方中優先的「部署通知」是同一件事，做了就一起勾掉
-- [ ] **A3. 原子化部署＋自動回滾**｜⚙️ 可直接做
-  → 現況：`next build` 直接寫進正式站的 `.next`，build 到一半失敗可能留下半套檔案
-    （跟 2026-07 chunk 500 是同一類風險）
-  → 做法：先 build 到另一個目錄，成功才切換；`verify-deploy.ps1` 沒過就自動切回上一版。
-    停站時間只剩重啟那 2～3 秒，也順便解掉中優先的「零停機部署」大半
-- [ ] **A4. watchdog 從外網檢查（含 Tunnel）**｜⚙️ 可直接做，重啟服務要你授權一次
-  → 現況：watchdog 只打 `localhost:3000`；10 月是 Tunnel 斷、origin 健康，完全看不出來
-  → 做法：加一項打 `https://kbs0830.com`（或 cloudflared metrics `/ready`），Tunnel 不通就
-    重啟 `Cloudflared` 服務。watchdog 是一般使用者權限，要用管理員跑一次
-    `sc sdset` 授權它能啟停這個服務
-  → 就是下方「watchdog 加上 Tunnel 監控」，做了一起勾掉
-- [ ] **A5. 自動備份**｜🙋 需要你決定放哪（OneDrive／Google Drive 同步資料夾／另一顆硬碟）
-  → 內容：`.env.local`、`~/.cloudflared/*.json`（tunnel 憑證）、`data/visitor-stats.json`、
-    排程工作 XML 匯出。細節見下方「自動備份」
-- [ ] **A6. 履歷 PDF 自動重產**｜⚙️ 可直接做
-  → 現況：`/resume` 內容改了，`public/resume.pdf` 不會跟著變，要手動 `pnpm resume:pdf`
-  → 做法：部署時偵測 `src/app/resume/`、`lib/about.ts`、`lib/projects.ts` 有變就自動重產
-- [ ] **A7. Renovate patch 更新自動合併**｜⚙️ 可直接做
-  → patch 版本更新在 E2E 全過時自動 merge，minor/major 照舊開 PR 等你看
-  → 有 A3 的自動回滾當安全網再開比較放心
+- [x] **A3. 原子化部署＋自動回滾** → ✅ 2026-11-03 完成（雙槽 `.next-a`／`.next-b`，見 CLAUDE.md「CI/CD」）
+  → 實測：停站 1～2 秒（原本 5～40 秒）；`-TestRollback` 驗證過自動指回上一槽
+  → 第一版「build 到 `.next-build` 再改名」被 VS Code TS 服務鎖住資料夾（Access denied），改成不搬資料夾
+  → 中優先的「零停機部署」也一併解掉大半（剩重啟那 1～2 秒）
+- [x] **A4. watchdog 從外網檢查（含 Tunnel）** → ✅ 2026-11-03 完成（只寄信，不自動重啟 Cloudflared）
+  → 不做 `sc sdset` 授權：服務本身已設「當機自動重啟」，Tunnel 斷線多半要人看；少一個管理員步驟
+- [x] **A5. 自動備份** → ✅ 2026-11-03 本機（D:，30 份）已在跑；GitHub 加密備份 🙋 等你建 repo
+  → 細節見 CLAUDE.md「自動備份」。🙋 剩：
+    1. GitHub 建**私有** repo `kbs0830_backup`（空的，不要勾 README）
+    2. 該 repo Settings → Deploy keys 加 `C:\Users\user\.ssh\kbs0830_backup_deploy.pub`，**勾寫入權限**
+    3. 把 `D:\Backups\kbs0830\BACKUP-KEY.txt` 的內容存進密碼管理器（整台機器壞掉時靠它解密）
+    4. 跟 Claude 說，Claude 會 clone 到 `D:\Backups\kbs0830\github` 並實測一次
+- [x] **A6. 履歷 PDF 自動重產** → ✅ 2026-11-03 完成（見 CLAUDE.md「/resume」）
+  → 順便發現舊 PDF 從建立後就沒更新過、而且全是系統備用字體（沒等網頁字體載完），已修
+- [ ] **A7. Renovate patch 更新自動合併**｜🙋 需要一組 GitHub token
+  → 卡在 GitHub 限制：Renovate 現在用內建 `GITHUB_TOKEN` 開 PR，**用它開的 PR 不會觸發任何 workflow**，
+    PR 上永遠沒有測試結果可以當合併依據；用它 merge 的 push 也不會觸發部署
+  → 要做的話：建一組 fine-grained PAT（只給這個 repo 的 contents/pull requests 權限）放進 repo secrets，
+    另加一個在 GitHub 雲端 runner 跑 lint/tsc/vitest/build/E2E 的 PR 檢查 workflow（不佔用桌機）
 
 ### B. 新技術
 
-- [ ] **B1. 捲動淡入改用 CSS `animation-timeline: view()`**｜⚙️ 可直接做
-  → 取代 `<Reveal>`／`useRevealOnce` 的 IntersectionObserver，動畫完全不用 JS 驅動
-  → 不支援的瀏覽器直接顯示內容（progressive enhancement），不會壞
-- [ ] **B2. TypeScript 7 原生編譯器（tsgo）只用在型別檢查**｜⚙️ 可直接做
-  → pre-commit 的 `tsc --noEmit` 改用 `@typescript/native-preview`，快 5～10 倍；
-    ESLint 繼續用 TS 6，不用等 typescript-eslint 支援（見下方 TS 7 那條）
+- [x] **B1. 捲動淡入改用 CSS `animation-timeline: view()`** → ❌ 2026-11-03 評估後不採用
+  → `view()` 是「捲到哪播到哪」（會跟著捲動倒退），跟設計原則的「gentle fade-in 一次」語意不同；
+    Firefox 支援也還不穩。現在的 `useRevealOnce` 已經零 re-render，換了沒有實質好處
+- [x] **B2. TypeScript 7 原生編譯器（tsgo）只用在型別檢查** → ❌ 2026-11-03 評估後不採用
+  → 實測現在 `tsc --noEmit` 只要 2 秒，最多省 1.5 秒，不值得多一個別名套件、同時維護兩個 TS 版本
 - [ ] **B3. Cloudflare 設定寫成腳本進 repo**｜🙋 需要你建一組 Cloudflare API token
   → www 導向規則之前「以為存了其實沒存」；把 Redirect Rules、HTTP→HTTPS、擋掃描器的
     WAF 規則用 Cloudflare API 寫成腳本，部署時順便檢查還在不在
   → 一起解掉中優先的「Cloudflare 防火牆規則封鎖常見掃描路徑」
 
 已確認不用做：Turbopack build 快取（Next 16.4 已預設開啟）、PPR（見下方評估）。
+
+### C. 2026-11-03 順手做完的精簡／修正
+- 全站等寬字其實一直是 Consolas／細明體（`--font-mono` 指向沒載入的 JetBrains Mono），改回設計規範的 Geist Mono
+- 網址／email／社群連結收斂到 `lib/site.ts`；頁首、小節標題、▸ 清單、狀態標籤、JSON-LD 收成共用元件
+- `/uses` 更正「Framer Motion」（已移除）
+- 驗證：sitemap、robots、JSON-LD 跟線上逐字相同；7 頁截圖 5 頁像素相同（其餘 2 頁是預期內的文字/間距）
 
 ---
 
@@ -204,7 +208,7 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
     還是別的。已知相關的限制：這個 session 沒有管理員權限（改排程/服務都會 Access
     denied，所以才需要上面那支腳本讓你手動跑）、桌機不能 push
   → 下次發生時把畫面上的錯誤訊息或狀況記下來，再來對症處理
-- [ ] **自動備份** 🙋 需要你決定要備份什麼、放哪裡
+- [x] **自動備份** → ✅ 見最上方 A5
   → 不在 git 裡、壞了會真的不見的東西：`.env.local`（Spotify token）、
     `data/visitor-stats.json`、`~/.cloudflared/`（tunnel 憑證，遺失要重建 tunnel）、
     `logs/`。候選：每天複製到另一顆硬碟／Google Drive 桌面版同步資料夾，保留最近 N 份
@@ -213,7 +217,7 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
   → 跑完 setup-autostart.ps1 之後：`Stop-Service Cloudflared` →
     `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`（服務 binPath 指的是
     WinGet Packages 裡的實體檔，升級後路徑不變）
-- [ ] **watchdog 加上 Tunnel 監控**
+- [x] **watchdog 加上 Tunnel 監控** → ✅ 見最上方 A4
   → 目前 watchdog 只看 localhost:3000 跟 runner；Tunnel 掛了它看不出來（origin 健康）。
     可以加：`Get-Service Cloudflared` 不是 Running 就 `Start-Service`，或打
     `http://127.0.0.1:20241/ready` 看 `readyConnections`
@@ -364,7 +368,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     的風險我不想在沒跟你確認前就引入，先維持現狀（Google Fonts 自動 unicode-range
     已經是合理的折衷）
 
-- [ ] **部署通知**
+- [ ] **部署通知** → 程式已完成，見最上方 A2（等 Gmail 應用程式密碼）
   CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify，或直接寄 Email
   → 目前不知道遠端 build 有沒有炸
   → 若採 Email 通知，收件位址同上用 `otemon.pcwork@gmail.com`
@@ -376,7 +380,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
   → 加幾條 Cloudflare WAF/Firewall Rules 直接在邊緣擋掉這些已知路徑，能大幅減少
     log 雜訊、省一點頻寬，非緊急，詳見 `LOG分析.md` 第 2 節
 
-- [ ] **零停機部署**
+- [x] **零停機部署** → ✅ 大致解決，見最上方 A3（剩重啟那 1～2 秒）
   → 2026-07 log 分析發現：20 次部署裡有 2 次在 Task Scheduler 重啟的瞬間交接空窗
     撞上少量請求，共 4 筆 500（占全部請求 0.02%），`verify-deploy.ps1` 每次都在
     重啟後立刻確認恢復正常，影響範圍很小

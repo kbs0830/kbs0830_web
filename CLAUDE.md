@@ -116,7 +116,15 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
   `projectListing` 由 `page.tsx` 排好傳入，不在 client import `projects.ts`）
 - 字體一律用 `font-mono` / `font-serif` class（`globals.css` 的 `@theme inline` 已對應），
   不要再寫 `style={{ fontFamily: "var(--font-…)" }}`
-- 首頁以外的獨立頁面一律包 `<PageShell backHref backLabel printable>`（窄欄 + 返回連結）
+- 首頁以外的獨立頁面一律包 `<PageShell backHref backLabel printable eyebrow title intro>`
+  （窄欄 + 返回連結；eyebrow/title/intro 是「小標＋大標＋一段說明」的頁首，/now、/uses、/blog、404 共用）
+- 網址、email、GitHub/FB/IG 連結一律從 `lib/site.ts` 引用，不要再寫字面值
+- 重複出現的小區塊已經有元件，先找再寫：`SectionHeading`（小節標題）、`BulletList`（▸ 清單）、
+  `StatusBadge`（作品狀態）、`ProjectHighlight`（作品成果一句話）、`JsonLd`（結構化資料）、
+  `Eyebrow`、`TagBadge`
+- **`font-mono` = Geist Mono**：next/font 的變數直接叫 `--font-mono`（`app/fonts.ts`）。2026-11 之前
+  `globals.css` 把它寫成沒載入的 "JetBrains Mono"，訪客看到的其實是 Consolas／細明體——
+  不要在 `:root` 再定義 `--font-mono`
 
 ### 動畫架構（2026-11 拿掉 framer-motion 後）
 
@@ -189,6 +197,11 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 **本機用 port 3100 跑 `next start` 測 production build 時**，重新 build 之前一定要先把舊的
 `next start` 關掉——舊 process 會拿舊 manifest 去讀新的 `.next`，所有 chunk 都 500（跟 2026-07
 正式站那次同一個原因），測試結果完全不能看。
+⚠️ 關 3100 時**不要**用 `Get-NetTCPConnection -LocalPort 3100 -State Listen`：Windows 會把
+`next start` 的 dual-stack socket 回報成 `Closed`，`-State Listen` 什麼都抓不到、等於沒關（2026-11
+因此一個舊 server 活了十分鐘，新 build 測起來全 500，還誤以為是重構壞掉）。用
+`Get-NetTCPConnection -LocalPort 3100 | Select -Expand OwningProcess -Unique | % { Stop-Process $_ -Force }`，
+起完再確認 `OwningProcess` 是自己剛起的那個 PID。另外 CI 的 `e2e.yml` 也在這台桌機用 3100。
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋。`TerminalMode.tsx` 的輸出區塊有一個
@@ -219,12 +232,10 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
   對 Spotify API 的呼叫，蓋掉環境變數缺漏／token 失效／正在播放／fallback 到最近播放／
   網路錯誤這幾個分支
 
-**⚠️ 不要在正式站在跑的這份工作目錄裡反覆執行 `next build` 而不重啟 Task Scheduler
-服務。** 2026-07 測 Lighthouse/Bundle Analyzer/Playwright 時在這裡連續跑了好幾次
-`next build`，其中一次跟當下還在跑的正式站 process 的 build 對不上，watchdog 抓到
-一次 chunk 500（4 秒內自動重啟恢復，細節見 `logs/watchdog.log`）。需要反覆本機 build
-測試時，要嘛每次測完馬上重啟正式站對齊，要嘛換一份獨立目錄/worktree 跑，不要讓正式站
-跟著測試 build 一起震盪。
+**正式站目錄裡跑 `next build`（2026-11 起）**：正式站跑的是 `.next-a`／`.next-b`（見「CI/CD」雙槽部署），
+手動 `next build` 只會寫 `.next`，**不再影響線上**，可以在這裡 build + `next start -p 3100` 測。
+（2026-07 正式站還直接用 `.next` 時，在這裡連續 build 曾讓線上 process 的 build 對不上、chunk 500。）
+例外：`pnpm install` 還是會動到線上在用的 `node_modules`，不要在這裡手動跑，交給 deploy.ps1。
 
 ---
 
@@ -302,6 +313,23 @@ log 寫在 `logs/server.log`（超過 5MB 自動轉存 `.log.1`）。
 push 到 `main` → GitHub Actions self-hosted runner → `scripts/deploy.ps1`（pull + build + restart + 健康檢查）全自動。
 Workflow: `.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份 script，避免兩邊邏輯各自維護、慢慢長歪。
 
+**雙槽部署＋自動退回（2026-11-03）**：
+- build 槽 `.next-a`／`.next-b` 輪流用。`data/next-dist-dir.txt` 記目前上線的是哪一槽，
+  `scripts/server.js` 啟動時讀它設 `NEXT_DIST_DIR`，`next.config.ts` 的 `distDir` 讀這個變數（沒設＝`.next`）
+- 部署：build 到**沒在線上**那槽（線上照常服務，build 失敗完全不影響）→ 改指標檔 → 重啟 → 健檢；
+  健檢沒過就指回原本那槽再重啟（`[ROLLBACK]`），然後寄信。停站 1～2 秒（原本 5～40 秒）
+- 部署 build 用 `tsconfig.deploy.json`（每次從 `tsconfig.json` 複製、gitignore）：Next 會把
+  `<distDir>/types` 自動寫進 tsconfig 的 include，寫在副本裡才不會弄髒 `tsconfig.json`
+- **為什麼不用「build 到暫存資料夾再改名成 `.next`」**：第一版就是這樣，結果 `Rename-Item` 一直
+  Access denied——VS Code 的 TypeScript 服務會監看 tsconfig 收進去的 `<distDir>/types`，Windows 上
+  子資料夾有 handle 時上層不能改名。雙槽完全不搬資料夾
+- 驗證退回：`powershell -File scripts\deploy.ps1 -TestRollback`（切過去後故意當成健檢失敗）
+- `pnpm-lock.yaml` 跟上次成功 install 的雜湊（`node_modules/.deploy-lock-hash`）不同才 install；
+  install 前要停站（Windows 鎖 native `.node` 檔），這種部署停站時間是 install + build
+- 部署成功後：`/resume` 內容來源（`src/app/resume`、`lib/about.ts`、`lib/projects.ts`、`globals.css`、
+  `app/fonts.ts`）跟上次部署（`data/last-deployed-commit.txt`）比有變，就自動重印 `public/resume.pdf`
+  並 commit + push（會再觸發一次部署，那次只改到 PDF，不會再印）
+
 **桌機 push 認證（2026-11-03）**：正式站目錄 `origin` 的 **fetch 是 https、push 是 SSH**
 （`git remote set-url --push`），`core.sshCommand` 指定只用 `C:/Users/user/.ssh/kbs0830_web_deploy`
 這把無密碼金鑰，對應 GitHub repo 的 Deploy key `desktop-claude-push`（只限這個 repo、有寫入權限）。
@@ -364,12 +392,41 @@ Scheduler 任務：
 - 腳本是 Windows PowerShell 5.1 跑的：**不能用 `??`、`?.`、三元運算子**這些 PS 7 語法
 - 測試寄信：`powershell -NoProfile -Command ". .\scripts\lib\notify.ps1; Send-AlertMail -Subject 測試 -Body 測試"`
 
+**外網檢查（2026-11-03）**：localhost 健康時，watchdog 再從外網打一次 `https://kbs0830.com/`
+（30 秒內重試）。2026-10-29 那次是 origin 正常、Tunnel 斷 4 天，localhost 檢查完全看不出來。
+失敗只寄信（key `tunnel`），不自動重啟 Cloudflared：一般權限重啟不了服務，服務本身也有當機自動重啟。
+
 若要暫停監控（例如要手動除錯、不想被自動重啟打斷）：
 ```powershell
 Disable-ScheduledTask -TaskName "kbs0830_Watchdog"
 # 恢復：
 Enable-ScheduledTask -TaskName "kbs0830_Watchdog"
 ```
+
+### 自動備份（2026-11-03，`scripts/backup.ps1`）
+
+watchdog 每 5 分鐘呼叫一次 `backup.ps1 -IfOlderThanHours 24`，超過 24 小時沒成功備份才真的跑
+（不另開排程工作：建排程要管理員權限）。備份「不在 git 裡、壞了會真的不見」的東西：
+`.env.local`、`~/.cloudflared/`（tunnel 憑證）、`data/visitor-stats.json`、`.git/config`（push 設定）、
+deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設定。
+
+| | 位置 | 格式 | 保留 |
+|---|---|---|---|
+| 本機 | `D:\Backups\kbs0830\<yyyy-MM-dd_HHmm>\` | 原檔 | 30 份 |
+| GitHub | 私有 repo `kbs0830/kbs0830_backup`，clone 在 `D:\Backups\kbs0830\github` | AES-256 加密的 `kbs0830-backup.tar.gz.enc` | git 歷史 |
+
+- D: 是另一顆實體硬碟（C: NVMe、D: Seagate HDD），C: 壞掉時本機備份還在
+- 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\Backups\kbs0830\BACKUP-KEY.txt`。
+  **整台機器壞掉時兩份都會不見，使用者要另外存在密碼管理器**，不然 GitHub 那份解不開
+- GitHub 那份要等 `D:\Backups\kbs0830\github` 是 clone 才會啟用，沒有就只做本機（log 會寫）
+- 本機那份完成就算「今天備份過」，GitHub 失敗只寄信、隔天再試（避免 watchdog 每 5 分鐘重跑、
+  多出一堆本機資料夾把好的備份擠掉）
+- 還原 GitHub 那份（Git Bash，Git 內建 openssl）：
+  ```bash
+  openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in kbs0830-backup.tar.gz.enc -out backup.tar.gz -pass file:<金鑰檔>
+  mkdir restore && tar -xzf backup.tar.gz -C restore
+  ```
+  排程工作 XML 用管理員 `schtasks /create /tn <名稱> /xml <檔案>` 匯回去
 
 ### Log
 
@@ -541,8 +598,9 @@ FRC／自動跟隨機器人／school 沒有足夠真實架構資訊可畫，故�
 **沒有編造任何新的經歷、證照或年資**。套用 `globals.css` 既有的 `@media print` 樣式
 （列印時去色、A4 排版）。`public/resume.pdf` 是用 `scripts/generate-resume-pdf.js`
 （Playwright headless Chromium 印 `/resume` 頁面）產生的**靜態快照**，不是即時渲染——
-`/resume` 頁面內容改了之後，PDF **不會自動更新**，要記得重跑
-`pnpm resume:pdf`（預設打 `http://localhost:3000`，可傳其他 URL 當參數）。
+2026-11 起部署時偵測到 `/resume` 內容來源有變會**自動重印並 commit**（見「CI/CD」）；手動重印：
+`pnpm resume:pdf`（預設打 `http://localhost:3000`，可傳其他 URL 當參數）。腳本會等
+`document.fonts.ready` 才印——2026-11 之前沒等，PDF 裡全是系統備用字體（微軟正黑體／細明體）。
 
 ---
 
@@ -649,7 +707,9 @@ kbs0830_web/
 │   │   │   ├── Collapse.tsx            # 展開/收合
 │   │   │   ├── Modal.tsx               # 原生 <dialog> 彈窗（終端機、快捷鍵說明）
 │   │   │   ├── Underline.tsx           # 文字連結 hover 底線（Hero/Contact 共用）
-│   │   │   ├── PageShell.tsx           # 獨立頁面共用外框（窄欄 + ← 返回連結）
+│   │   │   ├── PageShell.tsx           # 獨立頁面共用外框（窄欄 + ← 返回連結 + 可選頁首 eyebrow/title/intro）
+│   │   │   ├── SectionHeading.tsx / BulletList.tsx / StatusBadge.tsx / ProjectHighlight.tsx / JsonLd.tsx
+│   │   │   │                           # 獨立頁面跟作品卡片共用的小區塊，見「Server / Client 分工」
 │   │   │   └── MaintenancePage.tsx
 │   │   └── sections/                   # 四個 section 都是 Server Component，見「Server / Client 分工」
 │   │       ├── HeroSection.tsx         # + HeroBackground.tsx / Typewriter.tsx（client）
@@ -657,6 +717,7 @@ kbs0830_web/
 │   │       ├── PortfolioSection.tsx    # + ProjectFilter.tsx（client，tag 篩選）
 │   │       └── ContactSection.tsx      # + CopyEmailButton.tsx（client）
 │   └── lib/
+│       ├── site.ts            # SITE_URL／EMAIL／GitHub・FB・IG 連結（全站唯一來源）
 │       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram、statusColor...）
 │       ├── aircraft.ts        # 足跡航班機型對照表 + formatFlightCode()（+ aircraft.test.ts）
 │       ├── about.ts           # About 的技能、時間軸、足跡、現況資料
@@ -670,13 +731,14 @@ kbs0830_web/
 │   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
 │   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
 │   ├── watchdog.ps1                  # 每 5 分鐘健康檢查（網站 + GitHub Actions runner 存活），異常自動重啟（Task Scheduler: kbs0830_Watchdog）
+│   ├── backup.ps1                    # 每日備份到 D: ＋ GitHub 私有 repo（加密），由 watchdog 觸發，見「自動備份」
 │   ├── setup-autostart.ps1           # 一次性（管理員執行）：排程工作取消 72h 上限/改 S4U、Cloudflared 服務帶 tunnel 參數
 │   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
 │   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
 │   └── lib/
 │       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
 │       ├── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
-│       └── notify.ps1          # Email 告警＋冷卻（deploy.ps1 / watchdog.ps1 共用），見「健康監控」
+│       └── notify.ps1          # Email 告警＋冷卻（deploy.ps1 / watchdog.ps1 / backup.ps1 共用），見「健康監控」
 ├── .husky/pre-commit          # commit 前 lint-staged + tsc --noEmit（見上方「Git hooks」）
 ├── .github/workflows/
 │   ├── deploy.yml              # push to main → 自動部署
