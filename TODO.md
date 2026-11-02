@@ -8,6 +8,19 @@
 
 ## 🚨 2026-11-02 — 精簡重構＋一次 4 天的斷線（同一個分支 `upgrade/2026-10`）
 
+### ⚙️ 已完成（第二輪）：Server Components 化
+- 首頁四個 section 從 `"use client"` 改成 Server Component，只留小的 client island
+  （見 CLAUDE.md「Server / Client 分工」）。`projects.ts` 的詳細頁長篇說明不再進首頁 bundle
+  （實測 client chunk 裡 0 筆）
+- About 技能 accordion → 原生 `<details>` + CSS `::details-content`／`interpolate-size`；
+  時間軸展開 → CSS `:hover`/`:focus`，兩個都零 JS。**行為小變化**：時間軸以前點一下會
+  固定展開、再點收起；現在是滑鼠移上去或 focus（觸控＝點一下）時展開、移開/點別處收起
+- 67 處 inline `style={{ fontFamily }}` → `font-mono`/`font-serif` class
+- 7 個獨立頁面重複的外框 → `<PageShell>`
+- `src/` 這輪 −1004／+456 行；首頁 JS 傳輸量（三輪累計）桌機 454→408 KB、手機 225→170 KB（−24%）
+- 🙋 待確認：時間軸的互動改成 hover/focus 你 OK 嗎？想要回到「點擊切換」的話，
+  改成 `<details>` 就好（一樣零 JS，只是沒有 hover 展開）
+
 ### 🔴 先看這個：網站從 10/29 02:15 到 11/02 01:52 斷線約 4 天
 - UptimeRobot 的 `HEAD /` 最後一筆是 10/29 02:10（台灣時間），之後 server 在 02:15／02:17
   重啟（看起來是桌機重開機），**`start-server.bat` 開的 console 版 cloudflared 沒人重開**，

@@ -10,6 +10,10 @@ import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
+import { projects } from "@/lib/projects";
+
+// 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
+const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
 
 export default function Home() {
   return (
@@ -25,15 +29,13 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <p
-              className="text-xs text-(--muted) font-light tracking-[0.2em]"
-              style={{ fontFamily: "var(--font-mono)" }}
+              className="text-xs text-(--muted) font-light tracking-[0.2em] font-mono"
             >
               © 2026 PINGWEI LI
             </p>
             <Link
               href="/blog"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors"
-              style={{ fontFamily: "var(--font-mono)" }}
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
             >
               Blog
             </Link>
@@ -47,7 +49,7 @@ export default function Home() {
       <BackToTop />
       <KeyboardShortcuts />
       <KonamiEgg />
-      <TerminalMode />
+      <TerminalMode projectListing={projectListing} />
     </>
   );
 }

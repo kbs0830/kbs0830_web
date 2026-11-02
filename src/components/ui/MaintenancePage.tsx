@@ -53,8 +53,7 @@ export default function MaintenancePage({
 
       <Eyebrow className="mb-6">System · 調整中</Eyebrow>
       <h1
-        className="text-3xl sm:text-4xl font-light text-(--text) mb-4 text-center"
-        style={{ fontFamily: "var(--font-serif)" }}
+        className="text-3xl sm:text-4xl font-light text-(--text) mb-4 text-center font-serif"
       >
         少々お待ちください &nbsp;·&nbsp; One Moment
       </h1>
@@ -66,8 +65,7 @@ export default function MaintenancePage({
 
       {errorMessage && (
         <p
-          className="text-xs font-light text-(--muted) opacity-70 mt-4 mb-2 text-center max-w-md break-words"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="text-xs font-light text-(--muted) opacity-70 mt-4 mb-2 text-center max-w-md break-words font-mono"
         >
           {errorMessage}
         </p>

@@ -50,8 +50,7 @@ export default function SpotifyNowPlaying() {
       )}
       <div className="min-w-0">
         <p
-          className="text-[10px] tracking-[0.2em] text-(--accent) uppercase"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="text-[10px] tracking-[0.2em] text-(--accent) uppercase font-mono"
         >
           {data.isPlaying ? "正在聽 · Now Playing" : "最近在聽 · Last Played"}
         </p>

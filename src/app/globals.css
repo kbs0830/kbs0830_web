@@ -51,7 +51,10 @@
   --color-accent:    var(--accent);
   --color-accent-lt: var(--accent-lt);
   --font-sans:       var(--font-geist-sans);
+  /* font-mono / font-serif utility 直接對到 :root 的字體變數，
+     取代原本散在 21 個檔案、67 處的 style={{ fontFamily: "var(--font-…)" }} */
   --font-mono:       var(--font-mono);
+  --font-serif:      var(--font-serif);
 }
 
 *, *::before, *::after {
@@ -169,6 +172,26 @@ body {
 [data-reveal-chars][data-shown] > span {
   opacity: 1;
   translate: none;
+}
+
+/* 原生 <details> 展開/收合動畫（About 技能分類）：零 JS。
+   interpolate-size 讓 block-size 可以從 0 transition 到 auto；::details-content 是
+   <details> 內容區的偽元素。不支援的瀏覽器照樣能開合，只是沒有動畫。 */
+details.disclosure {
+  interpolate-size: allow-keywords;
+}
+details.disclosure::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  opacity: 0;
+  transition:
+    block-size 0.3s var(--ease-ma),
+    opacity 0.3s var(--ease-ma),
+    content-visibility 0.3s allow-discrete;
+}
+details.disclosure[open]::details-content {
+  block-size: auto;
+  opacity: 1;
 }
 
 /* 頂端捲動進度條：CSS scroll-driven animation，零 JS。

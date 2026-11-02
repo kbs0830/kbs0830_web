@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 import TagBadge from "@/components/ui/TagBadge";
+import PageShell from "@/components/ui/PageShell";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
@@ -26,8 +26,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 const mdxComponents = {
   h2: (props: React.ComponentPropsWithoutRef<"h2">) => (
     <h2
-      className="text-xl font-light text-(--text) mt-10 mb-4"
-      style={{ fontFamily: "var(--font-serif)" }}
+      className="text-xl font-light text-(--text) mt-10 mb-4 font-serif"
       {...props}
     />
   ),
@@ -48,15 +47,13 @@ const mdxComponents = {
   ),
   code: (props: React.ComponentPropsWithoutRef<"code">) => (
     <code
-      className="text-[13px] px-1.5 py-0.5 rounded-sm bg-(--surface) border border-(--border)"
-      style={{ fontFamily: "var(--font-mono)" }}
+      className="text-[13px] px-1.5 py-0.5 rounded-sm bg-(--surface) border border-(--border) font-mono"
       {...props}
     />
   ),
   pre: (props: React.ComponentPropsWithoutRef<"pre">) => (
     <pre
-      className="text-[13px] p-4 rounded-sm bg-(--surface) border border-(--border) overflow-x-auto mb-5 [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0"
-      style={{ fontFamily: "var(--font-mono)" }}
+      className="text-[13px] p-4 rounded-sm bg-(--surface) border border-(--border) overflow-x-auto mb-5 [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
       {...props}
     />
   ),
@@ -94,44 +91,29 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-(--bg) px-6 py-20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <div className="max-w-2xl mx-auto">
-        <Link
-          href="/blog"
-          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          ← 返回部落格
-        </Link>
+    <PageShell backHref="/blog" backLabel="返回部落格">
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+  />
 
-        <p
-          className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          {post.date}
-        </p>
-        <h1
-          className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug"
-          style={{ fontFamily: "var(--font-serif)" }}
-        >
-          {post.title}
-        </h1>
-        <p className="text-sm font-light text-(--muted) mb-6">{post.titleEn}</p>
+      <p className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4 font-mono">
+        {post.date}
+      </p>
+      <h1 className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug font-serif">
+        {post.title}
+      </h1>
+      <p className="text-sm font-light text-(--muted) mb-6">{post.titleEn}</p>
 
-        <div className="flex flex-wrap gap-1.5 mb-12">
-          {post.tags.map((tag) => (
-            <TagBadge key={tag}>{tag}</TagBadge>
-          ))}
-        </div>
-
-        <article>
-          <MDXRemote source={post.content} components={mdxComponents} />
-        </article>
+      <div className="flex flex-wrap gap-1.5 mb-12">
+        {post.tags.map((tag) => (
+          <TagBadge key={tag}>{tag}</TagBadge>
+        ))}
       </div>
-    </div>
+
+      <article>
+        <MDXRemote source={post.content} components={mdxComponents} />
+      </article>
+    </PageShell>
   );
 }

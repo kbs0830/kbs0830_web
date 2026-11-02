@@ -7,8 +7,7 @@ export default function Eyebrow({
 }) {
   return (
     <p
-      className={`text-xs tracking-[0.35em] text-(--muted) uppercase ${className}`}
-      style={{ fontFamily: "var(--font-mono)" }}
+      className={`text-xs tracking-[0.35em] text-(--muted) uppercase ${className} font-mono`}
     >
       {children}
     </p>

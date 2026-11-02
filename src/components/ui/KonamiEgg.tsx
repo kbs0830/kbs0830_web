@@ -57,16 +57,10 @@ export default function KonamiEgg() {
         className="relative text-center px-8 enter-up"
         style={{ "--enter-duration": "0.5s", "--enter-distance": "12px" } as CSSProperties}
       >
-        <p
-          className="text-4xl sm:text-5xl font-light text-(--accent)"
-          style={{ fontFamily: "var(--font-serif)" }}
-        >
+        <p className="text-4xl sm:text-5xl font-light text-(--accent) font-serif">
           ようこそ
         </p>
-        <p
-          className="text-sm text-(--muted) font-light mt-4 tracking-widest"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
+        <p className="text-sm text-(--muted) font-light mt-4 tracking-widest font-mono">
           隠しコマンドを見つけましたね。
         </p>
       </div>

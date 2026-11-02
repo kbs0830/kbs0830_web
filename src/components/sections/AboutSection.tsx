@@ -1,262 +1,81 @@
-"use client";
-
-import { useState, type CSSProperties } from "react";
+// Server Component：整個 section 在 server 產生 HTML，不進 client bundle。
+// 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）跟 <SpotifyNowPlaying>，
+// 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
-import Collapse from "@/components/ui/Collapse";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { formatFlightCode } from "@/lib/aircraft";
-
-const skills = [
-  {
-    category: "AI · 機器学習",
-    categoryEn: "AI / ML",
-    items: [
-      { name: "Python", level: 5 },
-      { name: "YOLOv8", level: 4 },
-      { name: "ONNX Runtime Web", level: 3 },
-      { name: "TensorFlow.js", level: 3 },
-      { name: "Gemini API", level: 4 },
-      { name: "Ultralytics", level: 4 },
-      { name: "Pydantic v2", level: 3 },
-      { name: "Jetson Nano", level: 3 },
-      { name: "Raspberry Pi", level: 3 },
-      { name: "OpenCV", level: 3 },
-    ],
-  },
-  {
-    category: "後端 · バックエンド",
-    categoryEn: "Backend",
-    items: [
-      { name: "FastAPI", level: 4 },
-      { name: "Flask", level: 4 },
-      { name: "Blueprint 路由", level: 4 },
-      { name: "REST API 設計", level: 4 },
-      { name: "Google Sheets API", level: 3 },
-      { name: "環境変数管理", level: 3 },
-      { name: "Render 部署", level: 3 },
-    ],
-  },
-  {
-    category: "前端 · フロントエンド",
-    categoryEn: "Frontend",
-    items: [
-      { name: "Next.js 16", level: 4 },
-      { name: "React 19", level: 4 },
-      { name: "TypeScript", level: 4 },
-      { name: "Tailwind CSS v4", level: 4 },
-      { name: "Framer Motion", level: 3 },
-      { name: "Three.js", level: 3 },
-      { name: "React Three Fiber", level: 3 },
-      { name: "Vanilla JS (ES6)", level: 4 },
-    ],
-  },
-  {
-    category: "工具 · 開発環境",
-    categoryEn: "Tools & Environment",
-    items: [
-      { name: "VSCode", level: 5 },
-      { name: "pnpm", level: 4 },
-      { name: "Git", level: 4 },
-      { name: "Windows 11", level: 5 },
-      { name: "Arduino", level: 3 },
-      { name: "Gunicorn", level: 3 },
-      { name: "LINE Pay API", level: 2 },
-      { name: "丙級電腦硬體裝修", level: 3 },
-    ],
-  },
-  {
-    category: "学習中 · 探索領域",
-    categoryEn: "Currently Learning",
-    items: [
-      { name: "WebGL Shader", level: 1 },
-      { name: "React Three Fiber 進階", level: 2 },
-      { name: "Electron 打包部署", level: 1 },
-      { name: "エッジ AI 推論", level: 2 },
-      { name: "システム設計", level: 2 },
-      { name: "日本語 N5", level: 1 },
-    ],
-  },
-];
+import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
 const pill = "px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide";
 const pillHover = "hover:border-(--accent) hover:text-(--accent) transition-colors cursor-default";
+const label = "text-xs tracking-[0.2em] uppercase font-mono";
 
 function ProficiencyDots({ level }: { level: number }) {
   return (
     <span className="inline-flex gap-[2px] ml-1.5 align-middle" aria-hidden>
       {[1, 2, 3, 4, 5].map((n) => (
-        <span
-          key={n}
-          className={`w-[3px] h-[3px] rounded-full ${n <= level ? "bg-(--accent)" : "bg-(--border)"}`}
-        />
+        <span key={n} className={`w-[3px] h-[3px] rounded-full ${n <= level ? "bg-(--accent)" : "bg-(--border)"}`} />
       ))}
     </span>
   );
 }
 
+// 原生 <details>：開合、鍵盤操作、aria-expanded 都由瀏覽器處理；動畫見 globals.css details.disclosure
 function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; defaultOpen: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="pt-3 first:pt-0">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-center text-left cursor-pointer"
-        aria-expanded={open}
-      >
+    <details open={defaultOpen} className="disclosure group pt-3 first:pt-0">
+      <summary className="w-full grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">
-          <span className={`inline-block text-(--accent) text-xs transition-[rotate] duration-200 ${open ? "rotate-90" : ""}`}>
-            ▸
-          </span>
+          <span className="inline-block text-(--accent) text-xs transition-[rotate] duration-200 group-open:rotate-90">▸</span>
           <span>
-            <p
-              className="text-xs tracking-[0.2em] text-(--accent) uppercase"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {group.categoryEn}
-            </p>
-            <p className="text-xs text-(--muted) font-light mt-0.5">{group.category}</p>
+            <span className={`block ${label} text-(--accent)`}>{group.categoryEn}</span>
+            <span className="block text-xs text-(--muted) font-light mt-0.5">{group.category}</span>
           </span>
         </span>
-        {!open && (
-          <p className="text-xs font-light text-(--muted) opacity-50 hidden sm:block">
-            {group.items.length} 項技能，點擊展開
-          </p>
-        )}
-      </button>
-      <Collapse open={open}>
-        <div className="flex flex-wrap gap-2 pt-4 sm:pl-[204px]">
-          {group.items.map((item) => (
-            <span
-              key={item.name}
-              className={`inline-flex items-center ${pill} ${pillHover}`}
-            >
-              {item.name}
-              <ProficiencyDots level={item.level} />
-            </span>
-          ))}
-        </div>
-      </Collapse>
-    </div>
+        <span className="text-xs font-light text-(--muted) opacity-50 hidden sm:block group-open:invisible">
+          {group.items.length} 項技能，點擊展開
+        </span>
+      </summary>
+      <div className="flex flex-wrap gap-2 pt-4 sm:pl-[204px]">
+        {group.items.map((item) => (
+          <span key={item.name} className={`inline-flex items-center ${pill} ${pillHover}`}>
+            {item.name}
+            <ProficiencyDots level={item.level} />
+          </span>
+        ))}
+      </div>
+    </details>
   );
 }
 
-interface VisitedCountry {
-  flag: string;
-  country: string;
-  countryEn: string;
-  cities: string[];
-  flights: string[];
-}
-
-// 機型對照表在 src/lib/aircraft.ts，自己維護的航迷小筆記，跟這裡的航班代碼分開放，
-// 方便之後只開那一個小檔案填機型，不用來這邊改。
-const visitedCountries: VisitedCountry[] = [
-  {
-    flag: "🇯🇵",
-    country: "日本",
-    countryEn: "Japan",
-    cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"],
-    flights: [
-      "BR112", "BR119", "BR120", "BR147", "BR177", "BR183", "CI138", "EH430",
-      "GK12", "IT271", "IT700", "JL107", "JL130", "JL2174", "MM32", "MM859",
-      "NH289", "NH407", "NH462", "TR899",
-    ],
-  },
-  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"], flights: ["BR61", "EK384"] },
-  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [], flights: ["BR858", "BR891", "CI936", "EK384"] },
-  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"], flights: ["UA2498", "UA871", "UA872"] },
-];
-
-const planningCountries = [
-  { flag: "🇰🇷", country: "韓國", countryEn: "South Korea" },
-  { flag: "🇸🇬", country: "新加坡", countryEn: "Singapore" },
-  { flag: "🇲🇾", country: "馬來西亞", countryEn: "Malaysia" },
-  { flag: "🇻🇳", country: "越南", countryEn: "Vietnam" },
-];
-
-const timeline = [
-  {
-    year: "2021", zh: "進入市立中正高工 資訊科",                      en: "Enrolled at Zhongzheng Hi-Tech — Information",
-    detailZh: "從 HTML/CSS、C、Python 基礎課程開始，第一次接觸程式設計。",
-    detailEn: "Started with HTML/CSS, C, and Python fundamentals.",
-  },
-  {
-    year: "2022", zh: "加入 FRC 機器人隊 · 學校電腦工場維護志工",      en: "FRC robotics team · School lab maintenance",
-    detailZh: "學習 CNC 加工與電控配線，同時擔任學校電腦工場維護志工。",
-    detailEn: "Learned CNC machining and control wiring; also volunteered maintaining the school's computer lab.",
-  },
-  {
-    year: "2023", zh: "自動跟隨機器人 · 全國専題競賽動力機械群佳作",    en: "Auto-following robot · National competition Excellence Award",
-    detailZh: "以 Jetson Nano ＋ Arduino 打造即時視覺追蹤系統。",
-    detailEn: "Built a Jetson Nano + Arduino real-time vision-tracking system.",
-  },
-  {
-    year: "2024", zh: "高工畢業 · 升讀國立高科大 智慧商務系",          en: "Graduated · Enrolled at NKUST Intelligent Commerce",
-    detailZh: "從高工資訊科畢業，升讀國立高雄科技大學智慧商務系。",
-    detailEn: "Graduated from the vocational IT program and enrolled at NKUST Intelligent Commerce.",
-  },
-  {
-    year: "2025", zh: "完成 FoodLens Advisor & 活動報名系統",              en: "Shipped FoodLens Advisor & event registration system",
-    detailZh: "FoodLens Advisor（YOLOv8 ＋ Gemini）與活動報名系統（Flask ＋ LINE Pay）皆完成部署。",
-    detailEn: "Shipped FoodLens Advisor (YOLOv8 + Gemini) and a Flask + LINE Pay event registration system.",
-  },
-  {
-    year: "2026", zh: "持續建構中 · 仕事在進行",                       en: "Continuously building",
-    detailZh: "持續打磨個人網站與新專案，同時準備日本語 N5 検定。",
-    detailEn: "Continuing to refine this site and new projects while preparing for the JLPT N5.",
-  },
-];
-
-function TimelineItem({ item, index }: { item: typeof timeline[0]; index: number }) {
-  const [open, setOpen] = useState(false);
+// 滑鼠移上去、或鍵盤/觸控 focus 時展開補充說明——純 CSS（group-hover / group-focus），不需要 state
+function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: number }) {
   return (
-    <Reveal
-      from="left"
-      duration={0.5}
-      delay={index * 0.08}
-      margin={60}
-      className="group/tl flex items-start gap-6"
-    >
-      <p
-        className="text-xs text-(--accent) tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right"
-        style={{ fontFamily: "var(--font-mono)" }}
-      >
-        {item.year}
-      </p>
-      <div
-        className="relative pl-8 cursor-pointer group/item"
-        onClick={() => setOpen((v) => !v)}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        role="button"
-        tabIndex={0}
-        aria-expanded={open}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setOpen((v) => !v);
-          }
-        }}
-      >
+    <Reveal from="left" duration={0.5} delay={index * 0.08} margin={60} className="group/tl flex items-start gap-6">
+      <p className="text-xs text-(--accent) tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right font-mono">{item.year}</p>
+      <div tabIndex={0} className="relative pl-8 cursor-pointer group/item">
         {/* 外層 Reveal 加上 data-shown 時，圓點跟著放大出現 */}
         <div
           className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg) scale-0 transition-[scale] duration-300 group-data-shown/tl:scale-100"
           style={{ transitionDelay: `${index * 0.08 + 0.15}s` } as CSSProperties}
         />
-        <p className="text-sm font-light text-(--text) leading-snug group-hover/item:text-(--accent) transition-colors">
+        <p className="text-sm font-light text-(--text) leading-snug transition-colors group-hover/item:text-(--accent) group-focus/item:text-(--accent)">
           {item.zh}
         </p>
         <p className="text-xs font-light text-(--muted) opacity-50 mt-0.5">{item.en}</p>
-        <Collapse open={open}>
-          <div className="pt-2 mt-2 border-t border-(--border) space-y-0.5">
-            <p className="text-xs font-light text-(--muted)">{item.detailZh}</p>
-            <p className="text-[11px] font-light text-(--muted) opacity-60">{item.detailEn}</p>
+        <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-(--ease-ma) group-hover/item:grid-rows-[1fr] group-hover/item:opacity-100 group-focus/item:grid-rows-[1fr] group-focus/item:opacity-100">
+          <div className="overflow-hidden">
+            <div className="pt-2 mt-2 border-t border-(--border) space-y-0.5">
+              <p className="text-xs font-light text-(--muted)">{item.detailZh}</p>
+              <p className="text-[11px] font-light text-(--muted) opacity-60">{item.detailEn}</p>
+            </div>
           </div>
-        </Collapse>
+        </div>
       </div>
     </Reveal>
   );
@@ -268,11 +87,7 @@ export default function AboutSection() {
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
           <Eyebrow className="mb-4">About</Eyebrow>
-          <RevealHeading
-            text="自己紹介　·　關於我"
-            className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16"
-            style={{ fontFamily: "var(--font-serif)" }}
-          />
+          <RevealHeading text="自己紹介　·　關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
         </Reveal>
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-12 md:mb-20">
@@ -309,27 +124,16 @@ export default function AboutSection() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div
-              className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
+            <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
-              <div className="space-y-3 text-sm font-light">
-                {[
-                  "就讀：國立高科大 · 智慧商務系 二年級（燕巢）",
-                  "開放合作・技術交流・有趣對話",
-                  "居住地：高雄 🇹🇼 ↔ 福岡 🇯🇵",
-                  "日本語 N5 学習中",
-                  "得意分野：AI × Web 統合",
-                  "開発環境：Zenbook A14 ARM　＋　RTX 3070 Desktop",
-                  "興趣：交通運輸 · 鐵道研究",
-                ].map((line) => (
-                  <div key={line} className="flex items-start gap-3">
-                    <span className="text-(--accent) mt-0.5">▸</span>
+              <ul className="space-y-3 text-sm font-light">
+                {statusLines.map((line) => (
+                  <li key={line} className="flex items-start gap-3">
+                    <span className="text-(--accent) mt-0.5" aria-hidden>▸</span>
                     <span className="text-(--muted)">{line}</span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
             <div className="mt-4">
               <SpotifyNowPlaying />
@@ -352,10 +156,7 @@ export default function AboutSection() {
 
         <Reveal delay={0.25}>
           <Eyebrow className="mb-8">技能 · Skills</Eyebrow>
-          <p
-            className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6 font-mono">
             <span className="inline-flex items-center">
               <ProficiencyDots level={5} />
               <span className="ml-1.5">熟練 Proficient</span>
@@ -385,34 +186,20 @@ export default function AboutSection() {
               loading="lazy"
             />
           </div>
-          <p
-            className="text-[11px] text-(--muted) font-light mt-2 opacity-60"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            github.com/kbs0830 · 公開貢獻紀錄
-          </p>
+          <p className="text-[11px] text-(--muted) font-light mt-2 opacity-60 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
         </Reveal>
 
         <Reveal delay={0.3}>
           <Eyebrow className="mb-2 mt-16">足跡 · Footprint</Eyebrow>
-          <p
-            className="text-xs text-(--muted) font-light opacity-70 mb-8"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <p className="text-xs text-(--muted) font-light opacity-70 mb-8 font-mono">
             已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
           </p>
           <div className="space-y-8">
             <div className="space-y-4">
               {visitedCountries.map((c) => (
-                <div
-                  key={c.country}
-                  className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start"
-                >
+                <div key={c.country} className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start">
                   <div>
-                    <p
-                      className="text-xs tracking-[0.2em] text-(--accent) uppercase"
-                      style={{ fontFamily: "var(--font-mono)" }}
-                    >
+                    <p className={`${label} text-(--accent)`}>
                       {c.flag} {c.countryEn}
                     </p>
                     <p className="text-xs text-(--muted) font-light mt-0.5">{c.country}</p>
@@ -420,24 +207,16 @@ export default function AboutSection() {
                   <div className="flex flex-wrap gap-2">
                     {c.cities.length > 0 ? (
                       c.cities.map((city) => (
-                        <span
-                          key={city}
-                          className={`${pill} ${pillHover}`}
-                        >
+                        <span key={city} className={`${pill} ${pillHover}`}>
                           {city}
                         </span>
                       ))
                     ) : (
-                      <span className={pill}>
-                        已到訪
-                      </span>
+                      <span className={pill}>已到訪</span>
                     )}
                   </div>
                   {c.flights.length > 0 && (
-                    <p
-                      className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide"
-                      style={{ fontFamily: "var(--font-mono)" }}
-                    >
+                    <p className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide font-mono">
                       {c.flights.map(formatFlightCode).join(" · ")}
                     </p>
                   )}
@@ -447,12 +226,7 @@ export default function AboutSection() {
 
             <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-(--border)">
               <div>
-                <p
-                  className="text-xs tracking-[0.2em] text-(--muted) uppercase"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  Planning
-                </p>
+                <p className={`${label} text-(--muted)`}>Planning</p>
                 <p className="text-xs text-(--muted) font-light mt-0.5 opacity-70">規劃中</p>
               </div>
               <div className="flex flex-wrap gap-2">

@@ -30,8 +30,7 @@ export default function VisitorStats() {
 
   return (
     <p
-      className="text-xs text-(--muted) font-light tracking-[0.15em]"
-      style={{ fontFamily: "var(--font-mono)" }}
+      className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono"
     >
       共 {stats.total} 次造訪 · 來自 {stats.countryCount} 國{" "}
       {stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}

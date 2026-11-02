@@ -43,19 +43,13 @@ export default function KeyboardShortcuts() {
   return (
     <Modal open={showHelp} onClose={() => setShowHelp(false)} label="鍵盤快捷鍵" className="w-[calc(100%-3rem)] max-w-sm">
       <div className="p-6 border border-(--border) rounded-sm bg-(--surface)">
-        <p
-          className="text-xs tracking-[0.25em] text-(--accent) uppercase mb-5"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
+        <p className="text-xs tracking-[0.25em] text-(--accent) uppercase mb-5 font-mono">
           Keyboard Shortcuts
         </p>
         <div className="space-y-3">
           {shortcuts.map((s) => (
             <div key={s.key} className="flex items-center gap-4">
-              <kbd
-                className="shrink-0 min-w-[2.5rem] text-center px-2 py-1 text-[11px] text-(--accent) border border-(--accent-lt) bg-(--accent-lt) rounded-sm"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
+              <kbd className="shrink-0 min-w-[2.5rem] text-center px-2 py-1 text-[11px] text-(--accent) border border-(--accent-lt) bg-(--accent-lt) rounded-sm font-mono">
                 {s.key}
               </kbd>
               <span className="text-sm font-light text-(--muted)">{s.desc}</span>

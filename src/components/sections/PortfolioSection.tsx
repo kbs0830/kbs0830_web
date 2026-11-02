@@ -1,6 +1,6 @@
-"use client";
-
-import { useState, ViewTransition } from "react";
+// Server Component：卡片在 server 產生 HTML，projects.ts（含詳細頁才用到的長篇說明、
+// 架構圖）不再進首頁的 client bundle。互動只有 tag 篩選（ProjectFilter）。
+import { ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { projects, personalProjects, courseProjects, statusColor } from "@/lib/projects";
@@ -9,6 +9,7 @@ import RevealHeading from "@/components/ui/RevealHeading";
 import { GitHubIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
+import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
 
 const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
   a.localeCompare(b, "en")
@@ -50,15 +51,11 @@ function ProjectCard({
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <p
-                  className="text-xs tracking-[0.25em] text-(--muted)"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
+                <p className="text-xs tracking-[0.25em] text-(--muted) font-mono">
                   {project.titleJa}
                 </p>
                 <span
-                  className={`text-[10px] px-2 py-0.5 border rounded-sm font-light tracking-wide ${statusColor[project.status]}`}
-                  style={{ fontFamily: "var(--font-mono)" }}
+                  className={`text-[10px] px-2 py-0.5 border rounded-sm font-light tracking-wide ${statusColor[project.status]} font-mono`}
                 >
                   {project.status}
                 </span>
@@ -93,10 +90,7 @@ function ProjectCard({
           </p>
 
           {/* Highlight */}
-          <div
-            className="text-[11px] text-(--accent) font-light mb-4 pl-3 border-l-2 border-(--accent-lt) space-y-0.5"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <div className="text-[11px] text-(--accent) font-light mb-4 pl-3 border-l-2 border-(--accent-lt) space-y-0.5 font-mono">
             <div>{project.highlightZh}</div>
             <div className="opacity-50">{project.highlight}</div>
           </div>
@@ -108,10 +102,7 @@ function ProjectCard({
             ))}
           </div>
 
-          <p
-            className="text-[11px] text-(--muted) group-hover:text-(--accent) transition-colors"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <p className="text-[11px] text-(--muted) group-hover:text-(--accent) transition-colors font-mono">
             查看詳情 · View Details →
           </p>
         </div>
@@ -124,56 +115,34 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      <p
-        className="text-xs tracking-[0.3em] text-(--accent) uppercase"
-        style={{ fontFamily: "var(--font-mono)" }}
-      >
+      <p className="text-xs tracking-[0.3em] text-(--accent) uppercase font-mono">
         {label} &nbsp;·&nbsp; {labelZh}
       </p>
     </Reveal>
   );
 }
 
-function TagFilterBar({
-  activeTag,
-  onSelect,
-}: {
-  activeTag: string | null;
-  onSelect: (tag: string | null) => void;
-}) {
-  const chip = (label: string, tag: string | null) => (
-    <button
-      key={label}
-      onClick={() => onSelect(tag)}
-      aria-pressed={activeTag === tag}
-      className={`px-3 py-1 text-[11px] font-light rounded-sm border tracking-wide transition-colors ${
-        activeTag === tag
-          ? "text-(--accent) border-(--accent) bg-(--accent-lt)"
-          : "text-(--muted) border-(--border) bg-(--surface) hover:border-(--accent) hover:text-(--accent)"
-      }`}
-      style={{ fontFamily: "var(--font-mono)" }}
-    >
-      {label}
-    </button>
-  );
+const toItems = (list: typeof projects) =>
+  list.map((p, i) => ({ slug: p.slug, tags: p.tags, card: <ProjectCard project={p} index={i} /> }));
 
-  return (
-    <div className="flex flex-wrap gap-2 mb-10 md:mb-14">
-      {chip("全部 · All", null)}
-      {allTags.map((tag) => chip(tag, tag))}
-    </div>
-  );
-}
+const groups: FilterGroup[] = [
+  {
+    key: "personal",
+    className: "mb-10 md:mb-16",
+    gridClassName: "grid md:grid-cols-2 gap-5",
+    label: <SectionLabel label="Personal Projects" labelZh="個人専案" />,
+    items: toItems(personalProjects),
+  },
+  {
+    key: "course",
+    className: "",
+    gridClassName: "grid md:grid-cols-2 lg:grid-cols-3 gap-5",
+    label: <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />,
+    items: toItems(courseProjects),
+  },
+];
 
 export default function PortfolioSection() {
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-  // 不用 useMemo：React Compiler 會自動 memoize
-  const matches = (p: (typeof projects)[0]) => !activeTag || p.tags.includes(activeTag);
-  const filteredPersonal = personalProjects.filter(matches);
-  const filteredCourse = courseProjects.filter(matches);
-  // 再點一次目前選中的 tag = 取消篩選
-  const selectTag = (tag: string | null) => setActiveTag((cur) => (cur === tag ? null : tag));
-
   return (
     <section id="portfolio" className="py-20 md:py-32">
       <div className="max-w-5xl mx-auto px-6">
@@ -183,51 +152,17 @@ export default function PortfolioSection() {
           <Eyebrow className="mb-4">Work</Eyebrow>
           <RevealHeading
             text="製作物 · Portfolio"
-            className="text-3xl sm:text-4xl font-light text-(--text) mb-3"
-            style={{ fontFamily: "var(--font-serif)" }}
+            className="text-3xl sm:text-4xl font-light text-(--text) mb-3 font-serif"
           />
           <p className="text-sm font-light text-(--muted)">
             自分で開発した作品と、課程中の学習専題。
           </p>
         </Reveal>
 
-        <TagFilterBar activeTag={activeTag} onSelect={selectTag} />
-
-        {/* 個人専案 */}
-        {filteredPersonal.length > 0 && (
-          <div className="mb-10 md:mb-16">
-            <SectionLabel label="Personal Projects" labelZh="個人専案" />
-            <div className="grid md:grid-cols-2 gap-5">
-              {filteredPersonal.map((p, i) => (
-                <ProjectCard key={p.slug} project={p} index={i} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 課程専題 */}
-        {filteredCourse.length > 0 && (
-          <div>
-            <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredCourse.map((p, i) => (
-                <ProjectCard key={p.slug} project={p} index={i} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {filteredPersonal.length === 0 && filteredCourse.length === 0 && (
-          <p className="text-sm font-light text-(--muted) text-center py-12">
-            沒有符合「{activeTag}」的作品。
-          </p>
-        )}
+        <ProjectFilter tags={allTags} groups={groups} />
 
         <Reveal delay={0.3} distance={0}>
-          <p
-            className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <p className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50 font-mono">
             学習記録は非公開リポジトリに保存されています。
           </p>
         </Reveal>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { projects } from "@/lib/projects";
 import { isTyping } from "@/lib/isTyping";
 import Modal from "@/components/ui/Modal";
 
@@ -24,13 +23,13 @@ const ABOUT_TXT = [
 
 type Result = { type: "print"; text: string } | { type: "clear" } | { type: "exit" };
 
-function runCommand(raw: string): Result {
+function runCommand(raw: string, projectListing: string): Result {
   const cmd = raw.trim();
   const print = (text: string): Result => ({ type: "print", text });
   if (cmd === "") return print("");
   if (cmd === "help") return print(HELP_TEXT);
   if (cmd === "ls projects" || cmd === "ls") {
-    return print(projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n"));
+    return print(projectListing);
   }
   if (cmd === "cat about.txt") return print(ABOUT_TXT);
   if (cmd.startsWith("ssh")) {
@@ -41,9 +40,8 @@ function runCommand(raw: string): Result {
   return print(`command not found: ${cmd}（輸入 help 查看指令）`);
 }
 
-const mono = { fontFamily: "var(--font-mono)" };
-
-export default function TerminalMode() {
+// projectListing 由 page.tsx（server）先排好傳進來，這個 client 元件不用 import 整份 projects.ts
+export default function TerminalMode({ projectListing }: { projectListing: string }) {
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<string[]>(["kbs0830 terminal — 輸入 help 開始"]);
   const [input, setInput] = useState("");
@@ -72,7 +70,7 @@ export default function TerminalMode() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const result = runCommand(input);
+    const result = runCommand(input, projectListing);
     if (result.type === "clear") setLines([]);
     else if (result.type === "exit") setOpen(false);
     else setLines((prev) => [...prev, `$ ${input}`, ...(result.text ? [result.text] : [])]);
@@ -88,13 +86,12 @@ export default function TerminalMode() {
     >
       <div className="border border-(--border) sm:rounded-sm bg-(--surface)">
         <div className="px-4 py-2 border-b border-(--border) flex items-center justify-between">
-          <p className="text-xs text-(--muted)" style={mono}>
+          <p className="text-xs text-(--muted) font-mono">
             kbs0830@terminal ~ %
           </p>
           <button
             onClick={() => setOpen(false)}
-            className="text-(--muted) hover:text-(--accent) text-xs transition-colors"
-            style={mono}
+            className="text-(--muted) hover:text-(--accent) text-xs transition-colors font-mono"
           >
             esc
           </button>
@@ -102,8 +99,7 @@ export default function TerminalMode() {
         <div
           ref={scrollRef}
           data-testid="terminal-output"
-          className="p-4 h-64 sm:h-72 overflow-y-auto text-xs whitespace-pre-wrap leading-relaxed"
-          style={mono}
+          className="p-4 h-64 sm:h-72 overflow-y-auto text-xs whitespace-pre-wrap leading-relaxed font-mono"
         >
           {lines.map((l, i) => (
             <div key={i} className="text-(--muted) mb-1">
@@ -112,15 +108,14 @@ export default function TerminalMode() {
           ))}
         </div>
         <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 py-3 border-t border-(--border)">
-          <span className="text-(--accent) text-xs" style={mono}>
+          <span className="text-(--accent) text-xs font-mono">
             $
           </span>
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-xs text-(--text)"
-            style={mono}
+            className="flex-1 bg-transparent outline-none text-xs text-(--text) font-mono"
             autoComplete="off"
             spellCheck={false}
             aria-label="終端機指令輸入"

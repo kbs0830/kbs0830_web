@@ -69,8 +69,7 @@ export default function NavBar() {
       <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="#top"
-          className="text-sm font-light tracking-[0.2em] text-(--text) hover:text-(--accent) transition-colors"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="text-sm font-light tracking-[0.2em] text-(--text) hover:text-(--accent) transition-colors font-mono"
         >
           kbs0830
         </Link>

@@ -97,6 +97,27 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Tunnel | Cloudflare Tunnel (cloudflared) |
 | DNS | Cloudflare |
 
+### Server / Client Component 分工（2026-11）
+
+**首頁四個 section 都是 Server Component**，只把真的需要瀏覽器的小元件標 `"use client"`
+（client island）。新增內容時預設寫成 server，**不要為了一個小互動就把整個 section 改成
+`"use client"`**——那會讓整個 section 的文字跟它 import 的資料（例如 `projects.ts`）全部進
+client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細頁的長篇說明跟架構圖）。
+
+| Section | Client island |
+|---|---|
+| Hero | `HeroBackground`（3D 場景載入）、`Typewriter`、`Magnetic` |
+| About | `Reveal`/`RevealHeading`、`SpotifyNowPlaying`；技能 accordion 是原生 `<details>`、時間軸展開是 CSS `:hover`/`:focus`，**零 JS** |
+| Portfolio | `ProjectFilter`（只管 tag 篩選，卡片是 server 產生後當 ReactNode 傳進去） |
+| Contact | `CopyEmailButton`、`Magnetic` |
+
+- 資料檔：About 的技能/時間軸/足跡在 `lib/about.ts`，作品在 `lib/projects.ts`
+- client 元件需要伺服器資料時，在 server 端先算好再當 prop 傳（例：`TerminalMode` 的
+  `projectListing` 由 `page.tsx` 排好傳入，不在 client import `projects.ts`）
+- 字體一律用 `font-mono` / `font-serif` class（`globals.css` 的 `@theme inline` 已對應），
+  不要再寫 `style={{ fontFamily: "var(--font-…)" }}`
+- 首頁以外的獨立頁面一律包 `<PageShell backHref backLabel printable>`（窄欄 + 返回連結）
+
 ### 動畫架構（2026-11 拿掉 framer-motion 後）
 
 新增動畫前先看這裡有沒有現成的，**不要再把 framer-motion 裝回來**：
@@ -602,15 +623,17 @@ kbs0830_web/
 │   │   │   ├── Collapse.tsx            # 展開/收合
 │   │   │   ├── Modal.tsx               # 原生 <dialog> 彈窗（終端機、快捷鍵說明）
 │   │   │   ├── Underline.tsx           # 文字連結 hover 底線（Hero/Contact 共用）
+│   │   │   ├── PageShell.tsx           # 獨立頁面共用外框（窄欄 + ← 返回連結）
 │   │   │   └── MaintenancePage.tsx
-│   │   └── sections/
-│   │       ├── HeroSection.tsx
-│   │       ├── AboutSection.tsx
-│   │       ├── PortfolioSection.tsx    # tag filter bar 邏輯在這裡
-│   │       └── ContactSection.tsx
+│   │   └── sections/                   # 四個 section 都是 Server Component，見「Server / Client 分工」
+│   │       ├── HeroSection.tsx         # + HeroBackground.tsx / Typewriter.tsx（client）
+│   │       ├── AboutSection.tsx        # 資料在 lib/about.ts
+│   │       ├── PortfolioSection.tsx    # + ProjectFilter.tsx（client，tag 篩選）
+│   │       └── ContactSection.tsx      # + CopyEmailButton.tsx（client）
 │   └── lib/
 │       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram、statusColor...）
 │       ├── aircraft.ts        # 足跡航班機型對照表 + formatFlightCode()（+ aircraft.test.ts）
+│       ├── about.ts           # About 的技能、時間軸、足跡、現況資料
 │       ├── hooks.ts           # useMediaQuery / useScrolledPast / useRevealOnce
 │       ├── isTyping.ts        # 鍵盤快捷鍵的「正在輸入」防呆
 │       └── blog.ts            # 讀 content/blog/*.mdx，gray-matter 解析 frontmatter（+ blog.test.ts）
