@@ -16,8 +16,11 @@ export function generateImageMetadata() {
   }));
 }
 
-export default function Icon({ id }: { id: string }) {
-  const { width, height } = variants.find((v) => v.id === id) ?? variants[0];
+// Next 16 傳進來的 id 是 Promise：直接拿去跟字串比永遠對不上，三種尺寸都會退回 32×32
+// （manifest 宣告 192/512，Chrome 會報「Resource size is not correct」）。
+export default async function Icon({ id }: { id: Promise<string> }) {
+  const iconId = await id;
+  const { width, height } = variants.find((v) => v.id === iconId) ?? variants[0];
   return new ImageResponse(
     (
       <div

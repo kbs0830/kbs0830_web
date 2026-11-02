@@ -1,25 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Serif_JP } from "next/font/google";
+import { fontVariables } from "./fonts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["300", "400"],
-});
-
-const notoSerifJP = Noto_Serif_JP({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "PINGWEI LI — 学生開発者 · Portfolio",
@@ -68,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-Hant"
-      className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} h-full`}
+      className={`${fontVariables} h-full`}
       suppressHydrationWarning
     >
       <head>
