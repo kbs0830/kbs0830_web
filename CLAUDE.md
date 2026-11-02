@@ -272,6 +272,12 @@ ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 2026-10-15 查到「開機自動啟動」其實一直沒做到：`Cloudflared` 服務 binPath 沒帶任何參數（空轉），
 真正扛流量的是 `start-server.bat` 開的 console 版 cloudflared；Watchdog／Runner 是
 InteractiveToken（沒登入就不跑）；72 小時上限也還在（見下方 Log 章節）。
+**2026-11-02 已由使用者用管理員視窗跑完並回查**：NextJS／Runner 是 `PT0S` + S4U、Watchdog
+是 S4U，`Cloudflared` 服務帶 `tunnel --config ... run` 參數在跑，關掉 console 版 cloudflared
+後網站照常 200。當時遇到兩個坑：舊的空轉 Cloudflared 卡在 `STOP_PENDING`（腳本的
+`Restart-Service` 會無限等，要 `taskkill /f /fi "SERVICES eq Cloudflared"` 再 `Start-Service`）；
+改 Runner 登入方式會把它停掉，要手動 `Start-ScheduledTask GitHubActionsRunner`，不然 push
+的部署會一直排隊。
 **⚠️ 這個 session（Claude Code）沒有管理員權限**，`Set-ScheduledTask`／`sc config` 都會
 Access denied——不要自己跑完就以為改好了，要請使用者用管理員視窗執行，跑完再用
 `schtasks /query /tn <name> /xml` 回查 Settings 真的有 `ExecutionTimeLimit>PT0S`。
@@ -361,7 +367,7 @@ Node 環境，邏輯獨立實作但規則一致）。
 **⚠️ 2026-10-15：下面寫的修復當時沒有真的套用上去。** 10/07、10/10、10/13 依然每 72 小時被砍
 （watchdog 5 分鐘後救回），`schtasks /xml` 查到 Settings 裡沒有 `ExecutionTimeLimit`（= 預設
 PT72H）。推測 9 月是在非管理員視窗跑 `Set-ScheduledTask`，失敗了沒注意到。現在改由
-`scripts/setup-autostart.ps1`（管理員執行）統一設定，見上方「桌機服務」。
+`scripts/setup-autostart.ps1`（管理員執行）統一設定，見上方「桌機服務」（2026-11-02 已確認生效）。
 
 **2026-08 發現、2026-09 定位：整站每隔約 3 天無回應一次，根因不是 memory leak，
 是 Task Scheduler 的預設 72 小時執行時間上限。** 原本懷疑 Next.js 16.x 的 server-side
