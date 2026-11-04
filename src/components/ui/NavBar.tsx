@@ -21,11 +21,15 @@ function toggleTheme() {
   localStorage.setItem("theme", next);
 }
 
+// 圖示按鈕：版面上佔 32×32（負 margin 抵銷），實際可點範圍 40×44，手機比較好按準。
+// 手機版兩顆按鈕間距 8px，寬 40 剛好互相貼齊不重疊
+const hitArea = "w-10 h-11 -mx-1 -my-1.5";
+
 function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="w-8 h-8 flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors"
+      className={`${hitArea} flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors`}
       aria-label="切換亮色／暗色模式"
     >
       <MoonIcon className="theme-icon-moon" />
@@ -98,7 +102,7 @@ export default function NavBar() {
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="group w-8 h-8 flex flex-col items-center justify-center gap-[5px]"
+            className={`group ${hitArea} flex flex-col items-center justify-center gap-[5px]`}
             aria-label="選單"
             aria-expanded={drawerOpen}
           >

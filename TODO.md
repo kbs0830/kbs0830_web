@@ -224,9 +224,11 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
 - [ ] **TypeScript 7（Go 原生編譯器）** — 等 typescript-eslint 支援
   → 試過直接升 7.0.2：`tsc` 本身沒問題，但 TS 7 沒有 JS API，typescript-eslint 8.x 直接
     crash（peer 範圍 `<6.1.0`）。先停在 6.0，等 typescript-eslint 宣布支援再升
+  → 2026-11-04 再查：typescript-eslint 8.72.1 peer 仍是 `<6.1.0`，繼續等
 - [ ] **`THREE.Clock` deprecation warning** — 等 R3F 更新
   → three 0.186 把 `Clock` 標成 deprecated，警告來自 R3F 內部的 `state.clock`，
     不是我們的 code；R3F 出新版改用 `THREE.Timer` 之後就會消失
+  → 2026-11-04 升到 R3F 9.8.2 + three 0.187 實測警告還在，繼續等
 
 ---
 
@@ -292,7 +294,8 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
     / SEO 100**，跟桌機版一致，代表之前的 WCAG 對比度修復在手機視窗下同樣有效
   → 還剩幾個非緊急的小 touch target（都在 WCAG 2.2 AA 的 24×24px 底線之上，只是沒到
     44×44 理想值），設計上是刻意的小圖示/文字連結，不擅自改視覺，列給你參考：
-    NavBar 深色模式切換鈕／漢堡選單（32×32）、Portfolio「全部」篩選 chip（88×27）、
+    ~~NavBar 深色模式切換鈕／漢堡選單（32×32）~~（2026-11-04 已改：點擊範圍 40×44，外觀與版面
+    像素不變，用負 margin 抵銷）、Portfolio「全部」篩選 chip（88×27）、
     About 時間軸項目點擊區（~37px 高）、Skills 分類 accordion 按鈕（~34px 高）
   → 縮圖 `sizes` 設定沒發現手機多抓桌機尺寸圖的問題，`next/image` 預設行為已經在處理
 
@@ -401,6 +404,11 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     的 CSS、~49KB 未用到的 JS，量體對得上，不是新問題只是同一件事的更細數字）——牽動全站
     架構，工程大、風險高，不建議先動
   → 兩個選項都需要你拍板要不要犧牲設計/花力氣換分數，我不會自己選一邊動手
+  → **2026-11-04 重新量（拿掉 framer-motion、改純 CSS 進場之後）**：Playwright 桌機 1440×900、
+    無網速限制，線上 https://kbs0830.com/ LCP **2.6s**（FCP 1.9s），本機 production 1.3s
+    （FCP 0.2s）。LCP 元素還是 Hero `<h1>`，本機那 1.1 秒差距幾乎全是 `.enter-up` 的動畫
+    delay＋淡入時間。7 月的 6.9s 是 Lighthouse 模擬慢速網路的數字，跟這次的量法不同、不能直接比；
+    要比的話等你決定要不要做選項 A，再用 Lighthouse 同條件前後各跑一次
 
 ---
 
