@@ -45,11 +45,18 @@ const jsonLd = {
         addressLocality: "Kaohsiung",
         addressCountry: "TW",
       },
-      alumniOf: {
-        "@type": "CollegeOrUniversity",
-        name: "國立高雄科技大學",
-        alternateName: "National Kaohsiung University of Science and Technology",
-      },
+      alumniOf: [
+        {
+          "@type": "CollegeOrUniversity",
+          name: "國立高雄科技大學",
+          alternateName: "National Kaohsiung University of Science and Technology",
+        },
+        {
+          "@type": "HighSchool",
+          name: "高雄市立中正高級工業職業學校",
+          alternateName: "Kaohsiung Municipal Zhongzheng Vocational High School",
+        },
+      ],
       knowsLanguage: ["zh-TW", "en", "ja"],
       sameAs: [GITHUB_URL, FACEBOOK_URL, INSTAGRAM_URL],
       knowsAbout: ["Python", "FastAPI", "YOLOv8", "Next.js", "React", "TypeScript", "Machine Learning"],

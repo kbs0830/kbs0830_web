@@ -20,8 +20,8 @@ const education = [
     period: "2024 – 至今",
   },
   {
-    school: "市立中正高級工業職業學校",
-    schoolEn: "Taipei Municipal Zhongzheng Vocational High School",
+    school: "高雄市立中正高級工業職業學校",
+    schoolEn: "Kaohsiung Municipal Zhongzheng Vocational High School",
     program: "資訊科",
     period: "2021 – 2024",
   },

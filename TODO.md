@@ -23,9 +23,8 @@
   → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
 - [ ] **Cloudflare 確認沒擋 AI 爬蟲** 🙋：Dashboard → kbs0830.com → Security → Bots（或 AI Crawl Control），
   「Block AI bots／封鎖 AI 爬蟲」要是**關的**。開著的話 GPTBot、ClaudeBot 這些全被擋，`robots.txt` 寫允許也沒用
-- [ ] **確認履歷上的高中校名** 🙋：`/resume` 寫「市立中正高級工業職業學校 / **Taipei** Municipal Zhongzheng
-  Vocational High School」，中正高工是高雄市立的嗎？是的話英文要改成 Kaohsiung Municipal…（還沒改，等你確認；
-  確認後也可以把高中加進 JSON-LD 的 `alumniOf`）
+- [x] **履歷高中校名**（2026-11-05 使用者確認是高雄市立）：`/resume` 改成「高雄市立中正高級工業職業學校 /
+  **Kaohsiung** Municipal Zhongzheng Vocational High School」（原本誤寫 Taipei），JSON-LD `alumniOf` 加上高中
 - 時間：Google 重新讀取通常要幾天到幾週；AI 搜尋多半是即時查 Bing／Google，跟著索引走
 
 ---
