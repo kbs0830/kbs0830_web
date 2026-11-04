@@ -4,7 +4,7 @@ import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import { projects } from "@/lib/projects";
 import { SITE_URL } from "@/lib/site";
-import MermaidDiagram from "@/components/ui/MermaidDiagram";
+import ArchitectureDiagram from "@/components/ui/ArchitectureDiagram";
 import { GitHubIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
@@ -108,7 +108,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       {project.detail?.architectureDiagram && (
         <div className="mt-12">
           <SectionHeading en="Architecture">架構圖</SectionHeading>
-          <MermaidDiagram chart={project.detail.architectureDiagram} />
+          <ArchitectureDiagram chart={project.detail.architectureDiagram} />
         </div>
       )}
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { mermaidConfig } from "@/lib/mermaid-config";
 
-// mermaid 是純瀏覽器端渲染，不需要 SSR，也不需要跟著首頁一起載入——只有
-// /projects/[slug] 這種真的有架構圖的頁面才會 import 到這個元件，動態 import
-// mermaid 本身可以避免拖慢其他頁面的 bundle。
+// 瀏覽器端即時渲染，只當 ArchitectureDiagram 的備援：架構圖還沒被 scripts/render-diagrams.mjs
+// 預先畫成 SVG 時才會用到（例如剛改了圖、本機開發沒跑腳本）。mermaid 用動態 import，
+// 正常情況下這個 chunk 根本不會被下載。
 export default function MermaidDiagram({ chart }: { chart: string }) {
   const id = useId().replace(/:/g, "");
   const [svg, setSvg] = useState<string | null>(null);
@@ -14,20 +15,7 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
     let cancelled = false;
     import("mermaid").then(async (mod) => {
       const mermaid = mod.default;
-      const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: dark ? "dark" : "neutral",
-        themeVariables: {
-          primaryColor: "#e8f0f8",
-          primaryBorderColor: "#2d5a8e",
-          primaryTextColor: dark ? "#e8e6e1" : "#1a1a1a",
-          lineColor: "#2d5a8e",
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: "13px",
-        },
-        securityLevel: "strict",
-      });
+      mermaid.initialize(mermaidConfig(document.documentElement.getAttribute("data-theme") === "dark"));
       try {
         const { svg } = await mermaid.render(`mermaid-${id}`, chart);
         if (!cancelled) setSvg(svg);

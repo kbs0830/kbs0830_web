@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { fontVariables } from "./fonts";
 import { EMAIL, FACEBOOK_URL, GITHUB_URL, INSTAGRAM_URL, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
+import WebVitals from "@/components/ui/WebVitals";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -60,7 +61,10 @@ export default function RootLayout({
         />
         <JsonLd data={jsonLd} />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <WebVitals />
+        {children}
+      </body>
     </html>
   );
 }

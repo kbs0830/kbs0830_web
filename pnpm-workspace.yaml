@@ -1,17 +1,22 @@
+# sharp（next/image）跟 unrs-resolver（eslint）都有預先編好的平台套件，不需要跑它們的
+# install script。明確寫 false，pnpm 11 才不會留「set this to true or false」的佔位字串
 allowBuilds:
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+  sharp: false
+  unrs-resolver: false
+
+# pnpm 預設新版本發布滿 24 小時才裝（防供應鏈攻擊）。指定版本升級時 pnpm 會自動把太新的版本
+# 寫進這裡，升到下一版之後舊的要記得拿掉（2026-11 之前留著一整串 16.3.1 沒清）。
+# 目前：Next 16.4.5（2026-11-03 發布，修 7 個安全漏洞，提早升）
 minimumReleaseAgeExclude:
-  - '@next/env@16.3.1'
-  - '@next/swc-darwin-arm64@16.3.1'
-  - '@next/swc-darwin-x64@16.3.1'
-  - '@next/swc-linux-arm64-gnu@16.3.1'
-  - '@next/swc-linux-arm64-musl@16.3.1'
-  - '@next/swc-linux-x64-gnu@16.3.1'
-  - '@next/swc-linux-x64-musl@16.3.1'
-  - '@next/swc-win32-arm64-msvc@16.3.1'
-  - '@next/swc-win32-x64-msvc@16.3.1'
-  - next@16.3.1
+  - next@16.4.5
+  - eslint-config-next@16.4.5
+  - '@next/eslint-plugin-next@16.4.5'
+  - '@next/env@16.4.5'
+  - '@next/swc-darwin-arm64@16.4.5'
+  - '@next/swc-darwin-x64@16.4.5'
+  - '@next/swc-linux-arm64-gnu@16.4.5'
+  - '@next/swc-linux-arm64-musl@16.4.5'
+  - '@next/swc-linux-x64-gnu@16.4.5'
+  - '@next/swc-linux-x64-musl@16.4.5'
+  - '@next/swc-win32-arm64-msvc@16.4.5'
+  - '@next/swc-win32-x64-msvc@16.4.5'

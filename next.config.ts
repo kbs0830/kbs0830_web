@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   typescript: distDir === ".next" ? undefined : { tsconfigPath: "tsconfig.deploy.json" },
   // React Compiler：自動 memoization，取代手寫 useMemo/useCallback（2026-10 升級加入）
   reactCompiler: true,
+  // <Link href> 寫錯路徑（打錯字、頁面改名刪掉）在 tsc／build 就會報錯，不會上線才發現 404
+  typedRoutes: true,
+  // next/image 優先給 AVIF（比 WebP 再小 20～30%），不支援的瀏覽器照舊拿 WebP
+  images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [
       {

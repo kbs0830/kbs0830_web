@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Route } from "next";
 import Link from "next/link";
 import Eyebrow from "@/components/ui/Eyebrow";
 
@@ -15,7 +16,7 @@ export default function PageShell({
   intro,
   children,
 }: {
-  backHref?: string;
+  backHref?: Route;
   backLabel?: string;
   printable?: boolean;
   eyebrow?: string;

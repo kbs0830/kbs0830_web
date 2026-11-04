@@ -35,9 +35,8 @@ function Switch-Slot($slot) {
 }
 
 # public/resume.pdf 是 /resume 的列印快照，不會自己更新。內容來源跟上次部署比有變，
-# 就對剛上線的正式站重印一份、commit + push（push 會再觸發一次部署把新 PDF 帶上線，
-# 那次只改到 PDF，不會再重印）。PDF 每次產生 bytes 都不同，所以不能每次部署都印。
-# 失敗只記 log，不影響這次部署的結果。
+# 就對剛上線的正式站重印一份（由 Publish-GeneratedFiles commit）。PDF 每次產生 bytes
+# 都不同，所以不能每次部署都印。失敗只記 log，不影響這次部署的結果。
 function Update-ResumePdf {
     $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
     $head = (git rev-parse HEAD).Trim()
@@ -48,15 +47,27 @@ function Update-ResumePdf {
             Log "resume 內容有變（$($changed -join ', ')），重新產生 public/resume.pdf"
             node scripts\generate-resume-pdf.js 2>&1 | ForEach-Object { Log "  $_" }
             if ($LASTEXITCODE -ne 0) { throw "generate-resume-pdf.js 失敗 (exit $LASTEXITCODE)" }
-            git add public/resume.pdf
-            git commit -q -m "chore: 自動重新產生 resume.pdf（/resume 內容有變）" 2>&1 | ForEach-Object { Log "  $_" }
-            git push -q origin HEAD:main 2>&1 | ForEach-Object { Log "  $_" }
-            if ($LASTEXITCODE -ne 0) { throw "push resume.pdf 失敗" }
         }
         # 只有成功（或沒變）才記下這次的 commit；失敗的話下次部署會再試一次
         Set-Content -Path $lastFile -Value $head -NoNewline
     } catch {
         Log "[WARN] 履歷 PDF 沒有更新：$($_.Exception.Message)"
+    }
+}
+
+# 部署過程中自動產生的檔案（架構圖 SVG、履歷 PDF）有變就 commit + push，repo 才會跟線上一致。
+# push 會再觸發一次部署，那次這兩樣都不會再變，所以不會無限循環。
+function Publish-GeneratedFiles {
+    $paths = "src/generated", "public/resume.pdf"
+    if (-not (git status --porcelain -- $paths)) { return }
+    try {
+        git add -A -- $paths
+        git commit -q -m "chore: 自動更新部署產生的檔案（架構圖 SVG／履歷 PDF）" 2>&1 | ForEach-Object { Log "  $_" }
+        git push -q origin HEAD:main 2>&1 | ForEach-Object { Log "  $_" }
+        if ($LASTEXITCODE -ne 0) { throw "push 失敗 (exit $LASTEXITCODE)" }
+        Log "已 commit 並 push 自動產生的檔案"
+    } catch {
+        Log "[WARN] 自動產生的檔案沒有推上去：$($_.Exception.Message)"
     }
 }
 
@@ -101,6 +112,12 @@ try {
         Set-Content -Path $stampFile -Value $lockHash -NoNewline
     }
 
+    # 架構圖預先畫成 SVG（只畫新增／改過的，沒變就秒過）。失敗不擋部署：ArchitectureDiagram
+    # 找不到 SVG 會退回瀏覽器端即時渲染，網站照常
+    Log "render architecture diagrams"
+    node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts\render-diagrams.mjs 2>&1 | ForEach-Object { Log "  $_" }
+    if ($LASTEXITCODE -ne 0) { Log "[WARN] 架構圖預先渲染失敗，這次改由瀏覽器端即時畫" }
+
     # 有跑 pnpm install 的部署網站已經停了（見上），停站時間 = install + build，2026-11 實測約 35 秒
     $siteState = if ($lockHash -ne $installedHash) { "網站已停（剛裝完套件）" } else { "線上是 $activeSlot，照常服務" }
     Log "next build → $targetSlot（$siteState）"
@@ -127,6 +144,7 @@ try {
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
     Update-ResumePdf
+    Publish-GeneratedFiles
     $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"
     if ($notified) { Log "通知：$notified" }
     exit 0

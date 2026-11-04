@@ -38,7 +38,10 @@
 /* 主題切換鈕：兩個 icon 都 render，由 CSS 依 data-theme 決定顯示哪個——
    不用在 React 裡另外存一份 dark state、也不用 hydration 後再同步 */
 [data-theme="dark"] .theme-icon-moon,
-:root:not([data-theme="dark"]) .theme-icon-sun {
+:root:not([data-theme="dark"]) .theme-icon-sun,
+/* 預先畫好的架構圖也是亮暗兩份都放（ArchitectureDiagram），同一招 */
+[data-theme="dark"] .diagram-light,
+:root:not([data-theme="dark"]) .diagram-dark {
   display: none;
 }
 

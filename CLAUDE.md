@@ -90,6 +90,8 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript 6.0（TS 7 暫不升：typescript-eslint 還不支援，見 TODO.md） |
 | React | React 19.3 + React Compiler（`next.config.ts` 的 `reactCompiler: true`） |
+| 型別安全路由 | `typedRoutes: true`：`<Link href>`／`PageShell backHref` 寫錯路徑 tsc 就報錯（型別用 `Route`，不要寫 `string`） |
+| 圖片 | `next/image` 優先輸出 AVIF，退回 WebP |
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
 | Animation | **純 CSS，沒有動畫函式庫**（2026-11 移除 framer-motion），見下方「動畫架構」；換頁用 React 原生 `<ViewTransition>` |
 | Styling | Tailwind CSS v4 |
@@ -574,9 +576,22 @@ deploy.bat
 `/projects/[slug]` 詳細頁（`src/app/projects/[slug]/page.tsx`）：`generateStaticParams`
 把全部作品 SSG 成獨立頁面，卡片整張可點擊（overlay `<Link>`，GitHub icon 用 z-index
 疊在上面保持獨立可點）。有 `image` 的作品卡片頂部會顯示縮圖（hover 灰階轉全彩）。
-`detail.architectureDiagram`（Mermaid flowchart 語法，`MermaidDiagram.tsx` 動態 import
-mermaid 渲染）只有 FoodLens／YARTIX／日圓匯率／記帳系統這 4 個有真實詳細資料的作品才有；
-FRC／自動跟隨機器人／school 沒有足夠真實架構資訊可畫，故意沒加，不要為了「補齊」而編。
+`detail.architectureDiagram`（Mermaid flowchart 語法）只有 FoodLens／YARTIX／自動跟隨機器人／
+日圓匯率／記帳系統這 5 個有真實架構資訊的作品才有；FRC／school 沒有，故意沒加，不要為了「補齊」而編。
+
+**架構圖是部署前預先畫好的靜態 SVG（2026-11-04）**：
+- `scripts/render-diagrams.mjs`（`pnpm diagrams`）用 Playwright Chromium + mermaid 把每張圖畫成
+  亮色／暗色兩份 SVG，存 `src/generated/diagrams/<key>-{light,dark}.svg`（**進版控**）。
+  key = 圖的原始碼＋`lib/mermaid-config.ts` 主題設定的雜湊（`lib/diagram-key.ts`），改圖或改設定就換 key
+- `ArchitectureDiagram.tsx`（Server Component）build 時讀 SVG 嵌進 HTML，兩份都放，`globals.css` 依
+  `data-theme` 只顯示一份——切換主題圖會跟著變（舊版只在載入時畫一次，切主題不會變）
+- 找不到對應 SVG 時退回 `MermaidDiagram.tsx` 瀏覽器端即時渲染（動態 import mermaid），網站不會壞
+- 效果：作品詳細頁 JS 2.8MB → 565KB，沒有「載入架構圖…」閃一下，沒 JS／列印也看得到圖
+- `deploy.ps1` 每次 build 前跑腳本（沒變就秒過），有新 SVG 會在部署成功後自動 commit
+- 腳本用 Google Fonts 載 Geist Mono 量文字寬度，跟網站實際字體一致；字體載不到就整個不畫（寧可退回
+  瀏覽器端，也不要產生方框尺寸不對的圖）
+- 腳本直接 import `.ts`（Node 24 內建型別剝除），所以 `tsconfig.json` 開了 `allowImportingTsExtensions`，
+  被腳本 import 的 `lib/*.ts` 彼此之間要寫 `./xxx.ts` 副檔名、不能用 `@/` alias
 
 ### 4. Contact（連絡先）
 - 中文主文，英文次之
@@ -623,6 +638,16 @@ FRC／自動跟隨機器人／school 沒有足夠真實架構資訊可畫，故�
 - 改 `scripts/server.js` 之後要記得跑一次 `node node_modules/eslint/bin/eslint.js scripts/server.js`——
   這個檔案是 CommonJS，`eslint.config.mjs` 裡已經對 `scripts/**/*.js` 關掉
   `@typescript-eslint/no-require-imports`，不要因為 lint 錯誤誤以為要把它改寫成 ESM
+
+### 真實訪客 Web Vitals（2026-11-04，自架）
+- `components/ui/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
+  FCP／TTFB，`sendBeacon` 送到 `/api/web-vitals`；作品／文章頁統一記成 `/projects/slug`、`/blog/slug`
+- 只存「頁面路徑 × 指標 → 最近 200 筆數值」到 `data/web-vitals.json`（gitignore），不存 IP／UA。
+  路徑、指標名稱、數值範圍都有白名單驗證；bot／headless UA 不計（E2E 測試不會污染數據）
+- **看數據：`curl https://kbs0830.com/api/web-vitals`**，回傳每頁每個指標的樣本數 `n` 跟 `p75`
+  （Google 判 Core Web Vitals 用 p75：LCP ≤2500ms、INP ≤200ms、CLS ≤0.1 算 good）
+- 用途：TODO「首頁 LCP 決策點」要不要縮短 Hero 進場動畫，看真實訪客的 p75，不再只靠 Lighthouse 模擬值
+- 檔案路徑、同步 read-modify-write 的理由跟訪客統計一樣（`server.js` 設 `WEB_VITALS_FILE`）
 
 ### Spotify「正在聽」
 - 元件：`src/components/ui/SpotifyNowPlaying.tsx`，後端：`src/app/api/spotify/now-playing/route.ts`
@@ -705,7 +730,9 @@ kbs0830_web/
 │   │   │   ├── KonamiEgg.tsx
 │   │   │   ├── TerminalMode.tsx
 │   │   │   ├── SpotifyNowPlaying.tsx
-│   │   │   ├── MermaidDiagram.tsx      # 專案架構圖，動態 import mermaid
+│   │   │   ├── ArchitectureDiagram.tsx # 專案架構圖：嵌入預先畫好的 SVG（見「製作物」）
+│   │   │   ├── MermaidDiagram.tsx      # 架構圖的瀏覽器端備援（SVG 還沒畫好時才用）
+│   │   │   ├── WebVitals.tsx           # 回報真實訪客 Web Vitals（見「第三方整合」）
 │   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果（直接改 style.translate，不 re-render）
 │   │   │   ├── Reveal.tsx              # 捲動淡入（見「動畫架構」）
 │   │   │   ├── RevealHeading.tsx       # scroll-triggered 逐字 reveal 標題
@@ -740,6 +767,7 @@ kbs0830_web/
 │   ├── setup-autostart.ps1           # 一次性（管理員執行）：排程工作取消 72h 上限/改 S4U、Cloudflared 服務帶 tunnel 參數
 │   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
 │   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
+│   ├── render-diagrams.mjs           # 架構圖預先畫成 SVG（pnpm diagrams），deploy.ps1 每次 build 前跑
 │   └── lib/
 │       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
 │       ├── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
@@ -755,7 +783,9 @@ kbs0830_web/
 ├── data/                       # 執行期資料（gitignore，不進版控）：visitor-stats.json 等
 ├── public/resume.pdf           # generate-resume-pdf.js 產生的靜態快照，/resume 內容有變時部署會自動重印
 ├── .env.local                 # 不進版控，見「第三方整合」章節的 Spotify 環境變數
-├── pnpm.yaml                  # onlyBuiltDependencies config（pnpm v11）
+├── pnpm-workspace.yaml        # pnpm 11 設定：allowBuilds（sharp／unrs-resolver 不跑 build script）、
+│                              # minimumReleaseAgeExclude（提早安裝的安全性更新，升下一版要清掉舊的）
+├── src/generated/diagrams/    # render-diagrams.mjs 預先畫好的架構圖 SVG（進版控）
 ├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
 ├── CLAUDE.md
 ├── TODO.md                   # 優先度分區的待辦清單，含已完成歸檔

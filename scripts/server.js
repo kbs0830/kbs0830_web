@@ -28,6 +28,7 @@ if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 const dataDir = path.join(projectDir, "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 process.env.VISITOR_STATS_FILE = path.join(dataDir, "visitor-stats.json");
+process.env.WEB_VITALS_FILE = path.join(dataDir, "web-vitals.json");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。
