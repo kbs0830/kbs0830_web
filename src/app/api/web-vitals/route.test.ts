@@ -19,12 +19,18 @@ describe("web-vitals API route", () => {
     delete process.env.WEB_VITALS_FILE;
   });
 
-  const post = (body: unknown, ua = "Mozilla/5.0") =>
+  const post = (body: unknown, ua = "Mozilla/5.0", viaCloudflare = true) =>
     new NextRequest("http://localhost/api/web-vitals", {
       method: "POST",
-      headers: { "user-agent": ua },
+      headers: { "user-agent": ua, ...(viaCloudflare && { "cf-ipcountry": "TW" }) },
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
+
+  it("沒經過 Cloudflare 的（本機測試、CI 的 E2E）不計入", async () => {
+    const { POST, GET } = await import("./route");
+    expect((await POST(post({ name: "LCP", value: 1000, page: "/" }, "Mozilla/5.0", false))).status).toBe(204);
+    expect(await (await GET()).json()).toEqual({});
+  });
 
   it("收下合法樣本，GET 回傳每頁每個指標的樣本數與 p75", async () => {
     const { POST, GET } = await import("./route");

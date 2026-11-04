@@ -643,7 +643,10 @@ deploy.bat
 - `components/ui/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
   FCP／TTFB，`sendBeacon` 送到 `/api/web-vitals`；作品／文章頁統一記成 `/projects/slug`、`/blog/slug`
 - 只存「頁面路徑 × 指標 → 最近 200 筆數值」到 `data/web-vitals.json`（gitignore），不存 IP／UA。
-  路徑、指標名稱、數值範圍都有白名單驗證；bot／headless UA 不計（E2E 測試不會污染數據）
+  路徑、指標名稱、數值範圍都有白名單驗證；bot／headless UA 不計
+- **只收帶 `cf-ipcountry` header 的請求**（＝經過 Cloudflare 的真實訪客）。第一版只靠 UA 過濾，上線幾分鐘
+  就被 CI 的 E2E 灌了 40 幾筆——Playwright `devices["Desktop Chrome"]` 的 UA 是一般 Chrome、不含 headless，
+  而且 E2E 打的是同一台桌機、同一個 `data/` 目錄。本機測試要看到資料的話，請求要自己加這個 header
 - **看數據：`curl https://kbs0830.com/api/web-vitals`**，回傳每頁每個指標的樣本數 `n` 跟 `p75`
   （Google 判 Core Web Vitals 用 p75：LCP ≤2500ms、INP ≤200ms、CLS ≤0.1 算 good）
 - 用途：TODO「首頁 LCP 決策點」要不要縮短 Hero 進場動畫，看真實訪客的 p75，不再只靠 Lighthouse 模擬值

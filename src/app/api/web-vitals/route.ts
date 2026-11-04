@@ -42,7 +42,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (BOT_UA_PATTERN.test(req.headers.get("user-agent") || "")) return new NextResponse(null, { status: 204 });
+  // 只收從 Cloudflare 進來的（真實訪客一定經過 Tunnel，cf-ipcountry 是 Cloudflare edge 加的）。
+  // 本機測試、CI 的 E2E 直接打 localhost，沒有這個 header——2026-11-04 上線幾分鐘就被 E2E 灌了
+  // 40 幾筆（Playwright 的 Desktop Chrome UA 不含 headless，UA 過濾擋不到）
+  if (!req.headers.get("cf-ipcountry") || BOT_UA_PATTERN.test(req.headers.get("user-agent") || "")) {
+    return new NextResponse(null, { status: 204 });
+  }
 
   let body: unknown;
   try {
