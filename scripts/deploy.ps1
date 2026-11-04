@@ -101,7 +101,9 @@ try {
         Set-Content -Path $stampFile -Value $lockHash -NoNewline
     }
 
-    Log "next build → $targetSlot（線上是 $activeSlot，照常服務）"
+    # 有跑 pnpm install 的部署網站已經停了（見上），停站時間 = install + build，2026-11 實測約 35 秒
+    $siteState = if ($lockHash -ne $installedHash) { "網站已停（剛裝完套件）" } else { "線上是 $activeSlot，照常服務" }
+    Log "next build → $targetSlot（$siteState）"
     $targetPath = Join-Path $repo $targetSlot
     if (Test-Path $targetPath) { Remove-Item $targetPath -Recurse -Force }
     # tsconfig.deploy.json：Next 會往裡面加 <distDir>/types，用副本才不會弄髒 tsconfig.json（見 next.config.ts）
