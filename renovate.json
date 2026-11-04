@@ -8,6 +8,16 @@
     {
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "minor and patch dependencies"
+    },
+    {
+      "description": "typescript-eslint 8.x 只支援 typescript <6.1.0（TS 7 是 Go 原生版、沒有 JS API），lint 會崩潰。等 typescript-eslint 支援再拿掉，見 TODO.md",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<6.1"
+    },
+    {
+      "description": "@types/node 大版本要對齊桌機實際跑的 Node（目前 v24），桌機升級 Node 時再一起調整",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25"
     }
   ]
 }

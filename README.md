@@ -56,7 +56,8 @@ E2E 測試：`pnpm test:e2e`（Playwright，`e2e/*.spec.ts`）。CI 是獨立的
 （會 access denied，且殺不乾淨孤兒行程，細節見 `CLAUDE.md`）。
 
 ### 開機自動啟動
-四個服務皆已設定開機/登入自動啟動，重開機後無需手動操作。
+四個服務皆已設定開機自動啟動（不需要登入），由 `scripts/setup-autostart.ps1`（管理員執行）設定，
+重開機後無需手動操作。
 
 手動一鍵啟動（若需要）：
 ```
@@ -71,11 +72,11 @@ GitHub Actions self-hosted runner 跑在桌機上。
 
 push 到 `main` branch 後自動執行（`scripts/deploy.ps1`）：
 1. `git pull origin main`
-2. `pnpm install`
-3. `next build`
-4. 透過 Task Scheduler 重啟 `kbs0830_NextJS`
-5. `scripts/verify-deploy.ps1` 健康檢查（首頁 200、JS chunk 載得到）——沒過就算部署失敗，
-   不會悄悄留著壞掉的網站沒人發現
+2. `pnpm install`（只在 `pnpm-lock.yaml` 有變時）
+3. `next build` 到沒在線上的那個 build 槽（`.next-a`／`.next-b` 輪流用，build 失敗不影響線上）
+4. 切換槽位，透過 Task Scheduler 重啟 `kbs0830_NextJS`（停站約 1～2 秒）
+5. `scripts/verify-deploy.ps1` 健康檢查（首頁 200、JS chunk 載得到）——沒過就**自動退回上一版**並寄信通知
+6. `/resume` 內容有變時自動重印 `public/resume.pdf` 並 commit
 
 Workflow 設定：`.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同一份
 `deploy.ps1`，跟 CI 共用邏輯。
@@ -90,9 +91,10 @@ Workflow 設定：`.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript |
+| Language | TypeScript 6 |
+| UI | React 19.3（Server Components、React Compiler、`<ViewTransition>`） |
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
-| Animation | Framer Motion |
+| Animation | 純 CSS（scroll-driven animation、`@starting-style`、原生 `<dialog>`／`<details>`），沒有動畫函式庫 |
 | Styling | Tailwind CSS v4 |
 | Package manager | pnpm 11 |
 | Tunnel | Cloudflare Tunnel (cloudflared) |
@@ -139,7 +141,8 @@ Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`script
 渲染。新增文章請放真的踩過的坑，不要為了湊數編內容。
 
 `/resume`：內容取自網站上已有的真實資料（教育／技能／作品），套用既有的 `@media print` 樣式。
-`public/resume.pdf` 是靜態快照，**改了 `/resume` 頁面內容不會自動更新 PDF**，要記得重跑：
+`public/resume.pdf` 是靜態快照；部署時偵測到 `/resume` 內容來源有變會自動重印並 commit，
+要手動重印的話：
 
 ```powershell
 pnpm resume:pdf                              # 預設打 http://localhost:3000
@@ -153,4 +156,5 @@ node scripts/generate-resume-pdf.js <url>    # 或指定其他 URL（例如本�
 - pnpm v11：`dev` / `build` / `start` 直接呼叫 `node node_modules/next/dist/bin/next`
 - ISP 封鎖 inbound port 80/443，故改用 Cloudflare Tunnel
 - 區網內裝置需將 DNS 改為 `8.8.8.8` 才能解析 `kbs0830.com`
+- 監控、Email 通知、每日自動備份：見 `CLAUDE.md`「健康監控」「自動備份」
 - 待辦事項與優先順序見 `TODO.md`；架構細節、設計規範、踩過的坑見 `CLAUDE.md`

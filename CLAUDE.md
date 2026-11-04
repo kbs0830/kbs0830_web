@@ -249,9 +249,12 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 
 ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 
-**⚠️ 2026-10-15 實測仍然 404**：`curl https://www.kbs0830.com/` 回的是 Cloudflare 的 404、沒有
-301——下面這條 Redirect Rule 實際上沒有生效（沒存成功或被停用），要回 dashboard 確認，見 TODO.md。
-改完一定要 `curl -sI https://www.kbs0830.com/` 看到 301 才算數，不要只看 dashboard 有沒有那條規則。
+**www 導向（2026-11-02 才真正生效）**：Cloudflare Dashboard → Rules → Overview 用範本
+「Redirect from WWW to root」建的（Request URL `https://www.*` → `https://${1}`，301，保留 query
+string），`https://www.kbs0830.com/blog?x=1` → 301 `https://kbs0830.com/blog?x=1`。9 月文件寫的
+那條 Redirect Rule 其實從來沒存成功（11/02 打開 Rules 頁是空的）——改 Cloudflare 設定後一定要
+`curl -sI` 看到 301 才算數，不要只看 dashboard。`http://www.` 還要等「Redirect from HTTP to HTTPS」
+範本 Deploy 才會通（見 TODO.md）。以下是 9 月的原始調查，根因分析仍然正確：
 
 **2026-09 發現：`www.kbs0830.com` 在 Google Search Console 被回報 404。** 根因是 DNS
 上 `www.kbs0830.com` 是有效的 proxied 記錄（跟裸網域指向同一組 Cloudflare anycast IP），但
@@ -259,7 +262,7 @@ ISP 封鎖 inbound port 80/443，改用 Cloudflare Tunnel（outbound）繞過。
 `http_status:404`——任何打到 `www.kbs0830.com` 的請求會在 Cloudflare Tunnel 這一層直接被
 404，根本傳不到 Next.js（`https://www.kbs0830.com/` 和 `http://www.kbs0830.com/` 都中）。
 
-**修法：Cloudflare Dashboard → Rules → Redirect Rules 加了一條**：Custom filter expression
+**9 月當時的修法（實際沒存成功，11/02 改用上面的範本）**：Custom filter expression
 `http.host eq "www.kbs0830.com"` → Dynamic 目標 `concat("https://kbs0830.com", http.request.uri.path)`，
 301，**Preserve query string 開關要手動打開**（預設關閉）。在 edge 層把 www 導去裸網域，沒有動
 `config.yml`——網站唯一的正式網址只有不帶 www 的 `kbs0830.com`（`layout.tsx`／`sitemap.ts`／
@@ -348,7 +351,9 @@ CI 的 `git pull` 完全不受影響。撤銷：GitHub repo Settings → Deploy 
 `.github/workflows/renovate.yml`：用現有 self-hosted runner 直接跑 Renovate CLI（`npx renovate`），
 每週一自動開 PR，**不需要**安裝 Renovate GitHub App，也**不會**自動合併——PR 開出來後要手動
 review、本機跑一次 build 確認沒問題再合併。設定檔在 `renovate.json`（extends `config:recommended`，
-minor/patch 更新會被分到同一個 PR 減少雜訊）。
+minor/patch 更新會被分到同一個 PR 減少雜訊）。`packageRules` 擋住已知會壞的大版本：`typescript <6.1`
+（TS 7 讓 typescript-eslint 崩潰）、`@types/node <25`（對齊桌機的 Node 24）——上游支援／桌機升級
+Node 時記得回來拿掉或調整。
 
 ### 健康監控（Watchdog）
 
@@ -718,7 +723,7 @@ kbs0830_web/
 │   │       └── ContactSection.tsx      # + CopyEmailButton.tsx（client）
 │   └── lib/
 │       ├── site.ts            # SITE_URL／EMAIL／GitHub・FB・IG 連結（全站唯一來源）
-│       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram、statusColor...）
+│       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram...；狀態顏色在 StatusBadge）
 │       ├── aircraft.ts        # 足跡航班機型對照表 + formatFlightCode()（+ aircraft.test.ts）
 │       ├── about.ts           # About 的技能、時間軸、足跡、現況資料
 │       ├── hooks.ts           # useMediaQuery / useScrolledPast / useRevealOnce
@@ -748,7 +753,7 @@ kbs0830_web/
 ├── vitest.config.mts           # Vitest 設定（node 環境、@/* alias），src/**/*.test.ts（pnpm test:unit）
 ├── renovate.json               # Renovate 設定
 ├── data/                       # 執行期資料（gitignore，不進版控）：visitor-stats.json 等
-├── public/resume.pdf           # generate-resume-pdf.js 產生的靜態快照，不會自動更新
+├── public/resume.pdf           # generate-resume-pdf.js 產生的靜態快照，/resume 內容有變時部署會自動重印
 ├── .env.local                 # 不進版控，見「第三方整合」章節的 Spotify 環境變數
 ├── pnpm.yaml                  # onlyBuiltDependencies config（pnpm v11）
 ├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
