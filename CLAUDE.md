@@ -671,10 +671,23 @@ deploy.bat
 | 項目 | 位置 |
 |---|---|
 | 全站預設 metadata（title/description/OG/Twitter card） | `src/app/layout.tsx` |
-| Person JSON-LD（含 `sameAs` 社群連結） | `src/app/layout.tsx` 的 `jsonLd` |
+| Person＋WebSite JSON-LD（`@graph`，含 `sameAs`、`alternateName`、大頭照、學歷） | `src/app/layout.tsx` 的 `jsonLd` |
+| ProfilePage JSON-LD（首頁＝這個人的個人檔案頁） | `src/app/page.tsx` |
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
 | OG 分享圖 | `src/app/opengraph-image.tsx` |
+| `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
+| IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |
+
+**人名搜尋／AI 搜尋（2026-11-04）**：
+- 所有 JSON-LD 的「人」都用同一個 `@id`（`lib/site.ts` 的 `PERSON_ID`），首頁 ProfilePage、文章 author
+  都指過去，搜尋引擎才會認成同一個人
+- AI 爬蟲（GPTBot、ClaudeBot、PerplexityBot…）`robots.txt` 全部允許。**Cloudflare 有「封鎖 AI 爬蟲」
+  開關**（Security → Bots／AI Crawl Control），開了的話 `robots.txt` 寫什麼都沒用——用假 UA 打不出來
+  （Cloudflare 是用 IP 驗證真的爬蟲），要去 dashboard 看
+- ChatGPT 搜尋、Copilot 用 Bing 的索引 → IndexNow 讓 Bing 在部署後馬上知道；內容（`src`／`content`／
+  `public`）跟上次部署比有變才送，送 sitemap 裡全部網址
+- Google 不支援 IndexNow，靠 sitemap＋Search Console
 
 **⚠️ Google Search Console「網頁索引狀態」看到 `www.kbs0830.com` 404 是 DNS/Tunnel 層問題，
 不是這裡的 code 問題**——根因跟修法見上方「部署架構」章節那則 `www` DNS/Redirect Rule 說明，
@@ -805,6 +818,10 @@ kbs0830_web/
    `alternateName` 欄位——這是不會 render 出來給人看的結構化資料，只給搜尋引擎讀，
    目的是讓「李秉威」也搜得到這個網站。新增任何本名相關內容前，先確認它是不是使用者
    看得到的內容；只有「不可見、純給爬蟲讀」的欄位才能放本名。
+   **2026-11-04 使用者再次確認維持這條**（問過要不要在 About／頁面標題露出本名來提升人名搜尋，
+   選了「只放不可見資料」）。目前放本名的地方：Person JSON-LD 的 `alternateName`、`/llms.txt`
+   （給 AI 讀、沒有站內連結）。已經跟使用者說明過：只靠不可見資料，Google 搜「李秉威」很難排上去，
+   主要靠站外連結（GitHub 個人頁等）補強——不要自己把本名加回頁面上
 2. **語言**：中文優先，雙語格式 `中文 · English`
 3. **顏色**：`#2d5a8e` 是唯一強調色，用量克制
 4. **動畫**：subtle only，60fps，不跳不彈不閃

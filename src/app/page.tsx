@@ -11,6 +11,8 @@ import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
 import { projects } from "@/lib/projects";
+import { PERSON_ID, SITE_URL } from "@/lib/site";
+import JsonLd from "@/components/ui/JsonLd";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
@@ -18,6 +20,8 @@ const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).j
 export default function Home() {
   return (
     <>
+      {/* 告訴搜尋引擎「首頁就是這個人的個人檔案頁」，人名搜尋比較容易把首頁對上 layout 的 Person */}
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "ProfilePage", url: SITE_URL, mainEntity: { "@id": PERSON_ID } }} />
       <NavBar />
       <main>
         <HeroSection />

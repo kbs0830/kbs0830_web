@@ -34,6 +34,33 @@ function Switch-Slot($slot) {
     Start-ScheduledTask -TaskName "kbs0830_NextJS"
 }
 
+# IndexNow：網站內容跟上次部署比有變，就把 sitemap 裡的網址通知 Bing（ChatGPT 搜尋、Copilot
+# 用的就是 Bing 的索引）、Yandex 等，不用等它們自己來爬。Google 不支援 IndexNow，靠 sitemap。
+# 金鑰檔是 public/<key>.txt（搜尋引擎抓它來確認網站是我們的），換金鑰要兩邊一起換。
+# 要在 Update-ResumePdf 之前跑：它會更新 last-deployed-commit.txt。失敗只記 log。
+$indexNowKey = "9e53d4be27b74af07737c631c0d7721e"
+function Submit-IndexNow {
+    $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
+    try {
+        if (-not (Test-Path $lastFile)) { return }
+        $changed = git diff --name-only (Get-Content $lastFile -Raw).Trim() HEAD -- src content public
+        if (-not $changed) { return }
+        $sitemap = [xml](Invoke-WebRequest "https://kbs0830.com/sitemap.xml" -UseBasicParsing -TimeoutSec 15).Content
+        $urls = @($sitemap.urlset.url | ForEach-Object { $_.loc })
+        $body = @{
+            host        = "kbs0830.com"
+            key         = $indexNowKey
+            keyLocation = "https://kbs0830.com/$indexNowKey.txt"
+            urlList     = $urls
+        } | ConvertTo-Json
+        $resp = Invoke-WebRequest "https://api.indexnow.org/indexnow" -Method Post -Body $body `
+            -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 20
+        Log "IndexNow：已通知 $($urls.Count) 個網址（HTTP $($resp.StatusCode)）"
+    } catch {
+        Log "[WARN] IndexNow 通知失敗：$($_.Exception.Message)"
+    }
+}
+
 # public/resume.pdf 是 /resume 的列印快照，不會自己更新。內容來源跟上次部署比有變，
 # 就對剛上線的正式站重印一份（由 Publish-GeneratedFiles commit）。PDF 每次產生 bytes
 # 都不同，所以不能每次部署都印。失敗只記 log，不影響這次部署的結果。
@@ -143,6 +170,7 @@ try {
     }
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
+    Submit-IndexNow
     Update-ResumePdf
     Publish-GeneratedFiles
     $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"

@@ -6,6 +6,30 @@
 
 ---
 
+## 🔎 2026-11-04 — 讓 Google／AI 搜「李秉威」找得到網站
+
+網站這邊已做完（本名維持只放不可見資料，見 CLAUDE.md Key Constraints 1）：Person JSON-LD 加上
+各種拼法（李秉威／Li Ping-Wei／Ping-Wei Li）、大頭照、學歷；首頁標成 ProfilePage；`/llms.txt`；
+部署時自動用 IndexNow 通知 Bing。**剩下的效果主要靠站外，以下都要你自己的帳號：**
+
+- [ ] **GitHub 個人頁連回網站** 🙋 效果最大、最快
+  → 現況：GitHub 顯示名稱「LI,PING-WEI」、Website 欄位是空的，Google 沒辦法把 GitHub 跟網站連起來
+  → https://github.com/settings/profile → **Website 填 `https://kbs0830.com`**；Name 要不要加中文名你決定
+    （寫「李秉威 PINGWEI LI」會讓搜本名的人在 GitHub 找到你，再點進網站，但 GitHub 頁面上看得到本名）
+- [ ] **Facebook／Instagram 簡介放網站連結** 🙋（JSON-LD 的 `sameAs` 已經指向它們，雙向連結才完整）
+- [ ] **Google Search Console** 🙋：已註冊的話，用「網址審查」對 `https://kbs0830.com/` 按「要求建立索引」，
+  讓 Google 重新讀新的結構化資料；可用「複合式搜尋結果測試」確認 ProfilePage／Person 有被吃到
+- [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
+  → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
+- [ ] **Cloudflare 確認沒擋 AI 爬蟲** 🙋：Dashboard → kbs0830.com → Security → Bots（或 AI Crawl Control），
+  「Block AI bots／封鎖 AI 爬蟲」要是**關的**。開著的話 GPTBot、ClaudeBot 這些全被擋，`robots.txt` 寫允許也沒用
+- [ ] **確認履歷上的高中校名** 🙋：`/resume` 寫「市立中正高級工業職業學校 / **Taipei** Municipal Zhongzheng
+  Vocational High School」，中正高工是高雄市立的嗎？是的話英文要改成 Kaohsiung Municipal…（還沒改，等你確認；
+  確認後也可以把高中加進 JSON-LD 的 `alumniOf`）
+- 時間：Google 重新讀取通常要幾天到幾週；AI 搜尋多半是即時查 Bing／Google，跟著索引走
+
+---
+
 ## 🧭 2026-11-03 — 自動化／新技術候選清單（慢慢選，選好跟 Claude 說編號）
 
 背景：11/02 上線 `upgrade/2026-10` 時又踩到幾個「要有人剛好去看才會發現」的洞——CI build

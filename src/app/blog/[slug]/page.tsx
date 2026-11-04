@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
-import { SITE_URL } from "@/lib/site";
+import { PERSON_ID, SITE_URL } from "@/lib/site";
 import TagBadge from "@/components/ui/TagBadge";
 import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/ui/PageShell";
@@ -88,7 +88,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           datePublished: post.date,
           dateModified: post.date,
           url: `${SITE_URL}/blog/${post.slug}`,
-          author: { "@type": "Person", name: "PINGWEI LI", url: SITE_URL },
+          author: { "@type": "Person", "@id": PERSON_ID, name: "PINGWEI LI", url: SITE_URL },
         }}
       />
 
