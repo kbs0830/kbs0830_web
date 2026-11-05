@@ -404,7 +404,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     「Google Search Console 註冊」那項，需要你的 Google 帳號）
 
 - [ ] **Blog 持續累積（SEO 長尾主力）** 🙋 要有真的踩過的坑才寫
-  → 目前 3 篇。個人站被 Google 搜到的主力就是長尾技術關鍵字
+  → 目前 4 篇（2026-11-05 加「Task Scheduler 72 小時上限」）。個人站被 Google 搜到的主力就是長尾技術關鍵字
   → 題材庫（全部是真實發生過、CLAUDE.md／log 有記錄可展開的）：
     Tailwind v4 `[--var]`→`(--var)` 全站 116 處踩坑、Task Scheduler wrapper 孤兒 process、
     pnpm v11 native build 限制、PowerShell 5.1 無 BOM 的 Big5 parse error、

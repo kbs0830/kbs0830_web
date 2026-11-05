@@ -127,7 +127,6 @@ ${resumeSkillGroups.map((g) => `- **${g.label}**：${g.items.join("、")}`).join
 
 ${featured.map((p) => `- **[${p.titleZh}（${p.title}）](${mdUrl(`projects/${p.slug}`)})**：${p.descriptionZh}\n  成果：${p.highlightZh}`).join("\n")}
 
-PDF 版：${SITE_URL}/resume.pdf
 ${footer("resume")}`;
 }
 

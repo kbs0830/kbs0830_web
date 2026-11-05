@@ -511,7 +511,7 @@ deploy.bat
 - **手機閱讀（2026-11-05）**：作品篩選列在手機是一列橫向滑動（`.filter-scroll`，邊緣淡出）；作品卡片手機只顯示
   中文說明（英文 `hidden sm:block`，詳細頁仍完整）；文章／作品詳細頁／清單內文手機 15px、行距 1.8～1.9；
   文章程式碼區塊手機貼齊螢幕邊；獨立頁面（PageShell）有閱讀進度條；文章顯示估計閱讀時間（`blog.ts` 的 `readingMinutes`）
-- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（版本＝build 時 HEAD 的 commit 短 hash，連到 GitHub；最後更新＝該 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
+- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
@@ -605,13 +605,14 @@ deploy.bat
 - 中文主文，英文次之
 - Email + GitHub 按鈕（磁吸效果），Email 複製回饋（clipboard + 已複製！toast）
 - 沒有留言表單：曾做過 mailto 版，使用者覺得不需要已移除；見 `TODO.md` 中低優先「聯絡表單」
-- 「下載履歷」按鈕連到 `/resume.pdf`，見下方「履歷 PDF」章節
+- 「下載履歷」按鈕 **2026-11-05 依使用者要求先隱藏**（`ContactSection.tsx` 留了恢復方法），`/llms.txt`、Markdown 版也拿掉 PDF 連結；
+  `/resume` 頁面跟 `public/resume.pdf` 照舊（部署照常自動重印）
 
 ### 5. `/blog`（獨立頁面，非首頁 section）
 內容來源 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析，`src/lib/blog.ts` 讀取），
 `/blog` 列表頁 + `/blog/[slug]` 用 `next-mdx-remote/rsc` 渲染，`generateStaticParams` SSG。
-**文章內容必須是真的踩過的坑，不能編造**——目前 3 篇都是實際 debug 過程的記錄（Next.js
-`params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題）。新增文章前
+**文章內容必須是真的踩過的坑，不能編造**——目前 4 篇都是實際 debug 過程的記錄（Next.js
+`params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題、Task Scheduler 72 小時上限）。新增文章前
 先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的
 `Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
 但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。

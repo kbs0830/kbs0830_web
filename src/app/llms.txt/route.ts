@@ -33,7 +33,7 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 
 ## 其他頁面
 
-- [履歷](${SITE_URL}/resume)：學歷、技能、代表作品（PDF：${SITE_URL}/resume.pdf）
+- [履歷](${SITE_URL}/resume)：學歷、技能、代表作品
 - [現在在做什麼](${SITE_URL}/now)
 - [開發環境與工具](${SITE_URL}/uses)
 

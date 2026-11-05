@@ -1,17 +1,20 @@
 // Server Component；互動只有複製 Email（CopyEmailButton）跟磁吸效果（Magnetic）
+import type { ReactNode } from "react";
 import Magnetic from "@/components/ui/Magnetic";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import Underline, { underlineLinkClass } from "@/components/ui/Underline";
-import { DownloadIcon, FacebookIcon, GitHubIcon, InstagramIcon } from "@/components/ui/icons";
+import { FacebookIcon, GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
 import { EMAIL, FACEBOOK_URL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 
-const links = [
-  { href: "/resume.pdf", label: "下載履歷 · Resume", icon: <DownloadIcon />, download: true },
+// 「下載履歷 · Resume」按鈕 2026-11-05 依使用者要求先隱藏（public/resume.pdf 照常在部署時自動重印）。
+// 要恢復：把下面這行加回 links 最前面，並 import DownloadIcon
+//   { href: "/resume.pdf", label: "下載履歷 · Resume", icon: <DownloadIcon />, download: true },
+const links: { href: string; label: string; icon: ReactNode; download?: boolean }[] = [
   { href: GITHUB_URL, label: "GitHub", icon: <GitHubIcon size={15} /> },
   { href: FACEBOOK_URL, label: "Facebook", icon: <FacebookIcon /> },
   { href: INSTAGRAM_URL, label: "Instagram", icon: <InstagramIcon /> },

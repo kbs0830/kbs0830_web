@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getAllPosts, getPostBySlug } from "./blog";
 
-// 對著 content/blog/*.mdx 真實文章跑，不 mock fs——三篇文章目前 date 都相同
+// 對著 content/blog/*.mdx 真實文章跑，不 mock fs——最早三篇文章 date 都相同
 // （2026-07-17），正好覆蓋到 blog.ts 排序 comparator 對「相同日期」處理不嚴謹
 // 那次修正（改用 localeCompare 前会把其中一篇排到不一致的位置）。
 
