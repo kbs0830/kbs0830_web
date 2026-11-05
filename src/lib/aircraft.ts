@@ -1,6 +1,6 @@
 // 航班機型紀錄——自己維護的航迷小筆記，不是自動產生的資料。
 //
-// key 是航班代碼（要對應 AboutSection.tsx 的 visitedCountries[].flights 裡已經有的代碼，
+// key 是航班代碼（要對應 lib/flights.ts 的 FLIGHTS 裡已經有的代碼，
 // 打錯或打一個不存在的代碼不會報錯，只是網站上不會顯示出來）。
 // value 是機型，格式自由，想到什麼就填什麼，例如：
 //   "A350-900"
@@ -14,7 +14,7 @@ export const aircraftByFlight: Record<string, string> = {
   // "BR112": "A330-300",
 };
 
-// AboutSection.tsx 的足跡區塊用這個把航班代碼轉成「代碼(機型)」的顯示字串；
+// /flights 頁用這個把航班代碼轉成「代碼(機型)」的顯示字串；
 // 對照表裡查不到的代碼（還沒填、或打錯字）就照原樣顯示代碼本身，不會噴錯。
 export function formatFlightCode(code: string): string {
   const aircraft = aircraftByFlight[code];

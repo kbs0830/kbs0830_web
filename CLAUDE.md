@@ -549,10 +549,14 @@ deploy.bat
   （預設只展開第一組），每個技能 chip 內建 1–5 點細小圓點指示熟練度
 - **GitHub 貢獻熱力圖**：`ghchart.rshah.org/2d5a8e/kbs0830` 公開無需驗證的 contribution graph
   （白底 SVG，暗色模式下是白色卡片，屬已知取捨）
-- **足跡 · Footprint**：已到訪國家（日本／泰國／香港／美國）與規劃中（韓國／新加坡／
-  馬來西亞／越南），標題下有一行粗顆粒度統計（已到訪/規劃中國家數，不含日期）。
-  `AboutSection.tsx` 的 `visitedCountries[].flights` 是航班代碼清單（去識別化，只有代碼、
-  不含任何日期時間）。機型對照表獨立放在 `src/lib/aircraft.ts`（`aircraftByFlight: Record<string,
+- **足跡 · Footprint**：已到訪國家（日本／韓國／越南／泰國／香港／美國）與規劃中（新加坡／馬來西亞），
+  標題下有一行粗顆粒度統計（已到訪/規劃中國家數，不含日期），最下面連到 `/flights`。
+  **2026-11-05 航班明細搬到獨立頁 `/flights`**（使用者：「主角還是關於 code」），首頁只留國家跟城市。
+  航班資料在 `src/lib/flights.ts`（使用者提供的 byAir 匯出檔整理，**只留航班代碼＋起降機場**，日期／時間／座位／
+  訂位代碼／備註一律不放——有日期就拼得出行程；`flights.test.ts` 會擋日期時間格式混進來）。
+  `/flights` 頁：統計（航班／機場／航空公司／大圓距離）、`RouteMap.tsx` 東亞航線圖（Server Component 靜態 SVG、
+  沒有底圖、弧線用 CSS 畫出來）、航線（前 10 條，其餘 `<details>`）、機場、航空公司。排除的兩班：JX206（沒搭到）、
+  GK17（同日另有 UA837，使用者確認搭 UA837）。機型對照表獨立放在 `src/lib/aircraft.ts`（`aircraftByFlight: Record<string,
   string>`，代碼 → 機型），這是使用者自己維護的航迷小筆記，純靜態編譯進頁面（首頁是
   static prerender，改完要 build/push 才會生效，不是即時資料庫）。**資料本身沒有官方來源**，
   新增/修改機型一律要使用者親口告知對應的航班代碼，不要自己猜或編造機型。「代碼 →

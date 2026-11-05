@@ -78,33 +78,27 @@ export interface VisitedCountry {
   country: string;
   countryEn: string;
   cities: string[];
-  flights: string[];
 }
 
-// 機型對照表在 src/lib/aircraft.ts，自己維護的航迷小筆記，跟這裡的航班代碼分開放，
-// 方便之後只開那一個小檔案填機型，不用來這邊改。
+// 航班明細 2026-11-05 搬到 lib/flights.ts（/flights 頁），這裡只留國家跟城市。
+// 韓國、越南、札幌／名古屋／旭川／石垣是 2026-11-05 依使用者提供的飛行紀錄、經使用者確認後加上的。
 export const visitedCountries: VisitedCountry[] = [
   {
     flag: "🇯🇵",
     country: "日本",
     countryEn: "Japan",
-    cities: ["福岡", "大阪", "東京", "京都", "秋田", "沖繩"],
-    flights: [
-      "BR112", "BR119", "BR120", "BR147", "BR177", "BR183", "CI138", "EH430",
-      "GK12", "IT271", "IT700", "JL107", "JL130", "JL2174", "MM32", "MM859",
-      "NH289", "NH407", "NH462", "TR899",
-    ],
+    cities: ["福岡", "大阪", "東京", "京都", "札幌", "名古屋", "秋田", "旭川", "沖繩", "石垣"],
   },
-  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"], flights: ["BR61", "EK384"] },
-  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [], flights: ["BR858", "BR891", "CI936", "EK384"] },
-  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"], flights: ["UA2498", "UA871", "UA872"] },
+  { flag: "🇰🇷", country: "韓國", countryEn: "South Korea", cities: [] },
+  { flag: "🇻🇳", country: "越南", countryEn: "Vietnam", cities: ["河內"] },
+  { flag: "🇹🇭", country: "泰國", countryEn: "Thailand", cities: ["曼谷"] },
+  { flag: "🇭🇰", country: "香港", countryEn: "Hong Kong", cities: [] },
+  { flag: "🇺🇸", country: "美國", countryEn: "USA", cities: ["德州"] },
 ];
 
 export const planningCountries = [
-  { flag: "🇰🇷", country: "韓國", countryEn: "South Korea" },
   { flag: "🇸🇬", country: "新加坡", countryEn: "Singapore" },
   { flag: "🇲🇾", country: "馬來西亞", countryEn: "Malaysia" },
-  { flag: "🇻🇳", country: "越南", countryEn: "Vietnam" },
 ];
 
 export const timeline = [

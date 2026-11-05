@@ -6,7 +6,8 @@ import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 import Eyebrow from "@/components/ui/Eyebrow";
-import { formatFlightCode } from "@/lib/aircraft";
+import Link from "next/link";
+import { flightStats } from "@/lib/flights";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
@@ -214,11 +215,6 @@ export default function AboutSection() {
                       <span className={pill}>已到訪</span>
                     )}
                   </div>
-                  {c.flights.length > 0 && (
-                    <p className="sm:col-start-2 text-[10px] text-(--muted) font-light opacity-50 tracking-wide font-mono">
-                      {c.flights.map(formatFlightCode).join(" · ")}
-                    </p>
-                  )}
                 </div>
               ))}
             </div>
@@ -240,6 +236,13 @@ export default function AboutSection() {
               </div>
             </div>
           </div>
+          {/* 航班明細 2026-11-05 搬到獨立頁面：首頁的主角是程式，足跡只留國家跟城市 */}
+          <Link
+            href="/flights"
+            className="inline-block mt-8 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
+          >
+            飛行紀錄 · Flight Log（{flightStats().flights} 航班 · {flightStats().airports} 機場）→
+          </Link>
         </Reveal>
       </div>
     </section>

@@ -9,6 +9,7 @@ import { getAllPosts, getPostBySlug } from "./blog";
 import { skills, statusLines, timeline } from "./about";
 import { education, nowItems, resumeFeaturedSlugs, resumeRole, resumeSkillGroups, usesGroups } from "./page-content";
 import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
+import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
 
 const SITE_DESCRIPTION =
   "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
@@ -64,6 +65,7 @@ ${course.map(projectLine).join("\n")}
 - [部落格 · Blog](${mdUrl("blog")})
 - [現在在做什麼 · Now](${mdUrl("now")})
 - [開発環境 · Uses](${mdUrl("uses")})
+- [飛行紀錄 · Flight Log](${mdUrl("flights")})
 
 ## 連絡先 · Contact
 
@@ -151,6 +153,31 @@ ${usesGroups.map((g) => `## ${g.title}\n\n${g.items.map((i) => `- **${i.name}**�
 ${footer("uses")}`;
 }
 
+function flights() {
+  const s = flightStats();
+  return `# 飛行紀錄 · Flight Log
+
+航迷小筆記：搭過的航線、機場跟航空公司。只記航班代碼跟起降機場，不記日期。
+
+- 航班：${s.flights}
+- 機場：${s.airports}（${s.countries} 個國家／地區）
+- 航空公司：${s.airlines.length}
+- 總距離：約 ${s.km.toLocaleString("en-US")} km（約繞地球 ${s.earthLaps.toFixed(1)} 圈）
+
+## 航線 · Routes
+
+${routes().map((r) => `- ${AIRPORTS[r.a].name}（${r.a}）↔ ${AIRPORTS[r.b].name}（${r.b}）：${r.count} 次，${r.km} km——${r.codes.join("、")}`).join("\n")}
+
+## 機場 · Airports
+
+${airportsByCountry().map(([c, codes]) => `- **${c}**：${codes.map((x) => `${AIRPORTS[x].name}（${x}）`).join("、")}`).join("\n")}
+
+## 航空公司 · Airlines
+
+${s.airlines.map(([code, n]) => `- ${AIRLINES[code] ?? code}（${code}）：${n} 班`).join("\n")}
+${footer("flights")}`;
+}
+
 /** 所有有 Markdown 版的頁面路徑（不含開頭的 /；首頁是空字串） */
 export function markdownPaths(): string[] {
   return [
@@ -158,6 +185,7 @@ export function markdownPaths(): string[] {
     "resume",
     "now",
     "uses",
+    "flights",
     "blog",
     ...getAllPosts().map((p) => `blog/${p.slug}`),
     ...projects.map((p) => `projects/${p.slug}`),
@@ -175,6 +203,8 @@ export function renderMarkdown(path: string): string | null {
       return now();
     case "uses":
       return uses();
+    case "flights":
+      return flights();
     case "blog":
       return blogIndex();
   }

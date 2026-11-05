@@ -15,7 +15,7 @@ describe("Markdown for Agents", () => {
   it("所有作品、首頁、履歷、now、uses、blog 都有 Markdown 版", () => {
     const paths = markdownPaths();
     for (const p of projects) expect(paths).toContain(`projects/${p.slug}`);
-    for (const p of ["", "resume", "now", "uses", "blog"]) expect(paths).toContain(p);
+    for (const p of ["", "resume", "now", "uses", "flights", "blog"]) expect(paths).toContain(p);
   });
 
   it("每一頁的 Markdown 版都帶中文本名，AI 才對得上這個人（只有 AI 會讀，頁面上不顯示）", () => {

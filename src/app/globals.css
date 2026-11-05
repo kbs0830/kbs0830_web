@@ -213,6 +213,19 @@ details.disclosure[open]::details-content {
   to { scale: 1 1; }
 }
 
+/* /flights 航線圖：弧線第一次出現時從頭畫到尾（pathLength=1，所以 dash 用 1 就是整條）。
+   reduced-motion 不播，直接顯示完整線條 */
+@media (prefers-reduced-motion: no-preference) {
+  .route-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: route-draw 1.4s var(--ease-ma) forwards;
+  }
+}
+@keyframes route-draw {
+  to { stroke-dashoffset: 0; }
+}
+
 /* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
 @media (max-width: 639px) {
   .filter-scroll {
