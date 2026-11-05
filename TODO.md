@@ -10,12 +10,10 @@
 
 Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了。做完任何一項跟 Claude 說，會幫你回查再勾掉。
 
-1. [ ] **Bing：要求編製索引** 🔴 ChatGPT 搜尋、Copilot 靠 Bing，而 **Bing 從來沒收錄過這個網站**
-   → Bing Webmaster Tools 已從 GSC 匯入（11/05）。URL Inspection 顯示首頁「Discovered but not crawled」，
-     唯一一次抓取是 9/6 連不上（當時每 72 小時被砍＋舊 console 版 Tunnel），之後兩個月沒再來
-   → URL Inspection 輸入 `https://kbs0830.com/` → **Live URL** 測試 → 成功就按 **Request indexing**；
-     還是 Failed 就截圖給 Claude（可能是 Cloudflare 擋 Bingbot）
-   → 順便看左側 **IndexNow** 有沒有 11/04、11/05 的送出紀錄、**Sitemaps** 有沒有 `sitemap.xml`
+1. [x] **Bing：要求編製索引** → ✅ 2026-11-05 Live URL 測試＋Request indexing 完成
+   → 背景：Bing 從來沒收錄過（首頁「Discovered but not crawled」，唯一一次抓取 9/6 連不上）
+   → 🔜 **11/08 左右回查**：Bing 搜 `site:kbs0830.com` 有結果、或 URL Inspection 變成「Indexed」才算數；
+     還是沒收錄就把 URL Inspection 畫面給 Claude
 2. [ ] **Search Console：robots.txt 要求重新檢索** 🔴 Google 從 10/27 起完全沒來檢索
    → 設定 → robots.txt → `https://kbs0830.com/robots.txt`（停在 10/29「伺服器錯誤 (5xx)」）→ ⋮ →「要求重新檢索」
    → 網址審查 `https://kbs0830.com/` →「要求建立索引」
