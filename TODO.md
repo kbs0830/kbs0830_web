@@ -6,35 +6,56 @@
 
 ---
 
-## 🔎 2026-11-04 — 讓 Google／AI 搜「李秉威」找得到網站
+## 🙋 你的待辦（2026-11-05 整理，依重要性排序）
 
-網站這邊已做完（本名維持只放不可見資料，見 CLAUDE.md Key Constraints 1）：Person JSON-LD 加上
-各種拼法（李秉威／Li Ping-Wei／Ping-Wei Li）、大頭照、學歷；首頁標成 ProfilePage；`/llms.txt`；
-部署時自動用 IndexNow 通知 Bing。**剩下的效果主要靠站外，以下都要你自己的帳號：**
+Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了。做完任何一項跟 Claude 說，會幫你回查再勾掉。
 
-- [ ] **GitHub 個人頁連回網站** 🙋 效果最大、最快
-  → 現況：GitHub 顯示名稱「LI,PING-WEI」、Website 欄位是空的，Google 沒辦法把 GitHub 跟網站連起來
-  → https://github.com/settings/profile → **Website 填 `https://kbs0830.com`**；Name 要不要加中文名你決定
-    （寫「李秉威 PINGWEI LI」會讓搜本名的人在 GitHub 找到你，再點進網站，但 GitHub 頁面上看得到本名）
-- [ ] **Google Search Console** 🙋：已註冊的話，用「網址審查」對 `https://kbs0830.com/` 按「要求建立索引」，
-  讓 Google 重新讀新的結構化資料；可用「複合式搜尋結果測試」確認 ProfilePage／Person 有被吃到。
-  另外「網頁」報表裡 **伺服器錯誤 (5xx)** 跟 **找不到網頁 (404)** 兩列各點進去按「驗證修正」——
-  5xx 是 10 月每 72 小時被砍（11/02 已修）、10 月底 Tunnel 斷線，加上 `/blog/<不存在>` 回 500（11/05 修）；
-  sitemap 15 個網址 11/05 全部 200、www 301。404 那兩個是 `/api/`、`/_next/`，本來就不是頁面，驗證失敗不用理。
-  **設定 → robots.txt** 報表 `https://kbs0830.com/robots.txt` 停在 10/29「伺服器錯誤 (5xx)」：右邊 ⋮ →「要求重新檢索」。
-  （origin log 完全沒有 robots.txt 的錯誤，兩次都是 Cloudflare/Tunnel 那層斷；robots.txt 抓不到時 Google 會暫停檢索整站，
-  10/20 收錄 10→4 很可能就是這個。要讓 Tunnel 斷線會寄信，Email 告警的 Gmail 應用程式密碼要先設好）
-- [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
-  → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
-- [ ] **網域續約** 🙋：kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**。Dashboard → Domain Registration → Manage
-  確認 Auto-renew 開著、帳號信用卡到時候還有效（過期＝網站、Tunnel、Search Console 全斷）
-- [x] **Cloudflare 沒擋 AI 爬蟲**（2026-11-05 確認）：AI Crawl Control 近 7 天 BingBot 45、Googlebot 31、OpenAI 24、
-  Anthropic 23、Perplexity 17… 全部是 Allowed。之後想看 AI 爬蟲有沒有來：Dashboard → AI Crawl Control → Overview
-- [x] **履歷高中校名**（2026-11-05 使用者確認是高雄市立）：`/resume` 改成「高雄市立中正高級工業職業學校 /
-  **Kaohsiung** Municipal Zhongzheng Vocational High School」（原本誤寫 Taipei），JSON-LD `alumniOf` 加上高中
-- 時間：Google 重新讀取通常要幾天到幾週；AI 搜尋多半是即時查 Bing／Google，跟著索引走
+1. [ ] **Bing：要求編製索引** 🔴 ChatGPT 搜尋、Copilot 靠 Bing，而 **Bing 從來沒收錄過這個網站**
+   → Bing Webmaster Tools 已從 GSC 匯入（11/05）。URL Inspection 顯示首頁「Discovered but not crawled」，
+     唯一一次抓取是 9/6 連不上（當時每 72 小時被砍＋舊 console 版 Tunnel），之後兩個月沒再來
+   → URL Inspection 輸入 `https://kbs0830.com/` → **Live URL** 測試 → 成功就按 **Request indexing**；
+     還是 Failed 就截圖給 Claude（可能是 Cloudflare 擋 Bingbot）
+   → 順便看左側 **IndexNow** 有沒有 11/04、11/05 的送出紀錄、**Sitemaps** 有沒有 `sitemap.xml`
+2. [ ] **Search Console：robots.txt 要求重新檢索** 🔴 Google 從 10/27 起完全沒來檢索
+   → 設定 → robots.txt → `https://kbs0830.com/robots.txt`（停在 10/29「伺服器錯誤 (5xx)」）→ ⋮ →「要求重新檢索」
+   → 網址審查 `https://kbs0830.com/` →「要求建立索引」
+   → 「網頁」報表的 **伺服器錯誤 (5xx)** 按「驗證修正」（404 那列 11/05 已按；那兩個是 `/api/`、`/_next/`，
+     本來就不是頁面，驗證失敗不用理）
+   → 約一週後再匯出「檢索統計資料」：檢索次數回升、5xx 歸零＝恢復正常
+3. [ ] **Email 告警的 Gmail 應用程式密碼** 🔴 不設的話 Tunnel 斷線一樣沒人知道（10 月底斷 4 天就是這樣）
+   → otemon.pcwork@gmail.com 開「應用程式密碼」→ 桌機 `.env.local` 加 `ALERT_SMTP_USER`、`ALERT_SMTP_PASS`
+     （**不要貼進對話**）→ 跟 Claude 說，Claude 寄測試信。細節見下方 A2
+4. [ ] **GitHub 個人頁** 🟠 搜「李秉威」能不能找到網站，主要靠這個
+   → https://github.com/settings/profile：**URL** `https://kbs0830.com`、Social accounts 填 FB／IG、
+     Bio `学生開発者 · AI × Web｜高科大 智慧商務系｜YOLOv8・FastAPI・Next.js`、Location `Kaohsiung, Taiwan`
+   → Name 要不要加「李秉威」你決定（加了 GitHub 頁面看得到本名，但最能把本名跟網站連起來）
+   → 順手 pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`（見中優先「GitHub repo 品質」）
+5. [ ] **Facebook／IG 簡介放網站連結** 🟠
+6. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/05 實測仍未生效：`http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404
+   → Rules → Overview →「Redirect from HTTP to HTTPS」範本 → **Deploy**（或 SSL/TLS → Edge Certificates →
+     Always Use HTTPS 打開）。細節見下方 2026-10-15 那條
+7. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**
+   → Domain Registration → Manage：確認 Auto-renew 開著、帳號信用卡到時候還有效（過期＝整站全斷）
+8. [ ] **重開機不登入實測** 🟡 找一天重開機、不登入，用手機開 https://kbs0830.com 確認有起來
+9. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0% 但實際只斷約 4 天，監控本身設錯；也確認告警有寄出
+10. [ ] **備份上 GitHub**（之前說下次再決定）見下方 A5
 
----
+時間：Google／Bing 重新讀取要幾天到幾週；AI 搜尋多半即時查 Bing／Google，跟著索引走。
+
+### 2026-11-04～05 已完成（人名搜尋／AI 搜尋／索引健檢）
+- [x] 本名維持只放不可見資料（使用者 11/04 再次確認，見 CLAUDE.md Key Constraints 1）：Person JSON-LD 加上
+  李秉威／Li Ping-Wei／Ping-Wei Li 等拼法、大頭照、學歷（高科大＋中正高工）；首頁 ProfilePage；`/llms.txt`；
+  部署時自動 IndexNow 通知 Bing（11/04、11/05 都回 200/202）
+- [x] **`/blog/<不存在的網址>` 回 500 → 改成 404**（11/05）：排程工作沒設工作目錄，`blog.ts` 找不到
+  `content/blog`。掃描器打 `/blog/.env` 之類一直是 500，Search Console 的 5xx 有一部分是這個。`server.js` 啟動時 `chdir`
+- [x] **履歷高中校名**：原誤寫 Taipei → 「高雄市立中正高級工業職業學校 / Kaohsiung Municipal Zhongzheng Vocational
+  High School」，履歷 PDF 已自動重印。⚠️ 英文只換了城市名，學校官方英文名（Chung Cheng？Industrial？）要跟證書對的話再給 Claude
+- [x] **Cloudflare 沒擋 AI 爬蟲**：AI Crawl Control 近 7 天 BingBot 45、Googlebot 31、OpenAI 24、Anthropic 23、
+  Perplexity 17… 全部 Allowed。441 次 404 是掃描器（`/.env`、`/wp-login.php`）跟部署後的舊 JS chunk，不用處理。
+  Bot Preference Sync、Markdown for Agents（付費）維持關
+- [x] **Search Console 健檢結論**：收錄 10→4 頁、Google 10/27 起停止檢索，根因都是 10 月的斷線
+  （每 72 小時被砍 → 11/02 修；Tunnel 10/28 晚～11/01 斷 → 11/02 改服務）。origin log 沒有任何 robots.txt 錯誤，
+  兩次 robots.txt 5xx 都是 Tunnel 那層。11/05 sitemap 15 個網址全 200、www 301
 
 ## 🧭 2026-11-03 — 自動化／新技術候選清單（慢慢選，選好跟 Claude 說編號）
 
@@ -90,6 +111,10 @@
   → www 導向規則之前「以為存了其實沒存」；把 Redirect Rules、HTTP→HTTPS、擋掃描器的
     WAF 規則用 Cloudflare API 寫成腳本，部署時順便檢查還在不在
   → 一起解掉中優先的「Cloudflare 防火牆規則封鎖常見掃描路徑」
+
+- [ ] **B4. 自己做「Markdown for Agents」**｜⚙️ 可直接做（2026-11-05 加）
+  → Cloudflare 這個功能要 Pro 方案；網站可以自己判斷 `Accept: text/markdown`，部落格直接回 `.mdx` 原文、
+    作品／履歷頁轉成 Markdown，搭配 `/llms.txt`，AI 工具讀起來更省、更準。加分項，不是必要
 
 已確認不用做：Turbopack build 快取（Next 16.4 已預設開啟）、PPR（見下方評估）。
 
@@ -332,7 +357,7 @@ session、開機自動起整個站、自動備份」。實際查下去發現 9 �
 - [x] **GitHub Actions self-hosted runner 監控空缺**——2026-08-24 已實作，見下方
   「已完成」區塊
 
-- [ ] **Google Search Console 註冊＋提交 sitemap（SEO 起手式）** 🙋 需要你的 Google 帳號
+- [x] **Google Search Console 註冊＋提交 sitemap（SEO 起手式）** → ✅ 早已註冊（網域資源 `sc-domain:kbs0830.com`），2026-11-05 健檢見最上方
   → 目前完全不知道 Google 收錄了哪些頁、什麼關鍵字搜得到；GSC 是後續所有 SEO 動作的儀表板
   → 步驟：用 1394kbs@gmail.com 到 https://search.google.com/search-console 新增資源
     `kbs0830.com`（選 DNS 驗證，去 Cloudflare 加一筆 TXT 記錄即可）→ 提交
@@ -401,7 +426,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     的風險我不想在沒跟你確認前就引入，先維持現狀（Google Fonts 自動 unicode-range
     已經是合理的折衷）
 
-- [ ] **部署通知** → 程式已完成，見最上方 A2（等 Gmail 應用程式密碼）
+- [ ] **部署通知** → 程式已完成，見最上方「你的待辦」第 3 項／A2（等 Gmail 應用程式密碼）
   CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify，或直接寄 Email
   → 目前不知道遠端 build 有沒有炸
   → 若採 Email 通知，收件位址同上用 `otemon.pcwork@gmail.com`
