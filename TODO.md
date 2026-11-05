@@ -23,7 +23,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 3. [x] **Email 告警** → ✅ 2026-11-05 `.env.local` 設好 otemon 的應用程式密碼，測試信寄出成功（SMTP 驗證通過）
    → 之後網站掛掉／Tunnel 斷線／部署失敗都會寄到 otemon.pcwork@gmail.com；不想用了到
      https://myaccount.google.com/apppasswords 刪掉 `kbs0830 watchdog` 即失效
-4. [ ] **GitHub 個人頁** 🟠 搜「李秉威」能不能找到網站，主要靠這個
+4. [ ] *GitHub 個人頁*** 🟠 搜「李秉威」能不能找到網站，主要靠這個
    → https://github.com/settings/profile：**URL** `https://kbs0830.com`、Social accounts 填 FB／IG、
      Bio `学生開発者 · AI × Web｜高科大 智慧商務系｜YOLOv8・FastAPI・Next.js`、Location `Kaohsiung, Taiwan`
    → Name 要不要加「李秉威」你決定（加了 GitHub 頁面看得到本名，但最能把本名跟網站連起來）
