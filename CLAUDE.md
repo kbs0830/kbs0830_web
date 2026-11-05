@@ -632,6 +632,8 @@ deploy.bat
   `/_next/`、有副檔名的靜態資源、非 200、常見 bot UA 之後，把「國家」層級的次數累加寫進
   `data/visitor-stats.json`（`.gitignore`，只留在桌機本地，不進版控，跟 `logs/` 同等級）
 - **只存國家代碼＋次數，不存 IP、不存任何個人可識別資訊**
+- 沒有 `cf-ipcountry` header（沒經過 Cloudflare：CI E2E、本機測試、印履歷 PDF）的回報完全不寫入（2026-11-05 起，
+  之前記成 `XX`，累積 1037 筆假資料才發現）。跟 Web Vitals 同一條規則
 - `src/app/api/visitor-stats/route.ts` 讀這份 JSON 回傳彙總（total／countryCount／前 5 名），
   `src/components/ui/VisitorStats.tsx`（Footer）用 regional indicator symbol 公式把國碼即時轉成
   國旗 emoji 顯示，不需要維護國碼對照表

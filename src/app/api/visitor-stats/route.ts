@@ -39,8 +39,11 @@ export async function GET() {
 // 這樣混進來的 "TR" (土耳其) 假訪客。只有真的執行 JS 的瀏覽器才會打這支 POST，
 // 過濾掉絕大多數不執行 JS 的掃描器；User-Agent 檢查留著當第二道防線。
 export async function POST(req: NextRequest) {
+  // 沒有 cf-ipcountry ＝沒經過 Cloudflare（CI 的 E2E、本機測試、印履歷 PDF），不是訪客。
+  // 2026-11-05 之前這種請求會被記成 "XX"，資料檔裡累積了 1037 筆（GET 本來就不計 XX，所以沒顯示出來）。
+  // Cloudflare 自己認不出國家時也會送 "XX"，那種才留著。跟 /api/web-vitals 同一條規則。
   const ua = req.headers.get("user-agent") || "";
-  if (BOT_UA_PATTERN.test(ua)) {
+  if (!req.headers.get("cf-ipcountry") || BOT_UA_PATTERN.test(ua)) {
     return NextResponse.json(summarize(readStats()));
   }
 
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
   // 是單一 process、沒有 cluster」這兩個目前成立的前提。不要為了風格一致把
   // readFileSync/writeFileSync 改成 fs.promises 版本，也不要改成多 process 模式，
   // 除非同時把這段改成真正的原子操作（例如檔案鎖或換成資料庫）。
-  const country = (req.headers.get("cf-ipcountry") || "XX").toUpperCase();
+  const country = req.headers.get("cf-ipcountry")!.toUpperCase();
   const stats = readStats();
   stats[country] = (stats[country] || 0) + 1;
 

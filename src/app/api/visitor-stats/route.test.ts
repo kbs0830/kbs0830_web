@@ -68,7 +68,7 @@ describe("visitor-stats API route", () => {
     expect(body.total).toBe(0);
   });
 
-  it("沒有 cf-ipcountry header 時歸類成 XX，summarize 不計入 total/top", async () => {
+  it("沒有 cf-ipcountry header（沒經過 Cloudflare，例如 CI E2E）完全不寫入", async () => {
     const { POST, GET } = await import("./route");
     const req = new NextRequest("http://localhost/api/visitor-stats", {
       method: "POST",
@@ -76,6 +76,20 @@ describe("visitor-stats API route", () => {
     });
     await POST(req);
 
+    expect(fs.existsSync(statsFile)).toBe(false);
+    const body = await (await GET()).json();
+    expect(body.total).toBe(0);
+  });
+
+  it("Cloudflare 認不出國家送 XX 時有記錄，但 summarize 不計入 total/top", async () => {
+    const { POST, GET } = await import("./route");
+    const req = new NextRequest("http://localhost/api/visitor-stats", {
+      method: "POST",
+      headers: { "cf-ipcountry": "XX", "user-agent": "Mozilla/5.0" },
+    });
+    await POST(req);
+
+    expect(JSON.parse(fs.readFileSync(statsFile, "utf8"))).toEqual({ XX: 1 });
     const body = await (await GET()).json();
     expect(body.total).toBe(0);
     expect(body.countryCount).toBe(0);
