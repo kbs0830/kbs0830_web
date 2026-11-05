@@ -35,7 +35,7 @@ const skillGroups = [
 ];
 
 const featured = projects.filter((p) =>
-  ["foodlens-advisor", "ticketing-system", "frc-robot", "auto-following-robot"].includes(p.slug)
+  ["foodlens-advisor", "kbs0830-web", "ticketing-system", "frc-robot", "auto-following-robot"].includes(p.slug)
 );
 
 function ResumeSection({ title, children }: { title: string; children: ReactNode }) {

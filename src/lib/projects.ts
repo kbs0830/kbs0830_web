@@ -242,6 +242,80 @@ export const projects: Project[] = [
       context: "這是實體硬體競賽專案，沒有公開程式碼倉庫，技術細節整理自實際參賽的競賽作品說明書。",
     },
   },
+  {
+    // 數字全部有出處：CLAUDE.md（部署／監控／備份章節）、TODO.md、git log。改這裡之前先確認還是真的
+    slug: "kbs0830-web",
+    title: "kbs0830.com — This Site",
+    titleJa: "本サイト",
+    titleZh: "個人網站（本站）",
+    description:
+      "This site, self-hosted on a home desktop and exposed through Cloudflare Tunnel. Push-to-deploy with dual-slot builds and automatic rollback, a watchdog that restarts failed services and sends email alerts, and daily encrypted off-site backups.",
+    descriptionZh:
+      "就是你正在看的這個網站：不租雲端主機，跑在自己的桌機上，經 Cloudflare Tunnel 對外。push 即部署、健檢失敗自動退回，watchdog 每 5 分鐘巡檢並寄信告警，每日加密異地備份。",
+    tags: ["Next.js", "React", "TypeScript", "Cloudflare", "GitHub Actions", "PowerShell"],
+    github: "https://github.com/kbs0830/kbs0830_web",
+    highlight: "Deploy downtime 5–40 s → 1–2 s, with automatic rollback",
+    highlightZh: "部署停站 5～40 秒 → 1～2 秒，健檢失敗自動退回上一版",
+    status: "完成",
+    isPersonal: true,
+    detail: {
+      intro:
+        "這個網站本身。沒有租雲端主機，跑在家裡的桌機（i7-12700 + RTX 3070）上；家用網路封鎖了對外的 80／443 port，所以用 Cloudflare Tunnel 從桌機往外連。網頁之外，重點是「一個人維運」需要的自動化：部署、監控、告警、備份都不需要人守在旁邊。",
+      sections: [
+        {
+          heading: "架構",
+          headingEn: "Architecture",
+          body: [
+            "訪客 → Cloudflare（DNS、HTTPS、www 導向）→ Cloudflare Tunnel → 桌機上的 Next.js 16",
+            "自訂 Node.js server 包住 Next.js，負責 request／error log；開機由 Windows 工作排程器啟動，不需要登入",
+            "首頁四個區塊都是 Server Component，只有打字效果、3D 背景、作品篩選這類小互動才送 JavaScript 到瀏覽器",
+            "Hero 的 3D 背景用 Three.js + React Three Fiber，只在桌機寬度載入，手機完全不下載",
+          ],
+        },
+        {
+          heading: "部署",
+          headingEn: "Deploy",
+          body: [
+            "push 到 main → GitHub Actions self-hosted runner（就在同一台桌機）→ PowerShell 部署腳本",
+            "雙槽 build：新版本 build 到沒在線上的那一槽，build 失敗完全不影響線上；切換後檢查首頁與 JS 檔都正常，不正常就自動切回上一槽並寄信",
+            "停站時間從 5～40 秒降到 1～2 秒",
+            "部署成功後自動通知 Bing（IndexNow）；履歷內容有變就重新產生 PDF 並自動 commit",
+          ],
+        },
+        {
+          heading: "維運",
+          headingEn: "Operations",
+          body: [
+            "Watchdog 每 5 分鐘：檢查網站、CI runner 是否還活著，並從外網打一次確認 Tunnel 通；異常自動重啟，修不好寄信通知（同一件事 1 小時內只寄一封）",
+            "追過的真實問題：網站每 3 天準時掛一次。比對記憶體 log 排除了 memory leak，最後查到是 Windows 工作排程器預設「執行超過 72 小時強制停止」",
+            "每日備份不在 git 裡的設定與憑證：另一顆硬碟保留 30 份，另外用 AES-256 加密推到 GitHub 私有 repo，實際還原測試過",
+          ],
+        },
+        {
+          heading: "效能與品質",
+          headingEn: "Quality",
+          body: [
+            "拿掉動畫函式庫（改用 CSS、原生 <dialog>、React View Transitions）並改成 Server Components，手機首頁 JavaScript 從 225 KB 降到 170 KB",
+            "作品架構圖改在部署前用 Playwright 預先畫成 SVG，作品頁 JavaScript 從 2.8 MB 降到 565 KB",
+            "Lighthouse 無障礙／最佳實務／SEO 三項 100",
+            "自架訪客國家統計與真實訪客 Web Vitals：只存國家代碼和數值，不存 IP",
+            "Vitest 單元測試＋Playwright E2E；commit 前自動跑 ESLint 與型別檢查",
+          ],
+        },
+      ],
+      architectureDiagram: `flowchart TD
+  V["訪客"] --> CF["Cloudflare<br/>DNS／HTTPS"]
+  CF --> T["Cloudflare Tunnel"]
+  T --> S["桌機<br/>Next.js 16"]
+  P["git push"] --> R["GitHub Actions<br/>self-hosted runner"]
+  R --> D["部署腳本<br/>雙槽 build ＋ 健檢"]
+  D -->|"通過"| S
+  D -.失敗.-> RB["退回上一版＋寄信"]
+  W["Watchdog<br/>每 5 分鐘"] -.異常自動重啟.-> S
+  W -.外網檢查.-> CF
+  W --> B["每日備份<br/>另一顆硬碟＋GitHub 加密"]`,
+    },
+  },
 
   // ── 課程専題 ─────────────────────────────────
   {
