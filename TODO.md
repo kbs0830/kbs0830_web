@@ -20,9 +20,9 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
    → 「網頁」報表的 **伺服器錯誤 (5xx)** 按「驗證修正」（404 那列 11/05 已按；那兩個是 `/api/`、`/_next/`，
      本來就不是頁面，驗證失敗不用理）
    → 約一週後再匯出「檢索統計資料」：檢索次數回升、5xx 歸零＝恢復正常
-3. [ ] **Email 告警的 Gmail 應用程式密碼** 🔴 不設的話 Tunnel 斷線一樣沒人知道（10 月底斷 4 天就是這樣）
-   → otemon.pcwork@gmail.com 開「應用程式密碼」→ 桌機 `.env.local` 加 `ALERT_SMTP_USER`、`ALERT_SMTP_PASS`
-     （**不要貼進對話**）→ 跟 Claude 說，Claude 寄測試信。細節見下方 A2
+3. [x] **Email 告警** → ✅ 2026-11-05 `.env.local` 設好 otemon 的應用程式密碼，測試信寄出成功（SMTP 驗證通過）
+   → 之後網站掛掉／Tunnel 斷線／部署失敗都會寄到 otemon.pcwork@gmail.com；不想用了到
+     https://myaccount.google.com/apppasswords 刪掉 `kbs0830 watchdog` 即失效
 4. [ ] **GitHub 個人頁** 🟠 搜「李秉威」能不能找到網站，主要靠這個
    → https://github.com/settings/profile：**URL** `https://kbs0830.com`、Social accounts 填 FB／IG、
      Bio `学生開発者 · AI × Web｜高科大 智慧商務系｜YOLOv8・FastAPI・Next.js`、Location `Kaohsiung, Taiwan`
@@ -70,9 +70,9 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
   → 做法：桌機產生一把 ed25519 SSH key，你把公鑰加到 GitHub（Settings → SSH keys，
     或只給這個 repo 的 Deploy key + 寫入權限，範圍更小），remote 改成 SSH
   → 之後「改 → 測 → push → CI 部署 → 回查」整圈不用等人
-- [ ] **A2. 部署失敗／網站掛掉主動通知**｜🙋 需要你選管道
+- [x] **A2. 部署失敗／網站掛掉主動通知**｜🙋 需要你選管道
   → 2026-11-03 選 Email，程式已完成（`scripts/lib/notify.ps1`，接進 deploy/watchdog）。
-    🙋 剩：otemon 開應用程式密碼寫進 `.env.local`、測試寄信；UptimeRobot 監控設定要檢查
+    ✅ 2026-11-05 應用程式密碼設好、測試信寄出成功。🙋 剩：UptimeRobot 監控設定要檢查
     （10 月月報 0% uptime 但網站實際只斷 10/29–11/01 約 3 天，監控本身設錯）
   → 11/02 CI build 失敗是 Claude 剛好去翻 log 才發現；10 月斷線 4 天也沒人知道
   → 選項：Email 寄到 `otemon.pcwork@gmail.com`（要在該 Gmail 開「應用程式密碼」給 SMTP 用）
@@ -424,7 +424,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     的風險我不想在沒跟你確認前就引入，先維持現狀（Google Fonts 自動 unicode-range
     已經是合理的折衷）
 
-- [ ] **部署通知** → 程式已完成，見最上方「你的待辦」第 3 項／A2（等 Gmail 應用程式密碼）
+- [x] **部署通知** → ✅ 2026-11-05 生效，見最上方 A2
   CI/CD 成功／失敗時發 Discord Webhook 或 LINE Notify，或直接寄 Email
   → 目前不知道遠端 build 有沒有炸
   → 若採 Email 通知，收件位址同上用 `otemon.pcwork@gmail.com`
