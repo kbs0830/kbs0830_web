@@ -26,6 +26,8 @@
   10/20 收錄 10→4 很可能就是這個。要讓 Tunnel 斷線會寄信，Email 告警的 Gmail 應用程式密碼要先設好）
 - [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
   → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
+- [ ] **網域續約** 🙋：kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**。Dashboard → Domain Registration → Manage
+  確認 Auto-renew 開著、帳號信用卡到時候還有效（過期＝網站、Tunnel、Search Console 全斷）
 - [x] **Cloudflare 沒擋 AI 爬蟲**（2026-11-05 確認）：AI Crawl Control 近 7 天 BingBot 45、Googlebot 31、OpenAI 24、
   Anthropic 23、Perplexity 17… 全部是 Allowed。之後想看 AI 爬蟲有沒有來：Dashboard → AI Crawl Control → Overview
 - [x] **履歷高中校名**（2026-11-05 使用者確認是高雄市立）：`/resume` 改成「高雄市立中正高級工業職業學校 /
