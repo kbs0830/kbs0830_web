@@ -28,7 +28,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
      Bio `学生開発者 · AI × Web｜高科大 智慧商務系｜YOLOv8・FastAPI・Next.js`、Location `Kaohsiung, Taiwan`
    → Name 要不要加「李秉威」你決定（加了 GitHub 頁面看得到本名，但最能把本名跟網站連起來）
    → 順手 pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`（見中優先「GitHub repo 品質」）
-5. [ ] **Facebook／IG 簡介放網站連結** 🟠
+5. [ ] **IG 簡介放網站連結** 🟠（Facebook 11/05 起先隱藏，見下方「先隱藏的東西」）
 6. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/05 實測仍未生效：`http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404
    → Rules → Overview →「Redirect from HTTP to HTTPS」範本 → **Deploy**（或 SSL/TLS → Edge Certificates →
      Always Use HTTPS 打開）。細節見下方 2026-10-15 那條
@@ -40,6 +40,36 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
     解壓，跟 D: 那份逐檔相同。`BACKUP-KEY.txt` 使用者 11/05 確認已另存到桌機以外的地方
 
 時間：Google／Bing 重新讀取要幾天到幾週；AI 搜尋多半即時查 Bing／Google，跟著索引走。
+
+### 📌 先隱藏的東西（2026-11-05 使用者要求，之後想恢復跟 Claude 說）
+- **下載履歷按鈕**：首頁 Contact 拿掉；`/llms.txt`、Markdown 版也拿掉 PDF 連結。`/resume` 頁跟 `public/resume.pdf`
+  照舊在（部署照常自動重印），只是沒有入口。恢復方法寫在 `ContactSection.tsx` 註解
+- **Facebook**：Contact 連結、JSON-LD `sameAs` 都拿掉；`e2e/privacy.spec.ts` 會擋 facebook.com 連結（恢復時要一起改測試）
+- **頁尾版本號**：只留「最後更新 YYYY-MM-DD HH:mm」。版本（commit hash）還在 `next.config.ts` 的 env，`BuildInfo.tsx` 註解有說明
+
+### 💡 下次可以做（等你決定或提供素材）
+- 🙋 **定位一句話**：Hero 副標要不要改成「Full-stack Developer · AI × Web」（同步改 title／OG／JSON-LD jobTitle／履歷）
+- 🙋 **`/now` 更新**：內容從 7 月沒動過（還寫「維護 FoodLens 與活動報名系統」），告訴 Claude 現在在忙什麼；順便加「最後更新」日期
+- 🙋 **作品截圖**：FoodLens／日圓匯率／記帳系統（不要有真人臉、個資）
+- 🙋 **作品量化成果**：購票系統報名數、匯率系統整合幾家銀行…有真的數字才放
+- 🙋 **機型**：想記哪班的機型，加到 `src/lib/aircraft.ts`（`/flights` 會自動顯示）
+- ⚙️ **部落格草稿**（都是真實發生過的）：Tunnel 斷 4 天沒人發現、`/blog/.env` 回 500、VS Code 鎖住 `.next`、
+  訪客統計被 CI 灌 1037 筆。說「寫」就先寫草稿給你看
+- ⚙️ **RSS feed**（`/feed.xml`）、**每篇文章專屬 OG 分享圖**
+- 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
+
+### 2026-11-05 已完成（內容／手機／AI／備份）
+- [x] **網站本身加進作品集**（`/projects/kbs0830-web`）：自架、雙槽部署、watchdog、加密備份，數字全部有出處
+- [x] **部落格第 4 篇**〈網站每 72 小時準時掛掉：凶手是 Windows 工作排程器的預設值〉
+- [x] **Markdown for Agents**（TODO B4）：`Accept: text/markdown` 或網址加 `.md`；作品頁 HTML 155KB → 3.5KB
+- [x] **本名給 AI／爬蟲、不給人看**：JSON-LD、`/llms.txt`、Markdown 版有；畫面、title、description、分享卡片沒有。
+  `e2e/privacy.spec.ts` 每次 push 自動檢查
+- [x] **手機版**：Hero 改 Canvas 2D 輕量動畫（陀螺儀／手指互動、不載 three.js、捲走就停）、篩選列橫向滑動、
+  內文 15px、程式碼貼齊螢幕、閱讀進度條、文章閱讀時間。手機首頁高度 −13%
+- [x] **飛行紀錄獨立頁 `/flights`**：航線圖（靜態 SVG）、51 航班／23 機場／17 家航空、約 84,815 km。只留代碼＋機場，
+  不放日期。首頁足跡只留國家城市；韓國、越南改已到訪，日本加札幌／名古屋／旭川／石垣（使用者確認）
+- [x] **訪客統計**：沒經過 Cloudflare 的請求不再計入（之前 CI／本機被記成 XX，累積 1037 筆，已清掉）
+- [x] **備份**：GitHub 加密備份啟用＋還原實測；備份也收 Web Vitals 數據
 
 ### 2026-11-04～05 已完成（人名搜尋／AI 搜尋／索引健檢）
 - [x] 本名維持只放不可見資料（使用者 11/04 再次確認，見 CLAUDE.md Key Constraints 1）：Person JSON-LD 加上
