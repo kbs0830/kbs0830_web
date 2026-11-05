@@ -9,6 +9,8 @@
 ## 🙋 你的待辦（2026-11-05 整理，依重要性排序）
 
 Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了。做完任何一項跟 Claude 說，會幫你回查再勾掉。
+📬 **有日期的項目會自動寄提醒信到 otemon**（`reminders.json`）：11/06 Search Console、11/08 Bing 回查、11/09 週末小事、
+11/12 匯出檢索統計、11/18 Web Vitals（信裡附即時數據）、2027/04/18 網域續約。
 
 1. [x] **Bing：要求編製索引** → ✅ 2026-11-05 Live URL 測試＋Request indexing 完成
    → 背景：Bing 從來沒收錄過（首頁「Discovered but not crawled」，唯一一次抓取 9/6 連不上）

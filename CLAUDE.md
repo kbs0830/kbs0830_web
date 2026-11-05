@@ -400,6 +400,11 @@ Scheduler 任務：
 - 腳本是 Windows PowerShell 5.1 跑的：**不能用 `??`、`?.`、三元運算子**這些 PS 7 語法
 - 測試寄信：`powershell -NoProfile -Command ". .\scripts\lib\notify.ps1; Send-AlertMail -Subject 測試 -Body 測試"`
 
+**提醒信（2026-11-05，`scripts/reminders.ps1` ＋ repo 根目錄 `reminders.json`）**：使用者要「自動 mail 提醒」TODO 裡有日期的事。
+watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封到 otemon，每則只寄一次（`data/alerts/reminder-<id>.sent`），
+關機錯過會補寄；寄不出去不記已寄、下一輪再試。`check` 欄位在信裡附即時檢查：`web-vitals`（p75）、`http-redirect`
+（已生效就寫「不用做了」）。**TODO 新增有日期的使用者待辦時，順手在 `reminders.json` 加一筆**。實測過 S4U 身分寄得出去。
+
 **外網檢查（2026-11-03）**：localhost 健康時，watchdog 再從外網打一次 `https://kbs0830.com/`
 （30 秒內重試）。2026-10-29 那次是 origin 正常、Tunnel 斷 4 天，localhost 檢查完全看不出來。
 失敗只寄信（key `tunnel`），不自動重啟 Cloudflared：一般權限重啟不了服務，服務本身也有當機自動重啟。

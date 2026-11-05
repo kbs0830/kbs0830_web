@@ -1,0 +1,44 @@
+{
+  "_說明": "日期到了 watchdog（每 5 分鐘）就寄一封到 otemon.pcwork@gmail.com，每則只寄一次（寄過記在 data/alerts/reminder-<id>.sent）。桌機關機錯過的話，開機後補寄。time 沒寫＝09:00。check 會在信裡附上即時檢查結果：web-vitals（真實訪客速度 p75）、http-redirect（http 有沒有轉 https）。新增就加一筆、id 不要重複；改完 push，部署後生效。",
+  "reminders": [
+    {
+      "id": "2026-11-06-search-console",
+      "date": "2026-11-06",
+      "subject": "提醒：Search Console 三個按鈕（Google 從 10/27 沒來檢索）",
+      "body": "還沒做的話（TODO 第 2 項）：\n1. 設定 → robots.txt → https://kbs0830.com/robots.txt 右邊 ⋮ →「要求重新檢索」\n2. 網址審查輸入 https://kbs0830.com/ →「要求建立索引」\n3. 網頁報表「伺服器錯誤 (5xx)」→「驗證修正」\n\nhttps://search.google.com/search-console\n做完跟 Claude 說，它會勾掉 TODO。"
+    },
+    {
+      "id": "2026-11-08-bing",
+      "date": "2026-11-08",
+      "subject": "提醒：看 Bing 收錄了沒（ChatGPT 搜尋靠它）",
+      "body": "11/05 在 Bing Webmaster 按了 Request indexing，今天回查：\n- Bing 搜 site:kbs0830.com 有沒有結果\n- 或 https://www.bing.com/webmasters → URL Inspection 輸入 https://kbs0830.com/ 看是不是 Indexed\n\n還是「Discovered but not crawled」就把畫面給 Claude。"
+    },
+    {
+      "id": "2026-11-09-small-stuff",
+      "date": "2026-11-09",
+      "time": "10:00",
+      "check": "http-redirect",
+      "subject": "提醒：週末小事（HTTPS 導向、重開機測試、UptimeRobot）",
+      "body": "有空的話（都在 TODO「你的待辦」）：\n- Cloudflare HTTP→HTTPS 導向：Rules → Overview →「Redirect from HTTP to HTTPS」範本 → Deploy（下面有即時檢查結果，已生效就不用做）\n- 重開機不登入：重開機後不要登入，用手機開 https://kbs0830.com 確認有起來\n- UptimeRobot：10 月月報 0% 但實際只斷 4 天，監控設定要檢查\n- IG 簡介放網站連結"
+    },
+    {
+      "id": "2026-11-12-crawl-stats",
+      "date": "2026-11-12",
+      "subject": "提醒：匯出 Search Console 檢索統計（看 Google 回來了沒）",
+      "body": "Search Console → 設定 → 檢索統計資料 → 匯出，把資料夾路徑給 Claude。\n檢索次數回升、5xx 比例下降＝Google 恢復正常檢索。"
+    },
+    {
+      "id": "2026-11-18-web-vitals",
+      "date": "2026-11-18",
+      "check": "web-vitals",
+      "subject": "提醒：真實訪客速度兩週了，決定 Hero 動畫要不要改",
+      "body": "下面附上目前的真實訪客數據（p75）。Google 的及格線：LCP ≤ 2500ms、INP ≤ 200ms、CLS ≤ 0.1。\n首頁 LCP 及格＝Hero 進場動畫不用動；沒及格再跟 Claude 討論（TODO「首頁 LCP 決策點」）。\n樣本太少（n 很小）的話可以再等一陣子。"
+    },
+    {
+      "id": "2027-04-18-domain",
+      "date": "2027-04-18",
+      "subject": "提醒：kbs0830.com 網域 5/18 到期，確認會自動續約",
+      "body": "Cloudflare Dashboard → Domain Registration → Manage：\n- Auto-renew 是開的\n- 帳號的信用卡還有效\n網域過期＝網站、Tunnel、Search Console 全部斷掉。"
+    }
+  ]
+}

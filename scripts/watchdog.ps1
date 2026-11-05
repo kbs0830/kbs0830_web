@@ -117,4 +117,7 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
 # --- 每日備份（超過 24 小時沒成功備份才真的跑，失敗由 backup.ps1 自己寄信，不影響監控結果）---
 & (Join-Path $PSScriptRoot "backup.ps1") -IfOlderThanHours 24 | Out-Null
 
+# --- 提醒信（reminders.json 排的日期到了就寄，每則只寄一次；失敗不影響監控結果）---
+try { & (Join-Path $PSScriptRoot "reminders.ps1") | Out-Null } catch { Log "[WARN] reminders.ps1 失敗：$($_.Exception.Message)" }
+
 exit $exitCode
