@@ -5,6 +5,7 @@ import Magnetic from "@/components/ui/Magnetic";
 import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import HeroBackground from "@/components/sections/HeroBackground";
 import Typewriter from "@/components/sections/Typewriter";
+import HeroNameScramble from "@/components/sections/HeroNameScramble";
 
 const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProperties;
 
@@ -14,6 +15,7 @@ export default function HeroSection() {
   return (
     <section id="top" className="relative min-h-screen flex flex-col justify-center overflow-hidden">
       <HeroBackground />
+      <HeroNameScramble />
 
       {/* hero-parallax：往下捲時文字往上飄、慢慢淡出（globals.css，CSS scroll-driven，只有桌機） */}
       <div className="hero-parallax relative z-10 max-w-5xl mx-auto px-6 py-32">
@@ -21,7 +23,7 @@ export default function HeroSection() {
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
         </p>
 
-        {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次。不在載入時播——這是 LCP 元素 */}
+        {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次（HeroNameScramble）。不在載入時播——這是 LCP 元素 */}
         <h1
           data-scramble="hover"
           className="enter-up text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"

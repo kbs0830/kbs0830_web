@@ -25,22 +25,22 @@ test("About 分頁：預設顯示歷程，點擊／方向鍵可以切換，收�
   await expect(skillsPanel).toBeHidden();
 });
 
-// 桌機特效層（DesktopFX）：Playwright 的 Desktop Chrome 有滑鼠、寬螢幕，會啟用
-test("桌機特效：游標光圈在作品卡片上顯示「見る」", async ({ page }) => {
+// Hero 名字的滑鼠解碼效果（HeroNameScramble）：Playwright 的 Desktop Chrome 有滑鼠、寬螢幕，會啟用
+test("Hero 名字：滑鼠移上去先變亂碼，最後解回 PINGWEI LI", async ({ page }) => {
   await gotoReady(page, "/");
-  await expect(page.locator("html")).toHaveAttribute("data-fx", "");
-  const card = page.locator("#portfolio [data-fx-card]").first();
-  await card.scrollIntoViewIfNeeded();
-  await card.hover();
-  await expect(page.locator(".fx-cursor")).toHaveAttribute("data-state", "label");
-  await expect(page.locator(".fx-cursor-label")).toHaveText("見る");
+  const name = page.locator("h1");
+  await name.hover();
+  await expect(name).not.toHaveText("PINGWEI LI", { timeout: 500 });
+  await expect(name).toHaveText("PINGWEI LI");
 });
 
-test("prefers-reduced-motion 時完全不啟用桌機特效", async ({ browser }) => {
+test("prefers-reduced-motion 時名字不解碼", async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
   await gotoReady(page, "/");
-  await expect(page.locator(".fx-cursor")).toHaveCount(0);
-  await expect(page.locator("html")).not.toHaveAttribute("data-fx", "");
+  const name = page.locator("h1");
+  await name.hover();
+  await page.waitForTimeout(150);
+  await expect(name).toHaveText("PINGWEI LI");
   await context.close();
 });

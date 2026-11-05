@@ -9,7 +9,6 @@ import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Link from "next/link";
 import Tabs from "@/components/ui/Tabs";
-import SectionKanji from "@/components/ui/SectionKanji";
 import { flightStats } from "@/lib/flights";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
 
@@ -90,8 +89,6 @@ function TimelinePanel() {
   return (
     <div className="relative">
       <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--border)" />
-      {/* 捲動時沿著時間軸往下畫的強調色細線（globals.css .timeline-progress，純 CSS） */}
-      <div className="timeline-progress absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--accent) opacity-60" aria-hidden />
       <div className="space-y-6">
         {timeline.map((item, i) => (
           <TimelineItem key={item.year} item={item} index={i} />
@@ -203,8 +200,7 @@ function FootprintPanel() {
 
 export default function AboutSection() {
   return (
-    <section id="about" className="relative isolate overflow-hidden py-20 md:py-32 bg-(--surface)">
-      <SectionKanji text="自己紹介" />
+    <section id="about" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
           <Eyebrow className="mb-4">01 — About</Eyebrow>
@@ -245,7 +241,7 @@ export default function AboutSection() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div data-fx-card className="relative p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
+            <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
               <ul className="space-y-3 text-sm font-light">
                 {statusLines.map((line) => (

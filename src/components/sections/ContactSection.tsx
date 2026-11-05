@@ -7,7 +7,6 @@ import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import { GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
-import SectionKanji from "@/components/ui/SectionKanji";
 import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
@@ -24,8 +23,7 @@ const links: { href: string; label: string; icon: ReactNode; download?: boolean 
 
 export default function ContactSection() {
   return (
-    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-32 bg-(--surface)">
-      <SectionKanji text="連絡先" />
+    <section id="contact" className="py-20 md:py-32 bg-(--surface)">
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
           <Eyebrow className="mb-4">03 — Contact</Eyebrow>

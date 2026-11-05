@@ -48,6 +48,8 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
   照舊在（部署照常自動重印），只是沒有入口。恢復方法寫在 `ContactSection.tsx` 註解
 - **Facebook**：Contact 連結、JSON-LD `sameAs` 都拿掉；`e2e/privacy.spec.ts` 會擋 facebook.com 連結（恢復時要一起改測試）
 - **頁尾版本號**：只留「最後更新 YYYY-MM-DD HH:mm」。版本（commit hash）還在 `next.config.ts` 的 env，`BuildInfo.tsx` 註解有說明
+- **頁首以外的桌機特效**：游標光圈（卡片上變「見る」）、點擊漣漪、卡片聚光燈＋3D 傾斜、小標片假名解碼、
+  各區背景直書大字視差、時間軸捲動畫線。試完說「頁首就好」，程式在 commit `cdf68f9`，想要哪個跟 Claude 說
 
 ### 💡 下次可以做（等你決定或提供素材）
 - 🙋 **定位一句話**：Hero 副標要不要改成「Full-stack Developer · AI × Web」（同步改 title／OG／JSON-LD jobTitle／履歷）
@@ -61,9 +63,8 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 - 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
 
 ### 2026-11-05 已完成（內容／手機／AI／備份）
-- [x] **首頁分類＋桌機炫技**：About 的歷程／技能／活動／足跡改成分頁（首頁桌機 −19%、手機 −19%）；
-  桌機加游標光圈（卡片上變「見る」）、點擊漣漪、卡片聚光燈＋3D 傾斜、小標文字解碼、背景直書大字視差、
-  Hero 粒子被游標推開＋星座連線＋點擊衝擊波、時間軸細線跟著捲動畫出。手機完全不受影響
+- [x] **首頁分類＋桌機 Hero 互動**：About 的歷程／技能／活動／足跡改成分頁（首頁桌機、手機都 −19%）；
+  Hero 粒子被游標推開＋星座連線＋點擊衝擊波、名字滑鼠解碼、捲走時上飄淡出。手機完全不受影響
 - [x] **網站本身加進作品集**（`/projects/kbs0830-web`）：自架、雙槽部署、watchdog、加密備份，數字全部有出處
 - [x] **部落格第 4 篇**〈網站每 72 小時準時掛掉：凶手是 Windows 工作排程器的預設值〉
 - [x] **Markdown for Agents**（TODO B4）：`Accept: text/markdown` 或網址加 `.md`；作品頁 HTML 155KB → 3.5KB

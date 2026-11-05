@@ -12,7 +12,6 @@ import TagBadge from "@/components/ui/TagBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
 import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
-import SectionKanji from "@/components/ui/SectionKanji";
 
 const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
   a.localeCompare(b, "en")
@@ -28,13 +27,11 @@ function ProjectCard({
   // 淡入（Reveal 的 translate）跟 hover 上浮（卡片本身的 translate）分在兩層，互不覆蓋
   return (
     <Reveal distance={28} delay={index * 0.1} margin={60} className="flex">
-      {/* data-fx-card：桌機滑鼠聚光燈＋3D 微傾斜（DesktopFX + globals.css） */}
-      <div data-fx-card className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-5 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-5 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
         <Link
           href={`/projects/${project.slug}`}
           className="absolute inset-0 z-0 rounded-sm"
           aria-label={`查看「${project.titleZh}」詳情`}
-          data-cursor="見る"
         />
         <div className="absolute top-0 left-0 h-[2px] w-0 bg-(--accent) group-hover:w-full transition-all duration-500 rounded-t-sm" />
 
@@ -112,9 +109,8 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      {/* 一個字串（單一 text node），桌機的文字解碼效果才能套用 */}
-      <p data-scramble className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
-        {`${label} \u00a0·\u00a0 ${labelZh}`}
+      <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
+        {label} &nbsp;·&nbsp; {labelZh}
       </p>
     </Reveal>
   );
@@ -142,8 +138,7 @@ const groups: FilterGroup[] = [
 
 export default function PortfolioSection() {
   return (
-    <section id="portfolio" className="relative isolate overflow-hidden py-20 md:py-32">
-      <SectionKanji text="製作物" />
+    <section id="portfolio" className="py-20 md:py-32">
       <div className="max-w-5xl mx-auto px-6">
 
         {/* Title */}
