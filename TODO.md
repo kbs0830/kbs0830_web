@@ -26,8 +26,8 @@
   10/20 收錄 10→4 很可能就是這個。要讓 Tunnel 斷線會寄信，Email 告警的 Gmail 應用程式密碼要先設好）
 - [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
   → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
-- [ ] **Cloudflare 確認沒擋 AI 爬蟲** 🙋：Dashboard → kbs0830.com → Security → Bots（或 AI Crawl Control），
-  「Block AI bots／封鎖 AI 爬蟲」要是**關的**。開著的話 GPTBot、ClaudeBot 這些全被擋，`robots.txt` 寫允許也沒用
+- [x] **Cloudflare 沒擋 AI 爬蟲**（2026-11-05 確認）：AI Crawl Control 近 7 天 BingBot 45、Googlebot 31、OpenAI 24、
+  Anthropic 23、Perplexity 17… 全部是 Allowed。之後想看 AI 爬蟲有沒有來：Dashboard → AI Crawl Control → Overview
 - [x] **履歷高中校名**（2026-11-05 使用者確認是高雄市立）：`/resume` 改成「高雄市立中正高級工業職業學校 /
   **Kaohsiung** Municipal Zhongzheng Vocational High School」（原本誤寫 Taipei），JSON-LD `alumniOf` 加上高中
 - 時間：Google 重新讀取通常要幾天到幾週；AI 搜尋多半是即時查 Bing／Google，跟著索引走
