@@ -425,7 +425,9 @@ deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設�
 - D: 是另一顆實體硬碟（C: NVMe、D: Seagate HDD），C: 壞掉時本機備份還在
 - 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\Backups\kbs0830\BACKUP-KEY.txt`。
   **整台機器壞掉時兩份都會不見，使用者要另外存在密碼管理器**，不然 GitHub 那份解不開
-- GitHub 那份要等 `D:\Backups\kbs0830\github` 是 clone 才會啟用，沒有就只做本機（log 會寫）
+- GitHub 那份 2026-11-05 啟用：`D:\Backups\kbs0830\github` 是 clone，`core.sshCommand` 指定 Deploy key
+  `C:/Users/user/.ssh/kbs0830_backup_deploy`（只限這個 repo、有寫入權限）。不是 clone 時只做本機（log 會寫）。
+  啟用當天實測過 GitHub 下載 → 解密 → 解壓，跟 D: 那份逐檔相同
 - 本機那份完成就算「今天備份過」，GitHub 失敗只寄信、隔天再試（避免 watchdog 每 5 分鐘重跑、
   多出一堆本機資料夾把好的備份擠掉）
 - 還原 GitHub 那份（Git Bash，Git 內建 openssl）：
