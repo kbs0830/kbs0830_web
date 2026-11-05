@@ -24,6 +24,19 @@ export function usePrefersReducedMotion(): boolean {
   return useMediaQuery("(prefers-reduced-motion: reduce)") ?? false;
 }
 
+/** 目前主題的強調色（globals.css 的 --accent），切換深淺色時跟著變；server 端回傳 fallback。 */
+export function useAccentColor(fallback = "#2d5a8e"): string {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mo = new MutationObserver(onChange);
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      return () => mo.disconnect();
+    },
+    () => getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || fallback,
+    () => fallback,
+  );
+}
+
 /** 頁面是否已經捲過某個高度（px，或每次重新計算的函式，例如「一個視窗高」）。 */
 export function useScrolledPast(threshold: number | (() => number)): boolean {
   const limit = () => (typeof threshold === "function" ? threshold() : threshold);

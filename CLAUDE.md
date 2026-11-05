@@ -38,6 +38,8 @@
 - 間（Ma）— 留白即設計，不擠滿
 - 引き算 — 持續刪減到恰到好處
 - 動畫克制：gentle fade-in + Y-translate，不跳不彈
+- **例外：桌機特效層（2026-11-05 使用者要求「桌機多一點炫技」）**——只在寬螢幕＋滑鼠＋沒開減少動態時啟用，
+  手機／觸控／reduced-motion 完全不載入。一樣不跳不彈（彈簧阻尼夠大、沒有來回震盪），一樣只動 transform/opacity，見下方「動畫架構」
 - 3D 場景：稀疏細線 + 低密度粒子，慢速旋轉（非粒子爆炸）
 - 60fps 硬性目標
 
@@ -110,7 +112,7 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 | Section | Client island |
 |---|---|
 | Hero | `HeroBackground`（3D 場景載入）、`Typewriter`、`Magnetic` |
-| About | `Reveal`/`RevealHeading`、`SpotifyNowPlaying`；技能 accordion 是原生 `<details>`、時間軸展開是 CSS `:hover`/`:focus`，**零 JS** |
+| About | `Reveal`/`RevealHeading`、`SpotifyNowPlaying`、`Tabs`（只管顯示哪一頁，面板內容是 server 產生的 ReactNode）；技能 accordion 是原生 `<details>`、時間軸展開是 CSS `:hover`/`:focus`，**零 JS** |
 | Portfolio | `ProjectFilter`（只管 tag 篩選，卡片是 server 產生後當 ReactNode 傳進去） |
 | Contact | `CopyEmailButton`、`Magnetic` |
 
@@ -142,11 +144,19 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 | 彈窗 | `<Modal open onClose label>`（原生 `<dialog>` + `@starting-style`） | `components/ui/Modal.tsx` + `globals.css dialog.modal` |
 | 捲動進度條 | CSS `animation-timeline: scroll()` | `globals.css .scroll-progress` |
 | 讀 matchMedia / scrollY | `useMediaQuery` / `useScrolledPast`（`useSyncExternalStore`） | `lib/hooks.ts` |
+| 讀目前主題強調色（給 canvas／three.js 用） | `useAccentColor`（MutationObserver 看 `data-theme`） | `lib/hooks.ts` |
+| 分頁 | `<Tabs items label>`（ARIA tabs、←→ 換頁、沒選中的面板 `hidden="until-found"`：HTML 裡內容都在、Ctrl+F 找得到會自動切頁、列印全印） | `components/ui/Tabs.tsx` |
+| 桌機特效（游標光圈、點擊漣漪、卡片聚光燈＋3D 傾斜、文字解碼） | 加屬性就好：`data-fx-card`（卡片，要 `relative`）、`data-cursor="見る"`（加在連結上，游標變實心圓＋字）、`data-scramble`（單一 text node 的文字，捲進畫面解碼；`="hover"` 只在滑鼠移上去時播） | `components/ui/DesktopFX.tsx`（layout 掛一份）+ `globals.css` |
+| 捲動驅動（零 JS） | `.timeline-progress`（時間軸細線跟著捲動畫出來）、`.section-kanji`（`<SectionKanji>` 背景直書大字視差）、`.hero-parallax`（Hero 文字捲走時上飄淡出） | `globals.css` `@supports (animation-timeline: view())` |
 
 - `useRevealOnce` 直接在 DOM 加 `data-shown`，不走 React state，捲動時零 re-render
 - 全站唯一一條 easing 是 `--ease-ma`（`cubic-bezier(0.25, 0.1, 0.25, 1)`），Tailwind 用 `ease-(--ease-ma)`
 - `.enter-*` 的 fill-mode 是 `backwards`，不是 `both`：`both` 會在動畫結束後一直鎖住 opacity，
   之後同一個元素的 transition（例如 Konami 退場）就不會動
+- **桌機特效的地雷**：`data-scramble` 只改 text node 的 `nodeValue`（不換 node，React 之後照常更新），全形→片假名、
+  半形→英數，寬度不變才不會 CLS；**Hero 的 `<h1>` 是 LCP 元素，只能用 `="hover"`**，載入時改它的字會讓 LCP 重算。
+  `[data-fx-card]` 的規則沒包 layer，會蓋掉卡片上 Tailwind 的 `transition-*`，所以 `transition-property` 自己列齊。
+  `HeroScene` 的粒子狀態放 module 層級：React Compiler 不准改 `useMemo`／`useRef` 拿到的值，`useFrame` 又一定要每幀改
 - **`dialog.modal` 一定要留在 `@layer components` 裡**：沒包 layer 的 CSS 會壓過所有 Tailwind
   utility（`sm:max-w-xl` 失效）；而且 Tailwind preflight 會把 `<dialog>` 預設的置中 margin
   歸零，`margin: auto` 要自己補（第一版沒注意到，終端機跑到左上角、佔滿全寬）
@@ -207,7 +217,8 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 起完再確認 `OwningProcess` 是自己剛起的那個 PID。另外 CI 的 `e2e.yml` 也在這台桌機用 3100。
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
-`1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋。`TerminalMode.tsx` 的輸出區塊有一個
+`1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋、About 分頁（點擊／方向鍵切換、收起來的內容仍在 HTML）、
+桌機特效層（卡片上游標變「見る」、reduced-motion 時完全不啟用）、本名不在畫面上（`privacy.spec.ts`）。`TerminalMode.tsx` 的輸出區塊有一個
 `data-testid="terminal-output"`，純粹是給這批測試定位用的——輸出文字（例如「PINGWEI
 LI」）會跟 Hero/About 既有內容撞字，`getByText` 會抓到多個元素，用 testid 才能精準
 scope 到終端機自己的輸出。CI 是獨立的 `.github/workflows/e2e.yml`，push 到 main 時跟
@@ -528,6 +539,8 @@ deploy.bat
 - **Print 樣式**：`@media print` 隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
 
 ### 1. Hero
+- **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
+  Hero 捲出畫面 `frameloop="never"` 完全停畫。名字滑鼠移上去會解碼一次；底部「SCROLL」光點沿細線往下滑
 - 全螢幕 R3F 3D 背景：稀疏細線 + 靛藍粒子，慢速旋轉，隨游標位置微微傾斜（lerp 平滑，
   尊重 `prefers-reduced-motion`）。**`<Canvas>` 外面一定要包一層 `absolute inset-0` 的 div**：
   直接把 className 給 Canvas 會被它自己的 inline `position:relative; height:100%` 蓋掉，
@@ -544,6 +557,10 @@ deploy.bat
   到 CSS 漸層背景
 
 ### 2. About（自己紹介 · 關於我）
+- **2026-11-05 改成「上面介紹＋狀態卡，下面四個分頁」**（使用者：「分類好、不要太冗長」）：
+  歷程 Timeline／技能 Skills／開発活動 Activity／足跡 Footprint，用 `<Tabs>`。首頁桌機高度 7077→5732px、手機 8988→7320px。
+  新增 About 內容時放進對應分頁，不要再往分頁下面接新區塊
+- 首頁三區小標加編號 `01 — About`／`02 — Work`／`03 — Contact`，背景各有一個直書大字（自己紹介／製作物／連絡先，桌機才有）
 - 中文主文（高雄↔福岡生活、AI+Web 交叉點）＋ 英文補充說明，標題 scroll-triggered 逐字 reveal
 - **Status card**：現況（大二）、地點、交通運輸興趣、日語學習（N5 学習中）、開発環境
 - **Spotify 正在聽**（`SpotifyNowPlaying` 元件 ＋ `/api/spotify/now-playing` route）：見下方
@@ -778,6 +795,9 @@ kbs0830_web/
 │   │   │   ├── MermaidDiagram.tsx      # 架構圖的瀏覽器端備援（SVG 還沒畫好時才用）
 │   │   │   ├── WebVitals.tsx           # 回報真實訪客 Web Vitals（見「第三方整合」）
 │   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果（直接改 style.translate，不 re-render）
+│   │   │   ├── DesktopFX.tsx           # 桌機特效層：游標光圈／漣漪／卡片聚光燈／文字解碼（見「動畫架構」）
+│   │   │   ├── Tabs.tsx                # 分頁（About），面板 hidden="until-found"
+│   │   │   ├── SectionKanji.tsx        # 首頁各區背景直書大字（CSS 視差）
 │   │   │   ├── Reveal.tsx              # 捲動淡入（見「動畫架構」）
 │   │   │   ├── RevealHeading.tsx       # scroll-triggered 逐字 reveal 標題
 │   │   │   ├── Collapse.tsx            # 展開/收合

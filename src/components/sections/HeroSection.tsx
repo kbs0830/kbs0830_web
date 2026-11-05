@@ -15,12 +15,15 @@ export default function HeroSection() {
     <section id="top" className="relative min-h-screen flex flex-col justify-center overflow-hidden">
       <HeroBackground />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
+      {/* hero-parallax：往下捲時文字往上飄、慢慢淡出（globals.css，CSS scroll-driven，只有桌機） */}
+      <div className="hero-parallax relative z-10 max-w-5xl mx-auto px-6 py-32">
         <p className="enter-up text-xs tracking-[0.2em] sm:tracking-[0.35em] text-(--muted) mb-6 uppercase font-mono" style={enter(0.1)}>
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
         </p>
 
+        {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次。不在載入時播——這是 LCP 元素 */}
         <h1
+          data-scramble="hover"
           className="enter-up text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"
           style={enter(0.25)}
         >
@@ -63,7 +66,11 @@ export default function HeroSection() {
         className="enter-fade absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
         style={enter(1.2)}
       >
-        <div className="w-[1px] h-12 bg-(--border) animate-pulse" />
+        <span className="text-[10px] tracking-[0.4em] uppercase font-mono opacity-60">Scroll</span>
+        {/* 一顆小光點沿著細線往下滑（globals.css .scroll-cue） */}
+        <div className="relative w-[1px] h-12 bg-(--border) overflow-hidden">
+          <span className="scroll-cue absolute left-0 top-0 w-[1px] h-4 bg-(--accent)" />
+        </div>
       </div>
     </section>
   );

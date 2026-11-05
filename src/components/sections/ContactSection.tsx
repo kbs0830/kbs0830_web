@@ -7,6 +7,7 @@ import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import { GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
+import SectionKanji from "@/components/ui/SectionKanji";
 import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
@@ -23,10 +24,11 @@ const links: { href: string; label: string; icon: ReactNode; download?: boolean 
 
 export default function ContactSection() {
   return (
-    <section id="contact" className="py-20 md:py-32 bg-(--surface)">
+    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-32 bg-(--surface)">
+      <SectionKanji text="連絡先" />
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
-          <Eyebrow className="mb-4">Contact</Eyebrow>
+          <Eyebrow className="mb-4">03 — Contact</Eyebrow>
           <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl font-light text-(--text) mb-6 font-serif" />
           <p className="text-(--text) font-light text-[15px] max-w-md leading-relaxed mb-3">
             合作・技術交流、或只是一段有趣的対話——關於 AI、網頁、或任何好奇的事。
@@ -37,7 +39,7 @@ export default function ContactSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-5 sm:gap-8">
-            <CopyEmailButton email={EMAIL}className={linkClass} />
+            <CopyEmailButton email={EMAIL} className={linkClass} />
             {links.map(({ href, label, icon, download }) => (
               <Magnetic key={href}>
                 <a

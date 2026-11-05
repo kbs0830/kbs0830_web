@@ -1,12 +1,15 @@
 // Server Component：整個 section 在 server 產生 HTML，不進 client bundle。
-// 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）跟 <SpotifyNowPlaying>，
+// 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）、<SpotifyNowPlaying>、<Tabs>（只管顯示哪一頁），
 // 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
+// 2026-11-05：歷程／技能／活動／足跡原本一路往下排、整區很長，改成分頁（Tabs），面板內容照樣在 server 產生。
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Link from "next/link";
+import Tabs from "@/components/ui/Tabs";
+import SectionKanji from "@/components/ui/SectionKanji";
 import { flightStats } from "@/lib/flights";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
 
@@ -81,16 +84,134 @@ function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: numb
   );
 }
 
+const skillCount = skills.reduce((n, g) => n + g.items.length, 0);
+
+function TimelinePanel() {
+  return (
+    <div className="relative">
+      <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--border)" />
+      {/* 捲動時沿著時間軸往下畫的強調色細線（globals.css .timeline-progress，純 CSS） */}
+      <div className="timeline-progress absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--accent) opacity-60" aria-hidden />
+      <div className="space-y-6">
+        {timeline.map((item, i) => (
+          <TimelineItem key={item.year} item={item} index={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SkillsPanel() {
+  return (
+    <>
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6 font-mono">
+        <span className="inline-flex items-center">
+          <ProficiencyDots level={5} />
+          <span className="ml-1.5">熟練 Proficient</span>
+        </span>
+        <span className="inline-flex items-center">
+          <ProficiencyDots level={2} />
+          <span className="ml-1.5">学習中 Learning</span>
+        </span>
+      </p>
+      <div className="space-y-3 divide-y divide-(--border)">
+        {skills.map((group, i) => (
+          <SkillGroup key={group.category} group={group} defaultOpen={i === 0} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ActivityPanel() {
+  return (
+    <>
+      <div className="p-4 border border-(--border) rounded-sm bg-white overflow-x-auto">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://ghchart.rshah.org/2d5a8e/kbs0830"
+          alt="kbs0830 的 GitHub 貢獻熱力圖"
+          width={663}
+          height={104}
+          className="min-w-[640px] w-full h-auto"
+          loading="lazy"
+        />
+      </div>
+      <p className="text-[11px] text-(--muted) font-light mt-2 opacity-60 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
+    </>
+  );
+}
+
+function FootprintPanel() {
+  return (
+    <>
+      <p className="text-xs text-(--muted) font-light opacity-70 mb-8 font-mono">
+        已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
+      </p>
+      <div className="space-y-8">
+        <div className="space-y-4">
+          {visitedCountries.map((c) => (
+            <div key={c.country} className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start">
+              <div>
+                <p className={`${label} text-(--accent)`}>
+                  {c.flag} {c.countryEn}
+                </p>
+                <p className="text-xs text-(--muted) font-light mt-0.5">{c.country}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {c.cities.length > 0 ? (
+                  c.cities.map((city) => (
+                    <span key={city} className={`${pill} ${pillHover}`}>
+                      {city}
+                    </span>
+                  ))
+                ) : (
+                  <span className={pill}>已到訪</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-(--border)">
+          <div>
+            <p className={`${label} text-(--muted)`}>Planning</p>
+            <p className="text-xs text-(--muted) font-light mt-0.5 opacity-70">規劃中</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {planningCountries.map((c) => (
+              <span
+                key={c.country}
+                className="px-3 py-1 text-xs font-light text-(--muted) border border-dashed border-(--border) rounded-sm tracking-wide opacity-70 cursor-default"
+              >
+                {c.flag} {c.country}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* 航班明細 2026-11-05 搬到獨立頁面：首頁的主角是程式，足跡只留國家跟城市 */}
+      <Link
+        href="/flights"
+        className="inline-block mt-8 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
+      >
+        飛行紀錄 · Flight Log（{flightStats().flights} 航班 · {flightStats().airports} 機場）→
+      </Link>
+    </>
+  );
+}
+
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 md:py-32 bg-(--surface)">
+    <section id="about" className="relative isolate overflow-hidden py-20 md:py-32 bg-(--surface)">
+      <SectionKanji text="自己紹介" />
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
-          <Eyebrow className="mb-4">About</Eyebrow>
+          <Eyebrow className="mb-4">01 — About</Eyebrow>
           <RevealHeading text="自己紹介　·　關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
         </Reveal>
 
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-12 md:mb-20">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-14 md:mb-20">
           <Reveal delay={0.1}>
             <div className="space-y-5 font-light leading-relaxed text-[15px]">
               <div className="mb-6">
@@ -124,7 +245,7 @@ export default function AboutSection() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
+            <div data-fx-card className="relative p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
               <ul className="space-y-3 text-sm font-light">
                 {statusLines.map((line) => (
@@ -142,107 +263,15 @@ export default function AboutSection() {
         </div>
 
         <Reveal delay={0.2}>
-          <Eyebrow className="mb-8 mt-12">歷程 · Timeline</Eyebrow>
-        </Reveal>
-
-        <div className="relative mb-16">
-          <div className="absolute left-[72px] top-2 bottom-2 w-[1px] bg-(--border)" />
-          <div className="space-y-6">
-            {timeline.map((item, i) => (
-              <TimelineItem key={item.year} item={item} index={i} />
-            ))}
-          </div>
-        </div>
-
-        <Reveal delay={0.25}>
-          <Eyebrow className="mb-8">技能 · Skills</Eyebrow>
-          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6 font-mono">
-            <span className="inline-flex items-center">
-              <ProficiencyDots level={5} />
-              <span className="ml-1.5">熟練 Proficient</span>
-            </span>
-            <span className="inline-flex items-center">
-              <ProficiencyDots level={2} />
-              <span className="ml-1.5">学習中 Learning</span>
-            </span>
-          </p>
-          <div className="space-y-3 divide-y divide-(--border)">
-            {skills.map((group, i) => (
-              <SkillGroup key={group.category} group={group} defaultOpen={i === 0} />
-            ))}
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.28}>
-          <Eyebrow className="mb-6 mt-16">開発活動 · Activity</Eyebrow>
-          <div className="p-4 border border-(--border) rounded-sm bg-white overflow-x-auto">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://ghchart.rshah.org/2d5a8e/kbs0830"
-              alt="kbs0830 的 GitHub 貢獻熱力圖"
-              width={663}
-              height={104}
-              className="min-w-[640px] w-full h-auto"
-              loading="lazy"
-            />
-          </div>
-          <p className="text-[11px] text-(--muted) font-light mt-2 opacity-60 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
-        </Reveal>
-
-        <Reveal delay={0.3}>
-          <Eyebrow className="mb-2 mt-16">足跡 · Footprint</Eyebrow>
-          <p className="text-xs text-(--muted) font-light opacity-70 mb-8 font-mono">
-            已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
-          </p>
-          <div className="space-y-8">
-            <div className="space-y-4">
-              {visitedCountries.map((c) => (
-                <div key={c.country} className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start">
-                  <div>
-                    <p className={`${label} text-(--accent)`}>
-                      {c.flag} {c.countryEn}
-                    </p>
-                    <p className="text-xs text-(--muted) font-light mt-0.5">{c.country}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {c.cities.length > 0 ? (
-                      c.cities.map((city) => (
-                        <span key={city} className={`${pill} ${pillHover}`}>
-                          {city}
-                        </span>
-                      ))
-                    ) : (
-                      <span className={pill}>已到訪</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-(--border)">
-              <div>
-                <p className={`${label} text-(--muted)`}>Planning</p>
-                <p className="text-xs text-(--muted) font-light mt-0.5 opacity-70">規劃中</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {planningCountries.map((c) => (
-                  <span
-                    key={c.country}
-                    className="px-3 py-1 text-xs font-light text-(--muted) border border-dashed border-(--border) rounded-sm tracking-wide opacity-70 cursor-default"
-                  >
-                    {c.flag} {c.country}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* 航班明細 2026-11-05 搬到獨立頁面：首頁的主角是程式，足跡只留國家跟城市 */}
-          <Link
-            href="/flights"
-            className="inline-block mt-8 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
-          >
-            飛行紀錄 · Flight Log（{flightStats().flights} 航班 · {flightStats().airports} 機場）→
-          </Link>
+          <Tabs
+            label="關於我的分類"
+            items={[
+              { key: "timeline", label: "歷程", labelEn: "Timeline", count: timeline.length, panel: <TimelinePanel /> },
+              { key: "skills", label: "技能", labelEn: "Skills", count: skillCount, panel: <SkillsPanel /> },
+              { key: "activity", label: "開発活動", labelEn: "Activity", panel: <ActivityPanel /> },
+              { key: "footprint", label: "足跡", labelEn: "Footprint", count: visitedCountries.length, panel: <FootprintPanel /> },
+            ]}
+          />
         </Reveal>
       </div>
     </section>

@@ -3,6 +3,7 @@ import { fontVariables } from "./fonts";
 import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
 import WebVitals from "@/components/ui/WebVitals";
+import DesktopFX from "@/components/ui/DesktopFX";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -98,6 +99,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <WebVitals />
         {children}
+        {/* 桌機才啟用的游標光圈／卡片聚光燈／文字解碼（手機、觸控、reduced-motion 什麼都不做） */}
+        <DesktopFX />
       </body>
     </html>
   );
