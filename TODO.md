@@ -16,9 +16,11 @@
   → 現況：GitHub 顯示名稱「LI,PING-WEI」、Website 欄位是空的，Google 沒辦法把 GitHub 跟網站連起來
   → https://github.com/settings/profile → **Website 填 `https://kbs0830.com`**；Name 要不要加中文名你決定
     （寫「李秉威 PINGWEI LI」會讓搜本名的人在 GitHub 找到你，再點進網站，但 GitHub 頁面上看得到本名）
-- [ ] **Facebook／Instagram 簡介放網站連結** 🙋（JSON-LD 的 `sameAs` 已經指向它們，雙向連結才完整）
 - [ ] **Google Search Console** 🙋：已註冊的話，用「網址審查」對 `https://kbs0830.com/` 按「要求建立索引」，
-  讓 Google 重新讀新的結構化資料；可用「複合式搜尋結果測試」確認 ProfilePage／Person 有被吃到
+  讓 Google 重新讀新的結構化資料；可用「複合式搜尋結果測試」確認 ProfilePage／Person 有被吃到。
+  另外「網頁」報表裡 **伺服器錯誤 (5xx)** 跟 **找不到網頁 (404)** 兩列各點進去按「驗證修正」——
+  5xx 是 10 月每 72 小時被砍（11/02 已修）、10 月底 Tunnel 斷線，加上 `/blog/<不存在>` 回 500（11/05 修）；
+  sitemap 15 個網址 11/05 全部 200、www 301
 - [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
   → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
 - [ ] **Cloudflare 確認沒擋 AI 爬蟲** 🙋：Dashboard → kbs0830.com → Security → Bots（或 AI Crawl Control），
