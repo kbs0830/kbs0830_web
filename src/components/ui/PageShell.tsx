@@ -26,6 +26,7 @@ export default function PageShell({
 }) {
   return (
     <div className={`min-h-screen bg-(--bg) px-6 py-20 ${printable ? "print:py-0 print:px-0" : ""}`}>
+      <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
       <div className={`max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
         <Link
           href={backHref}

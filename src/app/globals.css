@@ -213,6 +213,15 @@ details.disclosure[open]::details-content {
   to { scale: 1 1; }
 }
 
+/* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
+@media (max-width: 639px) {
+  .filter-scroll {
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
+  }
+  .filter-scroll::-webkit-scrollbar { display: none; }
+}
+
 /* 原生 <dialog>（<Modal>）：@starting-style 做進場、allow-discrete 讓 display/overlay
    等到退場動畫播完才切換，取代 framer 的 AnimatePresence。
    放在 @layer components：寬度/位置交給呼叫端的 Tailwind utility（w-full、sm:max-w-xl、

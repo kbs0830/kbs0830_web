@@ -9,6 +9,12 @@ const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   loading: () => <HeroSceneSkeleton />,
 });
 
+// 手機：Canvas 2D 的輕量版（見 HeroSceneLite），一樣是確定是手機才下載
+const HeroSceneLite = dynamic(() => import("@/components/canvas/HeroSceneLite"), {
+  ssr: false,
+  loading: () => <HeroSceneSkeleton />,
+});
+
 const SceneFallback = () => (
   <div className="absolute inset-0 bg-gradient-to-br from-(--bg) via-(--surface) to-(--bg)" />
 );
@@ -34,13 +40,17 @@ const HeroSceneSkeleton = () => (
   </div>
 );
 
-// Hero 背景：桌機載入 3D 場景，手機用 CSS 漸層。server 端還不知道是哪種裝置
-// （useMediaQuery 回傳 null）→ 先畫骨架屏，確定是桌機才觸發 three.js chunk 下載。
+// Hero 背景：桌機載入 three.js 3D 場景，手機載入 Canvas 2D 輕量版（不載 three.js）。server 端還不知道
+// 是哪種裝置（useMediaQuery 回傳 null）→ 先畫骨架屏，確定裝置後才下載對應的 chunk。
 export default function HeroBackground() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   if (isDesktop === null) return <HeroSceneSkeleton />;
-  if (!isDesktop) return <SceneFallback />;
+  if (!isDesktop) return (
+    <SceneErrorBoundary fallback={<SceneFallback />}>
+      <HeroSceneLite />
+    </SceneErrorBoundary>
+  );
   return (
     <SceneErrorBoundary fallback={<SceneFallback />}>
       <HeroScene />

@@ -16,7 +16,7 @@ export default function HeroSection() {
       <HeroBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32">
-        <p className="enter-up text-xs tracking-[0.35em] text-(--muted) mb-6 uppercase font-mono" style={enter(0.1)}>
+        <p className="enter-up text-xs tracking-[0.2em] sm:tracking-[0.35em] text-(--muted) mb-6 uppercase font-mono" style={enter(0.1)}>
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
         </p>
 
@@ -28,7 +28,7 @@ export default function HeroSection() {
         </h1>
 
         <p
-          className="enter-up text-base font-light text-(--accent) tracking-[0.25em] mb-8 min-h-[1.5em] font-mono"
+          className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-8 min-h-[1.5em] font-mono"
           style={enter(0.35)}
           aria-label={SUBTITLE_TEXT}
         >

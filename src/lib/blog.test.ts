@@ -36,3 +36,12 @@ describe("getPostBySlug", () => {
     expect(getPostBySlug("not-a-real-slug")).toBeUndefined();
   });
 });
+
+describe("readingMinutes", () => {
+  it("中文約 400 字一分鐘、程式碼區塊不算、最少 1 分鐘", async () => {
+    const { readingMinutes } = await import("./blog");
+    expect(readingMinutes("字".repeat(800))).toBe(2);
+    expect(readingMinutes("字".repeat(400) + "\n```ts\n" + "x ".repeat(5000) + "\n```")).toBe(1);
+    expect(readingMinutes("短")).toBe(1);
+  });
+});

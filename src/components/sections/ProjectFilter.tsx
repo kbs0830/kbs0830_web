@@ -25,7 +25,7 @@ export default function ProjectFilter({ tags, groups }: { tags: string[]; groups
       key={label}
       onClick={() => select(tag)}
       aria-pressed={activeTag === tag}
-      className={`px-3 py-1 text-[11px] font-light rounded-sm border tracking-wide transition-colors font-mono ${
+      className={`shrink-0 snap-start px-3 py-1.5 sm:py-1 text-[11px] font-light rounded-sm border tracking-wide transition-colors font-mono ${
         activeTag === tag
           ? "text-(--accent) border-(--accent) bg-(--accent-lt)"
           : "text-(--muted) border-(--border) bg-(--surface) hover:border-(--accent) hover:text-(--accent)"
@@ -37,7 +37,8 @@ export default function ProjectFilter({ tags, groups }: { tags: string[]; groups
 
   return (
     <>
-      <div className="flex flex-wrap gap-2 mb-10 md:mb-14">
+      {/* 手機：一列橫向滑動（左右邊緣淡出提示還有更多）；sm 以上照舊換行排滿 */}
+      <div className="filter-scroll flex gap-2 overflow-x-auto snap-x scroll-px-6 -mx-6 px-6 pb-1 sm:flex-wrap sm:overflow-visible sm:mx-0 sm:px-0 sm:pb-0 mb-10 md:mb-14">
         {chip("全部 · All", null)}
         {tags.map((tag) => chip(tag, tag))}
       </div>

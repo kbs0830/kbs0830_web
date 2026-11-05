@@ -27,7 +27,7 @@ function ProjectCard({
   // 淡入（Reveal 的 translate）跟 hover 上浮（卡片本身的 translate）分在兩層，互不覆蓋
   return (
     <Reveal distance={28} delay={index * 0.1} margin={60} className="flex">
-      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-5 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
         <Link
           href={`/projects/${project.slug}`}
           className="absolute inset-0 z-0 rounded-sm"
@@ -38,7 +38,7 @@ function ProjectCard({
         <div className="relative z-10 flex flex-col flex-1 pointer-events-none">
           {project.image && (
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
-              <div className="relative -mx-7 -mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
+              <div className="relative -mx-5 -mt-5 sm:-mx-7 sm:-mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
                 <Image
                   src={project.image}
                   alt={`${project.titleZh} 截圖`}
@@ -80,10 +80,10 @@ function ProjectCard({
           </div>
 
           {/* 中文說明（主） */}
-          <p className="text-[13px] font-light text-(--text) leading-relaxed mb-2">
+          <p className="text-sm sm:text-[13px] font-light text-(--text) leading-relaxed mb-2">
             {project.descriptionZh}
           </p>
-          <p className="text-[12px] font-light text-(--muted) leading-relaxed mb-4 opacity-60">
+          <p className="hidden sm:block text-[12px] font-light text-(--muted) leading-relaxed mb-4 opacity-60">
             {project.description}
           </p>
 
@@ -109,7 +109,7 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      <p className="text-xs tracking-[0.3em] text-(--accent) uppercase font-mono">
+      <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
         {label} &nbsp;·&nbsp; {labelZh}
       </p>
     </Reveal>

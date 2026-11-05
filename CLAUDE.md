@@ -508,6 +508,9 @@ deploy.bat
   IntersectionObserver 高亮目前 active section，行動端漢堡選單（drawer），深色模式切換
   （見上方「深色模式」章節）
 - **Scroll progress bar**：頂端 2px accent 細線
+- **手機閱讀（2026-11-05）**：作品篩選列在手機是一列橫向滑動（`.filter-scroll`，邊緣淡出）；作品卡片手機只顯示
+  中文說明（英文 `hidden sm:block`，詳細頁仍完整）；文章／作品詳細頁／清單內文手機 15px、行距 1.8～1.9；
+  文章程式碼區塊手機貼齊螢幕邊；獨立頁面（PageShell）有閱讀進度條；文章顯示估計閱讀時間（`blog.ts` 的 `readingMinutes`）
 - **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（版本＝build 時 HEAD 的 commit 短 hash，連到 GitHub；最後更新＝該 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
@@ -525,6 +528,9 @@ deploy.bat
   canvas 退回 150px 高——2026-11 才發現 3D 背景一直只佔畫面最上面一條
 - 只在桌機（≥768px）載入 3D 場景；server 端還不知道裝置時先畫骨架屏（`useMediaQuery` 回傳 `null`），
   手機不會下載 three.js chunk
+- **手機（2026-11-05）**：`HeroSceneLite.tsx`，同一個畫面語言改用 Canvas 2D 自己做 3D 投影（約 2KB、不載 three.js）。
+  手機傾斜（陀螺儀；iOS 要跳授權視窗所以不做）或手指滑過會微微轉。最多 30fps、捲出 Hero／切分頁完全停
+  （實測捲走後 2 秒 0 次繪製）、reduced-motion 只畫一張靜態圖、DPR 上限 2
 - 標題：`PINGWEI LI`（大字，無本名）
 - 副標：`学生開発者 · Claude × Gemini`，`useTypewriter` 逐字打字效果
 - CTA：`查看作品 · View Work` / `聯絡我 · Contact`（磁吸按鈕效果，滑鼠靠近微微吸引游標）

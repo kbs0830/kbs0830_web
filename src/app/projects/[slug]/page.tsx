@@ -96,7 +96,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       <ProjectHighlight project={project} className="text-[13px] mb-10" />
 
       {/* Intro */}
-      <p className="text-sm font-light text-(--text) leading-relaxed mb-4">
+      <p className="text-[15px] sm:text-sm font-light text-(--text) leading-[1.9] sm:leading-relaxed mb-4">
         {project.detail ? project.detail.intro : project.descriptionZh}
       </p>
       {!project.detail && (

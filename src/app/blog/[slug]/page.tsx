@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { getAllPosts, getPostBySlug, readingMinutes } from "@/lib/blog";
 import { PERSON_ID, SITE_URL } from "@/lib/site";
 import TagBadge from "@/components/ui/TagBadge";
 import JsonLd from "@/components/ui/JsonLd";
@@ -36,14 +36,14 @@ const mdxComponents = {
     <h3 className="text-base font-normal text-(--text) mt-8 mb-3" {...props} />
   ),
   p: (props: React.ComponentPropsWithoutRef<"p">) => (
-    <p className="text-sm font-light text-(--text) leading-relaxed mb-4" {...props} />
+    <p className="text-[15px] sm:text-sm font-light text-(--text) leading-[1.9] sm:leading-relaxed mb-5 sm:mb-4" {...props} />
   ),
   ul: (props: React.ComponentPropsWithoutRef<"ul">) => (
     <ul className="space-y-2 mb-4 pl-1" {...props} />
   ),
   li: (props: React.ComponentPropsWithoutRef<"li">) => (
-    <li className="flex items-start gap-3 text-sm font-light text-(--text)">
-      <span className="text-(--accent) mt-0.5 shrink-0">▸</span>
+    <li className="flex items-start gap-3 text-[15px] sm:text-sm leading-[1.8] sm:leading-normal font-light text-(--text)">
+      <span className="text-(--accent) mt-0.5 shrink-0" aria-hidden>▸</span>
       <span {...props} />
     </li>
   ),
@@ -55,7 +55,7 @@ const mdxComponents = {
   ),
   pre: (props: React.ComponentPropsWithoutRef<"pre">) => (
     <pre
-      className="text-[13px] p-4 rounded-sm bg-(--surface) border border-(--border) overflow-x-auto mb-5 [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
+      className="text-[12.5px] sm:text-[13px] leading-relaxed p-4 -mx-6 sm:mx-0 rounded-none sm:rounded-sm border-y sm:border-x bg-(--surface) border-(--border) overflow-x-auto mb-5 [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
       {...props}
     />
   ),
@@ -93,7 +93,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       />
 
       <p className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4 font-mono">
-        {post.date}
+        {post.date} · 約 {readingMinutes(post.content)} 分鐘
       </p>
       <h1 className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug font-serif">
         {post.title}

@@ -80,6 +80,8 @@ export default function RootLayout({
     <html
       lang="zh-Hant"
       className={`${fontVariables} h-full`}
+      // globals.css 對 html 開了 smooth scroll；加這個 Next 換頁時才不會「慢慢捲」回頂端
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
