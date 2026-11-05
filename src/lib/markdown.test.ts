@@ -18,10 +18,11 @@ describe("Markdown for Agents", () => {
     for (const p of ["", "resume", "now", "uses", "blog"]) expect(paths).toContain(p);
   });
 
-  it("Markdown 版是頁面的同一份可見內容，不能出現中文本名（CLAUDE.md Key Constraints 1）", () => {
+  it("每一頁的 Markdown 版都帶中文本名，AI 才對得上這個人（只有 AI 會讀，頁面上不顯示）", () => {
     for (const path of markdownPaths()) {
-      expect(renderMarkdown(path), path).not.toContain("李秉威");
+      expect(renderMarkdown(path), path).toContain("李秉威");
     }
+    expect(renderMarkdown("")!.split("\n")[0]).toBe("# PINGWEI LI（李秉威）");
   });
 
   it("有架構圖的作品把 Mermaid 原始碼放進 ```mermaid 區塊", () => {

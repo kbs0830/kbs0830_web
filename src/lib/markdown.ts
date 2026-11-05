@@ -2,7 +2,8 @@
 // 取得方式（next.config.ts 的 rewrites 轉到 app/md/[[...path]]/route.ts）：
 //   1. 同一個網址帶 `Accept: text/markdown`（Cloudflare 付費版的 Markdown for Agents 也是這個慣例）
 //   2. 網址後面加 `.md`：/projects/foodlens-advisor.md、首頁是 /index.md
-// 內容跟頁面上看得到的一致，只換格式——所以**不放中文本名**（本名只在 JSON-LD 與 /llms.txt，見 CLAUDE.md Key Constraints 1）
+// 內容跟頁面一致、只換格式；另外**加上中文本名**：這是只有 AI 工具會讀、人在網頁上看不到的地方，
+// 使用者 2026-11-05 確認「AI 跟爬蟲要找得到名字，只是不要顯示在網頁上」（CLAUDE.md Key Constraints 1）
 import { projects, type Project } from "./projects";
 import { getAllPosts, getPostBySlug } from "./blog";
 import { skills, statusLines, timeline } from "./about";
@@ -16,8 +17,10 @@ const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
 const mdUrl = (path: string) => `${SITE_URL}/${path || "index"}.md`;
 const htmlUrl = (path: string) => `${SITE_URL}${path ? `/${path}` : ""}`;
 
+const AUTHOR = "PINGWEI LI（李秉威，Li Ping-Wei）";
+
 function footer(path: string) {
-  return `\n---\n\n原始網頁：${htmlUrl(path)}\n`;
+  return `\n---\n\n作者：${AUTHOR}\n原始網頁：${htmlUrl(path)}\n`;
 }
 
 function projectLine(p: Project) {
@@ -27,9 +30,11 @@ function projectLine(p: Project) {
 function home() {
   const personal = projects.filter((p) => p.isPersonal);
   const course = projects.filter((p) => !p.isPersonal);
-  return `# PINGWEI LI
+  return `# PINGWEI LI（李秉威）
 
 > ${SITE_DESCRIPTION}
+
+也寫作 Li Ping-Wei、Ping-Wei Li；GitHub 帳號 kbs0830。這是本人的個人網站與作品集。
 
 ## 自己紹介 · About
 
@@ -107,7 +112,7 @@ ${footer(`blog/${slug}`)}`;
 
 function resume() {
   const featured = projects.filter((p) => resumeFeaturedSlugs.includes(p.slug));
-  return `# PINGWEI LI — 履歷 · Resume
+  return `# PINGWEI LI（李秉威）— 履歷 · Resume
 
 ${resumeRole}
 

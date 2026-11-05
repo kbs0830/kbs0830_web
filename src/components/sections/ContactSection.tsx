@@ -4,10 +4,10 @@ import Magnetic from "@/components/ui/Magnetic";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import Underline, { underlineLinkClass } from "@/components/ui/Underline";
-import { FacebookIcon, GitHubIcon, InstagramIcon } from "@/components/ui/icons";
+import { GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
-import { EMAIL, FACEBOOK_URL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
+import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 
@@ -16,7 +16,8 @@ const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 //   { href: "/resume.pdf", label: "下載履歷 · Resume", icon: <DownloadIcon />, download: true },
 const links: { href: string; label: string; icon: ReactNode; download?: boolean }[] = [
   { href: GITHUB_URL, label: "GitHub", icon: <GitHubIcon size={15} /> },
-  { href: FACEBOOK_URL, label: "Facebook", icon: <FacebookIcon /> },
+  // Facebook 2026-11-05 依使用者要求先隱藏；要恢復：加回這行並 import FacebookIcon、FACEBOOK_URL
+  //   { href: FACEBOOK_URL, label: "Facebook", icon: <FacebookIcon /> },
   { href: INSTAGRAM_URL, label: "Instagram", icon: <InstagramIcon /> },
 ];
 

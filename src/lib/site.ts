@@ -2,6 +2,7 @@
 export const SITE_URL = "https://kbs0830.com";
 export const EMAIL = "1394kbs@gmail.com";
 export const GITHUB_URL = "https://github.com/kbs0830";
+// 2026-11-05 起先不用（Contact 連結跟 JSON-LD sameAs 都拿掉了），恢復時從這裡引用
 export const FACEBOOK_URL = "https://www.facebook.com/tra0830";
 export const INSTAGRAM_URL = "https://www.instagram.com/pingwei_0830/";
 

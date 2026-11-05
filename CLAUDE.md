@@ -11,6 +11,7 @@
 | Display name | **PINGWEI LI**（頁面可見內容一律不顯示中文本名；本名「李秉威」只允許出現在 SEO 用的不可見結構化資料，見 Key Constraints 第 1 條） |
 | GitHub | kbs0830 |
 | Email（真人聯絡） | 1394kbs@gmail.com（Contact section／GitHub 上顯示的聯絡信箱） |
+| Facebook | 2026-11-05 起**先隱藏**：Contact 連結、JSON-LD `sameAs` 都拿掉（`e2e/privacy.spec.ts` 會擋有 facebook.com 連結）。恢復方法在 `ContactSection.tsx`／`layout.tsx` 註解 |
 | Email（自動通知專用） | otemon.pcwork@gmail.com（Uptime 監控、CI/CD 部署通知等系統自動寄信一律用這個，不要用上面那個真人信箱） |
 | Base | 高雄，台灣 🇹🇼 ↔ 福岡，日本 🇯🇵 |
 | Background | Python (FastAPI, Flask)、ML (YOLOv8, ONNX, Gemini)、Web (Next.js, React, TS) |
@@ -702,7 +703,7 @@ deploy.bat
 - Google 不支援 IndexNow，靠 sitemap＋Search Console
 - **Markdown for Agents（2026-11-05）**：Cloudflare 的同名功能要 Pro 方案，自己做。`next.config.ts` 的 `rewrites.beforeFiles`
   依 `Accept` header 或 `.md` 網址轉到 `/md/...`（靜態設定，不用 proxy，每個請求零成本），build 時全部預先產生。
-  內容＝頁面可見內容換格式，**不放本名**（`markdown.test.ts` 有測）。回應帶 `Vary: Accept` 跟指回 HTML 的
+  內容＝頁面可見內容換格式，**加上本名**（只有 AI 會讀；`markdown.test.ts` 確認每頁都有）。回應帶 `Vary: Accept` 跟指回 HTML 的
   `Link: rel="canonical"`；每頁 `<head>` 有 `<link rel="alternate" type="text/markdown">`（metadata 的 `alternates.types`，
   **新增頁面時跟 canonical 一起加**，再把路徑加進 `markdown.ts` 的 `markdownPaths()` 跟 `next.config.ts` 的 `pages`）。
   `/now`、`/uses`、`/resume` 的資料因此搬到 `lib/page-content.ts`（頁面跟 Markdown 共用）
@@ -837,9 +838,13 @@ kbs0830_web/
    目的是讓「李秉威」也搜得到這個網站。新增任何本名相關內容前，先確認它是不是使用者
    看得到的內容；只有「不可見、純給爬蟲讀」的欄位才能放本名。
    **2026-11-04 使用者再次確認維持這條**（問過要不要在 About／頁面標題露出本名來提升人名搜尋，
-   選了「只放不可見資料」）。目前放本名的地方：Person JSON-LD 的 `alternateName`、`/llms.txt`
-   （給 AI 讀、沒有站內連結）。已經跟使用者說明過：只靠不可見資料，Google 搜「李秉威」很難排上去，
-   主要靠站外連結（GitHub 個人頁等）補強——不要自己把本名加回頁面上
+   選了「只放不可見資料」）。**2026-11-05 使用者講得更明確：「AI 跟一般搜尋（爬蟲）找我的名字要找得到，
+   只是不要顯示在網頁上，人看不到的地方可以」**。目前放本名的地方：Person JSON-LD 的 `alternateName`、
+   `/llms.txt`、每一頁的 Markdown 版（`lib/markdown.ts`，標題跟頁尾「作者」行）。**不能放**：畫面上的任何文字、
+   `<title>`、meta description、OG／Twitter 卡片（這些會直接出現在搜尋結果或分享預覽裡給人看）。
+   `e2e/privacy.spec.ts` 會擋：主要頁面的可見文字／title／description 有本名就失敗、首頁 JSON-LD 沒本名也失敗。
+   已經跟使用者說明過：只靠不可見資料，Google 搜「李秉威」很難排上去，主要靠站外連結（GitHub 個人頁等）補強
+   ——不要自己把本名加回頁面上
 2. **語言**：中文優先，雙語格式 `中文 · English`
 3. **顏色**：`#2d5a8e` 是唯一強調色，用量克制
 4. **動畫**：subtle only，60fps，不跳不彈不閃

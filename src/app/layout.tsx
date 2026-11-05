@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { fontVariables } from "./fonts";
-import { EMAIL, FACEBOOK_URL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site";
+import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
 import WebVitals from "@/components/ui/WebVitals";
 import "./globals.css";
@@ -59,7 +59,8 @@ const jsonLd = {
         },
       ],
       knowsLanguage: ["zh-TW", "en", "ja"],
-      sameAs: [GITHUB_URL, FACEBOOK_URL, INSTAGRAM_URL],
+      // Facebook 2026-11-05 依使用者要求先拿掉（頁面上也隱藏了），要恢復一起加回來
+      sameAs: [GITHUB_URL, INSTAGRAM_URL],
       knowsAbout: ["Python", "FastAPI", "YOLOv8", "Next.js", "React", "TypeScript", "Machine Learning"],
     },
     {
