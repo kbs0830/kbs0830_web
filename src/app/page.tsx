@@ -13,6 +13,7 @@ import ContactSection from "@/components/sections/ContactSection";
 import { projects } from "@/lib/projects";
 import { PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
+import BuildInfo from "@/components/ui/BuildInfo";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
@@ -43,6 +44,7 @@ export default function Home() {
             >
               Blog
             </Link>
+            <BuildInfo className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70" />
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <LocalClock />

@@ -1,21 +1,13 @@
 import type { Metadata } from "next";
 import PageShell from "@/components/ui/PageShell";
 import BulletList from "@/components/ui/BulletList";
+import { nowItems } from "@/lib/page-content";
 
 export const metadata: Metadata = {
   title: "/now — PINGWEI LI",
   description: "現在在做什麼、在學什麼",
-  alternates: { canonical: "/now" },
+  alternates: { canonical: "/now", types: { "text/markdown": "/now.md" } },
 };
-
-const now = [
-  "就讀國立高科大 智慧商務系 二年級（燕巢）",
-  "持續建構這個個人網站，累積 side project",
-  "學習 React Three Fiber 進階、WebGL Shader",
-  "研究本地端 ML 推理（edge AI）與 Electron 打包部署",
-  "日本語 N5 学習中",
-  "維護 FoodLens Advisor 與活動報名系統兩個個人専案",
-];
 
 export default function NowPage() {
   return (
@@ -39,7 +31,7 @@ export default function NowPage() {
         </>
       }
     >
-      <BulletList items={now} className="space-y-4" />
+      <BulletList items={nowItems} className="space-y-4" />
     </PageShell>
   );
 }

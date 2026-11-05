@@ -7,7 +7,7 @@ import PageShell from "@/components/ui/PageShell";
 export const metadata: Metadata = {
   title: "技術部落格 · Blog — PINGWEI LI",
   description: "踩過的坑、學到的東西、對某個技術的想法。",
-  alternates: { canonical: "/blog" },
+  alternates: { canonical: "/blog", types: { "text/markdown": "/blog.md" } },
 };
 
 export default function BlogIndexPage() {

@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   title: "PINGWEI LI — 学生開発者 · Portfolio",
   description: "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。",
   metadataBase: new URL(SITE_URL),
-  alternates: { canonical: "/" },
+  // 子頁面自己宣告 alternates 會整個蓋掉這裡，所以這行的 Markdown 版只對首頁有效（各頁自己有寫）
+  alternates: { canonical: "/", types: { "text/markdown": "/index.md" } },
   openGraph: {
     title: "PINGWEI LI — Portfolio",
     description: "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。",

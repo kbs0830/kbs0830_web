@@ -37,6 +37,10 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 - [現在在做什麼](${SITE_URL}/now)
 - [開發環境與工具](${SITE_URL}/uses)
 
+## Markdown 版
+
+每一頁都有 Markdown 版：網址後面加 \`.md\`（首頁是 ${SITE_URL}/index.md），或請求時帶 \`Accept: text/markdown\`。
+
 ## 聯絡
 
 - Email：${EMAIL}

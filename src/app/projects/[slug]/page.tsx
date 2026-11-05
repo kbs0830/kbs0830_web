@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   return {
     title: `${project.titleZh} · ${project.title} — PINGWEI LI`,
     description: project.descriptionZh,
-    alternates: { canonical: `/projects/${project.slug}` },
+    alternates: { canonical: `/projects/${project.slug}`, types: { "text/markdown": `/projects/${project.slug}.md` } },
   };
 }
 

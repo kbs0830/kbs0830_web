@@ -68,7 +68,7 @@ function Update-ResumePdf {
     $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
     $head = (git rev-parse HEAD).Trim()
     try {
-        $sources = "src/app/resume", "src/lib/about.ts", "src/lib/projects.ts", "src/app/globals.css", "src/app/fonts.ts"
+        $sources = "src/app/resume", "src/lib/page-content.ts", "src/lib/about.ts", "src/lib/projects.ts", "src/app/globals.css", "src/app/fonts.ts"
         $changed = if (Test-Path $lastFile) { git diff --name-only (Get-Content $lastFile -Raw).Trim() $head -- $sources }
         if ($changed) {
             Log "resume 內容有變（$($changed -join ', ')），重新產生 public/resume.pdf"

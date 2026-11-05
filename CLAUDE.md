@@ -508,7 +508,7 @@ deploy.bat
   IntersectionObserver 高亮目前 active section，行動端漢堡選單（drawer），深色模式切換
   （見上方「深色模式」章節）
 - **Scroll progress bar**：頂端 2px accent 細線
-- **Footer**：`© 2026 PINGWEI LI` ＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
+- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（版本＝build 時 HEAD 的 commit 短 hash，連到 GitHub；最後更新＝該 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
@@ -682,6 +682,7 @@ deploy.bat
 | OG 分享圖 | `src/app/opengraph-image.tsx` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |
+| Markdown for Agents（每頁的 Markdown 版：`Accept: text/markdown` 或網址加 `.md`，首頁 `/index.md`） | `src/lib/markdown.ts` → `src/app/md/[[...path]]/route.ts`，轉址在 `next.config.ts` 的 `rewrites` |
 
 **人名搜尋／AI 搜尋（2026-11-04）**：
 - 所有 JSON-LD 的「人」都用同一個 `@id`（`lib/site.ts` 的 `PERSON_ID`），首頁 ProfilePage、文章 author
@@ -692,6 +693,12 @@ deploy.bat
 - ChatGPT 搜尋、Copilot 用 Bing 的索引 → IndexNow 讓 Bing 在部署後馬上知道；內容（`src`／`content`／
   `public`）跟上次部署比有變才送，送 sitemap 裡全部網址
 - Google 不支援 IndexNow，靠 sitemap＋Search Console
+- **Markdown for Agents（2026-11-05）**：Cloudflare 的同名功能要 Pro 方案，自己做。`next.config.ts` 的 `rewrites.beforeFiles`
+  依 `Accept` header 或 `.md` 網址轉到 `/md/...`（靜態設定，不用 proxy，每個請求零成本），build 時全部預先產生。
+  內容＝頁面可見內容換格式，**不放本名**（`markdown.test.ts` 有測）。回應帶 `Vary: Accept` 跟指回 HTML 的
+  `Link: rel="canonical"`；每頁 `<head>` 有 `<link rel="alternate" type="text/markdown">`（metadata 的 `alternates.types`，
+  **新增頁面時跟 canonical 一起加**，再把路徑加進 `markdown.ts` 的 `markdownPaths()` 跟 `next.config.ts` 的 `pages`）。
+  `/now`、`/uses`、`/resume` 的資料因此搬到 `lib/page-content.ts`（頁面跟 Markdown 共用）
 
 **⚠️ Google Search Console「網頁索引狀態」看到 `www.kbs0830.com` 404 是 DNS/Tunnel 層問題，
 不是這裡的 code 問題**——根因跟修法見上方「部署架構」章節那則 `www` DNS/Redirect Rule 說明，

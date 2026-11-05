@@ -3,40 +3,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { projects } from "@/lib/projects";
 import { EMAIL, GITHUB_URL } from "@/lib/site";
+import { education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@/lib/page-content";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 export const metadata: Metadata = {
   title: "履歷 · Resume — PINGWEI LI",
   description: "PINGWEI LI 履歷：教育背景、技能、作品集。",
-  alternates: { canonical: "/resume" },
+  alternates: { canonical: "/resume", types: { "text/markdown": "/resume.md" } },
 };
 
-const education = [
-  {
-    school: "國立高雄科技大學",
-    schoolEn: "National Kaohsiung University of Science and Technology",
-    program: "智慧商務系",
-    period: "2024 – 至今",
-  },
-  {
-    school: "高雄市立中正高級工業職業學校",
-    schoolEn: "Kaohsiung Municipal Zhongzheng Vocational High School",
-    program: "資訊科",
-    period: "2021 – 2024",
-  },
-];
-
-const skillGroups = [
-  { label: "AI / 機器学習", items: ["Python", "YOLOv8", "ONNX Runtime", "TensorFlow.js", "Gemini API", "OpenCV"] },
-  { label: "後端", items: ["FastAPI", "Flask", "REST API 設計", "Google Sheets API"] },
-  { label: "前端", items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Three.js / R3F"] },
-  { label: "工具", items: ["Git", "Jetson Nano", "Raspberry Pi", "Arduino", "丙級電腦硬體裝修"] },
-];
-
-const featured = projects.filter((p) =>
-  ["foodlens-advisor", "kbs0830-web", "ticketing-system", "frc-robot", "auto-following-robot"].includes(p.slug)
-);
+const featured = projects.filter((p) => resumeFeaturedSlugs.includes(p.slug));
 
 function ResumeSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -55,7 +32,7 @@ export default function ResumePage() {
           PINGWEI LI
         </h1>
         <p className="text-sm text-(--accent) font-light mb-3">
-          AI 工程師 · 網頁開發者 &nbsp;/&nbsp; AI Engineer · Web Developer
+          {resumeRole}
         </p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted) font-mono">
           <span>{EMAIL}</span>
@@ -82,7 +59,7 @@ export default function ResumePage() {
 
       <ResumeSection title="技能 · Skills">
         <div className="space-y-2">
-          {skillGroups.map((g) => (
+          {resumeSkillGroups.map((g) => (
             <div key={g.label} className="grid sm:grid-cols-[100px_1fr] gap-1 sm:gap-3">
               <p className="text-xs text-(--muted)">{g.label}</p>
               <p className="text-sm text-(--text)">{g.items.join("、")}</p>

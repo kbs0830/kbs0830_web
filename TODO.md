@@ -111,7 +111,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
     WAF 規則用 Cloudflare API 寫成腳本，部署時順便檢查還在不在
   → 一起解掉中優先的「Cloudflare 防火牆規則封鎖常見掃描路徑」
 
-- [ ] **B4. 自己做「Markdown for Agents」**｜⚙️ 可直接做（2026-11-05 加）
+- [x] **B4. 自己做「Markdown for Agents」** → ✅ 2026-11-05 完成（見 CLAUDE.md「SEO」）。作品頁 HTML 155KB → Markdown 3.5KB
   → Cloudflare 這個功能要 Pro 方案；網站可以自己判斷 `Accept: text/markdown`，部落格直接回 `.mdx` 原文、
     作品／履歷頁轉成 Markdown，搭配 `/llms.txt`，AI 工具讀起來更省、更準。加分項，不是必要
 
