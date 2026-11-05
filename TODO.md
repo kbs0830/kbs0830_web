@@ -23,7 +23,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 3. [x] **Email 告警** → ✅ 2026-11-05 `.env.local` 設好 otemon 的應用程式密碼，測試信寄出成功（SMTP 驗證通過）
    → 之後網站掛掉／Tunnel 斷線／部署失敗都會寄到 otemon.pcwork@gmail.com；不想用了到
      https://myaccount.google.com/apppasswords 刪掉 `kbs0830 watchdog` 即失效
-4. [ ] *GitHub 個人頁*** 🟠 搜「李秉威」能不能找到網站，主要靠這個
+4. [ ] **GitHub 個人頁** 🟠 搜「李秉威」能不能找到網站，主要靠這個（11/05 回查：URL、Location 已填 ✅；Bio、FB／IG 連結還沒）
    → https://github.com/settings/profile：**URL** `https://kbs0830.com`、Social accounts 填 FB／IG、
      Bio `学生開発者 · AI × Web｜高科大 智慧商務系｜YOLOv8・FastAPI・Next.js`、Location `Kaohsiung, Taiwan`
    → Name 要不要加「李秉威」你決定（加了 GitHub 頁面看得到本名，但最能把本名跟網站連起來）
@@ -36,7 +36,8 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
    → Domain Registration → Manage：確認 Auto-renew 開著、帳號信用卡到時候還有效（過期＝整站全斷）
 8. [ ] **重開機不登入實測** 🟡 找一天重開機、不登入，用手機開 https://kbs0830.com 確認有起來
 9. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0% 但實際只斷約 4 天，監控本身設錯；也確認告警有寄出
-10. [ ] **備份上 GitHub**（之前說下次再決定）見下方 A5
+10. [x] **備份上 GitHub** → ✅ 2026-11-05 私有 repo `kbs0830/kbs0830_backup` 啟用，第一次 push 後實測從 GitHub 下載→解密→
+    解壓，跟 D: 那份逐檔相同。🙋 確認 `BACKUP-KEY.txt` 已存到桌機以外的地方（密碼管理器）
 
 時間：Google／Bing 重新讀取要幾天到幾週；AI 搜尋多半即時查 Bing／Google，跟著索引走。
 
@@ -84,7 +85,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
   → 中優先的「零停機部署」也一併解掉大半（剩重啟那 1～2 秒）
 - [x] **A4. watchdog 從外網檢查（含 Tunnel）** → ✅ 2026-11-03 完成（只寄信，不自動重啟 Cloudflared）
   → 不做 `sc sdset` 授權：服務本身已設「當機自動重啟」，Tunnel 斷線多半要人看；少一個管理員步驟
-- [x] **A5. 自動備份** → ✅ 2026-11-03 本機（D:，30 份）已在跑；GitHub 加密備份 🙋 等你建 repo
+- [x] **A5. 自動備份** → ✅ 2026-11-03 本機（D:，30 份）；✅ 2026-11-05 GitHub 加密備份啟用、還原實測通過
   → 細節見 CLAUDE.md「自動備份」。🙋 剩：
     1. GitHub 建**私有** repo `kbs0830_backup`（空的，不要勾 README）
     2. 該 repo Settings → Deploy keys 加 `C:\Users\user\.ssh\kbs0830_backup_deploy.pub`，**勾寫入權限**
