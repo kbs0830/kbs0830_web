@@ -12,6 +12,11 @@ const http = require("http");
 const next = require("next");
 
 const projectDir = path.join(__dirname, "..");
+// Task Scheduler 的工作沒有設「開始位置」，process.cwd() 會是 C:\Windows\System32。
+// src/lib/blog.ts 用 process.cwd() 找 content/blog：已 prerender 的文章沒差，但不存在的
+// slug（掃描器亂打的 /blog/.env、/blog/wp-login.php）要即時渲染，readdirSync 找不到資料夾
+// → 500 而不是 404（2026-11-05 才發現，Search Console 的 5xx 也有一部分是這個）。
+process.chdir(projectDir);
 const logDir = path.join(projectDir, "logs");
 const logFile = path.join(logDir, "server.log");
 const MAX_LOG_BYTES = 5 * 1024 * 1024; // 5MB，超過就轉存成 .log.1
