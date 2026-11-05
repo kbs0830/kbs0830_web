@@ -414,7 +414,7 @@ Enable-ScheduledTask -TaskName "kbs0830_Watchdog"
 
 watchdog 每 5 分鐘呼叫一次 `backup.ps1 -IfOlderThanHours 24`，超過 24 小時沒成功備份才真的跑
 （不另開排程工作：建排程要管理員權限）。備份「不在 git 裡、壞了會真的不見」的東西：
-`.env.local`、`~/.cloudflared/`（tunnel 憑證）、`data/visitor-stats.json`、`.git/config`（push 設定）、
+`.env.local`、`~/.cloudflared/`（tunnel 憑證）、`data/visitor-stats.json`、`data/web-vitals.json`、`.git/config`（push 設定）、
 deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設定。
 
 | | 位置 | 格式 | 保留 |
