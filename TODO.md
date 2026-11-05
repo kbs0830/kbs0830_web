@@ -20,7 +20,10 @@
   讓 Google 重新讀新的結構化資料；可用「複合式搜尋結果測試」確認 ProfilePage／Person 有被吃到。
   另外「網頁」報表裡 **伺服器錯誤 (5xx)** 跟 **找不到網頁 (404)** 兩列各點進去按「驗證修正」——
   5xx 是 10 月每 72 小時被砍（11/02 已修）、10 月底 Tunnel 斷線，加上 `/blog/<不存在>` 回 500（11/05 修）；
-  sitemap 15 個網址 11/05 全部 200、www 301
+  sitemap 15 個網址 11/05 全部 200、www 301。404 那兩個是 `/api/`、`/_next/`，本來就不是頁面，驗證失敗不用理。
+  **設定 → robots.txt** 報表 `https://kbs0830.com/robots.txt` 停在 10/29「伺服器錯誤 (5xx)」：右邊 ⋮ →「要求重新檢索」。
+  （origin log 完全沒有 robots.txt 的錯誤，兩次都是 Cloudflare/Tunnel 那層斷；robots.txt 抓不到時 Google 會暫停檢索整站，
+  10/20 收錄 10→4 很可能就是這個。要讓 Tunnel 斷線會寄信，Email 告警的 Gmail 應用程式密碼要先設好）
 - [ ] **Bing Webmaster Tools** 🙋（ChatGPT 搜尋、Copilot 用 Bing 的索引）：https://www.bing.com/webmasters
   → 選「從 Google Search Console 匯入」最快，一鍵帶入網站跟 sitemap
 - [ ] **Cloudflare 確認沒擋 AI 爬蟲** 🙋：Dashboard → kbs0830.com → Security → Bots（或 AI Crawl Control），
