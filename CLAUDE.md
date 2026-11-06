@@ -683,6 +683,19 @@ deploy.bat
   這個檔案是 CommonJS，`eslint.config.mjs` 裡已經對 `scripts/**/*.js` 關掉
   `@typescript-eslint/no-require-imports`，不要因為 lint 錯誤誤以為要把它改寫成 ESM
 
+### 未過濾流量（2026-11-06，含 AI 爬蟲）
+- 使用者要「頁底加上沒清洗的瀏覽人數，包含 AI 等等的」。Footer 第二行：`未過濾 N 次 · 瀏覽器 · AI 爬蟲 · 搜尋引擎 · 其他機器人`，
+  滑鼠移上去（title）看統計起始日跟最常來的 5 個爬蟲
+- **跟上面「造訪」是兩套數字，不要合併**：造訪要瀏覽器執行 JS 才算（真人估計）；這份是 `scripts/server.js` 在
+  `res.on("finish")` 對每個頁面請求計數（`scripts/lib/raw-traffic.js` 的 `recordRawHit`），不執行 JS 的爬蟲才數得到
+- 依 UA 分類，AI 名單要先比（`Applebot-Extended` 是 AI、`Applebot` 是搜尋）；偽裝成 Chrome 的掃描器會算成「瀏覽器」，這是「未過濾」的本意
+- 不算的只有：沒 `cf-ipcountry`（localhost 健檢／測試）、UA 含 `WindowsPowerShell`（watchdog 每 5 分鐘從外網打首頁）、
+  Next 連結預先載入（`next-router-prefetch`）、`/_next/`、`/api/`、圖片字型等靜態資源
+- 資料 `data/raw-traffic.json`（gitignore、有進每日備份），只存分類次數＋爬蟲名稱次數，不存 IP／UA／網址。
+  `/api/visitor-stats` 回傳的 `raw` 欄位讀它（`RAW_TRAFFIC_FILE` 環境變數，server.js 設）。測試：`scripts/lib/raw-traffic.test.ts`
+  （vitest `include` 有加 `scripts/**/*.test.ts`）
+- 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
+
 ### 真實訪客 Web Vitals（2026-11-04，自架）
 - `components/ui/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
   FCP／TTFB，`sendBeacon` 送到 `/api/web-vitals`；作品／文章頁統一記成 `/projects/slug`、`/blog/slug`

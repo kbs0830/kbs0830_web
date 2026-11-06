@@ -12,6 +12,40 @@ const statsFile =
   process.env.VISITOR_STATS_FILE ||
   path.join(/* turbopackIgnore: true */ process.cwd(), "data", "visitor-stats.json");
 
+// 未過濾流量：scripts/server.js 對每個 request 計數（scripts/lib/raw-traffic.js），這裡只讀
+const rawTrafficFile =
+  process.env.RAW_TRAFFIC_FILE ||
+  path.join(/* turbopackIgnore: true */ process.cwd(), "data", "raw-traffic.json");
+
+export type RawTraffic = {
+  since: string;
+  total: number;
+  browser: number;
+  ai: number;
+  search: number;
+  bot: number;
+  /** 認得出名字的爬蟲，次數最多的前 5 個 */
+  topBots: [string, number][];
+};
+
+function readRawTraffic(): RawTraffic | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(rawTrafficFile, "utf8"));
+    const names = Object.entries((raw.names ?? {}) as Record<string, number>);
+    return {
+      since: String(raw.since ?? ""),
+      total: Number(raw.total) || 0,
+      browser: Number(raw.browser) || 0,
+      ai: Number(raw.ai) || 0,
+      search: Number(raw.search) || 0,
+      bot: Number(raw.bot) || 0,
+      topBots: names.sort((a, b) => b[1] - a[1]).slice(0, 5),
+    };
+  } catch {
+    return null;
+  }
+}
+
 const BOT_UA_PATTERN = /bot|spider|crawl|slurp|facebookexternalhit|preview|curl|wget|python-requests|axios|scrapy|headless/i;
 
 function readStats(): Record<string, number> {
@@ -26,7 +60,7 @@ function summarize(stats: Record<string, number>) {
   const entries = Object.entries(stats).filter(([code]) => code !== "XX");
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
   const top = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
-  return { total, countryCount: entries.length, top };
+  return { total, countryCount: entries.length, top, raw: readRawTraffic() };
 }
 
 export async function GET() {

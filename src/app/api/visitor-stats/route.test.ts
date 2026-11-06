@@ -10,22 +10,43 @@ import { NextRequest } from "next/server";
 // 不會互相污染、也不會動到 data/visitor-stats.json 這份正式資料。
 describe("visitor-stats API route", () => {
   let statsFile: string;
+  let rawFile: string;
 
   beforeEach(() => {
-    statsFile = path.join(os.tmpdir(), `visitor-stats-test-${Date.now()}-${Math.random()}.json`);
+    const id = `${Date.now()}-${Math.random()}`;
+    statsFile = path.join(os.tmpdir(), `visitor-stats-test-${id}.json`);
+    rawFile = path.join(os.tmpdir(), `raw-traffic-test-${id}.json`);
     process.env.VISITOR_STATS_FILE = statsFile;
+    process.env.RAW_TRAFFIC_FILE = rawFile;
     vi.resetModules();
   });
 
   afterEach(() => {
-    if (fs.existsSync(statsFile)) fs.unlinkSync(statsFile);
+    for (const f of [statsFile, rawFile]) if (fs.existsSync(f)) fs.unlinkSync(f);
     delete process.env.VISITOR_STATS_FILE;
+    delete process.env.RAW_TRAFFIC_FILE;
+  });
+
+  it("GET 帶出未過濾流量，爬蟲名稱依次數排序取前 5", async () => {
+    fs.writeFileSync(
+      rawFile,
+      JSON.stringify({
+        since: "2026-11-06", total: 20, browser: 5, ai: 9, search: 4, bot: 2,
+        names: { GPTBot: 2, ClaudeBot: 6, Googlebot: 4, PerplexityBot: 1, bingbot: 0, Amazonbot: 3 },
+      }),
+    );
+    const { GET } = await import("./route");
+    const body = await (await GET()).json();
+    expect(body.raw).toEqual({
+      since: "2026-11-06", total: 20, browser: 5, ai: 9, search: 4, bot: 2,
+      topBots: [["ClaudeBot", 6], ["Googlebot", 4], ["Amazonbot", 3], ["GPTBot", 2], ["PerplexityBot", 1]],
+    });
   });
 
   it("GET 在資料檔還不存在時回傳空統計，不會噴錯", async () => {
     const { GET } = await import("./route");
     const body = await (await GET()).json();
-    expect(body).toEqual({ total: 0, countryCount: 0, top: [] });
+    expect(body).toEqual({ total: 0, countryCount: 0, top: [], raw: null });
   });
 
   it("POST 依 cf-ipcountry 累加次數，GET 讀得到剛寫入的結果", async () => {

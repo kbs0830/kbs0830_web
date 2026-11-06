@@ -31,7 +31,8 @@ export default function Home() {
         <ContactSection />
       </main>
       <footer className="py-8 border-t border-(--border)">
-        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-between gap-2">
+        {/* 右下角固定的 BackToTop 按鈕會壓到內容（寬螢幕時在欄位外面，xl 以下才需要）——右側多留按鈕的寬度，不然頁底最後一行會被它蓋住 */}
+        <div className="max-w-5xl mx-auto pl-6 pr-20 xl:pr-6 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <p
               className="text-xs text-(--muted) font-light tracking-[0.2em] font-mono"
