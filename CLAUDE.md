@@ -568,7 +568,7 @@ deploy.bat
   新增 About 內容時放進對應分頁，不要再往分頁下面接新區塊
 - 首頁三區小標加編號 `01 — About`／`02 — Work`／`03 — Contact`
 - 中文主文（高雄↔福岡生活、AI+Web 交叉點）＋ 英文補充說明，標題 scroll-triggered 逐字 reveal
-- **Status card**：現況（大二）、地點、交通運輸興趣、日語學習（N5 学習中）、開発環境
+- **Status card**：現況（大三・20 歲；2026-11-06 使用者告知，學年／生日會過期，見 reminders.json）、地點、交通運輸興趣、日語學習（N5 学習中）、開発環境
 - **Spotify 正在聽**（`SpotifyNowPlaying` 元件 ＋ `/api/spotify/now-playing` route）：見下方
   「第三方整合」
 - **時間軸**（2021–2026）：per-item stagger 進場動畫，dot 依序出現，hover / click（含鍵盤

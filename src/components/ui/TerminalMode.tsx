@@ -19,7 +19,7 @@ const ABOUT_TXT = [
   "高雄 🇹🇼 ↔ 福岡 🇯🇵",
   "AI 工程師 · 網頁開發者",
   "日本語 N5 学習中",
-  "國立高雄科技大學 智慧商務系 二年級",
+  "國立高雄科技大學 智慧商務系 三年級 · 20 歲",
 ].join("\n");
 
 type Result = { type: "print"; text: string } | { type: "clear" } | { type: "exit" };

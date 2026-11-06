@@ -3,7 +3,7 @@
 // ⚠️ 改 resume 那幾段會觸發部署時重印 public/resume.pdf（deploy.ps1 的來源清單有這個檔案）
 
 export const nowItems = [
-  "就讀國立高科大 智慧商務系 二年級（燕巢）",
+  "就讀國立高科大 智慧商務系 三年級（燕巢）",
   "持續建構這個個人網站，累積 side project",
   "學習 React Three Fiber 進階、WebGL Shader",
   "研究本地端 ML 推理（edge AI）與 Electron 打包部署",

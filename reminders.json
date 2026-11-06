@@ -19,7 +19,7 @@
       "time": "10:00",
       "check": "http-redirect",
       "subject": "提醒：週末小事（HTTPS 導向、重開機測試、UptimeRobot）",
-      "body": "有空的話（都在 TODO「你的待辦」）：\n- Cloudflare HTTP→HTTPS 導向：Rules → Overview →「Redirect from HTTP to HTTPS」範本 → Deploy（下面有即時檢查結果，已生效就不用做）\n- 重開機不登入：重開機後不要登入，用手機開 https://kbs0830.com 確認有起來\n- UptimeRobot：10 月月報 0% 但實際只斷 4 天，監控設定要檢查\n- IG 簡介放網站連結"
+      "body": "有空的話（都在 TODO「你的待辦」）：\n- Cloudflare HTTP→HTTPS 導向：Rules → Overview →「Redirect from HTTP to HTTPS」範本 → Deploy（下面有即時檢查結果，已生效就不用做）\n- 重開機不登入：11/06 停電後已實測，全部自己起來（不用做了）\n- UptimeRobot：10 月月報 0% 但實際只斷 4 天，監控設定要檢查\n- IG 簡介放網站連結"
     },
     {
       "id": "2026-11-12-crawl-stats",
@@ -39,6 +39,12 @@
       "date": "2027-04-18",
       "subject": "提醒：kbs0830.com 網域 5/18 到期，確認會自動續約",
       "body": "Cloudflare Dashboard → Domain Registration → Manage：\n- Auto-renew 是開的\n- 帳號的信用卡還有效\n網域過期＝網站、Tunnel、Search Console 全部斷掉。"
+    },
+    {
+      "id": "2027-08-31-school-year",
+      "date": "2027-08-31",
+      "subject": "提醒：網站上的年級／年齡要更新（三年級 → 四年級）",
+      "body": "9 月開學就是大四了，網站上寫「三年級」「20 歲」的地方要改：\n- src/lib/about.ts 的 statusLines（首頁現況卡）\n- src/lib/page-content.ts 的 nowItems（/now）\n- src/components/ui/TerminalMode.tsx 的 ABOUT_TXT（終端機 cat about.txt）\n跟 Claude 說「升大四了，幾歲」它會一起改。"
     }
   ]
 }
