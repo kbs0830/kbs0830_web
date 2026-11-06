@@ -307,6 +307,11 @@ InteractiveToken（沒登入就不跑）；72 小時上限也還在（見下方 
 `Restart-Service` 會無限等，要 `taskkill /f /fi "SERVICES eq Cloudflared"` 再 `Start-Service`）；
 改 Runner 登入方式會把它停掉，要手動 `Start-ScheduledTask GitHubActionsRunner`，不然 push
 的部署會一直排隊。
+**2026-11-06 第一次真的冷開機驗證過**（停電後完整重開）：沒登入，NextJS／Runner 開機 20 秒內就起來，
+`Cloudflared` 是**延遲自動啟動**，開機約 2 分 20 秒才跑——這段期間 localhost 200、外網 530 是正常的，
+不要以為 Tunnel 壞了。整次停站約 3 分鐘。⚠️ 桌機開著「快速啟動」：開始選單的「關機」其實是半休眠，
+開機後 process 都是舊的、BootTrigger 不會觸發（`LastBootUpTime` 不變就是這種）；要完整關機用
+Shift＋關機、`shutdown /s /t 0` 或「重新啟動」。
 **⚠️ 這個 session（Claude Code）沒有管理員權限**，`Set-ScheduledTask`／`sc config` 都會
 Access denied——不要自己跑完就以為改好了，要請使用者用管理員視窗執行，跑完再用
 `schtasks /query /tn <name> /xml` 回查 Settings 真的有 `ExecutionTimeLimit>PT0S`。
