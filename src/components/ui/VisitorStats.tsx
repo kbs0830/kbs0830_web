@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { RawTraffic } from "@/app/api/visitor-stats/route";
+import type { CloudflareSummary } from "@/lib/cloudflare-analytics";
 
 function countryCodeToFlag(code: string) {
   if (!/^[A-Z]{2}$/.test(code)) return "🏳️";
@@ -14,6 +15,7 @@ interface VisitorStatsData {
   countryCount: number;
   top: [string, number][];
   raw: RawTraffic | null;
+  cloudflare: CloudflareSummary | null;
 }
 
 const n = (v: number) => v.toLocaleString("en-US");
@@ -31,7 +33,7 @@ export default function VisitorStats() {
   }, []);
 
   if (!stats) return null;
-  const { raw } = stats;
+  const { raw, cloudflare: cf } = stats;
 
   return (
     <>
@@ -39,6 +41,18 @@ export default function VisitorStats() {
         <p className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono">
           共 {stats.total} 次造訪 · 來自 {stats.countryCount} 國{" "}
           {stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}
+        </p>
+      )}
+      {/* Cloudflare：跟 dashboard 同一份數字，含快取直接回應、沒到主機的請求（lib/cloudflare-analytics.ts） */}
+      {cf && cf.total.pageViews > 0 && (
+        <p
+          className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono"
+          title={
+            `${cf.since} 起累計：訪客 ${n(cf.total.uniques)} · 頁面瀏覽 ${n(cf.total.pageViews)} · 請求 ${n(cf.total.requests)}` +
+            "\n訪客＝每天不重複 IP 加總（含機器人），每小時更新"
+          }
+        >
+          Cloudflare · 近 30 天 {n(cf.last30.uniques)} 訪客 · {n(cf.last30.pageViews)} 次瀏覽 · 累計 {n(cf.total.pageViews)} 次瀏覽
         </p>
       )}
       {/* 未過濾：server 端每個頁面請求都算，AI 爬蟲／搜尋引擎／掃描器都在裡面（scripts/lib/raw-traffic.js） */}

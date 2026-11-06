@@ -50,6 +50,7 @@ try {
     Copy-IfExists (Join-Path $repo "data\visitor-stats.json") (Join-Path $dest "data\visitor-stats.json")
     Copy-IfExists (Join-Path $repo "data\web-vitals.json") (Join-Path $dest "data\web-vitals.json")
     Copy-IfExists (Join-Path $repo "data\raw-traffic.json") (Join-Path $dest "data\raw-traffic.json")
+    Copy-IfExists (Join-Path $repo "data\cloudflare-daily.json") (Join-Path $dest "data\cloudflare-daily.json")
     Copy-IfExists (Join-Path $repo ".git\config") (Join-Path $dest "git\config")
     foreach ($name in "deploy.log", "watchdog.log", "backup.log") {
         Copy-IfExists (Join-Path $repo "logs\$name") (Join-Path $dest "logs\$name")

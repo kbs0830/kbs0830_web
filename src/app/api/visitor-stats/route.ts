@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
 
 // production 由 scripts/server.js 透過 VISITOR_STATS_FILE 傳絕對路徑進來，
 // 因為 Task Scheduler 啟動時的 process.cwd() 不保證是專案根目錄。
@@ -60,7 +61,9 @@ function summarize(stats: Record<string, number>) {
   const entries = Object.entries(stats).filter(([code]) => code !== "XX");
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
   const top = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
-  return { total, countryCount: entries.length, top, raw: readRawTraffic() };
+  // Cloudflare 的數字一小時更新一次，在背景跑、不等它（這次回應用檔案裡現有的）
+  void refreshCloudflareIfStale();
+  return { total, countryCount: entries.length, top, raw: readRawTraffic(), cloudflare: readCloudflareSummary() };
 }
 
 export async function GET() {

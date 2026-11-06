@@ -696,6 +696,20 @@ deploy.bat
   （vitest `include` 有加 `scripts/**/*.test.ts`）
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
+### Cloudflare 流量數字（2026-11-06）
+- 使用者看 dashboard 覺得頁底數字太少（「我的造訪資料沒那麼少啊」）。Footer 加一行
+  `Cloudflare · 近 30 天 N 訪客 · N 次瀏覽 · 累計 N 次瀏覽`，title 有累計訪客／請求跟起始日（2026-06-16）
+- `src/lib/cloudflare-analytics.ts`：GraphQL Analytics API 的 `httpRequests1dGroups`（免費方案可用），
+  `/api/visitor-stats` 回傳的 `cloudflare` 欄位。**一小時最多抓一次、背景抓不等它**；失敗 10 分鐘內不重試
+- 每天的數字合併存 `data/cloudflare-daily.json`（`CLOUDFLARE_STATS_FILE`，有進每日備份）——Cloudflare 只留一段時間，
+  存在本機的累計才不會哪天變少。第一次抓一年，之後只抓最近 3 天
+- 金鑰：`.env.local` 的 `CLOUDFLARE_ANALYTICS_TOKEN`，權限**只有「區域 → 分析 → 讀取」限 kbs0830.com**（讀 DNS 被拒，已驗證）。
+  沒設就不顯示。⚠️ 使用者第一次是用「讀取 Cloudflare Radar 資料」範本建的，Radar 是全球統計、讀不到自己網站——
+  GraphQL 回 `does not have permission 'com.cloudflare.api.account.zone.analytics.read'` 就是這個
+- Zone ID `bedff9fea6cd187647a5f2dbd02ae833`（不是機密）寫死在 lib 裡：分析唯讀的金鑰沒有權限 `GET /zones` 查它
+  （當初是從 `~/.cloudflared/cert.pem` 只解出 zoneID 那一欄）
+- 「訪客」是每天不重複 IP 的加總（跟 dashboard 30 天視圖同算法），含機器人；同一人隔天再來算兩次
+
 ### 真實訪客 Web Vitals（2026-11-04，自架）
 - `components/ui/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
   FCP／TTFB，`sendBeacon` 送到 `/api/web-vitals`；作品／文章頁統一記成 `/projects/slug`、`/blog/slug`

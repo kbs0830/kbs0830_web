@@ -38,6 +38,8 @@ process.env.WEB_VITALS_FILE = path.join(dataDir, "web-vitals.json");
 // 未過濾流量（含 AI 爬蟲／搜尋引擎／掃描器）：跟上面的「造訪」相反，這份就是要在 server 端對每個
 // request 計數，才數得到不執行 JS 的爬蟲。細節見 lib/raw-traffic.js
 process.env.RAW_TRAFFIC_FILE = path.join(dataDir, "raw-traffic.json");
+// Cloudflare 每天的流量數字（src/lib/cloudflare-analytics.ts 一小時抓一次、合併存在這裡）
+process.env.CLOUDFLARE_STATS_FILE = path.join(dataDir, "cloudflare-daily.json");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。

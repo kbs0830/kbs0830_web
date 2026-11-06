@@ -18,6 +18,9 @@ describe("visitor-stats API route", () => {
     rawFile = path.join(os.tmpdir(), `raw-traffic-test-${id}.json`);
     process.env.VISITOR_STATS_FILE = statsFile;
     process.env.RAW_TRAFFIC_FILE = rawFile;
+    // 不能讀到正式的 data/cloudflare-daily.json，也不能真的打 Cloudflare
+    process.env.CLOUDFLARE_STATS_FILE = path.join(os.tmpdir(), `cf-test-${id}.json`);
+    delete process.env.CLOUDFLARE_ANALYTICS_TOKEN;
     vi.resetModules();
   });
 
@@ -46,7 +49,7 @@ describe("visitor-stats API route", () => {
   it("GET 在資料檔還不存在時回傳空統計，不會噴錯", async () => {
     const { GET } = await import("./route");
     const body = await (await GET()).json();
-    expect(body).toEqual({ total: 0, countryCount: 0, top: [], raw: null });
+    expect(body).toEqual({ total: 0, countryCount: 0, top: [], raw: null, cloudflare: null });
   });
 
   it("POST 依 cf-ipcountry 累加次數，GET 讀得到剛寫入的結果", async () => {
