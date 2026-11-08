@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withShare } from "@/lib/share-meta";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { projects } from "@/lib/projects";
@@ -7,11 +8,11 @@ import { education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withShare({
   title: "履歷 · Resume — PINGWEI LI",
   description: "PINGWEI LI 履歷：教育背景、技能、作品集。",
   alternates: { canonical: "/resume", types: { "text/markdown": "/resume.md" } },
-};
+});
 
 const featured = projects.filter((p) => resumeFeaturedSlugs.includes(p.slug));
 

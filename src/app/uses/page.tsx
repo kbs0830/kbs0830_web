@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { withShare } from "@/lib/share-meta";
 import { Fragment } from "react";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
 import { usesGroups } from "@/lib/page-content";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withShare({
   title: "/uses — PINGWEI LI",
   description: "開発環境・硬體・軟體工具清單",
   alternates: { canonical: "/uses", types: { "text/markdown": "/uses.md" } },
-};
+});
 
 export default function UsesPage() {
   return (

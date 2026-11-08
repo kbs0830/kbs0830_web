@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import BulletList from "@/components/ui/BulletList";
 import { nowItems } from "@/lib/page-content";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withShare({
   title: "/now — PINGWEI LI",
   description: "現在在做什麼、在學什麼",
   alternates: { canonical: "/now", types: { "text/markdown": "/now.md" } },
-};
+});
 
 export default function NowPage() {
   return (

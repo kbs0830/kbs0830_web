@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RouteMap from "@/components/ui/RouteMap";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes, type Route } from "@/lib/flights";
 import { formatFlightCode } from "@/lib/aircraft";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withShare({
   title: "飛行紀錄 · Flight Log — PINGWEI LI",
   description: "航迷小筆記：搭過的航線、機場與航空公司。只記航班代碼跟起降機場，不記日期。",
   alternates: { canonical: "/flights", types: { "text/markdown": "/flights.md" } },
-};
+});
 
 const nf = new Intl.NumberFormat("zh-TW");
 const TOP_ROUTES = 10; // 預設只列最常飛的前 10 條，其餘收在 <details>

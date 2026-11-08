@@ -219,7 +219,7 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋、About 分頁（點擊／方向鍵切換、收起來的內容仍在 HTML）、
-Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）。`TerminalMode.tsx` 的輸出區塊有一個
+Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）。`TerminalMode.tsx` 的輸出區塊有一個
 `data-testid="terminal-output"`，純粹是給這批測試定位用的——輸出文字（例如「PINGWEI
 LI」）會跟 Hero/About 既有內容撞字，`getByText` 會抓到多個元素，用 testid 才能精準
 scope 到終端機自己的輸出。CI 是獨立的 `.github/workflows/e2e.yml`，push 到 main 時跟
@@ -746,7 +746,9 @@ deploy.bat
 | ProfilePage JSON-LD（首頁＝這個人的個人檔案頁） | `src/app/page.tsx` |
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
-| OG 分享圖 | `src/app/opengraph-image.tsx` |
+| OG 分享圖 | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張，build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文標題） |
+| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面（文章頁）不要包 |
+| RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |
 | Markdown for Agents（每頁的 Markdown 版：`Accept: text/markdown` 或網址加 `.md`，首頁 `/index.md`） | `src/lib/markdown.ts` → `src/app/md/[[...path]]/route.ts`，轉址在 `next.config.ts` 的 `rewrites` |

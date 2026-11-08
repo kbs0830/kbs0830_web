@@ -59,8 +59,13 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 - 🙋 **機型**：想記哪班的機型，加到 `src/lib/aircraft.ts`（`/flights` 會自動顯示）
 - ⚙️ **部落格草稿**（都是真實發生過的）：Tunnel 斷 4 天沒人發現、`/blog/.env` 回 500、VS Code 鎖住 `.next`、
   訪客統計被 CI 灌 1037 筆。說「寫」就先寫草稿給你看
-- ⚙️ **RSS feed**（`/feed.xml`）、**每篇文章專屬 OG 分享圖**
 - 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
+
+### 2026-11-09 已完成
+- [x] **RSS feed** `/feed.xml`（/blog 頁有訂閱連結）
+- [x] **每篇文章專屬分享圖**：標題（中文襯線字）＋英文副標＋標籤，build 時產生
+- [x] **全站分享卡片修正**：作品頁、/now、/flights、/resume、/blog 分享到 LINE／Discord 原本全部顯示「PINGWEI LI — Portfolio」，
+  改成各頁自己的標題（`lib/share-meta.ts`），`e2e/share-meta.spec.ts` 會擋回歸
 
 ### 2026-11-06 已完成
 - [x] **頁底 Cloudflare 數字**：近 30 天訪客／瀏覽＋累計，一小時更新，數字跟 dashboard 一致（分析唯讀金鑰）

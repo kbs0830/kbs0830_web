@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withShare } from "@/lib/share-meta";
 import Image from "next/image";
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
@@ -26,11 +27,11 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const project = projects.find((p) => p.slug === slug);
   if (!project) return {};
 
-  return {
+  return withShare({
     title: `${project.titleZh} · ${project.title} — PINGWEI LI`,
     description: project.descriptionZh,
     alternates: { canonical: `/projects/${project.slug}`, types: { "text/markdown": `/projects/${project.slug}.md` } },
-  };
+  });
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {

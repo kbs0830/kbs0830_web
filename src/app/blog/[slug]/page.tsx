@@ -21,7 +21,22 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   return {
     title: `${post.title} — PINGWEI LI`,
     description: post.description,
-    alternates: { canonical: `/blog/${post.slug}`, types: { "text/markdown": `/blog/${post.slug}.md` } },
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+      types: { "text/markdown": `/blog/${post.slug}.md`, "application/rss+xml": "/feed.xml" },
+    },
+    // 沒寫的話會整個繼承 layout 的 openGraph，分享出去標題是「PINGWEI LI — Portfolio」。
+    // 圖片不用寫：同資料夾的 opengraph-image.tsx 會自動掛上（twitter 卡片也沿用它）
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      url: `/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.date,
+      authors: ["PINGWEI LI"],
+      tags: post.tags,
+    },
+    twitter: { card: "summary_large_image", title: post.title, description: post.description },
   };
 }
 
