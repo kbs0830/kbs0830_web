@@ -1,0 +1,16 @@
+{
+  // renovate.json 的 $schema 在 docs.renovatebot.com，VS Code 預設不信任這個網域，打開會跳
+  // 「無法從 'https://docs.renovatebot.com/renovate-schema.json' 載入結構描述：位置不受信任」（2026-11-09）。
+  // 這個設定是整個物件取代（不會跟預設值合併），所以把 VS Code 預設信任的網域也一起列上
+  "json.schemaDownload.trustedDomains": {
+    "https://docs.renovatebot.com/": true,
+    "https://schemastore.azurewebsites.net/": true,
+    "https://raw.githubusercontent.com/microsoft/vscode/": true,
+    "https://raw.githubusercontent.com/devcontainers/spec/": true,
+    "https://www.schemastore.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://spec.openapis.org/": true,
+    "https://json-schema.org/": true,
+    "https://developer.microsoft.com/json-schemas/": true
+  }
+}

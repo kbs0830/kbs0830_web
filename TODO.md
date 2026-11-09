@@ -19,11 +19,14 @@
 2. [ ] **Bing 收錄回查**（11/08 提醒信已寄）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
    顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
 3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/09 晚上回查還是 `http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404、沒有 HSTS
-   → Rules → Overview →「Redirect from HTTP to HTTPS」範本 → **Deploy**（不是 Save as Draft）；
-     或 SSL/TLS → Edge Certificates → Always Use HTTPS 打開
-   → 生效後再打開 **HSTS**（同一頁）
-   → 或給 Claude 一組 API token，用下面「Cloudflare 設定寫成腳本」一起做掉
+4. [ ] **建一組 Cloudflare API token**（5 分鐘）🟡 腳本 11/09 寫好了（`scripts/cloudflare-config.ps1`），有 token 就一次做掉：
+   HTTP→HTTPS（現在 `http://kbs0830.com/` 200、`http://www.` 404）、HSTS、www 導向檢查、在 Cloudflare 就擋掉掃描器
+   （server.log 裡 `/wp-content` 37、`/wp-admin` 29、`/.git` 19 次…現在都打到桌機才回 404）；之後每次部署自動檢查設定有沒有被改掉
+   → dash.cloudflare.com → 右上頭像 → **My Profile → API Tokens → Create Token → Custom token**
+   → 權限加三行：**Zone｜Zone Settings｜Edit**、**Zone｜Single Redirect｜Edit**、**Zone｜Zone WAF｜Edit**
+   → Zone Resources：**Include｜Specific zone｜kbs0830.com** → Continue → Create
+   → 複製 token，**自己貼到** `.env.local` 新增一行 `CLOUDFLARE_CONFIG_TOKEN=貼上`（不要貼在對話裡）
+   → 跟 Claude 說「token 好了」：先跑檢查模式給你看，再套用、用 curl 回查
 5. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**（4/18 有提醒信）
    → Domain Registration → Manage：Auto-renew 開著、信用卡到時候還有效（過期＝整站全斷）
 6. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
@@ -71,8 +74,6 @@
 **要你建帳號／金鑰才能做**
 - [ ] **桌機以外的外部監控**：停電、整台當機時 watchdog 也跟著停。用 GitHub 雲端 runner 每 10 分鐘打一次網站、
   連續失敗寄信到 otemon。要你在 repo 加兩個 Secret（SMTP 帳密），程式 Claude 寫
-- [ ] **Cloudflare 設定寫成腳本**（需要一組 Cloudflare API token）：www 導向、HTTP→HTTPS、擋掃描器的 WAF 規則
-  （log 裡 39% 是掃描器打 `/wp-admin`、`/.env`），部署時順便檢查規則還在不在
 - [ ] **Renovate patch 更新自動合併**（需要一組 fine-grained PAT）：內建 token 開的 PR 不會觸發 workflow、沒測試結果可依據
 - [ ] **聯絡表單**：要申請 EmailJS／Formspree 帳號（之前 mailto 版你說不需要）
 
@@ -83,6 +84,8 @@
 
 **其他**
 - [ ] **Claude Code 遠端 session 的問題**：下次發生時把錯誤訊息或狀況記下來給 Claude
+  （11/09 貼的「無法從 docs.renovatebot.com 載入結構描述：位置不受信任」不是這個——那是 VS Code 打開 `renovate.json`
+  的訊息，已用 `.vscode/settings.json` 信任那個網域，重開檔案就不會再跳）
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 

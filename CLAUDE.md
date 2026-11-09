@@ -746,6 +746,15 @@ deploy.bat
   （vitest `include` 有加 `scripts/**/*.test.ts`）
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
+### Cloudflare 設定腳本（2026-11-09，`scripts/cloudflare-config.ps1`）
+- 管 Always Use HTTPS、HSTS（半年、不含子網域、不 preload）、www → 裸網域 301、WAF 自訂規則擋掃描器
+  （path 含 `/wp-`、`.php`、`/.env`、`/.git`、`xmlrpc`）。**新增路由前確認路徑不含這些字串**，不然會被 Cloudflare 擋（403）
+- 預設只檢查；`-Apply` 才改，改完 curl 回查 4 項。deploy.ps1 每次部署帶 `-Check -Quiet` 跑，漂移寫 deploy.log＋寄信（1 天冷卻），不擋部署
+- 金鑰 `.env.local` 的 `CLOUDFLARE_CONFIG_TOKEN`（Zone Settings／Single Redirect／Zone WAF 三個 Edit，只限 kbs0830.com）；沒設就 skip。
+  跟讀流量的 `CLOUDFLARE_ANALYTICS_TOKEN` 分開
+- www 導向：dashboard 用範本建的那條（沒有 ref）也算數，不會重複建；其他規則用 `ref` 認自己建的那條
+- ⚠️ 開 HSTS 之後瀏覽器半年內只走 https，**不能再關 HTTPS**；要撤回先把 max-age 改 0 等舊的過期
+
 ### CSP（2026-11-09 正式開）
 - `next.config.ts` 的 `contentSecurityPolicy()`：**會擋**。先 report-only 上線，同一天在強制模式下把全站 43 頁＋互動功能用
   Chrome、Firefox 跑過 0 違規才正式開

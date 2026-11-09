@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-09 Cloudflare 設定腳本、VS Code schema 警告
+- [x] `scripts/cloudflare-config.ps1`：Always Use HTTPS、HSTS、www 導向、WAF 擋掃描器。預設只檢查，`-Apply` 才改、改完 curl 回查；
+  deploy.ps1 每次部署帶 `-Check` 跑（設定被改掉就寫 log＋寄信）。**還沒實際套用：等使用者建 token**（TODO 你要動手的第 4 項）
+- [x] VS Code 打開 `renovate.json` 跳「位置不受信任」：`.vscode/settings.json` 信任 docs.renovatebot.com
+
 ### 2026-11-09 CSP 正式開
 - [x] `Content-Security-Policy` 從 report-only 改成正式（會擋）。正式開之前：全站 43 頁＋終端機／主題切換／Konami 互動，
   Chrome 156、Firefox 157 用強制模式跑過，0 個違規；線上 report-only 也是 0 筆

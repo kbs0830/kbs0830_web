@@ -171,6 +171,8 @@ try {
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
     Submit-IndexNow
+    # Cloudflare 設定有沒有被改掉（www 導向、HTTPS、HSTS、WAF）：只檢查，漂移就寫 log＋寄信，不擋部署
+    try { & (Join-Path $PSScriptRoot "cloudflare-config.ps1") -Check -Quiet | Out-Null } catch { Log "[WARN] cloudflare-config 檢查失敗：$($_.Exception.Message)" }
     Update-ResumePdf
     Publish-GeneratedFiles
     $notified = Clear-Alert -Key "deploy" -Subject "部署已恢復正常" -Body "$(git log --oneline -1) 部署成功，網站已更新。"
