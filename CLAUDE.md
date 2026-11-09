@@ -608,7 +608,7 @@ deploy.bat
 - **FRC Robot Team**：2023 全國冠軍聯盟
 - **Auto-Following Robot**：2024 全國專題競賽動力機械群全國佳作
 
-課程専題（school 私有倉庫 `kbs0830/school`，位於桌面 `C:\Users\1394k\Desktop\school`，
+課程専題（school 私有倉庫 `kbs0830/school`，位於桌面 `C:\Users\user\Desktop\school`，
 私有但本機已有 git 憑證可讀）：
 - **日圓匯率分析系統**：Flask + SQLite + 多銀行並行爬蟲 + Yahoo Finance API + LKG 容錯 + 購買力決策引擎
 - **個人記帳分析系統**：PyQt5 桌機 GUI、資料存 CSV（**不是 SQLite**，2026-11-09 對過原始碼；深色模式／主題切換也是沒做的規劃，已拿掉），程式設計三小組専題（2026/01）
