@@ -64,6 +64,19 @@ export function readCloudflareSummary(): CloudflareSummary | null {
   return stored ? summarize(stored.days) : null;
 }
 
+/** 最近 n 天（含今天）每天的數字，沒資料的日子補 0（/stats 的趨勢圖用） */
+export function lastNDays(days: StoredStats["days"], n: number, today = new Date()): DailyRow[] {
+  return Array.from({ length: n }, (_, i) => {
+    const date = new Date(today.getTime() - (n - 1 - i) * DAY_MS).toISOString().slice(0, 10);
+    return { date, ...(days[date] ?? { uniques: 0, pageViews: 0, requests: 0 }) };
+  });
+}
+
+export function readCloudflareDays(n = 30): DailyRow[] {
+  const stored = readStored();
+  return stored ? lastNDays(stored.days, n) : [];
+}
+
 const QUERY = `query($z:String!,$s:Date!,$u:Date!){viewer{zones(filter:{zoneTag:$z}){
   httpRequests1dGroups(limit:400,filter:{date_geq:$s,date_leq:$u},orderBy:[date_ASC]){
     dimensions{date} sum{requests pageViews} uniq{uniques}}}}}`;

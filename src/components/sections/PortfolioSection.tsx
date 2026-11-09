@@ -13,9 +13,17 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
 import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
 
-const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort((a, b) =>
-  a.localeCompare(b, "en")
-);
+// 篩選列：2 個以上作品用到的 tag 直接列出（多的排前面），只出現一次的收進「更多」。
+// 2026-11-09 作品加到 13 個、tag 變 42 個，全部攤開桌機要排 5 行。
+const tagCounts = new Map<string, number>();
+for (const tag of projects.flatMap((p) => p.tags)) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+const byCountThenName = ([a, ca]: [string, number], [b, cb]: [string, number]) => cb - ca || a.localeCompare(b, "en");
+const sortedTags = [...tagCounts].sort(byCountThenName);
+const mainTags = sortedTags.filter(([, c]) => c >= 2).map(([t]) => t);
+const moreTags = sortedTags
+  .filter(([, c]) => c < 2)
+  .map(([t]) => t)
+  .sort((a, b) => a.localeCompare(b, "en"));
 
 function ProjectCard({
   project,
@@ -153,7 +161,7 @@ export default function PortfolioSection() {
           </p>
         </Reveal>
 
-        <ProjectFilter tags={allTags} groups={groups} />
+        <ProjectFilter tags={mainTags} moreTags={moreTags} groups={groups} />
 
         <Reveal delay={0.3} distance={0}>
           <p className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50 font-mono">

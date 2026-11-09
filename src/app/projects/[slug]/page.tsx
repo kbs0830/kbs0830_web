@@ -27,11 +27,15 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const project = projects.find((p) => p.slug === slug);
   if (!project) return {};
 
-  return withShare({
-    title: `${project.titleZh} · ${project.title} — PINGWEI LI`,
-    description: project.descriptionZh,
-    alternates: { canonical: `/projects/${project.slug}`, types: { "text/markdown": `/projects/${project.slug}.md` } },
-  });
+  // 分享圖是同資料夾的 opengraph-image.tsx（每個作品一張）
+  return withShare(
+    {
+      title: `${project.titleZh} · ${project.title} — PINGWEI LI`,
+      description: project.descriptionZh,
+      alternates: { canonical: `/projects/${project.slug}`, types: { "text/markdown": `/projects/${project.slug}.md` } },
+    },
+    { ownImage: true },
+  );
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {

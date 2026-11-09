@@ -600,6 +600,7 @@ deploy.bat
 ### 3. 製作物（作品集）
 
 **分兩區塊：個人専案 ／ 課程専題**，Portfolio section 頂部有依 tag（Python / Next.js / AI…）
+（2026-11-09 起篩選列只直接列「2 個以上作品用到」的 tag，只出現一次的收在「+N 更多」；選中的那個收合後還會留著）
 篩選卡片的 filter bar（`src/components/sections/PortfolioSection.tsx`），卡片 hover lift。
 
 個人専案（`isPersonal: true`，見 `src/lib/projects.ts`）：
@@ -711,6 +712,14 @@ deploy.bat
   （vitest `include` 有加 `scripts/**/*.test.ts`）
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
+### 公開流量頁 `/stats`（2026-11-09）
+- 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家
+- 資料跟頁尾同一份：讀取集中在 `lib/site-stats.ts`（國家、未過濾、爬蟲排行；爬蟲分類直接 import `scripts/lib/raw-traffic.js` 的 `classify`，
+  名單只維護一份）＋ `lib/cloudflare-analytics.ts` 的 `readCloudflareDays()`
+- `dynamic = "force-dynamic"`：每次請求現讀資料檔。**所以沒有 Markdown 版**（Markdown 是 build 時預先產生的，會是過期數字）——
+  這是「新頁面要加 Markdown」規則的刻意例外。sitemap 有、頁尾有 `Stats` 連結
+- 國家用 `Intl.DisplayNames` 顯示中文國名：Windows 不支援國旗 emoji，只放國旗會變成「TW TW 61」
+
 ### Cloudflare 流量數字（2026-11-06）
 - 使用者看 dashboard 覺得頁底數字太少（「我的造訪資料沒那麼少啊」）。Footer 加一行
   `Cloudflare · 近 30 天 N 訪客 · N 次瀏覽 · 累計 N 次瀏覽`，title 有累計訪客／請求跟起始日（2026-06-16）
@@ -761,8 +770,8 @@ deploy.bat
 | ProfilePage JSON-LD（首頁＝這個人的個人檔案頁） | `src/app/page.tsx` |
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
-| OG 分享圖 | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張，build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文標題） |
-| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面（文章頁）不要包 |
+| OG 分享圖 | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
+| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁用 `withShare(meta, { ownImage: true })`（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
 | RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |

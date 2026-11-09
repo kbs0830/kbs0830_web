@@ -1,36 +1,16 @@
 import { ImageResponse } from "next/og";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { loadSubsetFont } from "@/lib/og-font";
 
 // 每篇文章自己的分享圖（TODO「每篇文章專屬 OG 分享圖」，2026-11-09）。之前文章分享出去都是首頁那張
 // 「PINGWEI LI — Portfolio」，看不出是哪篇。build 時每篇產生一張（generateStaticParams）。
-//
-// 中文標題要有 CJK 字型：ImageResponse 內建的字型只有拉丁字母，中文會變方框。
-// build 時跟 Google Fonts 要「只含這張圖用到的字」的 Noto Serif TC 子集（幾十 KB，不是整套 10MB+）。
-// 抓不到（沒網路）就退回英文標題，寧可沒中文也不要一排方框。
+// 中文字型見 lib/og-font.ts；抓不到就退回英文標題。
 export const alt = "PINGWEI LI · 技術部落格";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
-}
-
-async function loadSubsetFont(text: string): Promise<ArrayBuffer | null> {
-  try {
-    const css = await (
-      await fetch(
-        `https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500&text=${encodeURIComponent(text)}`,
-        { signal: AbortSignal.timeout(10_000) },
-      )
-    ).text();
-    // 不帶瀏覽器 UA 時 Google 回 truetype（ImageResponse 吃 ttf/otf/woff，不吃 woff2）
-    const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
-    if (!url) return null;
-    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-    return res.ok ? await res.arrayBuffer() : null;
-  } catch {
-    return null;
-  }
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {

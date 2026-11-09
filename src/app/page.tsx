@@ -45,6 +45,12 @@ export default function Home() {
             >
               Blog
             </Link>
+            <Link
+              href="/stats"
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
+            >
+              Stats
+            </Link>
             <BuildInfo className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70" />
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">

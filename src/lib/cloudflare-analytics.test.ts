@@ -36,6 +36,16 @@ describe("cloudflare-analytics", () => {
     expect(summarize({})).toBeNull();
   });
 
+  it("lastNDays：剛好 n 天、日期連續到今天，沒資料的日子補 0（/stats 趨勢圖）", async () => {
+    const { lastNDays } = await import("./cloudflare-analytics");
+    const rows = lastNDays({ "2026-11-04": day(1, 2, 3), "2026-11-06": day(4, 5, 6), "2026-10-01": day(9, 9, 9) }, 3, new Date("2026-11-06T12:00:00Z"));
+    expect(rows).toEqual([
+      { date: "2026-11-04", ...day(1, 2, 3) },
+      { date: "2026-11-05", uniques: 0, pageViews: 0, requests: 0 },
+      { date: "2026-11-06", ...day(4, 5, 6) },
+    ]);
+  });
+
   it("mergeDays：新抓的日期覆蓋（當天數字會長），舊的保留", async () => {
     const { mergeDays } = await import("./cloudflare-analytics");
     const merged = mergeDays({ "2026-01-01": day(1, 1, 1), "2026-11-06": day(2, 2, 2) }, [

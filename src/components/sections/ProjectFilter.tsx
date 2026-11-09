@@ -12,8 +12,18 @@ export type FilterGroup = {
 
 // 作品集的 tag 篩選。卡片本身是 server 產生好的 HTML（PortfolioSection 傳進來的 ReactNode），
 // 這個 client 元件只負責記住選了哪個 tag、決定哪些卡片要顯示——projects.ts 的資料不會進 client bundle。
-export default function ProjectFilter({ tags, groups }: { tags: string[]; groups: FilterGroup[] }) {
+export default function ProjectFilter({
+  tags,
+  moreTags = [],
+  groups,
+}: {
+  tags: string[];
+  /** 只有一個作品用到的 tag，預設收起來，按「+N」才展開 */
+  moreTags?: string[];
+  groups: FilterGroup[];
+}) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(false);
   // 再點一次目前選中的 tag = 取消篩選
   const select = (tag: string | null) => setActiveTag((cur) => (cur === tag ? null : tag));
   const visible = groups
@@ -41,6 +51,17 @@ export default function ProjectFilter({ tags, groups }: { tags: string[]; groups
       <div className="filter-scroll flex gap-2 overflow-x-auto snap-x scroll-px-6 -mx-6 px-6 pb-1 sm:flex-wrap sm:overflow-visible sm:mx-0 sm:px-0 sm:pb-0 mb-10 md:mb-14">
         {chip("全部 · All", null)}
         {tags.map((tag) => chip(tag, tag))}
+        {/* 收合後，選中的那個還是留著，才看得出現在在篩什麼 */}
+        {moreTags.filter((tag) => showMore || tag === activeTag).map((tag) => chip(tag, tag))}
+        {moreTags.length > 0 && (
+          <button
+            onClick={() => setShowMore((v) => !v)}
+            aria-expanded={showMore}
+            className="shrink-0 snap-start px-3 py-1.5 sm:py-1 text-[11px] font-light tracking-wide font-mono text-(--muted) hover:text-(--accent) transition-colors"
+          >
+            {showMore ? "收合 · Less" : `+${moreTags.length} 更多 · More`}
+          </button>
+        )}
       </div>
 
       {visible.map((g) => (
