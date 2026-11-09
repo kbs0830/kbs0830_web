@@ -10,22 +10,23 @@
 
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
-1. [ ] **Search Console 看驗證結果** 🔴 11/05 按了「驗證修正」，顯示「驗證中」是正常的，~11/19 前看結果，不用再按
-   → 網站自己的紀錄 11/06 起 Googlebot 已經回來爬了；11/12 有提醒信叫你匯出「檢索統計資料」（檢索次數回升、5xx 歸零＝恢復）
-   → 📍 2026-11-09 截圖（資料只到 11/06）：**已建立索引 11**（11/04 健檢時 4）、未建立 19。5xx 7、404 4 驗證「已開始」；
-     已檢索／已找到但未建立索引 5＋3 是 Google 自己的排程，不是錯誤。同一天實測 sitemap 23 個網址全部 200，
-     Googlebot 11/06 起來了 50 次——5xx 那 7 頁是 10 月斷線留下的，驗證跑完應該會歸零
-2. [ ] **Bing 收錄回查**：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection 顯示「Indexed」才算數；
-   還是「Discovered but not crawled」就把畫面給 Claude
+1. [ ] **Search Console 看驗證結果** 🔴 11/05 按了「驗證修正」，「驗證中」是正常的，**~11/19 前看結果，不用再按**
+   → 11/12 有提醒信叫你匯出「檢索統計資料」（檢索次數回升、5xx 歸零＝恢復）
+   → 📍 11/09 截圖：已建立索引 11（11/04 是 4）。5xx 7 頁是 10 月斷線留下的，驗證跑完應該歸零；
+     「已檢索／已找到但未建立索引」是 Google 自己的排程，不是錯誤
+   → 11/09 新增 5 個作品頁，sitemap 從 23 變 **28** 個網址（全部 200），新頁面要等 Google 自己來收
+2. [ ] **Bing 收錄回查**（11/08 提醒信已寄）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
+   顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
 3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 現在 `http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404
+4. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/09 回查還是 `http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404、沒有 HSTS
    → Rules → Overview →「Redirect from HTTP to HTTPS」範本 → **Deploy**（不是 Save as Draft）；
      或 SSL/TLS → Edge Certificates → Always Use HTTPS 打開
    → 生效後再打開 **HSTS**（同一頁）
+   → 或給 Claude 一組 API token，用下面「Cloudflare 設定寫成腳本」一起做掉
 5. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**（4/18 有提醒信）
    → Domain Registration → Manage：Auto-renew 開著、信用卡到時候還有效（過期＝整站全斷）
 6. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
-7. [ ] **cloudflared 升級**（log 每天在提醒）：系統管理員 PowerShell 跑
+7. [ ] **cloudflared 升級**（11/09：裝的是 2026.10.0，最新 2026.10.7）：系統管理員 PowerShell 跑
    `Stop-Service Cloudflared` → `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`
 8. [ ] **GitHub 門面**（改的是別的 repo）
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`；這兩個的 README 補截圖／架構圖／安裝步驟
@@ -37,8 +38,10 @@
 - [ ] **定位一句話**：Hero 副標要不要從「学生開発者 · Claude × Gemini」改成「Full-stack Developer · AI × Web」之類
   （2026-07 外部 review 的第 1 點）。決定後同步改 title／OG／JSON-LD `jobTitle`／履歷
 - [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
-- [ ] **FoodLens 截圖**：日圓匯率、記帳系統 11/09 Claude 自己跑起來截好了。FoodLens 的網頁版只是「測試 BFF 連線」的空殼、
+- [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、
   真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
+- [ ] **均線回測程式的 bug 要不要修**（改的是 school repo，網站目前不放報酬數字）：沒持股時跌破 MA60 也記一筆 0 張賣出、
+  賣出時手續費／證交稅用加的（應該扣）、沒檢查本金夠不夠（聯發科一張就超過 100 萬，跑完資金變負）。修完網站可以補報酬率
 - [ ] **「人工智慧與深度學習」要不要留**：課程學習記録寫了這門課、tag 有「深度學習」，但 school 裡這個資料夾是空的。
   東西在別的地方就給 Claude 路徑；沒有的話 Claude 拿掉
 - [ ] **路口排雷「v2 重構版由我完成」對不對**：Claude 是看 git 紀錄（17 個 commit 都是你的信箱）寫的，不對就說
@@ -90,6 +93,7 @@
 - [ ] 支援 Markdown 表格（裝 `remark-gfm`）
 
 **作品／分享**
+- [ ] **作品篩選列太長**：11/09 加了 5 個作品後 tag 變約 40 個、桌機排成 5 行。改成只列出現 2 次以上的 tag，或預設收合「更多」
 - [ ] 每個作品專屬分享圖（作品名＋一句話＋技術 tag）
 - [ ] 公開的 `/stats` 頁：Cloudflare 30 天趨勢、AI 爬蟲排行、訪客國家——「自架網站」本身的展示
 
@@ -101,12 +105,12 @@
 - [ ] 無障礙自動檢查：E2E 加 axe-core，每次 push 掃對比度、alt、label
 - [ ] Content-Security-Policy：先 report-only 上線，確認沒擋到東西再正式開
 - [ ] 在 Firefox 實際點一次作品卡片換頁動畫（View Transitions；Safari 要你用 iPhone 看）
-- [ ] 手寫的 `useMemo`／`useCallback` 可以拿掉（React Compiler 已經在做），沒有效能問題，不急
+- [ ] 手寫的 `useMemo` 可以拿掉（React Compiler 已經在做）：11/09 查只剩 `HeroScene.tsx` 3 處建 geometry 的，沒有效能問題，不急
 
 ## ⏳ 等別人更新
 
-- [ ] **TypeScript 7**：typescript-eslint 還不支援（11/04 查 8.72.1 peer 仍是 `<6.1.0`），支援了再升
-- [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`
+- [ ] **TypeScript 7**：typescript-eslint 還不支援（11/09 查：TS 已出 7.0.2，typescript-eslint 8.72.1 peer 仍是 `<6.1.0`），支援了再升
+- [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`（11/09 查：R3F 最新仍是 9.8.2，跟裝的一樣）
 
 ## 評估過、先不做（記下理由免得重查）
 
