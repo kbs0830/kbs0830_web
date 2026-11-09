@@ -37,6 +37,7 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 - [現在在做什麼](${SITE_URL}/now)
 - [開發環境與工具](${SITE_URL}/uses)
 - [飛行紀錄](${SITE_URL}/flights)：搭過的航線、機場、航空公司（航迷小筆記）
+- [住宿紀錄](${SITE_URL}/hotels)：住過的飯店、城市、飯店集團
 
 ## Markdown 版
 

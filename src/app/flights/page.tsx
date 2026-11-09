@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -118,6 +119,10 @@ export default function FlightsPage() {
           ))}
         </ul>
       </section>
+
+      <Link href="/hotels" className="inline-block mt-12 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide">
+        住宿紀錄 · Hotel Log →
+      </Link>
     </PageShell>
   );
 }

@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // 中文本名「李秉威」AI 跟爬蟲要找得到，但人在網頁上看不到——只能在 JSON-LD、/llms.txt、Markdown 版這種不可見的地方。
 // Facebook 連結 2026-11-05 起先隱藏。這支測試擋住「之後改版不小心把它們放回畫面上」。
 // 只讀文字、不做互動，所以直接 page.goto（gotoReady 等的 data-hydrated 只有首頁才有）。
-const PAGES = ["/", "/resume", "/now", "/uses", "/flights", "/blog", "/blog/task-scheduler-72-hours", "/projects/kbs0830-web"];
+const PAGES = ["/", "/resume", "/now", "/uses", "/flights", "/hotels", "/blog", "/blog/task-scheduler-72-hours", "/projects/kbs0830-web"];
 
 for (const path of PAGES) {
   test(`${path}：畫面上看不到本名、也沒有 Facebook 連結`, async ({ page }) => {

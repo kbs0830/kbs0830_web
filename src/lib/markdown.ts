@@ -10,6 +10,7 @@ import { skills, statusLines, timeline } from "./about";
 import { education, nowItems, resumeFeaturedSlugs, resumeRole, resumeSkillGroups, usesGroups } from "./page-content";
 import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
+import { GROUP_NAMES, MEMBERSHIPS, hotelStats, hotelsByPlace } from "./hotels";
 
 const SITE_DESCRIPTION =
   "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
@@ -66,6 +67,7 @@ ${course.map(projectLine).join("\n")}
 - [現在在做什麼 · Now](${mdUrl("now")})
 - [開発環境 · Uses](${mdUrl("uses")})
 - [飛行紀錄 · Flight Log](${mdUrl("flights")})
+- [住宿紀錄 · Hotel Log](${mdUrl("hotels")})
 
 ## 連絡先 · Contact
 
@@ -178,6 +180,31 @@ ${s.airlines.map(([code, n]) => `- ${AIRLINES[code] ?? code}（${code}）：${n}
 ${footer("flights")}`;
 }
 
+function hotels() {
+  const s = hotelStats();
+  const memberships = MEMBERSHIPS.length
+    ? `## 會籍 · Memberships\n\n${MEMBERSHIPS.map((m) => `- ${m.program}（${m.kind}${m.tier ? `・${m.tier}` : ""}）`).join("\n")}\n\n`
+    : "";
+  const places = hotelsByPlace()
+    .map(([country, cities]) => `### ${country}\n\n${cities.map(([city, h]) => `- **${city}**：${h.join("、")}`).join("\n")}`)
+    .join("\n\n");
+  return `# 住宿紀錄 · Hotel Log
+
+住過的飯店、城市跟飯店集團。只記名稱跟城市，不記日期。
+
+- 飯店：${s.hotels}
+- 城市：${s.cities}（${s.countries} 個國家／地區）
+
+${memberships}## 飯店 · Hotels
+
+${places}
+
+## 飯店集團 · Groups
+
+${s.groups.map(([g, n]) => `- ${GROUP_NAMES[g]}：${n} 間`).join("\n")}
+${footer("hotels")}`;
+}
+
 /** 所有有 Markdown 版的頁面路徑（不含開頭的 /；首頁是空字串） */
 export function markdownPaths(): string[] {
   return [
@@ -186,6 +213,7 @@ export function markdownPaths(): string[] {
     "now",
     "uses",
     "flights",
+    "hotels",
     "blog",
     ...getAllPosts().map((p) => `blog/${p.slug}`),
     ...projects.map((p) => `projects/${p.slug}`),
@@ -205,6 +233,8 @@ export function renderMarkdown(path: string): string | null {
       return uses();
     case "flights":
       return flights();
+    case "hotels":
+      return hotels();
     case "blog":
       return blogIndex();
   }

@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 const meta = (html: string, prop: string) =>
   html.match(new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`))?.[1];
 
-for (const path of ["/blog/task-scheduler-72-hours", "/projects/foodlens-advisor", "/now", "/flights", "/blog"]) {
+for (const path of ["/blog/task-scheduler-72-hours", "/projects/foodlens-advisor", "/now", "/flights", "/hotels", "/blog"]) {
   test(`分享卡片跟著頁面走：${path}`, async ({ request }) => {
     const html = await (await request.get(path)).text();
     const title = html.match(/<title>([^<]*)<\/title>/)?.[1];

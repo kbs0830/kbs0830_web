@@ -10,6 +10,7 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import Link from "next/link";
 import Tabs from "@/components/ui/Tabs";
 import { flightStats } from "@/lib/flights";
+import { hotelStats } from "@/lib/hotels";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
@@ -188,12 +189,20 @@ function FootprintPanel() {
         </div>
       </div>
       {/* 航班明細 2026-11-05 搬到獨立頁面：首頁的主角是程式，足跡只留國家跟城市 */}
-      <Link
-        href="/flights"
-        className="inline-block mt-8 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
-      >
-        飛行紀錄 · Flight Log（{flightStats().flights} 航班 · {flightStats().airports} 機場）→
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2">
+        <Link
+          href="/flights"
+          className="inline-block py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
+        >
+          飛行紀錄 · Flight Log（{flightStats().flights} 航班 · {flightStats().airports} 機場）→
+        </Link>
+        <Link
+          href="/hotels"
+          className="inline-block py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
+        >
+          住宿紀錄 · Hotel Log（{hotelStats().hotels} 間 · {hotelStats().cities} 城市）→
+        </Link>
+      </div>
     </>
   );
 }
