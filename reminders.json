@@ -37,8 +37,8 @@
     {
       "id": "2026-12-09-csp",
       "date": "2026-12-09",
-      "subject": "提醒：CSP report-only 跑一個月了，看要不要正式開",
-      "body": "11/09 上了 Content-Security-Policy-Report-Only（不擋東西，只回報）。\n看回報：curl https://kbs0830.com/api/csp-report\n- 空的或只有掃描器亂打的 → 跟 Claude 說「CSP 正式開」\n- 有正常功能被擋（例如 Spotify 封面、GitHub 熱力圖）→ 把結果給 Claude 調整規則"
+      "subject": "提醒：CSP 正式開一個月了，看有沒有正常功能被擋",
+      "body": "11/09 Content-Security-Policy 已經正式開（擋東西）。被擋的都會回報：\ncurl https://kbs0830.com/api/csp-report\n- 空的、或只有掃描器／瀏覽器外掛的 → 不用做事\n- 有正常功能被擋（例如 Spotify 封面、GitHub 熱力圖、新加的外部圖片）→ 把結果給 Claude 加進 next.config.ts 的 CSP"
     },
     {
       "id": "2026-12-31-gha-titanium",

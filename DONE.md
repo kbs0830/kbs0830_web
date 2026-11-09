@@ -5,6 +5,14 @@
 
 ---
 
+### 2026-11-09 CSP 正式開
+- [x] `Content-Security-Policy` 從 report-only 改成正式（會擋）。正式開之前：全站 43 頁＋終端機／主題切換／Konami 互動，
+  Chrome 156、Firefox 157 用強制模式跑過，0 個違規；線上 report-only 也是 0 筆
+- [x] 被擋的照樣回報到 `/api/csp-report`；新 E2E `csp.spec.ts`：sitemap 每一頁捲到底都不能有違規、header 有送
+- [x] dev（`next dev`／CI）多給 `unsafe-eval`、websocket（Fast Refresh 要用）；正式站沒有。`server.js` 明確設 `NODE_ENV=production`
+- [x] 12/09 提醒信改成「正式開一個月回查」
+- [x] `useMemo` 那項評估後決定不改（理由在 TODO「評估過、先不做」）
+
 ### 2026-11-09 新套件：Markdown 表格、無障礙自動檢查（使用者同意停站 1～2 分鐘）
 - [x] **remark-gfm**：部落格支援表格、刪除線、任務清單（實測表格渲染正常）
 - [x] **axe-core E2E**（`e2e/a11y.spec.ts`）：8 頁 × 淺色／深色，首頁 About 每個分頁都掃。第一次跑抓到並修好：

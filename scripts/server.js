@@ -6,6 +6,10 @@
 // 不要把它包成再啟動另一個子行程的 wrapper，否則 stop/restart 會殺不乾淨
 // （這正是 2026-07 全白頁面事件的根因，細節見 CLAUDE.md）。
 
+// 正式站一律 production：next.config.ts 的 CSP 依 NODE_ENV 決定要不要給 dev 用的 eval／websocket，
+// 用 next() 程式化啟動時 Next 不會自己設（`next start` CLI 才會）。要在 require("next") 之前
+process.env.NODE_ENV = "production";
+
 const path = require("path");
 const fs = require("fs");
 const http = require("http");

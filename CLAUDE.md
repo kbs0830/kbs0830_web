@@ -746,12 +746,16 @@ deploy.bat
   （vitest `include` 有加 `scripts/**/*.test.ts`）
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
-### CSP（2026-11-09，先 report-only）
-- `next.config.ts` 的 `Content-Security-Policy-Report-Only`：**不擋任何東西**，違規回報到 `/api/csp-report`，
-  只存「指令＋被擋的網域＋頁面路徑 → 次數」到 `data/csp-reports.json`（`CSP_REPORT_FILE`，server.js 設），只收有 `cf-ipcountry` 的
-- 看結果：`curl https://kbs0830.com/api/csp-report`。12/09 有提醒信，沒誤擋就把 key 改成 `Content-Security-Policy`
-- 新增外部資源（圖片網域、script、API）要記得加進 policy，不然正式開之後會被擋
+### CSP（2026-11-09 正式開）
+- `next.config.ts` 的 `contentSecurityPolicy()`：**會擋**。先 report-only 上線，同一天在強制模式下把全站 43 頁＋互動功能用
+  Chrome、Firefox 跑過 0 違規才正式開
+- 被擋的照樣回報到 `/api/csp-report`，只存「指令＋被擋的網域＋頁面路徑 → 次數」到 `data/csp-reports.json`（`CSP_REPORT_FILE`，
+  server.js 設），只收有 `cf-ipcountry` 的。看結果：`curl https://kbs0830.com/api/csp-report`
+- **新增外部資源（圖片網域、script、API、iframe）一定要加進 policy**，不然正式站會被擋；`e2e/csp.spec.ts` 會掃 sitemap 每一頁
+- dev（`next dev`、CI 的 E2E）多給 `'unsafe-eval'` 跟 `ws: wss:`（Fast Refresh／熱更新要用）；正式站沒有。header 是 `next build`
+  時算好寫進 routes-manifest 的；`scripts/server.js` 開頭也明確設 `NODE_ENV=production`
 - `'unsafe-inline'` 拿不掉：深色模式 inline script、JSON-LD、Next 的 hydration script 都是 inline；改 nonce 會讓所有頁面變動態
+- Cloudflare 的 email 保護會插 `/cdn-cgi/scripts/…/email-decode.min.js`，同網域，`'self'` 就涵蓋
 
 ### 公開流量頁 `/stats`（2026-11-09）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家

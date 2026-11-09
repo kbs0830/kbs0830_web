@@ -3,7 +3,7 @@
 這裡**只放還沒做的**；做完的搬到 [DONE.md](DONE.md)（2026-11-09 拆開）。
 做完任何一項跟 Claude 說，它會回查、從這裡刪掉、記進 DONE.md。
 
-📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、12/09 CSP、
+📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、12/09 CSP 回查、
 2026 年底 GHA 鈦金、2027/04/18 網域續約、2027/08/31 年級更新、2027 年底 IHG 酒廊、2028 年底華航金卡。
 
 ---
@@ -86,9 +86,7 @@
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 
-- [ ] **CSP 正式開**：11/09 先上了 report-only（不擋東西，違規回報到 `/api/csp-report`，上線當晚 0 筆）。約 12/09 看
-  `curl https://kbs0830.com/api/csp-report`，沒有誤擋就把 `next.config.ts` 的 header 改成正式的（有提醒信）
-- [ ] 手寫的 `useMemo` 可以拿掉（React Compiler 已經在做）：只剩 `HeroScene.tsx` 3 處建 geometry 的，沒有效能問題，不急
+（目前都做完了。有新點子會加在這裡）
 
 ## ⏳ 等別人更新
 
@@ -96,6 +94,11 @@
 - [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`（11/09 查：R3F 最新仍是 9.8.2，跟裝的一樣）
 
 ## 評估過、先不做（記下理由免得重查）
+
+- **拿掉 `HeroScene.tsx` 剩下的 3 個 `useMemo`**（2026-11-09 評估）：這 3 個不是效能優化，是「整個元件生命週期只建一次」的
+  three.js 物件（線條、粒子 geometry），後面有 `dispose()` 清理、`useFrame` 每幀改它們。React Compiler 的自動快取只是優化、
+  不保證不重建；拿掉的話萬一被重建，就是 GPU 記憶體漏掉＋畫面閃一下。React 保證只建一次的寫法是 `useState(() => …)`，
+  但跟現在一樣能用、沒有好處，不值得冒險改 3D 場景
 
 - **Noto Serif JP 字體子集化**：Google Fonts 已經自動切成 374 塊、只下載用到的字；自己用 `text=` 子集化的話，
   之後作品標題用到清單外的字會悄悄變成別的字體，風險大於好處

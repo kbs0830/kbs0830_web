@@ -13,31 +13,35 @@ function gitHead() {
 }
 const head = gitHead();
 
+// dev（next dev、CI 的 E2E）多給兩個：React Fast Refresh 要 eval、熱更新要 websocket。正式站沒有
+function contentSecurityPolicy(dev: boolean) {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
+    "font-src 'self' data:",
+    `connect-src 'self'${dev ? " ws: wss:" : ""}`,
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "report-uri /api/csp-report",
+  ].join("; ");
+}
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  // CSP 先 report-only（2026-11-09）：不擋任何東西，違規回報到 /api/csp-report。
-  // 看一陣子 `curl https://kbs0830.com/api/csp-report` 沒有誤擋，再把 key 改成 Content-Security-Policy。
+  // Content-Security-Policy（2026-11-09 先 report-only，同一天正式開：全站每一頁用強制模式跑過 E2E、
+  // Chrome＋Firefox 都沒有違規，線上回報也是 0 筆）。被擋的東西照樣回報到 /api/csp-report，
+  // `curl https://kbs0830.com/api/csp-report` 看得到。新增外部資源（圖片網域、script、API）要加進這裡。
   // 'unsafe-inline'：<head> 的深色模式 inline script、JSON-LD、Next 的 inline hydration script 都需要（要拿掉得改 nonce，頁面會變動態）
-  {
-    key: "Content-Security-Policy-Report-Only",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "worker-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "report-uri /api/csp-report",
-    ].join("; "),
-  },
+  // Cloudflare 的 email 保護會插 /cdn-cgi/scripts/…/email-decode.min.js，同網域，'self' 就涵蓋
+  { key: "Content-Security-Policy", value: contentSecurityPolicy(process.env.NODE_ENV !== "production") },
 ];
 
 const distDir = process.env.NEXT_DIST_DIR || ".next";
