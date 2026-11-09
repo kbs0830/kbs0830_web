@@ -159,7 +159,7 @@ export const MEMBERSHIPS: Membership[] = [
   { kind: "飯店", program: "Hilton Honors", tier: "金卡 Gold" },
   { kind: "飯店", program: "Marriott Bonvoy", tier: "金卡 Gold Elite" },
   { kind: "飯店", program: "Best Western Rewards", tier: "鑽石精選 Diamond Select" },
-  { kind: "飯店", program: "Radisson Rewards", tier: "金卡 Gold" },
+  { kind: "飯店", program: "Radisson Rewards 麗賞會", tier: "尊榮 Premium" }, // 美國運通簽帳白金卡（台灣）附贈的等級
   { kind: "航空", program: "中華航空 華夏會員", tier: "金卡（天合聯盟 Elite Plus）" },
   { kind: "機場貴賓室", program: "Priority Pass 新貴通", tier: "Prestige 無限次" },
   { kind: "機場貴賓室", program: "American Express The Centurion Lounge 百夫長貴賓室" },

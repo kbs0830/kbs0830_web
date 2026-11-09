@@ -39,10 +39,6 @@
 - [ ] **履歷要不要加證照／經歷**（之前問過還沒回）
 - [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School，要跟證書一致的話給 Claude 官方英文名
 - [ ] **機型**：想記哪班的機型，給 Claude 航班代碼＋機型（`/flights` 會自動顯示）
-- [ ] **會籍三個待確認**
-  → Radisson 現在已經沒有「金卡」（改成 Club／Premium／VIP），你現在是哪一級？
-  → IHG：你有沒有「洲際大使 InterContinental Ambassador」？（保證升等＋16:00 退房是大使的權益）沒有的話刪掉那筆
-  → Amex「大白卡」是美國運通白金卡嗎？（網站上沒寫卡名，只是確認）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
   pnpm v11 native build、PowerShell 5.1 沒 BOM 變 Big5、node.exe 無聲死掉 4 小時→自己寫 watchdog
 
