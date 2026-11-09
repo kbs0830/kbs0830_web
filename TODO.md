@@ -22,6 +22,8 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
    → 「網頁」報表的 **伺服器錯誤 (5xx)** 按「驗證修正」（404 那列 11/05 已按；那兩個是 `/api/`、`/_next/`，
      本來就不是頁面，驗證失敗不用理）
    → 約一週後再匯出「檢索統計資料」：檢索次數回升、5xx 歸零＝恢復正常
+   → 📍 2026-11-09：使用者 11/05 按了驗證修正，Search Console 還顯示「驗證中」（正常，Google 說最多約兩週，~11/19 前看結果，不用再按）。
+     網站自己的紀錄（`data/raw-traffic.json`）11/06 起已有 Googlebot 23 次、GoogleOther 47 次——Google 已經回來爬了
 3. [x] **Email 告警** → ✅ 2026-11-05 `.env.local` 設好 otemon 的應用程式密碼，測試信寄出成功（SMTP 驗證通過）
    → 之後網站掛掉／Tunnel 斷線／部署失敗都會寄到 otemon.pcwork@gmail.com；不想用了到
      https://myaccount.google.com/apppasswords 刪掉 `kbs0830 watchdog` 即失效
@@ -57,7 +59,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 - 🙋 **作品截圖**：FoodLens／日圓匯率／記帳系統（不要有真人臉、個資）
 - 🙋 **作品量化成果**：購票系統報名數、匯率系統整合幾家銀行…有真的數字才放
 - 🙋 **機型**：想記哪班的機型，加到 `src/lib/aircraft.ts`（`/flights` 會自動顯示）
-- ⚙️ **部落格草稿**（都是真實發生過的）：Tunnel 斷 4 天沒人發現、`/blog/.env` 回 500、VS Code 鎖住 `.next`、
+- 🙋 **部落格草稿已寫好，等你看**（2026-11-09，`content/drafts/`，沒進 git、不會上線）：Tunnel 斷 4 天沒人發現、`/blog/.env` 回 500、VS Code 鎖住 `.next`、
   訪客統計被 CI 灌 1037 筆。說「寫」就先寫草稿給你看
 - 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
 
