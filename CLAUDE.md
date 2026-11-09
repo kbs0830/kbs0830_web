@@ -679,6 +679,8 @@ deploy.bat
 - 上一篇／下一篇（依日期）、相關文章（共同 tag，**不含同系列**——系列導覽已經列了）
 - 目錄：4 個以上 `##` 小標才出現，原生 `<details>` 預設收起；h2 的 id 跟目錄都用 `headingId()`，改規則兩邊一起變
 - tag 頁 `/blog/tags/<tagSlug>`：`Next.js` → `next-js`（網址結尾不能像 `.js` 檔，server.js 會當靜態資源不計流量）。
+  **網址只能英數字**：中文 tag 要在 `blog.ts` 的 `TAG_SLUGS` 加對照（`隱私` → `privacy`）——直接用中文時 Next 預先產生的頁面
+  跟瀏覽器送來的編碼網址對不上，上線 404（build、單元測試都過）。單元測試跟 `e2e/sitemap.spec.ts`（sitemap 每個網址都要 200）會擋
   sitemap、Markdown 版（`/blog/tags/next-js.md`）都有；中文 tag（`隱私`）的 Markdown 版 `Link` header 要 `encodeURI`
   （header 只能 ASCII，build 時第一次就因為這個炸掉）
 - 首頁作品集下面有「最新文章」3 篇（`components/sections/LatestPosts.tsx`）

@@ -78,6 +78,8 @@ describe("系列文、上一篇／下一篇、相關文章、tag、目錄（2026
   it("tag 網址：Next.js → next-js（結尾不會像 .js 檔），每個 tag 都找得回文章", async () => {
     const { getAllTags, getPostsByTagSlug, tagSlug } = await import("./blog");
     expect(tagSlug("Next.js")).toBe("next-js");
+    // 網址只能英數字：中文 tag 上線後 404（見 blog.ts 的 TAG_SLUGS），新增中文 tag 沒加對照表這裡會擋
+    for (const t of getAllTags()) expect(t.slug, t.tag).toMatch(/^[a-z0-9-]+$/);
     for (const t of getAllTags()) expect(getPostsByTagSlug(t.slug)?.posts.length).toBe(t.count);
     expect(getPostsByTagSlug("沒有這個")).toBeUndefined();
   });

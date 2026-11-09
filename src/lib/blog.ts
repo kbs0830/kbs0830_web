@@ -77,9 +77,13 @@ export function getSeriesPosts(series: string): BlogPost[] {
     .sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
 }
 
-/** tag 的網址片段：小寫、空白跟「.」換成「-」（`Next.js` → `next-js`，網址結尾才不會像 .js 檔） */
+// 中文 tag 的網址：網址片段一定要是英數字。2026-11-09 第一版直接用「隱私」，Next 預先產生的頁面跟瀏覽器送來的
+// 編碼網址（%E9%9A%B1…）對不上，上線後 404（Markdown 版還因為 header 不能有中文 build 失敗）。新增中文 tag 要加在這裡
+const TAG_SLUGS: Record<string, string> = { 隱私: "privacy" };
+
+/** tag 的網址片段：小寫、空白跟「.」換成「-」（`Next.js` → `next-js`，網址結尾才不會像 .js 檔）；中文查表 */
 export function tagSlug(tag: string): string {
-  return tag.toLowerCase().replace(/[\s.]+/g, "-");
+  return TAG_SLUGS[tag] ?? tag.toLowerCase().replace(/[\s.]+/g, "-");
 }
 
 /** 全部 tag 跟文章數，多的在前 */

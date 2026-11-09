@@ -16,6 +16,8 @@
 - [x] **每季備份還原演練**：`scripts/restore-drill.ps1`，從 GitHub 重新下載→解密→跟 D: 逐檔比，90 天一次；第一次 11/09 通過（17 個檔案全同）
 - [x] **CSP report-only**：`next.config.ts` header ＋ `/api/csp-report` 收違規（只存指令＋網域＋路徑）
 - [x] **Firefox 換頁動畫**：Firefox 157 支援 View Transitions，作品卡片 → 詳細頁 → 返回都正常、沒有錯誤
+- [x] **修：中文 tag 頁 404**：`/blog/tags/隱私` 改成 `/blog/tags/privacy`（`blog.ts` 的 `TAG_SLUGS`）；
+  新增 E2E「sitemap 每個網址都要 200」，拿舊版跑確認會抓到這個 bug
 
 ### 2026-11-09 作品篩選列／作品分享圖／`/stats`
 - [x] **作品篩選列**：只直接列 2 個以上作品用到的 12 個 tag，其餘 30 個收進「+30 更多」

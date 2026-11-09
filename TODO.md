@@ -14,11 +14,12 @@
    → 11/12 有提醒信叫你匯出「檢索統計資料」（檢索次數回升、5xx 歸零＝恢復）
    → 📍 11/09 截圖：已建立索引 11（11/04 是 4）。5xx 7 頁是 10 月斷線留下的，驗證跑完應該歸零；
      「已檢索／已找到但未建立索引」是 Google 自己的排程，不是錯誤
-   → 11/09 新增 5 個作品頁，sitemap 從 23 變 **28** 個網址（全部 200），新頁面要等 Google 自己來收
+   → 11/09 新增 5 個作品頁、`/stats`、14 個部落格 tag 頁，sitemap 從 23 變 **43** 個網址（11/09 晚上回查全部 200），
+     新頁面要等 Google 自己來收，不用一頁一頁按「要求建立索引」
 2. [ ] **Bing 收錄回查**（11/08 提醒信已寄）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
    顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
 3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/09 回查還是 `http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404、沒有 HSTS
+4. [ ] **Cloudflare 的 HTTP→HTTPS 導向** 🟡 11/09 晚上回查還是 `http://kbs0830.com/` 200、`http://www.kbs0830.com/` 404、沒有 HSTS
    → Rules → Overview →「Redirect from HTTP to HTTPS」範本 → **Deploy**（不是 Save as Draft）；
      或 SSL/TLS → Edge Certificates → Always Use HTTPS 打開
    → 生效後再打開 **HSTS**（同一頁）
@@ -31,6 +32,8 @@
 8. [ ] **GitHub 門面**（改的是別的 repo）
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`；這兩個的 README 補截圖／架構圖／安裝步驟
    → profile README（`kbs0830/kbs0830`）做成跟網站一樣的風格（要做 Claude 可以幫忙寫）
+9. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
+   Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
 
@@ -53,7 +56,9 @@
 - [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School，要跟證書一致的話給 Claude 官方英文名
 - [ ] **機型**：想記哪班的機型，給 Claude 航班代碼＋機型（`/flights` 會自動顯示）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
-  pnpm v11 native build、PowerShell 5.1 沒 BOM 變 Big5、node.exe 無聲死掉 4 小時→自己寫 watchdog
+  pnpm v11 native build、PowerShell 5.1 沒 BOM 變 Big5、node.exe 無聲死掉 4 小時→自己寫 watchdog、
+  **11/09 新的**：中文 tag 網址 build 跟單元測試都過、上線才 404（後來加了「sitemap 每個網址都要 200」的測試）、
+  PowerShell `-like` 把 `[ROLLBACK]` 的方括號當萬用字元（週報算出「自動退回 5946 次」）
 
 **設計／取捨**
 - [ ] **首頁 LCP**：~11/18 看真實訪客 Web Vitals（有提醒信），首頁 LCP p75 ≤2.5s 就不用動；
@@ -83,10 +88,9 @@
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 
-- [ ] **CSP 正式開**：11/09 先上了 report-only（不擋東西，違規回報到 `/api/csp-report`）。約 12/09 看
+- [ ] **CSP 正式開**：11/09 先上了 report-only（不擋東西，違規回報到 `/api/csp-report`，上線當晚 0 筆）。約 12/09 看
   `curl https://kbs0830.com/api/csp-report`，沒有誤擋就把 `next.config.ts` 的 header 改成正式的（有提醒信）
 - [ ] 手寫的 `useMemo` 可以拿掉（React Compiler 已經在做）：只剩 `HeroScene.tsx` 3 處建 geometry 的，沒有效能問題，不急
-- [ ] Safari 換頁動畫：Chrome、Firefox 11/09 都測過正常，Safari 要你用 iPhone 點一次作品卡片
 
 ## ⏳ 等別人更新
 
