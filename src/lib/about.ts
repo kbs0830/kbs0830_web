@@ -108,9 +108,9 @@ export const timeline = [
     detailEn: "Started with HTML/CSS, C, and Python fundamentals.",
   },
   {
-    year: "2022", zh: "加入 FRC 機器人隊 · 學校電腦工場維護志工",      en: "FRC robotics team · School lab maintenance",
-    detailZh: "學習 CNC 加工與電控配線，同時擔任學校電腦工場維護志工。",
-    detailEn: "Learned CNC machining and control wiring; also volunteered maintaining the school's computer lab.",
+    year: "2022", zh: "加入 FRC 機器人隊",      en: "Joined FRC robotics team",
+    detailZh: "學習 CNC 加工與電控配線。",
+    detailEn: "Learned CNC machining and control wiring.",
   },
   {
     year: "2023", zh: "自動跟隨機器人 · 全國専題競賽動力機械群佳作",    en: "Auto-following robot · National competition Excellence Award",
