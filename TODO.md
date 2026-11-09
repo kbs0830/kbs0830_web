@@ -39,7 +39,7 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 7. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**
    → Domain Registration → Manage：確認 Auto-renew 開著、帳號信用卡到時候還有效（過期＝整站全斷）
 8. [x] **重開機不登入實測**：2026-11-06 停電後完整重開，排程工作開機觸發、Tunnel 延遲啟動約 2 分 20 秒，全部自己起來
-9. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0% 但實際只斷約 4 天，監控本身設錯；也確認告警有寄出
+9. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0% 但實際只斷約 4 天，監控本身設錯（告警 11/09 確認有寄出、使用者有收到）
 10. [x] **備份上 GitHub** → ✅ 2026-11-05 私有 repo `kbs0830/kbs0830_backup` 啟用，第一次 push 後實測從 GitHub 下載→解密→
     解壓，跟 D: 那份逐檔相同。`BACKUP-KEY.txt` 使用者 11/05 確認已另存到桌機以外的地方
 
@@ -59,11 +59,12 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 - 🙋 **作品截圖**：FoodLens／日圓匯率／記帳系統（不要有真人臉、個資）
 - 🙋 **作品量化成果**：購票系統報名數、匯率系統整合幾家銀行…有真的數字才放
 - 🙋 **機型**：想記哪班的機型，加到 `src/lib/aircraft.ts`（`/flights` 會自動顯示）
-- 🙋 **部落格草稿已寫好，等你看**（2026-11-09，`content/drafts/`，沒進 git、不會上線）：Tunnel 斷 4 天沒人發現、`/blog/.env` 回 500、VS Code 鎖住 `.next`、
-  訪客統計被 CI 灌 1037 筆。說「寫」就先寫草稿給你看
+- ⚙️ **部落格草稿**（`content/drafts/`，沒進 git、不會上線）：11/09 發了〈Tunnel 斷 4 天〉，剩 `/blog/.env` 回 500、VS Code 鎖住 `.next`、
+  訪客統計被 CI 灌 1037 筆三篇，使用者已看過語氣，隔幾天說「發下一篇」就發
 - 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
 
 ### 2026-11-09 已完成
+- [x] **部落格第 5 篇**〈網站斷了 4 天沒人發現：每一個健康檢查都說它很好〉
 - [x] **RSS feed** `/feed.xml`（/blog 頁有訂閱連結）
 - [x] **每篇文章專屬分享圖**：標題（中文襯線字）＋英文副標＋標籤，build 時產生
 - [x] **全站分享卡片修正**：作品頁、/now、/flights、/resume、/blog 分享到 LINE／Discord 原本全部顯示「PINGWEI LI — Portfolio」，

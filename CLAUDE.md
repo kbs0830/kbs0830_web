@@ -644,8 +644,10 @@ deploy.bat
 ### 5. `/blog`（獨立頁面，非首頁 section）
 內容來源 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析，`src/lib/blog.ts` 讀取），
 `/blog` 列表頁 + `/blog/[slug]` 用 `next-mdx-remote/rsc` 渲染，`generateStaticParams` SSG。
-**文章內容必須是真的踩過的坑，不能編造**——目前 4 篇都是實際 debug 過程的記錄（Next.js
-`params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題、Task Scheduler 72 小時上限）。新增文章前
+**文章內容必須是真的踩過的坑，不能編造**——目前 5 篇都是實際 debug 過程的記錄（Next.js
+`params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題、Task Scheduler 72 小時上限、Tunnel 斷 4 天）。
+**草稿放 `content/drafts/`**（`blog.ts` 不讀、不進 git），使用者看過才搬進 `content/blog/`、日期改成發佈當天。
+⚠️ **MDX 沒裝 remark-gfm，不支援 Markdown 表格**（`| a | b |` 會原樣印出一排直線），用清單代替。新增文章前
 先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的
 `Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
 但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。
