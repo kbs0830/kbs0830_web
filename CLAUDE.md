@@ -216,6 +216,8 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 因此一個舊 server 活了十分鐘，新 build 測起來全 500，還誤以為是重構壞掉）。用
 `Get-NetTCPConnection -LocalPort 3100 | Select -Expand OwningProcess -Unique | % { Stop-Process $_ -Force }`，
 起完再確認 `OwningProcess` 是自己剛起的那個 PID。另外 CI 的 `e2e.yml` 也在這台桌機用 3100。
+**⚠️ Claude 手動測試（`next start` 看畫面、截圖）一律用 3200，3100 留給 CI**：2026-11-09 手動開的 3100 server 沒關，
+同時段 push 觸發的 CI E2E 開不起自己的 server，連續失敗、寄了一堆失敗通知給使用者。用完一定要關。
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋、About 分頁（點擊／方向鍵切換、收起來的內容仍在 HTML）、
@@ -747,6 +749,11 @@ deploy.bat
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
 ### Cloudflare 設定腳本（2026-11-09，`scripts/cloudflare-config.ps1`，同日已套用）
+- **第 5 項：靜態頁快取（2026-11-10 寫好，等 token 加 Cache Rules／Cache Purge 權限才會生效）**：Cloudflare 照 Next 的
+  Cache-Control 存靜態頁（s-maxage 一年），排除 `/api/`、`/stats`、`Accept: text/markdown`。**deploy.ps1 切槽後馬上 `-Purge`**
+  （舊 HTML 引用舊版 JS chunk，新版 server 已經不提供），退回時也清。token 沒權限時快取那項 skipped、清快取也 skip，不擋部署
+- ⚠️ 快取生效後，**快取命中的請求不會到桌機**：`/stats` 的「未過濾流量」、爬蟲排行只數得到沒命中快取的請求（會明顯變少）。
+  真人造訪（JS 回報）、Web Vitals、Cloudflare 的數字不受影響
 - 管 Always Use HTTPS、HSTS（半年、不含子網域、不 preload）、www → 裸網域 301、WAF 自訂規則擋掃描器
   （path 含 `/wp-`、`.php`、`/.env`、`/.git`、`xmlrpc`）。**新增路由前確認路徑不含這些字串**，不然會被 Cloudflare 擋（403）
 - 預設只檢查；`-Apply` 才改，改完 curl 回查 4 項。deploy.ps1 每次部署帶 `-Check -Quiet` 跑，漂移寫 deploy.log＋寄信（1 天冷卻），不擋部署

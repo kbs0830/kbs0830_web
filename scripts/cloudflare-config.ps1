@@ -7,18 +7,25 @@
 #   3. www → 裸網域 301（Single Redirect；dashboard 用範本建的那條也算數，不會重複建）
 #   4. WAF 自訂規則：擋掃描器（/wp-*、*.php、/.env、/.git、xmlrpc）。網站本身沒有這些路徑，
 #      server.log 裡這類請求佔大宗，在 Cloudflare 擋掉就不會打到桌機
+#   5. 快取規則（2026-11-10）：靜態頁的 HTML 由 Cloudflare 直接回，不用每次經 Tunnel 繞回桌機（TTFB ~0.7s → ~0.05s），
+#      桌機掛掉時快取過的頁面也還看得到。快取多久照 Next.js 送的 Cache-Control（靜態頁 s-maxage 一年、/stats no-store），
+#      所以「部署後一定要清快取」：deploy.ps1 部署成功（或退回）後帶 -Purge 呼叫。
+#      排除：/api/（沒送 Cache-Control，不排除的話 Cloudflare 會照預設存 2 小時）、/stats、
+#      Accept 要 text/markdown 的請求（Markdown for Agents 跟網頁同一個網址，快取 key 不看 Accept，混在一起會互相蓋掉）
 #
 # 用法（Windows PowerShell 5.1）：
 #   powershell -File scripts\cloudflare-config.ps1          只檢查，列出跟預期不同的地方（不改任何東西）
 #   powershell -File scripts\cloudflare-config.ps1 -Apply   把不同的地方改成預期的樣子，改完用 curl 回查
+#   powershell -File scripts\cloudflare-config.ps1 -Purge   清掉 Cloudflare 全部快取（部署後用）
 # deploy.ps1 每次部署帶 -Check -Quiet 呼叫：有設定被改掉（漂移）就寫 log＋寄信，不擋部署。
 #
 # 金鑰：.env.local 的 CLOUDFLARE_CONFIG_TOKEN。沒設就什麼都不做（log 寫 skipped）。
-# 權限只要三個、只限 kbs0830.com：Zone Settings:Edit、Single Redirect:Edit、Zone WAF:Edit
+# 權限、只限 kbs0830.com：Zone Settings:Edit、Single Redirect:Edit、Zone WAF:Edit、Cache Rules:Edit、Cache Purge:Purge
+# （後兩個是 5. 快取要的；token 還沒加的話快取那項只寫 skipped，不當成漂移、不寄信）
 # （跟讀流量的 CLOUDFLARE_ANALYTICS_TOKEN 分開：那把只能讀，外洩也改不了設定）
 # 不能用 ??、?.、三元運算子（PS 5.1）。
 
-param([switch]$Apply, [switch]$Check, [switch]$Quiet)
+param([switch]$Apply, [switch]$Check, [switch]$Quiet, [switch]$Purge)
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -52,9 +59,14 @@ function Cf($method, $path, $body) {
     try {
         return Invoke-RestMethod @req
     } catch {
+        # 權限不夠時 Cloudflare 有時回 403 但沒有錯誤內容（ErrorDetails 是 null），所以狀態碼一定要帶上
+        $status = ""
+        if ($_.Exception.Response) { $status = "HTTP $([int]$_.Exception.Response.StatusCode) " }
         $msg = $_.Exception.Message
-        try { $msg = ($_.ErrorDetails.Message | ConvertFrom-Json).errors | ForEach-Object { "$($_.code) $($_.message)" } } catch {}
-        throw "$method $path → $msg"
+        if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
+            try { $msg = (($_.ErrorDetails.Message | ConvertFrom-Json).errors | ForEach-Object { "$($_.code) $($_.message)" }) -join "；" } catch {}
+        }
+        throw "$method $path → $status$msg"
     }
 }
 
@@ -78,6 +90,36 @@ $wafRule = @{
     description = "擋掃描器：/wp-*、*.php、/.env、/.git、xmlrpc（scripts/cloudflare-config.ps1）"
     expression = $scannerExpr
     action = "block"
+}
+
+# 5. 快取：靜態頁照 origin 的 Cache-Control 存在 Cloudflare。not (... contains ...) 要加括號，not 的優先順序比 contains 高
+$cacheExpr = '(http.host eq "kbs0830.com" and not (http.request.uri.path contains "/api/") and http.request.uri.path ne "/stats" and not any(http.request.headers["accept"][*] contains "text/markdown"))'
+$cacheRule = @{
+    ref = "kbs0830_cache_static"
+    description = "靜態頁快取，照 origin Cache-Control；排除 /api/、/stats、Markdown（scripts/cloudflare-config.ps1）"
+    expression = $cacheExpr
+    action = "set_cache_settings"
+    action_parameters = @{
+        cache = $true
+        edge_ttl = @{ mode = "respect_origin" }
+        browser_ttl = @{ mode = "respect_origin" }
+    }
+}
+
+# 權限不夠時 Cloudflare 回 10000 Authentication error／9109 Unauthorized
+function Test-NoPermission($err) { return "$err" -match "HTTP 403|10000|9109|Authentication error|Unauthorized|not authorized" }
+
+if ($Purge) {
+    try {
+        Cf POST "/purge_cache" @{ purge_everything = $true } | Out-Null
+        Say "已清除 Cloudflare 快取"
+        Write-TimestampedLog -LogFile $logFile -Message "Cloudflare 快取已清除（purge_everything）"
+        exit 0
+    } catch {
+        if (Test-NoPermission $_) { Say "skipped：token 沒有 Cache Purge 權限"; exit 0 }
+        Write-TimestampedLog -LogFile $logFile -Message "[WARN] Cloudflare 清快取失敗：$($_.Exception.Message)"
+        exit 1
+    }
 }
 
 function Get-Entrypoint($phase) {
@@ -123,6 +165,14 @@ try {
     # 4. WAF 擋掃描器
     $r = Set-RuleIfMissing "http_request_firewall_custom" $wafRule { param($x) $x.ref -eq "kbs0830_block_scanners" }
     if ($r -eq "ok") { $report += "WAF 擋掃描器：ok" } elseif ($Apply) { $report += "WAF 擋掃描器：$r" } else { $drift += "WAF 擋掃描器：$r" }
+
+    # 5. 靜態頁快取（token 還沒加 Cache Rules 權限就 skipped，不算漂移）
+    try {
+        $r = Set-RuleIfMissing "http_request_cache_settings" $cacheRule { param($x) $x.ref -eq "kbs0830_cache_static" }
+        if ($r -eq "ok") { $report += "靜態頁快取：ok" } elseif ($Apply) { $report += "靜態頁快取：$r" } else { $drift += "靜態頁快取：$r" }
+    } catch {
+        if (Test-NoPermission $_) { $report += "靜態頁快取：skipped（token 沒有 Cache Rules 權限）" } else { throw }
+    }
 } catch {
     $err = "Cloudflare API 失敗：$($_.Exception.Message)"
     Say $err
@@ -157,6 +207,24 @@ if ($Apply) {
         }
         $mark = "NG"; if ($code -eq $c.want) { $mark = "OK" }
         Say "  [$mark] $($c.name)：$code（預期 $($c.want)）"
+    }
+    # 快取：同一頁打兩次，第二次要是 HIT（/stats 要一直是 BYPASS／DYNAMIC，不能被存）
+    $cacheStatus = {
+        param($url)
+        try {
+            $wr = [Net.HttpWebRequest]::Create($url)
+            $wr.UserAgent = "kbs0830-cloudflare-config"
+            $resp = $wr.GetResponse(); $s = $resp.Headers["cf-cache-status"]; $resp.Close(); return "$s"
+        } catch { return "error" }
+    }
+    foreach ($u in "https://kbs0830.com/", "https://kbs0830.com/stats") {
+        & $cacheStatus $u | Out-Null
+        Start-Sleep -Seconds 2
+        $s = & $cacheStatus $u
+        $want = "HIT"; if ($u -like "*/stats") { $want = "不是 HIT" }
+        $ok = ($want -eq "HIT" -and $s -eq "HIT") -or ($want -ne "HIT" -and $s -ne "HIT")
+        $mark = "NG"; if ($ok) { $mark = "OK" }
+        Say "  [$mark] 快取 $u：cf-cache-status=$s（預期 $want）"
     }
     Write-TimestampedLog -LogFile $logFile -Message "cloudflare-config -Apply：$($report -join '；')"
     exit 0

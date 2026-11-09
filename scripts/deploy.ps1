@@ -98,6 +98,15 @@ function Publish-GeneratedFiles {
     }
 }
 
+# Cloudflare 靜態頁快取（scripts/cloudflare-config.ps1 第 5 項）：版本換了就清掉。
+# 失敗只寫 log、不擋部署（最壞情況是舊頁面多留一陣子）；token 沒有 Cache Purge 權限時 cloudflare-config 自己會 skip
+function Clear-CloudflareCache {
+    try {
+        & (Join-Path $PSScriptRoot "cloudflare-config.ps1") -Purge -Quiet | Out-Null
+        if ($LASTEXITCODE -ne 0) { Log "[WARN] Cloudflare 清快取失敗（exit $LASTEXITCODE），見上一行" }
+    } catch { Log "[WARN] Cloudflare 清快取失敗：$($_.Exception.Message)" }
+}
+
 function Test-Deploy {
     & (Join-Path $repo "scripts\verify-deploy.ps1") *>&1 | ForEach-Object { Log "  $_" }
     return $LASTEXITCODE -eq 0
@@ -160,11 +169,15 @@ try {
 
     Log "switching $activeSlot → $targetSlot, restarting Next.js (Task Scheduler: kbs0830_NextJS)"
     Switch-Slot $targetSlot
+    # Cloudflare 快取的是舊版 HTML，裡面引用的是舊版的 JS chunk——新版 server 不再提供那些檔案。
+    # 所以切完槽「馬上」清快取，不能等健檢、IndexNow 跑完（2026-11-10 加 Cloudflare 快取時）
+    Clear-CloudflareCache
 
     Log "verifying deployment"
     if (-not (Test-Deploy) -or $TestRollback) {
         Log "[ROLLBACK] 健檢沒過，指回 $activeSlot"
         Switch-Slot $activeSlot
+        Clear-CloudflareCache
         $rolledBack = Test-Deploy
         throw "Deployment verification failed，$(if ($rolledBack) { "已自動退回 $activeSlot，網站正常" } else { '退回上一版後健檢還是沒過，需要人工介入' })"
     }
