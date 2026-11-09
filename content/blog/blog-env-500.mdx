@@ -1,0 +1,80 @@
+---
+title: "掃描器打 /blog/.env 拿到 500：Task Scheduler 的工作目錄是 System32"
+titleEn: "Why /blog/.env returned 500 instead of 404 — the working directory was System32"
+date: "2026-11-09"
+description: "部落格文章都正常，但任何不存在的文章網址都回 500。原因不在 Next.js，而在 Windows 工作排程器啟動 Node.js 時，process.cwd() 根本不是專案資料夾。"
+tags: ["Next.js", "Windows", "Debugging"]
+---
+
+Google Search Console 的「伺服器錯誤 (5xx)」裡有幾筆不知道哪來的。翻 `server.log`，找到一批很規律的 500：
+
+```
+GET /blog/robots.txt      500
+GET /blog/wp-login.php    500
+GET /blog/.env            500
+GET /blog/.env?v=eKq6X    500
+GET /blog/wp-json         500
+```
+
+都是漏洞掃描器在亂猜路徑。被掃描很正常，任何公開的網站都會收到；不正常的是回應碼。這些網址根本不存在，應該回 **404**，不是 500。10/14 到 11/05 之間一共 37 筆，其中 `/blog/.env` 就佔了 12 筆。
+
+## 只有 /blog/ 底下會這樣
+
+同樣是掃描器，打根目錄的 `/wp-login.php`、`/.env` 都正確回 404（同一段期間 197 筆，全部 404）。打 `/blog/wp-includes/wlwmanifest.xml` 也是 404。只有 `/blog/<一段>` 這種形狀會 500。
+
+這個形狀剛好對上文章頁的路由 `app/blog/[slug]/page.tsx`。`wp-includes/wlwmanifest.xml` 是兩段，對不上 `[slug]`，所以沒事。
+
+## 為什麼存在的文章沒事，不存在的才壞
+
+文章頁有 `generateStaticParams`，build 的時候就把每一篇都預先產生好了。訪客打開真的文章，Next.js 直接回 build 好的 HTML，不會再跑任何程式。
+
+不存在的 slug 就不一樣。Next.js 預設會「試著即時渲染看看」，於是真的去執行頁面的程式碼，第一件事就是讀文章清單：
+
+```ts
+const blogDir = path.join(process.cwd(), "content", "blog");
+
+export function getAllPosts() {
+  const files = fs.readdirSync(blogDir) // ← 就是這裡
+  ...
+}
+```
+
+`process.cwd()` 理論上是專案資料夾。本機開發、`next build` 時都是，所以從來沒出過問題。
+
+## 正式站的 cwd 是 C:\Windows\System32
+
+正式站的 Node.js 是 Windows 工作排程器開機時啟動的。排程工作有一個「開始位置（Start in）」欄位，我沒填。沒填的時候，process 的工作目錄就是 `C:\Windows\System32`。
+
+所以 `readdirSync` 讀的是 `C:\Windows\System32\content\blog`。資料夾不存在 → 丟例外 → 頁面還沒走到 `notFound()` 就先炸了 → 500。
+
+直接在正式站打一個隨便取的 `/blog/nope`，確實回 500。
+
+## 其實我早就知道 cwd 不對
+
+好笑的是，這個坑我 7/17 就踩過一次。訪客統計要寫 `data/visitor-stats.json`，當時就發現 `process.cwd()` 指到 System32，解法是在 `server.js` 用環境變數把絕對路徑傳進去：
+
+```js
+// Task Scheduler 啟動這個 process 時沒有設定 working directory（process.cwd() 會是
+// C:\Windows\System32 之類的地方，不是專案根目錄），所以把絕對路徑用環境變數傳給
+// 那支 API route，不要讓那邊自己用 process.cwd() 猜路徑。
+process.env.VISITOR_STATS_FILE = path.join(dataDir, "visitor-stats.json");
+```
+
+一次修一個檔案，就會漏掉下一個。部落格是後來加的，`blog.ts` 很自然地寫了 `process.cwd()`，本機測試也都過，直到掃描器幫我找到它。
+
+## 修法：一行
+
+不再一個一個檔案補，直接在 server 啟動時把工作目錄切到專案資料夾：
+
+```js
+const projectDir = path.join(__dirname, "..");
+process.chdir(projectDir);
+```
+
+這樣所有依賴 `process.cwd()` 的程式碼一次全部正確。部署後再打 `/blog/.env`，回 404。
+
+## 學到的事
+
+- **「預先產生好的頁面都正常」可能掩蓋了即時渲染的路徑。** 正常訪客永遠走不到那條路，只有亂猜網址的人會走到。
+- **掃描器是免費的測試工具。** 它們會打一堆你自己不會想到要測的網址。
+- **環境差異要在源頭修。** 一個一個檔案補環境變數，只修好了當時想到的那個檔案；在 process 啟動時把 cwd 設好，才是修好了「cwd 不對」這件事本身。

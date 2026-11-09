@@ -1,0 +1,80 @@
+---
+title: "訪客統計裡藏了 1037 筆假資料：是我自己的測試灌的"
+titleEn: "1,037 fake visits hiding in my stats — and my own CI put them there"
+date: "2026-11-09"
+description: "7 月擋掉了偽裝成瀏覽器的掃描器，以為統計乾淨了。結果最大的污染源是自己的 E2E 測試：它真的會執行 JavaScript、UA 也是一般的 Chrome，而且跑在同一台機器上。"
+tags: ["Testing", "Next.js", "Data"]
+---
+
+7 月寫過一篇[訪客統計被機器人污染](/blog/visitor-stats-bot-pollution)：掃描器偽裝成瀏覽器，混進了一筆假的土耳其訪客。當時的修法是改成「瀏覽器真的執行 JavaScript 之後，才主動回報這次造訪」——大部分掃描器不執行 JS，從架構上就不會被算到。
+
+那篇的結尾說統計乾淨了。其實沒有，只是髒的那部分我看不到。
+
+## 先發現的是另一份資料
+
+11/04 晚上幫網站加了真實訪客的 Web Vitals：瀏覽器量到 LCP、INP、CLS 之後送回來，存起來算 p75，用來決定首頁動畫要不要改。
+
+上線才幾分鐘，打開資料看，已經有 40 幾筆。這個網站沒那麼多人。更奇怪的是作品詳細頁的 FCP 有 9.6 秒——就算是很慢的手機也不至於。
+
+9.6 秒這個數字很眼熟：這是 Next.js 開發模式第一次編譯一個頁面要花的時間。
+
+## 兇手：自己的 E2E 測試
+
+每次 push 到 main，GitHub Actions 會在**這台桌機上**跑 Playwright 的 E2E 測試（self-hosted runner）。測試會起一個 `next dev`，用瀏覽器把首頁、作品頁、文章頁全部點一遍。
+
+對統計程式來說，這些測試就是完美的「真人」：
+
+- **它真的執行 JavaScript。** 7 月那道防線攔的是「不執行 JS 的程式」，E2E 用的是真的 Chromium。
+- **它的 User-Agent 是一般的 Chrome。** Playwright 的 `devices["Desktop Chrome"]` 模擬的是桌機 Chrome，字串裡沒有 `headless`，UA 黑名單也擋不到。
+- **它寫進的是同一個資料夾。** E2E 跑在正式站的目錄裡，統計資料檔就在旁邊的 `data/`。
+
+push 一次，幾十筆假的 Web Vitals 就進去了。
+
+## 那訪客統計呢？
+
+Web Vitals 會中，訪客統計一定也會中——E2E 每次都會打開首頁，首頁的 Footer 會回報一次造訪。
+
+打開 `data/visitor-stats.json`，裡面有一個沒看過的國家代碼：
+
+```json
+{ "TW": …, "US": …, "XX": 1037 }
+```
+
+**1037 筆 `XX`**，是真實造訪次數的十倍以上。
+
+舊的程式是這樣寫的：
+
+```ts
+const country = (req.headers.get("cf-ipcountry") || "XX").toUpperCase();
+```
+
+國家是從 `cf-ipcountry` 讀的，這個 header 是 Cloudflare 在邊緣節點加上的。E2E 直接打桌機的 localhost，沒經過 Cloudflare，自然沒有這個 header，就被記成 `XX`。
+
+而顯示統計的地方，剛好有一行把 `XX` 濾掉（本意是 Cloudflare 認不出國家的那種）：
+
+```ts
+const entries = Object.entries(stats).filter(([code]) => code !== "XX");
+```
+
+所以 Footer 上的數字一直是對的，假資料全部躲在一個不會顯示的欄位裡。E2E 測試跟訪客統計是同一天（7/17）加的，等於從第一天就開始累積，安安靜靜地存了三個半月。
+
+## 修法：用「有沒有經過 Cloudflare」判斷
+
+真實訪客一定是從 Cloudflare Tunnel 進來的，一定帶著 `cf-ipcountry`。沒有這個 header 的請求，不管它看起來多像瀏覽器，都不是訪客：
+
+```ts
+if (!req.headers.get("cf-ipcountry") || BOT_UA_PATTERN.test(ua)) {
+  return NextResponse.json(summarize(readStats())); // 不計入
+}
+```
+
+Web Vitals 用同一條規則。Cloudflare 自己認不出國家時也會送 `XX`，那種有經過 Cloudflare，照樣記錄。
+
+這個判斷比 UA 黑名單可靠得多：UA 是客戶端自己說的，想填什麼都可以；`cf-ipcountry` 是 Cloudflare 加的，從外面連進來的人改不了，直接打 localhost 的也偽造不出「經過 Cloudflare」這件事。
+
+## 學到的事
+
+- **你的測試就是最像真人的機器人。** 它執行 JS、用真的瀏覽器、UA 很正常。統計要排除的不只是外人，還有自己。
+- **「不顯示」不等於「不存在」。** 濾掉 `XX` 讓畫面乾淨，也讓問題被藏了好幾個月。這次是另一份資料出事，回頭看才發現。
+- **測試跟正式資料不要放在同一個地方。** 這次是靠 header 擋，根本的問題是 E2E 跟正式站共用 `data/`。
+- **用「事實」過濾，不要用「自我宣稱」過濾。** UA 是自我宣稱，「有沒有經過 Cloudflare」是事實。

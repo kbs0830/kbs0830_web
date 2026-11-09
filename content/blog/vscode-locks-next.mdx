@@ -1,0 +1,101 @@
+---
+title: "想做零停機部署，結果被 VS Code 擋住：Windows 上資料夾改名改不了"
+titleEn: "Atomic deploys on Windows: when VS Code won't let you rename .next"
+date: "2026-11-09"
+description: "「build 到暫存資料夾、好了再改名換上去」是最常見的原子部署做法。在 Windows 上第一次跑就 Access denied——兇手是開著的編輯器。最後改成兩個資料夾輪流用，完全不搬資料夾。"
+tags: ["Next.js", "Windows", "DevOps"]
+---
+
+這個網站的部署流程原本很單純：`git pull` → `next build` → 重啟 server。問題是 `next build` 會直接覆寫 `.next` 資料夾，而線上的 server 正在讀它。
+
+build 的那十幾到幾十秒裡，線上的舊 process 拿著舊的清單，去讀一個正在被改寫的資料夾；build 要是中途失敗，`.next` 就停在不完整的狀態，網站壞到有人發現為止。7 月就出過一次同類的事：`.next` 已經是新版，但舊 process 沒被換掉，拿舊清單去找 JS 檔，所有 chunk 都 404/500，整頁白屏。
+
+所以 11/03 想做一件很標準的事：**原子部署**。
+
+## 第一版：build 到旁邊，好了再改名
+
+做法到處都看得到：
+
+1. `next build` 輸出到 `.next-build`（線上照常用 `.next` 服務）
+2. build 成功才換：`.next` 改名成 `.next-prev`、`.next-build` 改名成 `.next`
+3. 重啟 server
+4. 健康檢查沒過就改名回去
+
+build 失敗完全不影響線上，換的那一步只是兩次改名，理論上一瞬間。
+
+第一次跑，build 很順利，然後：
+
+```
+switching .next-build → .next, restarting Next.js (Task Scheduler: kbs0830_NextJS)
+[FAILED] 無法把 ...\.next 改名成 ...\.next-prev：
+         Access to the path '...\.next' is denied.
+Next.js 沒在跑，用現有的 .next 重新啟動
+===== Deploy FAILED =====
+```
+
+改名之前已經先停了 server，改名失敗、再用舊的 `.next` 啟動回來。原子部署的第一次執行，讓網站多停了 12 秒。
+
+## 誰鎖住了 .next
+
+server 已經停了，照理說沒有人在用 `.next`。
+
+Windows 跟 Linux 有一個關鍵差異：**Linux 上資料夾裡有檔案被打開，照樣可以把資料夾改名**；Windows 上只要資料夾裡任何一個檔案或子資料夾有 handle 開著，上層資料夾就不能改名。
+
+而 `.next` 裡面有一個 `types` 子資料夾，是 Next.js 產生的路由型別。Next.js 會把 `.next/types/**/*.ts` 自動寫進 `tsconfig.json` 的 `include`。也就是說，**只要 VS Code 開著這個專案，它的 TypeScript 語言服務就會監看 `.next/types`**——這台桌機的 VS Code 一直開著，因為我就是在這裡改網站的。
+
+我不想為了部署要求「先關編輯器」，那等於這個自動化有一個隱藏的前提條件，總有一天會忘記。
+
+## 第二版：不搬資料夾，換指標
+
+既然改名是問題，那就不要改名。
+
+- 準備兩個 build 資料夾：`.next-a`、`.next-b`
+- 一個小檔案 `data/next-dist-dir.txt` 記錄「現在上線的是哪一個」
+- 部署時 build 到**沒在線上**的那一個，build 好了改指標檔、重啟
+
+`next.config.ts` 讀環境變數決定要用哪個資料夾：
+
+```ts
+const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  ...
+};
+```
+
+server 啟動時讀指標檔，設好 `NEXT_DIST_DIR`：
+
+```js
+const distDirFile = path.join(dataDir, "next-dist-dir.txt");
+if (!process.env.NEXT_DIST_DIR && fs.existsSync(distDirFile)) {
+  process.env.NEXT_DIST_DIR = fs.readFileSync(distDirFile, "utf8").trim();
+}
+```
+
+健康檢查沒過，就把指標寫回原本那個、再重啟一次——舊版本還完整地躺在另一個資料夾裡，退回去不用重新 build。
+
+## 還有一個小坑：tsconfig 會被改髒
+
+Next.js build 時會把 `<distDir>/types` 寫進 `tsconfig.json` 的 `include`。distDir 變成 `.next-a`、`.next-b` 之後，每次部署 `tsconfig.json` 就多一行，git 就顯示有改動。
+
+解法是部署時 build 用一份副本：每次從 `tsconfig.json` 複製出 `tsconfig.deploy.json`（加進 `.gitignore`），讓 Next.js 去改那份。
+
+## 結果
+
+```
+switching .next-a → .next-b, restarting Next.js
+verifying deployment
+  [OK] 首頁與 JS chunk 都正常
+===== Deploy succeeded =====
+```
+
+從切換到健康檢查通過大約 2 秒。退回也實際測過：部署腳本有一個 `-TestRollback` 參數，切過去之後故意當作健康檢查失敗，看它會不會正確指回原本那個資料夾。
+
+- **部署時網站可能出錯的時間**：5～40 秒（build＋重啟）→ 1～2 秒（只有重啟）
+- **build 失敗**：`.next` 不完整、壞到有人發現 → 線上完全不受影響
+- **新版有問題**：手動處理 → 自動退回上一版
+
+## 學到的事
+
+- **網路上的部署做法多半預設 Linux。** 「改名是原子操作」在 Linux 上成立，在 Windows 上要加一個條件：沒有人打開裡面的任何東西。
+- **開發機兼正式機，編輯器就是環境的一部分。** 它會鎖檔案、會監看資料夾，自動化要把它算進去。
+- **能不搬資料就不要搬，改一個指標就好。** 兩個資料夾輪流用，換版跟退回都只是寫一行字。

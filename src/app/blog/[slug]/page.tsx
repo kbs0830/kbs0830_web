@@ -77,11 +77,11 @@ const mdxComponents = {
   strong: (props: React.ComponentPropsWithoutRef<"strong">) => (
     <strong className="font-medium text-(--accent)" {...props} />
   ),
+  // 站外連結開新分頁；站內（/blog/… 互相引用）照常在同一頁換過去
   a: (props: React.ComponentPropsWithoutRef<"a">) => (
     <a
       className="text-(--accent) underline decoration-(--border) underline-offset-2 hover:decoration-(--accent) transition-colors"
-      target="_blank"
-      rel="noopener noreferrer"
+      {...(props.href?.startsWith("/") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
       {...props}
     />
   ),
