@@ -61,6 +61,30 @@ Google／Bing 的資料要你自己的帳號，網站這邊能做的都做完了
 - 🙋 **機型**：想記哪班的機型，加到 `src/lib/aircraft.ts`（`/flights` 會自動顯示）
 - 🔜 **~11/18 看真實訪客 Web Vitals**：`curl https://kbs0830.com/api/web-vitals`，首頁 LCP p75 ≤2.5s 就不用動 Hero 動畫
 
+### 🆕 新點子（2026-11-09 盤點，還沒排）
+**監控／維運**
+- ⚙️🙋 **桌機以外的外部監控**：停電、整台當機時，watchdog 跟它的「外網檢查」都跟著停（都跑在這台桌機上），
+  唯一的機外監控 UptimeRobot 又設錯。用 GitHub 自己的機器（GitHub-hosted runner，不是桌機那台）每 10 分鐘打一次網站，
+  連續失敗就寄信到 otemon。需要你在 repo 加兩個 Secret（SMTP 帳密），程式 Claude 寫
+- ⚙️ **每週流量週報**：每週一寄一封到 otemon——Cloudflare 7 天訪客／瀏覽、AI 爬蟲跟搜尋引擎來了幾次、Web Vitals p75、
+  這週部署幾次、watchdog 救了幾次。資料都已經有了，接進現有的提醒信機制
+- ⚙️ **備份還原演練提醒**：每季寄一封提醒「實際從 GitHub 下載備份解密一次」——備份沒還原過等於沒有（`reminders.json` 加一筆）
+
+**部落格（現在 8 篇了）**
+- ⚙️ **文章底部「上一篇／下一篇」＋相關文章**（依 tag），讀完一篇有地方繼續點
+- ⚙️ **Tag 頁** `/blog/tags/devops` 這種，文章多了好找；sitemap 一起加
+- ⚙️ **系列文**：「自架網站維運」那幾篇（72 小時、Tunnel 4 天、.env 500、VS Code、1037 筆）串成一個系列，文章開頭標「系列第 N 篇」
+- ⚙️ **支援 Markdown 表格**（裝 `remark-gfm`，現在寫表格會印出一排直線）
+
+**作品／分享**
+- ⚙️ **每個作品專屬分享圖**（跟文章一樣：作品名＋一句話＋技術 tag），分享作品頁時更好認
+- ⚙️ **公開的 `/stats` 頁**：Cloudflare 30 天趨勢圖、AI 爬蟲排行、訪客國家——「自架網站」本身的展示，也是作品的一部分
+
+**品質／安全**
+- ⚙️ **無障礙自動檢查**：E2E 加 axe-core，每次 push 自動掃對比度、alt、label（之前 Lighthouse 抓到的那種問題不會再靠人工發現）
+- ⚙️ **Content-Security-Policy**：目前 security headers 有 4 個，缺 CSP；先用 report-only 模式上，確認沒擋到東西再正式開
+- 🙋 **HSTS**：等 HTTP→HTTPS 導向（你的待辦第 6 項）生效後，Cloudflare SSL/TLS → Edge Certificates 打開 HSTS
+
 ### 2026-11-09 已完成
 - [x] **部落格第 5～8 篇**：〈網站斷了 4 天沒人發現〉〈掃描器打 /blog/.env 拿到 500〉〈想做零停機部署，結果被 VS Code 擋住〉
   〈訪客統計裡藏了 1037 筆假資料〉；文章內的站內連結改成同頁開啟
