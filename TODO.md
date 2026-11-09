@@ -19,29 +19,21 @@
 2. [ ] **Bing 收錄回查**（11/08 提醒信已寄）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
    顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
 3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **建一組 Cloudflare API token**（5 分鐘）🟡 腳本 11/09 寫好了（`scripts/cloudflare-config.ps1`），有 token 就一次做掉：
-   HTTP→HTTPS（現在 `http://kbs0830.com/` 200、`http://www.` 404）、HSTS、www 導向檢查、在 Cloudflare 就擋掉掃描器
-   （server.log 裡 `/wp-content` 37、`/wp-admin` 29、`/.git` 19 次…現在都打到桌機才回 404）；之後每次部署自動檢查設定有沒有被改掉
-   → dash.cloudflare.com → 右上頭像 → **My Profile → API Tokens → Create Token → Custom token**
-   → 權限加三行：**Zone｜Zone Settings｜Edit**、**Zone｜Single Redirect｜Edit**、**Zone｜Zone WAF｜Edit**
-   → Zone Resources：**Include｜Specific zone｜kbs0830.com** → Continue → Create
-   → 複製 token，**自己貼到** `.env.local` 新增一行 `CLOUDFLARE_CONFIG_TOKEN=貼上`（不要貼在對話裡）
-   → 跟 Claude 說「token 好了」：先跑檢查模式給你看，再套用、用 curl 回查
-5. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**（4/18 有提醒信）
+4. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**（4/18 有提醒信）
    → Domain Registration → Manage：Auto-renew 開著、信用卡到時候還有效（過期＝整站全斷）
-6. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
-7. [ ] **cloudflared 升級**（11/09：裝的是 2026.10.0，最新 2026.10.7）：系統管理員 PowerShell 跑
+5. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
+6. [ ] **cloudflared 升級**（11/09：裝的是 2026.10.0，最新 2026.10.7）：系統管理員 PowerShell 跑
    `Stop-Service Cloudflared` → `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`
-8. [ ] **GitHub 門面**（改的是別的 repo）
+7. [ ] **GitHub 門面**（改的是別的 repo）
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`；這兩個的 README 補截圖／架構圖／安裝步驟
    → profile README（`kbs0830/kbs0830`）做成跟網站一樣的風格（要做 Claude 可以幫忙寫）
-9. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
+8. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
    Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
 
 **內容**
-- [ ] **定位一句話**：Hero 副標要不要從「学生開発者 · Claude × Gemini」改成「Full-stack Developer · AI × Web」之類
+- [x] **定位一句話**：Hero 副標要不要從「学生開発者 · Claude × Gemini」改成「Full-stack Developer · AI × Web」之類
   （2026-07 外部 review 的第 1 點）。決定後同步改 title／OG／JSON-LD `jobTitle`／履歷
 - [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
 - [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、

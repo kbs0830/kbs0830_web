@@ -7,7 +7,10 @@
 
 ### 2026-11-09 Cloudflare 設定腳本、VS Code schema 警告
 - [x] `scripts/cloudflare-config.ps1`：Always Use HTTPS、HSTS、www 導向、WAF 擋掃描器。預設只檢查，`-Apply` 才改、改完 curl 回查；
-  deploy.ps1 每次部署帶 `-Check` 跑（設定被改掉就寫 log＋寄信）。**還沒實際套用：等使用者建 token**（TODO 你要動手的第 4 項）
+  deploy.ps1 每次部署帶 `-Check` 跑（設定被改掉就寫 log＋寄信）
+- [x] **11/09 使用者建好 token（`kbs0830-config`），套用完成**：Always Use HTTPS 打開、HSTS 半年、WAF 擋掃描器規則建立（www 導向本來就在）。
+  curl 回查：`http://` → 301 https（query 保留）、`http://www.` → https → 裸網域、`/wp-admin`／`.php`／`/.env`／`/.git` → 403、
+  `/.well-known` 沒被誤擋、文章／tag／`/stats`／RSS／Markdown 版照常 200
 - [x] VS Code 打開 `renovate.json` 跳「位置不受信任」：`.vscode/settings.json` 信任 docs.renovatebot.com
 
 ### 2026-11-09 CSP 正式開

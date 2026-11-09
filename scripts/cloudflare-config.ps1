@@ -83,7 +83,7 @@ $wafRule = @{
 function Get-Entrypoint($phase) {
     try { return (Cf GET "/rulesets/phases/$phase/entrypoint").result } catch { if ("$_" -match "10003|not found|404") { return $null } else { throw } }
 }
-function Ensure-Rule($phase, $rule, $isPresent) {
+function Set-RuleIfMissing($phase, $rule, $isPresent) {
     $ep = Get-Entrypoint $phase
     $rules = @()
     if ($ep -and $ep.rules) { $rules = @($ep.rules) }
@@ -117,11 +117,11 @@ try {
     } else { $report += "HSTS：ok" }
 
     # 3. www → 裸網域（dashboard 範本建的那條也算：導向規則、條件裡有 www）
-    $r = Ensure-Rule "http_request_dynamic_redirect" $wwwRule { param($x) $x.action -eq "redirect" -and "$($x.expression)" -match "www" }
+    $r = Set-RuleIfMissing "http_request_dynamic_redirect" $wwwRule { param($x) $x.action -eq "redirect" -and "$($x.expression)" -match "www" }
     if ($r -eq "ok") { $report += "www 導向：ok" } elseif ($Apply) { $report += "www 導向：$r" } else { $drift += "www 導向：$r" }
 
     # 4. WAF 擋掃描器
-    $r = Ensure-Rule "http_request_firewall_custom" $wafRule { param($x) $x.ref -eq "kbs0830_block_scanners" }
+    $r = Set-RuleIfMissing "http_request_firewall_custom" $wafRule { param($x) $x.ref -eq "kbs0830_block_scanners" }
     if ($r -eq "ok") { $report += "WAF 擋掃描器：ok" } elseif ($Apply) { $report += "WAF 擋掃描器：$r" } else { $drift += "WAF 擋掃描器：$r" }
 } catch {
     $err = "Cloudflare API 失敗：$($_.Exception.Message)"
@@ -142,10 +142,19 @@ if ($Apply) {
         @{ name = "首頁照常"; url = "https://kbs0830.com/"; want = 200 }
     )
     foreach ($c in $checks) {
+        # 不用 Invoke-WebRequest -MaximumRedirection 0：PS 5.1 遇到 301 會丟例外、拿不到狀態碼（第一次跑顯示 0）
+        $code = 0
         try {
-            $resp = Invoke-WebRequest -Uri $c.url -MaximumRedirection 0 -UseBasicParsing -ErrorAction Stop
+            $wr = [Net.HttpWebRequest]::Create($c.url)
+            $wr.AllowAutoRedirect = $false
+            $wr.Method = "HEAD"
+            $wr.UserAgent = "kbs0830-cloudflare-config"
+            $resp = $wr.GetResponse()
             $code = [int]$resp.StatusCode
-        } catch { $code = [int]$_.Exception.Response.StatusCode }
+            $resp.Close()
+        } catch [Net.WebException] {
+            if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode; $_.Exception.Response.Close() }
+        }
         $mark = "NG"; if ($code -eq $c.want) { $mark = "OK" }
         Say "  [$mark] $($c.name)：$code（預期 $($c.want)）"
     }
