@@ -4,7 +4,7 @@ import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import HotelMap from "@/components/ui/HotelMap";
-import { GROUP_NAMES, MEMBERSHIPS, hotelStats, hotelsByPlace } from "@/lib/hotels";
+import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "@/lib/hotels";
 
 export const metadata: Metadata = withShare({
   title: "住宿紀錄 · Hotel Log — PINGWEI LI",
@@ -17,6 +17,7 @@ const nf = new Intl.NumberFormat("zh-TW");
 export default function HotelsPage() {
   const stats = hotelStats();
   const places = hotelsByPlace();
+  const memberships = membershipsByKind();
   const outside = places.filter(([country]) => country === "美國");
   const [topGroup, topCount] = stats.groups[0];
 
@@ -52,20 +53,29 @@ export default function HotelsPage() {
         )}
       </section>
 
-      {MEMBERSHIPS.length > 0 && (
+      {memberships.length > 0 && (
         <section className="mb-12">
           <SectionHeading>會籍 · Memberships</SectionHeading>
-          <ul className="grid sm:grid-cols-2 gap-x-8">
-            {MEMBERSHIPS.map((m) => (
-              <li key={m.program} className="flex items-baseline justify-between gap-3 py-2 border-b border-(--border)">
-                <span className="text-[15px] sm:text-sm text-(--text) font-light">{m.program}</span>
-                <span className="text-[11px] text-(--muted) font-mono shrink-0">
-                  {m.kind}
-                  {m.tier ? ` · ${m.tier}` : ""}
-                </span>
-              </li>
+          <div className="space-y-6">
+            {memberships.map(([kind, ms]) => (
+              <div key={kind} className="grid sm:grid-cols-[5.5rem_1fr] gap-x-3 gap-y-1">
+                <p className="text-xs text-(--muted) pt-2">{kind}</p>
+                <ul className="divide-y divide-(--border) border-y border-(--border)">
+                  {ms.map((m) => (
+                    <li key={m.program} className="py-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                      <span className="text-[15px] sm:text-sm text-(--text) font-light">{m.program}</span>
+                      {m.tier && <span className="text-[11px] text-(--accent) font-mono">{m.tier}</span>}
+                      {(m.perks || m.until) && (
+                        <span className="basis-full text-[11px] text-(--muted) font-mono">
+                          {[m.perks, m.until && `效期至 ${m.until}`].filter(Boolean).join(" · ")}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
       )}
 

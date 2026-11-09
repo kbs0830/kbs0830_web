@@ -143,13 +143,36 @@ export const GROUP_NAMES: Record<Group, string> = {
   其他: "其他／獨立飯店",
 };
 
-// 會籍：使用者之後提供。{ program: 計畫名稱, tier: 等級, kind: 飯店／航空… }。不放會員編號
+// 會籍：使用者 2026-11-09 提供（計畫名稱＋等級＋權益），名稱照官方寫法校過。會員編號一律不放。
+// until＝效期到哪一年年底（使用者給的），過期要拿掉或更新：reminders.json 有對應提醒。
+export type MembershipKind = "飯店" | "航空" | "機場貴賓室" | "郵輪" | "租車";
 export interface Membership {
   program: string;
   tier?: string;
-  kind: "飯店" | "航空" | "其他";
+  kind: MembershipKind;
+  perks?: string;
+  until?: string;
 }
-export const MEMBERSHIPS: Membership[] = [];
+export const MEMBERSHIP_KINDS: MembershipKind[] = ["飯店", "航空", "機場貴賓室", "郵輪", "租車"];
+export const MEMBERSHIPS: Membership[] = [
+  { kind: "飯店", program: "IHG One Rewards", tier: "鑽石 Diamond", perks: "年度行政酒廊（至 2027）" },
+  { kind: "飯店", program: "InterContinental Ambassador", tier: "洲際大使", perks: "保證升一級房型、16:00 退房" },
+  { kind: "飯店", program: "GHA DISCOVERY", tier: "鈦金 Titanium", perks: "升兩級房型、11:00 早入住／16:00 晚退房", until: "2026 年底" },
+  { kind: "飯店", program: "Hilton Honors", tier: "金卡 Gold", perks: "免費早餐" },
+  { kind: "飯店", program: "Marriott Bonvoy", tier: "金卡 Gold Elite", perks: "房型升等、14:00 退房" },
+  { kind: "飯店", program: "Best Western Rewards", tier: "鑽石精選 Diamond Select" },
+  { kind: "飯店", program: "Radisson Rewards", tier: "金卡 Gold" },
+  { kind: "航空", program: "中華航空 華夏會員", tier: "金卡（天合聯盟 Elite Plus）", perks: "華航／天合聯盟貴賓室、優先報到與登機", until: "2028" },
+  { kind: "機場貴賓室", program: "Priority Pass 新貴通", tier: "Prestige 無限次", perks: "搭廉航也能進貴賓室（含環亞）" },
+  { kind: "機場貴賓室", program: "American Express The Centurion Lounge 百夫長貴賓室", perks: "憑美國運通白金卡進入（香港／美國）" },
+  { kind: "郵輪", program: "MSC Voyagers Club 地中海郵輪", tier: "金卡 Gold" },
+  { kind: "租車", program: "Avis Preferred", tier: "總裁級 President's Club" },
+  { kind: "租車", program: "Hertz Gold Plus Rewards", tier: "金卡" },
+];
+
+export function membershipsByKind(): [MembershipKind, Membership[]][] {
+  return MEMBERSHIP_KINDS.map((k) => [k, MEMBERSHIPS.filter((m) => m.kind === k)] as [MembershipKind, Membership[]]).filter(([, ms]) => ms.length > 0);
+}
 
 const COUNTRY_ORDER = ["台灣", "日本", "韓國", "香港", "越南", "泰國", "美國"];
 

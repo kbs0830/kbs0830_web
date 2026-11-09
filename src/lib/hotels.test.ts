@@ -15,10 +15,11 @@ describe("hotels", () => {
   });
 
   it("隱私：名稱裡沒有日期、時間、長串數字（訂房／會員編號）", () => {
-    const text = [...HOTELS.map(([n]) => n), ...MEMBERSHIPS.flatMap((m) => [m.program, m.tier ?? ""])].join("\n");
-    expect(text).not.toMatch(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/); // 日期
-    expect(text).not.toMatch(/\d{1,2}:\d{2}/); // 時間
-    expect(text).not.toMatch(/\d{6,}/); // 會員編號、訂房代碼
+    const names = [...HOTELS.map(([n]) => n), ...MEMBERSHIPS.flatMap((m) => [m.program, m.tier ?? ""])].join("\n");
+    expect(names).not.toMatch(/\d{1,2}:\d{2}/); // 時間（權益裡的「16:00 退房」不算，所以只查名稱）
+    const all = [names, ...MEMBERSHIPS.flatMap((m) => [m.perks ?? "", m.until ?? ""])].join("\n");
+    expect(all).not.toMatch(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/); // 日期（效期只寫年份）
+    expect(all).not.toMatch(/\d{6,}/); // 會員編號、訂房代碼
   });
 
   it("地圖：每個住過的城市（美國以外）都剛好屬於一個區塊", () => {

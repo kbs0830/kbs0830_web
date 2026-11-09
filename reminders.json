@@ -45,6 +45,24 @@
       "date": "2027-08-31",
       "subject": "提醒：網站上的年級／年齡要更新（三年級 → 四年級）",
       "body": "9 月開學就是大四了，網站上寫「三年級」「20 歲」的地方要改：\n- src/lib/about.ts 的 statusLines（首頁現況卡）\n- src/lib/page-content.ts 的 nowItems（/now）\n- src/components/ui/TerminalMode.tsx 的 ABOUT_TXT（終端機 cat about.txt）\n跟 Claude 說「升大四了，幾歲」它會一起改。"
+    },
+    {
+      "id": "2026-12-31-gha-titanium",
+      "date": "2026-12-31",
+      "subject": "提醒：GHA DISCOVERY 鈦金今年底到期，/hotels 會籍要更新",
+      "body": "/hotels 的會籍寫「GHA DISCOVERY 鈦金 · 效期至 2026 年底」。\n續了就跟 Claude 說新效期；沒續就說掉到哪一級（或整筆拿掉）。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+    },
+    {
+      "id": "2027-12-31-ihg-lounge",
+      "date": "2027-12-31",
+      "subject": "提醒：IHG 年度行政酒廊 2027 到期，/hotels 會籍要更新",
+      "body": "/hotels 的會籍寫「IHG One Rewards 鑽石 · 年度行政酒廊（至 2027）」。\n明年還有沒有酒廊、鑽石有沒有續，跟 Claude 說一聲。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+    },
+    {
+      "id": "2028-12-31-ci-gold",
+      "date": "2028-12-31",
+      "subject": "提醒：華航金卡 2028 到期，/hotels 會籍要更新",
+      "body": "/hotels 的會籍寫「中華航空 華夏會員 金卡 · 效期至 2028」。\n續了就跟 Claude 說新效期；沒續就說現在是哪一卡。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     }
   ]
 }

@@ -10,7 +10,7 @@ import { skills, statusLines, timeline } from "./about";
 import { education, nowItems, resumeFeaturedSlugs, resumeRole, resumeSkillGroups, usesGroups } from "./page-content";
 import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
-import { GROUP_NAMES, MEMBERSHIPS, hotelStats, hotelsByPlace } from "./hotels";
+import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "./hotels";
 
 const SITE_DESCRIPTION =
   "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
@@ -182,8 +182,11 @@ ${footer("flights")}`;
 
 function hotels() {
   const s = hotelStats();
-  const memberships = MEMBERSHIPS.length
-    ? `## 會籍 · Memberships\n\n${MEMBERSHIPS.map((m) => `- ${m.program}（${m.kind}${m.tier ? `・${m.tier}` : ""}）`).join("\n")}\n\n`
+  const groups = membershipsByKind();
+  const memberships = groups.length
+    ? `## 會籍 · Memberships\n\n${groups
+        .map(([kind, ms]) => `### ${kind}\n\n${ms.map((m) => `- **${m.program}**${m.tier ? `：${m.tier}` : ""}${m.perks ? `——${m.perks}` : ""}${m.until ? `（效期至 ${m.until}）` : ""}`).join("\n")}`)
+        .join("\n\n")}\n\n`
     : "";
   const places = hotelsByPlace()
     .map(([country, cities]) => `### ${country}\n\n${cities.map(([city, h]) => `- **${city}**：${h.join("、")}`).join("\n")}`)
