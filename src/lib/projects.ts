@@ -324,14 +324,15 @@ export const projects: Project[] = [
     titleJa: "円相場分析システム",
     titleZh: "日圓匯率分析系統",
     description:
-      "Real-time JPY monitoring platform. Parallel crawlers scrape multiple banks; Yahoo Finance fills historical data. LKG fallback ensures HA. Purchase decision engine outputs 'buy now / wait' advice.",
+      "Real-time JPY monitoring platform. Parallel crawlers scrape 6 banks; Yahoo Finance fills historical data. LKG fallback ensures HA. Purchase decision engine outputs 'buy now / wait' advice.",
     descriptionZh:
-      "即時日圓匯率監控平台。配置驅動並行爬蟲抓取多家銀行資料，Yahoo Finance 補全歷史走勢，LKG 回退確保高可用。購買力決策引擎直接輸出「現在就買／再等等」建議。",
+      "即時日圓匯率監控平台。配置驅動並行爬蟲抓取 6 家銀行資料，Yahoo Finance 補全歷史走勢，LKG 回退確保高可用。購買力決策引擎直接輸出「現在就買／再等等」建議。",
     tags: ["Python", "Flask", "SQLite", "BeautifulSoup4", "Pandas", "Matplotlib", "Yahoo Finance API"],
     github: "https://github.com/kbs0830/school",
     highlight: "LKG fallback + purchase decision engine (actionable insight)",
     highlightZh: "LKG 容錯回退 ＋ 可執行購買建議（非僅資料展示）",
     status: "課程専題",
+    image: "/image/projects/yen-rate-analyzer.jpg",
     detail: {
       intro:
         "基於 Python 的即時日圓匯率監控與分析平台，採用配置驅動架構整合多家銀行匯率資訊，透過並行爬蟲抓取最新匯率、SQLite 落盤保存，Flask 提供介面與 REST API，並附商品換算與歷史趨勢圖。「大數據倉儲」課程期末専題。",
@@ -340,7 +341,7 @@ export const projects: Project[] = [
           heading: "架構重點",
           headingEn: "Architecture",
           body: [
-            "配置驅動爬蟲：銀行資料源定義於獨立 config，新增資料源只需改設定檔，並行抓取提升效率",
+            "配置驅動爬蟲：6 家銀行（台銀、第一、華南、玉山、國泰世華、元大）定義於獨立 config，新增資料源只需改設定檔，6 條執行緒並行抓取",
             "資料持久化層：Repository Pattern 統一資料存取介面，支援交易管理與一致性保證",
             "業務服務層：整合快取減少網路請求，實作 Last Known Good（LKG）回退策略確保服務可用性",
             "歷史資料補全：整合 Yahoo Finance API 自動回填歷史匯率，支援長期趨勢分析",
@@ -372,26 +373,26 @@ export const projects: Project[] = [
     titleJa: "家計簿アプリ",
     titleZh: "個人記帳分析系統",
     description:
-      "Desktop expense tracker built with PyQt5 + SQLite. Supports budget management, consumption pattern charts, and multi-category analysis. Group project for 程式設計(三).",
+      "Desktop expense tracker built with PyQt5, storing records in CSV files. Budget monitoring with 3-level alerts, live pie chart by category. Group project for 程式設計(三).",
     descriptionZh:
-      "PyQt5 桌機記帳應用，整合 SQLite 儲存。支援預算管理、消費圖表分析、多類別統計。程式設計（三）小組期末専題。",
-    tags: ["Python", "PyQt5", "SQLite", "Matplotlib", "資料視覺化"],
+      "PyQt5 桌機記帳應用，資料存在 CSV 檔。支援預算監控（三段警示）、類別圓餅圖即時更新。程式設計（三）小組期末専題。",
+    tags: ["Python", "PyQt5", "CSV", "Matplotlib", "資料視覺化"],
     github: "https://github.com/kbs0830/school",
-    highlight: "Desktop GUI with real-time chart rendering",
-    highlightZh: "桌機 GUI ＋ 即時圖表渲染，完整 CRUD 操作",
+    highlight: "Desktop GUI with live pie chart and 3-level budget alerts",
+    highlightZh: "桌機 GUI ＋ 即時圓餅圖，預算超支三段警示",
     status: "課程専題",
+    image: "/image/projects/expense-tracker.jpg",
     detail: {
       intro:
-        "專為大學生設計的桌面端記帳應用：大多數大學生經濟來源依賴每月固定生活費，卻常因聚餐、娛樂課金、通勤等瑣碎開銷導致月底透支。本系統用 PyQt5 圖形介面搭配 SQLite 資料庫與 Matplotlib 視覺化，提供無廣告、輕量化、啟動快速的記帳方案。「程式設計(三)」小組期末専題。",
+        "專為大學生設計的桌面端記帳應用：大多數大學生經濟來源依賴每月固定生活費，卻常因聚餐、娛樂課金、通勤等瑣碎開銷導致月底透支。本系統用 PyQt5 圖形介面搭配 CSV 檔案儲存與 Matplotlib 視覺化，提供無廣告、輕量化、啟動快速的記帳方案。「程式設計(三)」小組期末専題。",
       sections: [
         {
           heading: "核心理念",
           headingEn: "Design Principles",
           body: [
             "簡潔優先：去除複雜功能，專注核心記帳需求",
-            "深色模式優先：預設深色主題，符合現代軟體趨勢",
-            "輕量快速：SQLite 資料庫，啟動即用",
-            "預算智慧監控：三段式紅綠燈警示（良好／接近／超支），防止超支",
+            "輕量快速：CSV 檔案儲存，不用裝資料庫，第一次執行自動建立檔案",
+            "預算監控：三段式警示（狀況良好／即將超支／已超支），文字顏色跟著變",
           ],
         },
         {
@@ -399,16 +400,16 @@ export const projects: Project[] = [
           headingEn: "Features",
           body: [
             "記帳管理：新增／刪除消費記錄（日期、項目、類別、金額），表格化顯示",
-            "預算監控：設定月度預算上限，即時顯示消費進度",
+            "預算設定：設定本月預算上限，即時顯示總花費／預算",
             "數據視覺化：圓餅圖即時顯示類別分布，空白資料時優雅顯示",
-            "主題切換：深色／淺色模式一鍵切換",
+            "不卡畫面：讀取資料放在背景執行緒（QThread），表格跟圖表讀完才一起更新",
           ],
         },
       ],
-      context: "「程式設計(三)」智商二乙 第十一組期末専題，與組員共同完成。",
+      context: "「程式設計(三)」智商二乙 第十一組期末専題，與組員共同完成。截圖為示範資料。",
       architectureDiagram: `flowchart TD
   UI["PyQt5 主視窗"] -->|"新增／刪除紀錄"| DM["data_manager.py"]
-  DM --> DB[("SQLite")]
+  DM --> DB[("CSV 檔<br/>expenses.csv／budget.txt")]
   DB --> DM
   DM --> CU["chart_utils.py<br/>圓餅圖"]
   CU --> UI
