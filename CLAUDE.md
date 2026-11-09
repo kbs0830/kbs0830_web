@@ -749,7 +749,7 @@ deploy.bat
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
 
 ### Cloudflare 設定腳本（2026-11-09，`scripts/cloudflare-config.ps1`，同日已套用）
-- **第 5 項：靜態頁快取（2026-11-10 寫好，等 token 加 Cache Rules／Cache Purge 權限才會生效）**：Cloudflare 照 Next 的
+- **第 5 項：靜態頁快取（2026-11-09 上線）**：Cloudflare 照 Next 的
   Cache-Control 存靜態頁（s-maxage 一年），排除 `/api/`、`/stats`、`Accept: text/markdown`。**deploy.ps1 切槽後馬上 `-Purge`**
   （舊 HTML 引用舊版 JS chunk，新版 server 已經不提供），退回時也清。token 沒權限時快取那項 skipped、清快取也 skip，不擋部署
 - ⚠️ 快取生效後，**快取命中的請求不會到桌機**：`/stats` 的「未過濾流量」、爬蟲排行只數得到沒命中快取的請求（會明顯變少）。

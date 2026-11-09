@@ -14,7 +14,9 @@
 - [x] **網域到期日更正**：Verisign RDAP 是 2027-06-16（TODO 原本寫 5/18），提醒信改 5/16
 - [x] 盤點：沒有待合併的 Renovate PR；桌面發現团‧鐵道、大手門資訊工作室——使用者 11/09 說**都不要放**
 - [x] 手機頁尾 Cloudflare／未過濾數字恢復顯示（之前整行隱藏，使用者以為 Cloudflare 資料不見了）
-- [x] 靜態頁快取規則＋部署清快取寫好（等 token 加權限）
+- [x] **Cloudflare 靜態頁快取上線**（使用者加了 Cache Rules／Cache Purge 權限）：首頁第二次打是 HIT、/stats 是 DYNAMIC；
+  伺服器回應（扣掉握手）快取頁約 160ms、沒快取的 /stats 300～600ms。Markdown（Accept: text/markdown）、API 都沒被快取、沒跟 HTML 混；
+  CSP header 在快取的回應上還在；真瀏覽器站內換頁（作品卡片、文章）都正常
 - [x] 23:18、23:21 兩次 E2E 失敗＝Claude 手動開的 3100 server 沒關、跟 CI 搶 port，已關掉；之後手動測試用 3200
 
 ### 2026-11-09 Cloudflare 設定腳本、VS Code schema 警告

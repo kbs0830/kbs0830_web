@@ -29,13 +29,10 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
    → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
-8. [ ] **Cloudflare token 加兩個權限（開靜態頁快取）**：dash.cloudflare.com → My Profile → API Tokens → `kbs0830-config` 那行 **⋯ → 編輯**
-   → 新增兩行：**區域｜快取規則（Cache Rules）｜編輯**、**區域｜快取清除（Cache Purge）｜清除** → 繼續 → 更新 Token
-   （token 字串不變，`.env.local` 不用改）→ 跟 Claude 說，它跑 `-Apply` 開快取、回查第二次打是 HIT
-9. [ ] **GitHub 通知改寄 otemon**（E2E 失敗、外部監控 issue、Renovate PR 這些系統信）：
+8. [ ] **GitHub 通知改寄 otemon**（E2E 失敗、外部監控 issue、Renovate PR 這些系統信）：
    → github.com/settings/emails → Add email address：`otemon.pcwork@gmail.com` → 去 otemon 收驗證信點連結
    → github.com/settings/notifications → **Default notifications email** 選 otemon
-10. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
+9. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
    Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
