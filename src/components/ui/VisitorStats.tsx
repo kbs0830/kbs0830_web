@@ -40,13 +40,15 @@ export default function VisitorStats() {
       {stats.total > 0 && (
         <p className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono">
           共 {stats.total} 次造訪 · 來自 {stats.countryCount} 國{" "}
-          {stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}
+          {/* 國旗整串不拆行（手機上曾經斷成「TW US BE」＋下一行「DE CN」） */}
+          <span className="whitespace-nowrap">{stats.top.map(([code]) => countryCodeToFlag(code)).join(" ")}</span>
         </p>
       )}
       {/* Cloudflare：跟 dashboard 同一份數字，含快取直接回應、沒到主機的請求（lib/cloudflare-analytics.ts） */}
       {cf && cf.total.pageViews > 0 && (
+        // 手機只留上面那行：這兩行在窄螢幕斷得很亂，細節在 /stats（頁尾有連結）
         <p
-          className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono"
+          className="hidden sm:block text-xs text-(--muted) font-light tracking-[0.1em] font-mono"
           title={
             `${cf.since} 起累計：訪客 ${n(cf.total.uniques)} · 頁面瀏覽 ${n(cf.total.pageViews)} · 請求 ${n(cf.total.requests)}` +
             "\n訪客＝每天不重複 IP 加總（含機器人），每小時更新"
@@ -58,7 +60,7 @@ export default function VisitorStats() {
       {/* 未過濾：server 端每個頁面請求都算，AI 爬蟲／搜尋引擎／掃描器都在裡面（scripts/lib/raw-traffic.js） */}
       {raw && raw.total > 0 && (
         <p
-          className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70"
+          className="hidden sm:block text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70"
           title={
             `${raw.since} 起，每一個頁面請求都算（不執行 JS 的爬蟲也算）` +
             (raw.topBots.length ? `\n最常來的爬蟲：${raw.topBots.map(([name, c]) => `${name} ${c}`).join("、")}` : "")

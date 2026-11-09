@@ -647,7 +647,8 @@ export const projects: Project[] = [
         },
       ],
       context: "「投資決策及應用」課程作業，只是練習回測的寫法，不是投資建議。截圖是 2024 年台積電的實際買賣點（用程式的訊號邏輯畫出來的）。",
-      architectureDiagram: `flowchart LR
+      // 直的（TD）：橫的 LR 在手機上縮到看不清楚（2026-11-09）
+      architectureDiagram: `flowchart TD
   YF["yfinance<br/>日線資料"] --> FMT["整理欄位"]
   FMT --> TA["計算 MA10／MA60"]
   TA -->|"逐根 K 棒"| SIG["訊號判斷<br/>買／賣／清倉"]

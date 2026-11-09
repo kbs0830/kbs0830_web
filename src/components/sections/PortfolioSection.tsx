@@ -118,7 +118,8 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
       <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
-        {label} &nbsp;·&nbsp; {labelZh}
+        {/* 手機寬度不夠時，中文那段整塊換行，不要把「学習記録」拆成兩半 */}
+        {label} &nbsp;·&nbsp; <span className="whitespace-nowrap">{labelZh}</span>
       </p>
     </Reveal>
   );
