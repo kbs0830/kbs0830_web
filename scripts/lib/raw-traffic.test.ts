@@ -47,6 +47,7 @@ describe("shouldCount", () => {
   it("沒經過 Cloudflare、自己的監控、預先載入、靜態資源、API 不算", () => {
     expect(shouldCount({ method: "GET", url: "/", headers: { "user-agent": CHROME } })).toBe(false);
     expect(shouldCount(req("/", { "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; zh-TW) WindowsPowerShell/5.1.26100" }))).toBe(false);
+    expect(shouldCount(req("/", { "user-agent": "kbs0830-uptime (+https://github.com/kbs0830/kbs0830_web)" }))).toBe(false);
     expect(shouldCount(req("/blog", { "next-router-prefetch": "1" }))).toBe(false);
     expect(shouldCount(req("/blog", { "sec-purpose": "prefetch" }))).toBe(false);
     expect(shouldCount(req("/_next/static/chunks/a.js"))).toBe(false);

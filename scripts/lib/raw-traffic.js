@@ -9,6 +9,7 @@
 // 不算的只有三種「根本不是外面來的請求」：
 //   - 沒有 cf-ipcountry（沒經過 Cloudflare：watchdog/部署健檢打 localhost、本機測試）
 //   - UA 含 WindowsPowerShell（watchdog 每 5 分鐘從外網打一次首頁，一天 288 次，是自己）
+//   - UA 含 kbs0830-（自己的工具：GitHub 外部監控 kbs0830-uptime、cloudflare-config 回查）
 //   - Next.js 的連結預先載入（next-router-prefetch / sec-purpose: prefetch）：畫面上出現連結就會發，
 //     不是有人打開那一頁
 // 靜態資源（/_next/、圖片、字型）跟 /api/ 也不算：那是同一次瀏覽附帶的請求，不是另一次瀏覽。
@@ -59,7 +60,8 @@ function shouldCount(req) {
   const h = req.headers;
   if (req.method !== "GET" && req.method !== "HEAD") return false;
   if (!h["cf-ipcountry"]) return false;
-  if (String(h["user-agent"] || "").includes("WindowsPowerShell")) return false;
+  const ua = String(h["user-agent"] || "");
+  if (ua.includes("WindowsPowerShell") || ua.includes("kbs0830-")) return false;
   if (h["next-router-prefetch"] || /prefetch/i.test(String(h["sec-purpose"] || h["purpose"] || ""))) return false;
   const pathname = (req.url || "/").split("?")[0];
   if (pathname.startsWith("/_next/") || pathname.startsWith("/api/")) return false;
