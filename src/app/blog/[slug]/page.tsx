@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -111,7 +112,22 @@ const mdxComponents = {
       {...props}
     />
   ),
+  // Markdown 表格（remark-gfm，2026-11-09）：窄螢幕可以左右滑，不會把整頁撐寬
+  table: (props: React.ComponentPropsWithoutRef<"table">) => (
+    <div className="overflow-x-auto mb-5 -mx-6 sm:mx-0 px-6 sm:px-0">
+      <table className="w-full text-[13px] border-collapse" {...props} />
+    </div>
+  ),
+  th: (props: React.ComponentPropsWithoutRef<"th">) => (
+    <th className="text-left font-normal text-(--muted) border-b border-(--border) py-2 pr-4 whitespace-nowrap" {...props} />
+  ),
+  td: (props: React.ComponentPropsWithoutRef<"td">) => (
+    <td className="font-light text-(--text) border-b border-(--border) py-2 pr-4 align-top" {...props} />
+  ),
 };
+
+// GFM：表格、刪除線、任務清單、自動連結
+const mdxOptions = { mdxOptions: { remarkPlugins: [remarkGfm] } };
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
@@ -157,7 +173,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {headings.length >= 4 && <Toc headings={headings} />}
 
       <article>
-        <MDXRemote source={post.content} components={mdxComponents} />
+        <MDXRemote source={post.content} components={mdxComponents} options={mdxOptions} />
       </article>
 
       <nav aria-label="上一篇／下一篇" className="grid sm:grid-cols-2 gap-4 mt-16 pt-8 border-t border-(--border)">

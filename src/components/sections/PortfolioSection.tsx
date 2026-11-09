@@ -72,7 +72,7 @@ function ProjectCard({
                   {project.titleZh}
                 </h3>
               </ViewTransition>
-              <p className="text-xs text-(--muted) font-light mt-0.5 opacity-60">{project.title}</p>
+              <p className="text-xs text-(--muted) font-light mt-0.5">{project.title}</p>
             </div>
             {project.github && (
               <a
@@ -91,7 +91,7 @@ function ProjectCard({
           <p className="text-sm sm:text-[13px] font-light text-(--text) leading-relaxed mb-2">
             {project.descriptionZh}
           </p>
-          <p className="hidden sm:block text-[12px] font-light text-(--muted) leading-relaxed mb-4 opacity-60">
+          <p className="hidden sm:block text-[12px] font-light text-(--muted) leading-relaxed mb-4">
             {project.description}
           </p>
 
@@ -165,7 +165,7 @@ export default function PortfolioSection() {
         <ProjectFilter tags={mainTags} moreTags={moreTags} groups={groups} />
 
         <Reveal delay={0.3} distance={0}>
-          <p className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide opacity-50 font-mono">
+          <p className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide font-mono">
             学習記録は非公開リポジトリに保存されています。
           </p>
         </Reveal>

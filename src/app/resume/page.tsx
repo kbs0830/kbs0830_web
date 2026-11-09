@@ -100,7 +100,7 @@ export default function ResumePage() {
         </div>
       </ResumeSection>
 
-      <p className="text-xs text-(--muted) opacity-60 print:hidden">
+      <p className="text-xs text-(--muted) print:hidden">
         完整作品說明與技術細節請見{" "}
         <Link href="/" className="underline hover:text-(--accent) transition-colors">
           kbs0830.com

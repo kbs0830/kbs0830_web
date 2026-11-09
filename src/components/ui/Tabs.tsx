@@ -97,9 +97,9 @@ export default function Tabs({ items, label }: { items: TabItem[]; label: string
               <span data-tab-label className="inline-block">
                 <span className="flex items-start gap-1 text-xs tracking-[0.2em] uppercase font-mono">
                   {t.labelEn}
-                  {t.count !== undefined && <span className="text-[9px] tracking-normal opacity-60">{t.count}</span>}
+                  {t.count !== undefined && <span className="text-[9px] tracking-normal">{t.count}</span>}
                 </span>
-                <span className="block text-[11px] font-light mt-0.5 opacity-80">{t.label}</span>
+                <span className="block text-[11px] font-light mt-0.5">{t.label}</span>
               </span>
             </button>
           );

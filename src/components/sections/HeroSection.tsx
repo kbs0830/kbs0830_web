@@ -35,16 +35,19 @@ export default function HeroSection() {
         <p
           className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-8 min-h-[1.5em] font-mono"
           style={enter(0.35)}
-          aria-label={SUBTITLE_TEXT}
         >
-          <Typewriter text={SUBTITLE_TEXT} startDelay={950} />
+          {/* 螢幕閱讀器讀完整文字、不逐字念。<p> 不能放 aria-label（axe：aria-prohibited-attr），改用隱藏文字 */}
+          <span className="sr-only">{SUBTITLE_TEXT}</span>
+          <span aria-hidden>
+            <Typewriter text={SUBTITLE_TEXT} startDelay={950} />
+          </span>
         </p>
 
         <p className="enter-up text-lg sm:text-xl font-light text-(--muted) max-w-lg leading-relaxed mb-3" style={enter(0.45)}>
           在瀏覽器與模型層之間，構建有意義的系統。
         </p>
 
-        <p className="enter-up text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12 opacity-70" style={enter(0.5)}>
+        <p className="enter-up text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12" style={enter(0.5)}>
           Building thoughtful systems — from the browser to the model layer.
         </p>
 

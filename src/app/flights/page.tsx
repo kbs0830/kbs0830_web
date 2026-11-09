@@ -27,7 +27,7 @@ function RouteList({ items }: { items: Route[] }) {
           <span className="text-[11px] text-(--muted) font-mono">
             {r.a}–{r.b} · {nf.format(r.km)} km{r.count > 1 ? ` · ×${r.count}` : ""}
           </span>
-          <span className="basis-full text-[11px] text-(--muted) font-mono opacity-70">
+          <span className="basis-full text-[11px] text-(--muted) font-mono">
             {r.codes.map(formatFlightCode).join(" · ")}
           </span>
         </li>

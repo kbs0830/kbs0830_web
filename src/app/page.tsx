@@ -53,7 +53,7 @@ export default function Home() {
             >
               Stats
             </Link>
-            <BuildInfo className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70" />
+            <BuildInfo className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono" />
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <LocalClock />

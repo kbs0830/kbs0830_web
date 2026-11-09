@@ -219,7 +219,12 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋、About 分頁（點擊／方向鍵切換、收起來的內容仍在 HTML）、
-Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）。`TerminalMode.tsx` 的輸出區塊有一個
+Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）、
+sitemap 每個網址都 200（`sitemap.spec.ts`）、**無障礙（`a11y.spec.ts`，2026-11-09）**：axe-core 掃 8 頁 × 淺色／深色，
+WCAG A／AA 只擋 serious／critical；首頁 About 每個分頁都切過去掃（沒選到的面板是 hidden，axe 看不到）。
+⚠️ 第一次跑就抓到全站「灰字 `text-(--muted)` 再疊 `opacity-50/60/70`」對比不足（約 20 處）——**灰字不要再加 opacity**，
+要更淡的層次用字級；深色架構圖的線上標籤底色（`mermaid-config.ts` 的 `edgeLabelBackground`）；Hero 副標的 `<p aria-label>`
+（`<p>` 不能放 aria-label，改 `sr-only` 文字＋打字動畫 `aria-hidden`）`TerminalMode.tsx` 的輸出區塊有一個
 `data-testid="terminal-output"`，純粹是給這批測試定位用的——輸出文字（例如「PINGWEI
 LI」）會跟 Hero/About 既有內容撞字，`getByText` 會抓到多個元素，用 testid 才能精準
 scope 到終端機自己的輸出。CI 是獨立的 `.github/workflows/e2e.yml`，push 到 main 時跟
@@ -685,7 +690,8 @@ deploy.bat
   （header 只能 ASCII，build 時第一次就因為這個炸掉）
 - 首頁作品集下面有「最新文章」3 篇（`components/sections/LatestPosts.tsx`）
 
-⚠️ **MDX 沒裝 remark-gfm，不支援 Markdown 表格**（`| a | b |` 會原樣印出一排直線），用清單代替。新增文章前
+**支援 Markdown 表格（2026-11-09 裝了 remark-gfm）**：表格、~~刪除線~~、任務清單都能用；表格窄螢幕可以左右滑。之前沒裝時
+`| a | b |` 會原樣印出一排直線。新增文章前
 先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的
 `Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
 但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。

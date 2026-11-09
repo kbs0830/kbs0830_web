@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// 逐字打出文字，打完游標淡掉。螢幕閱讀器讀的是外層的 aria-label（完整文字），
+// 逐字打出文字，打完游標淡掉。螢幕閱讀器讀的是外層的 sr-only 完整文字（這段 aria-hidden），
 // 不會一個字一個字念。
 export default function Typewriter({ text, startDelay = 0, speed = 42 }: { text: string; startDelay?: number; speed?: number }) {
   const [count, setCount] = useState(0);

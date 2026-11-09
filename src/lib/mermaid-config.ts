@@ -12,6 +12,9 @@ export function mermaidConfig(dark: boolean): MermaidConfig {
       primaryBorderColor: dark ? "#6295cc" : "#2d5a8e",
       primaryTextColor: dark ? "#e8e6e1" : "#1a1a1a",
       lineColor: dark ? "#6295cc" : "#2d5a8e",
+      // 深色的線上標籤：mermaid dark 預設底色 #585858 配 #ccc 字只有 4.43:1，axe 判對比不足（要 4.5）。
+      // 底色壓深到接近頁面底色（2026-11-09）；淺色的預設值本來就過
+      ...(dark ? { edgeLabelBackground: "#262624" } : {}),
       // 執行時解析成 next/font 載入的 Geist Mono（預先渲染時腳本也用同一套字量文字寬度）
       fontFamily: "var(--font-mono), monospace",
       fontSize: "13px",

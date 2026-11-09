@@ -105,7 +105,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         {project.detail ? project.detail.intro : project.descriptionZh}
       </p>
       {!project.detail && (
-        <p className="text-xs font-light text-(--muted) leading-relaxed mb-10 opacity-60">
+        <p className="text-xs font-light text-(--muted) leading-relaxed mb-10">
           {project.description}
         </p>
       )}
@@ -129,7 +129,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       )}
 
       {project.detail?.context && (
-        <p className="text-xs font-light text-(--muted) mt-12 pt-6 border-t border-(--border) opacity-70">
+        <p className="text-xs font-light text-(--muted) mt-12 pt-6 border-t border-(--border)">
           {project.detail.context}
         </p>
       )}

@@ -59,7 +59,7 @@ export default function VisitorStats() {
       {/* 未過濾：server 端每個頁面請求都算，AI 爬蟲／搜尋引擎／掃描器都在裡面（scripts/lib/raw-traffic.js） */}
       {raw && raw.total > 0 && (
         <p
-          className="hidden sm:block text-xs text-(--muted) font-light tracking-[0.1em] font-mono opacity-70"
+          className="hidden sm:block text-xs text-(--muted) font-light tracking-[0.1em] font-mono"
           title={
             `${raw.since} 起，每一個頁面請求都算（不執行 JS 的爬蟲也算）` +
             (raw.topBots.length ? `\n最常來的爬蟲：${raw.topBots.map(([name, c]) => `${name} ${c}`).join("、")}` : "")

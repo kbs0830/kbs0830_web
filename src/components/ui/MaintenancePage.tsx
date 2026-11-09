@@ -65,7 +65,7 @@ export default function MaintenancePage({
 
       {errorMessage && (
         <p
-          className="text-xs font-light text-(--muted) opacity-70 mt-4 mb-2 text-center max-w-md break-words font-mono"
+          className="text-xs font-light text-(--muted) mt-4 mb-2 text-center max-w-md break-words font-mono"
         >
           {errorMessage}
         </p>

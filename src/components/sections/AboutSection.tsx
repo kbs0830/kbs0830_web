@@ -41,7 +41,7 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
             <span className="block text-xs text-(--muted) font-light mt-0.5">{group.category}</span>
           </span>
         </span>
-        <span className="text-xs font-light text-(--muted) opacity-50 hidden sm:block group-open:invisible">
+        <span className="text-xs font-light text-(--muted) hidden sm:block group-open:invisible">
           {group.items.length} 項技能，點擊展開
         </span>
       </summary>
@@ -86,12 +86,12 @@ function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: numb
         <p className="text-sm font-light text-(--text) leading-snug transition-colors group-hover/item:text-(--accent) group-focus/item:text-(--accent)">
           {item.zh}
         </p>
-        <p className="text-xs font-light text-(--muted) opacity-50 mt-0.5">{item.en}</p>
+        <p className="text-xs font-light text-(--muted) mt-0.5">{item.en}</p>
         <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-(--ease-ma) group-hover/item:grid-rows-[1fr] group-hover/item:opacity-100 group-focus/item:grid-rows-[1fr] group-focus/item:opacity-100">
           <div className="overflow-hidden">
             <div className="pt-2 mt-2 border-t border-(--border) space-y-0.5">
               <p className="text-xs font-light text-(--muted)">{item.detailZh}</p>
-              <p className="text-[11px] font-light text-(--muted) opacity-60">{item.detailEn}</p>
+              <p className="text-[11px] font-light text-(--muted)">{item.detailEn}</p>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@ function TimelinePanel() {
 function SkillsPanel() {
   return (
     <>
-      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light opacity-70 mb-6 font-mono">
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-(--muted) font-light mb-6 font-mono">
         <span className="inline-flex items-center">
           <ProficiencyDots level={5} />
           <span className="ml-1.5">熟練 Proficient</span>
@@ -151,7 +151,7 @@ function ActivityPanel() {
           loading="lazy"
         />
       </div>
-      <p className="text-[11px] text-(--muted) font-light mt-2 opacity-60 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
+      <p className="text-[11px] text-(--muted) font-light mt-2 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
     </>
   );
 }
@@ -159,7 +159,7 @@ function ActivityPanel() {
 function FootprintPanel() {
   return (
     <>
-      <p className="text-xs text-(--muted) font-light opacity-70 mb-8 font-mono">
+      <p className="text-xs text-(--muted) font-light mb-8 font-mono">
         已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
       </p>
       <div className="space-y-8">
@@ -190,13 +190,13 @@ function FootprintPanel() {
         <div className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start pt-4 border-t border-(--border)">
           <div>
             <p className={`${label} text-(--muted)`}>Planning</p>
-            <p className="text-xs text-(--muted) font-light mt-0.5 opacity-70">規劃中</p>
+            <p className="text-xs text-(--muted) font-light mt-0.5">規劃中</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {planningCountries.map((c) => (
               <span
                 key={c.country}
-                className="px-3 py-1 text-xs font-light text-(--muted) border border-dashed border-(--border) rounded-sm tracking-wide opacity-70 cursor-default"
+                className="px-3 py-1 text-xs font-light text-(--muted) border border-dashed border-(--border) rounded-sm tracking-wide cursor-default"
               >
                 {c.flag} {c.country}
               </span>

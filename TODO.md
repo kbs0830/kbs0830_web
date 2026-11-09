@@ -51,8 +51,6 @@
 - [ ] **作品量化成果**：購票系統處理過幾筆報名…**有真的數字才放**（匯率系統「6 家銀行、6 條執行緒並行」11/09 已從原始碼補上）
 - [ ] **履歷要不要加經歷**：證照 11/09 已從你的 104 履歷 PDF 加上（`/resume`）。同一份 PDF 還有工作經歷
   （偏鄉課輔志工、鈴鹿賽道樂園、淨園農場），要不要放、放哪幾個跟 Claude 說（電話、地址、役別不會放）
-- [ ] **加新套件要停站 1～2 分鐘**：Markdown 表格（`remark-gfm`）、E2E 無障礙檢查（`axe-core`）都要裝新套件，
-  部署時會先停站裝套件再 build。OK 的話說一聲，Claude 挑你不在線上的時間推
 - [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School，要跟證書一致的話給 Claude 官方英文名
 - [ ] **機型**：想記哪班的機型，給 Claude 航班代碼＋機型（`/flights` 會自動顯示）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
