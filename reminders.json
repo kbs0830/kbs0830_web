@@ -50,19 +50,19 @@
       "id": "2026-12-31-gha-titanium",
       "date": "2026-12-31",
       "subject": "提醒：GHA DISCOVERY 鈦金今年底到期，/hotels 會籍要更新",
-      "body": "/hotels 的會籍寫「GHA DISCOVERY 鈦金 · 效期至 2026 年底」。\n續了就跟 Claude 說新效期；沒續就說掉到哪一級（或整筆拿掉）。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     },
     {
       "id": "2027-12-31-ihg-lounge",
       "date": "2027-12-31",
-      "subject": "提醒：IHG 年度行政酒廊 2027 到期，/hotels 會籍要更新",
-      "body": "/hotels 的會籍寫「IHG One Rewards 鑽石 · 年度行政酒廊（至 2027）」。\n明年還有沒有酒廊、鑽石有沒有續，跟 Claude 說一聲。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "subject": "提醒：IHG 年度行政酒廊 2027 到期，順便看 /hotels 會籍等級",
+      "body": "IHG 年度行政酒廊今年底到期（網站上沒寫酒廊，只寫「鑽石 Diamond」＋「洲際大使」）。\n等級有變就跟 Claude 說。資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     },
     {
       "id": "2028-12-31-ci-gold",
       "date": "2028-12-31",
       "subject": "提醒：華航金卡 2028 到期，/hotels 會籍要更新",
-      "body": "/hotels 的會籍寫「中華航空 華夏會員 金卡 · 效期至 2028」。\n續了就跟 Claude 說新效期；沒續就說現在是哪一卡。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "body": "華航金卡今年底到期。/hotels 會籍寫的是「金卡（天合聯盟 Elite Plus）」，續了不用動；沒續就跟 Claude 說現在是哪一卡。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     }
   ]
 }

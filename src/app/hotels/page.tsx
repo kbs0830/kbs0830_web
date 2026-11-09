@@ -65,11 +65,6 @@ export default function HotelsPage() {
                     <li key={m.program} className="py-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                       <span className="text-[15px] sm:text-sm text-(--text) font-light">{m.program}</span>
                       {m.tier && <span className="text-[11px] text-(--accent) font-mono">{m.tier}</span>}
-                      {(m.perks || m.until) && (
-                        <span className="basis-full text-[11px] text-(--muted) font-mono">
-                          {[m.perks, m.until && `效期至 ${m.until}`].filter(Boolean).join(" · ")}
-                        </span>
-                      )}
                     </li>
                   ))}
                 </ul>

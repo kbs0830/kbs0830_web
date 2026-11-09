@@ -185,7 +185,7 @@ function hotels() {
   const groups = membershipsByKind();
   const memberships = groups.length
     ? `## 會籍 · Memberships\n\n${groups
-        .map(([kind, ms]) => `### ${kind}\n\n${ms.map((m) => `- **${m.program}**${m.tier ? `：${m.tier}` : ""}${m.perks ? `——${m.perks}` : ""}${m.until ? `（效期至 ${m.until}）` : ""}`).join("\n")}`)
+        .map(([kind, ms]) => `### ${kind}\n\n${ms.map((m) => `- **${m.program}**${m.tier ? `：${m.tier}` : ""}`).join("\n")}`)
         .join("\n\n")}\n\n`
     : "";
   const places = hotelsByPlace()
