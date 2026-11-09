@@ -87,7 +87,7 @@ export default function HotelsPage() {
                   <div key={city} className="grid grid-cols-[4.5rem_1fr] gap-3">
                     <p className="text-xs text-(--muted) pt-0.5">
                       {city}
-                      <span className="font-mono ml-1 opacity-70">{hotels.length}</span>
+                      <span className="font-mono ml-1">{hotels.length}</span>
                     </p>
                     <ul className="text-[15px] sm:text-sm text-(--text) font-light leading-relaxed">
                       {hotels.map((h) => (

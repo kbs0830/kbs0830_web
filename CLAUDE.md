@@ -222,7 +222,7 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）、
 sitemap 每個網址都 200（`sitemap.spec.ts`）、**無障礙（`a11y.spec.ts`，2026-11-09）**：axe-core 掃 8 頁 × 淺色／深色，
 WCAG A／AA 只擋 serious／critical；首頁 About 每個分頁都切過去掃（沒選到的面板是 hidden，axe 看不到）。
-⚠️ 第一次跑就抓到全站「灰字 `text-(--muted)` 再疊 `opacity-50/60/70`」對比不足（約 20 處）——**灰字不要再加 opacity**，
+⚠️ 第一次跑就抓到全站「灰字 `text-(--muted)` 再疊 `opacity-50/60/70`」對比不足（約 20 處）——**灰字不要再加 opacity**（包括灰字裡面的子元素 `<span className="opacity-60">`，第一輪只搜同一行漏掉了 `/stats` 的百分比，CI 用真實資料才抓到），
 要更淡的層次用字級；深色架構圖的線上標籤底色（`mermaid-config.ts` 的 `edgeLabelBackground`）；Hero 副標的 `<p aria-label>`
 （`<p>` 不能放 aria-label，改 `sr-only` 文字＋打字動畫 `aria-hidden`）`TerminalMode.tsx` 的輸出區塊有一個
 `data-testid="terminal-output"`，純粹是給這批測試定位用的——輸出文字（例如「PINGWEI

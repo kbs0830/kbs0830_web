@@ -31,10 +31,14 @@ for (const path of PAGES) {
 
       const problems = await scan(path);
       // 首頁 About 的分頁：沒選到的面板是 hidden，axe 不會檢查，要一個一個切過去
+      // 整套一起跑時偶爾在 hydration 前就點、或面板還在切換就掃（11/09 CI 跑出一次不穩），所以等 hydration、等切好再掃
       if (path === "/") {
+        await expect(page.locator("html")).toHaveAttribute("data-hydrated", "");
         const tabs = page.getByRole("tab");
         for (let i = 1; i < (await tabs.count()); i++) {
           await tabs.nth(i).click();
+          await expect(tabs.nth(i)).toHaveAttribute("aria-selected", "true");
+          await page.waitForTimeout(300);
           problems.push(...(await scan(`/ 分頁 ${i + 1}`)));
         }
       }

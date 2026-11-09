@@ -59,7 +59,7 @@ function Share({ label, value, total }: { label: string; value: number; total: n
         <span className="block h-full bg-(--accent) rounded-full" style={{ width: `${pct}%` }} />
       </span>
       <span className="text-xs text-(--muted) font-mono text-right">
-        {nf.format(value)} <span className="opacity-60">{pct.toFixed(0)}%</span>
+        {nf.format(value)} <span>{pct.toFixed(0)}%</span>
       </span>
     </li>
   );

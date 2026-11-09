@@ -25,7 +25,7 @@ export default function BlogIndexPage() {
       <nav aria-label="依標籤瀏覽" className="flex flex-wrap gap-x-4 gap-y-2 mb-12 -mt-6 text-xs font-mono">
         {getAllTags().map((t) => (
           <Link key={t.slug} href={`/blog/tags/${t.slug}`} className="text-(--muted) hover:text-(--accent) transition-colors">
-            #{t.tag} <span className="opacity-60">{t.count}</span>
+            #{t.tag} <span>{t.count}</span>
           </Link>
         ))}
       </nav>

@@ -70,6 +70,7 @@ export default function HeroSection() {
       <div
         className="enter-fade absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
         style={enter(1.2)}
+        aria-hidden
       >
         <span className="text-[10px] tracking-[0.4em] uppercase font-mono opacity-60">Scroll</span>
         {/* 一顆小光點沿著細線往下滑（globals.css .scroll-cue） */}
