@@ -11,6 +11,7 @@
 - [x] 被擋的照樣回報到 `/api/csp-report`；新 E2E `csp.spec.ts`：sitemap 每一頁捲到底都不能有違規、header 有送
 - [x] dev（`next dev`／CI）多給 `unsafe-eval`、websocket（Fast Refresh 要用）；正式站沒有。`server.js` 明確設 `NODE_ENV=production`
 - [x] 12/09 提醒信改成「正式開一個月回查」
+- [x] **上線幾分鐘就從回報抓到漏網之魚**：Cloudflare Web Analytics 的 beacon（edge 只對真瀏覽器插入，本機測不到）被擋，馬上加進允許清單
 - [x] `useMemo` 那項評估後決定不改（理由在 TODO「評估過、先不做」）
 
 ### 2026-11-09 新套件：Markdown 表格、無障礙自動檢查（使用者同意停站 1～2 分鐘）

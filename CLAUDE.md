@@ -756,6 +756,9 @@ deploy.bat
   時算好寫進 routes-manifest 的；`scripts/server.js` 開頭也明確設 `NODE_ENV=production`
 - `'unsafe-inline'` 拿不掉：深色模式 inline script、JSON-LD、Next 的 hydration script 都是 inline；改 nonce 會讓所有頁面變動態
 - Cloudflare 的 email 保護會插 `/cdn-cgi/scripts/…/email-decode.min.js`，同網域，`'self'` 就涵蓋
+- ⚠️ **Cloudflare 會在 edge 插東西，只對真的瀏覽器**：Web Analytics 的 `static.cloudflareinsights.com` beacon（送資料到
+  `cloudflareinsights.com`）——curl、本機、E2E 都看不到。正式開 CSP 後幾分鐘就從 `/api/csp-report` 抓到被擋，已加進
+  script-src／connect-src。**改 Cloudflare 設定（開新功能）後要看一次 csp-report**
 
 ### 公開流量頁 `/stats`（2026-11-09）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家

@@ -17,11 +17,14 @@ const head = gitHead();
 function contentSecurityPolicy(dev: boolean) {
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+    // static.cloudflareinsights.com：Cloudflare Web Analytics 的 beacon，Cloudflare 在 edge 只對真的瀏覽器插入，
+    // 本機、curl、E2E 都看不到——正式開 CSP 後幾分鐘就從 /api/csp-report 抓到它被擋（2026-11-09）
+    `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
     "font-src 'self' data:",
-    `connect-src 'self'${dev ? " ws: wss:" : ""}`,
+    // cloudflareinsights.com：上面那支 beacon 把數據送回這裡（/cdn-cgi/rum）
+    `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}`,
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
