@@ -5,6 +5,15 @@
 
 ---
 
+### 2026-11-09 TODO 盡量做（使用者：「todo 都做，有要我幫再說」）
+- [x] **桌機以外的外部監控**：`.github/workflows/uptime.yml`，GitHub 雲端（不是桌機 runner）每 10 分鐘打一次，連 3 次失敗開 uptime issue、
+  恢復自動關；不需要 secret，有 SMTP secret 再加寄 otemon。UA `kbs0830-uptime` 不算進流量統計
+- [x] **3 篇部落格草稿**（`content/drafts/`，等使用者看）；`content/drafts/` 補進 `.gitignore`（CLAUDE.md 寫了但沒做）
+- [x] **首頁 LCP 先看**：p75 1.88s 已 good，不用縮動畫
+- [x] **profile README 草稿**（跟網站同風格）；Bing、高中英文校名查過（Bing 還是 0 筆、官方英文名查不到）
+- [x] **網域到期日更正**：Verisign RDAP 是 2027-06-16（TODO 原本寫 5/18），提醒信改 5/16
+- [x] 盤點：沒有待合併的 Renovate PR；桌面發現新作品候選（团‧鐵道、大手門資訊工作室），列進 TODO 問使用者
+
 ### 2026-11-09 Cloudflare 設定腳本、VS Code schema 警告
 - [x] `scripts/cloudflare-config.ps1`：Always Use HTTPS、HSTS、www 導向、WAF 擋掃描器。預設只檢查，`-Apply` 才改、改完 curl 回查；
   deploy.ps1 每次部署帶 `-Check` 跑（設定被改掉就寫 log＋寄信）

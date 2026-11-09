@@ -47,9 +47,9 @@
       "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     },
     {
-      "id": "2027-04-18-domain",
-      "date": "2027-04-18",
-      "subject": "提醒：kbs0830.com 網域 5/18 到期，確認會自動續約",
+      "id": "2027-05-16-domain",
+      "date": "2027-05-16",
+      "subject": "提醒：kbs0830.com 網域 6/16 到期，確認會自動續約",
       "body": "Cloudflare Dashboard → Domain Registration → Manage：\n- Auto-renew 是開的\n- 帳號的信用卡還有效\n網域過期＝網站、Tunnel、Search Console 全部斷掉。"
     },
     {

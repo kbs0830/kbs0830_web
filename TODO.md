@@ -4,7 +4,7 @@
 做完任何一項跟 Claude 說，它會回查、從這裡刪掉、記進 DONE.md。
 
 📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、12/09 CSP 回查、
-2026 年底 GHA 鈦金、2027/04/18 網域續約、2027/08/31 年級更新、2027 年底 IHG 酒廊、2028 年底華航金卡。
+2026 年底 GHA 鈦金、2027/05/16 網域續約、2027/08/31 年級更新、2027 年底 IHG 酒廊、2028 年底華航金卡。
 
 ---
 
@@ -16,26 +16,25 @@
      「已檢索／已找到但未建立索引」是 Google 自己的排程，不是錯誤
    → 11/09 新增 5 個作品頁、`/stats`、14 個部落格 tag 頁，sitemap 從 23 變 **43** 個網址（11/09 晚上回查全部 200），
      新頁面要等 Google 自己來收，不用一頁一頁按「要求建立索引」
-2. [ ] **Bing 收錄回查**（11/08 提醒信已寄）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
+2. [ ] **Bing 收錄回查**（11/08 提醒信已寄；11/09 Claude 查 `site:kbs0830.com` 還是 0 筆，bingbot 11/06 起來了 16 次，每次部署都有 IndexNow）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
    顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
 3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-05-18 到期**（4/18 有提醒信）
+4. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-06-16 到期**（11/09 查 Verisign RDAP 更正，之前寫的 5/18 是錯的；5/16 有提醒信）
    → Domain Registration → Manage：Auto-renew 開著、信用卡到時候還有效（過期＝整站全斷）
 5. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
 6. [ ] **cloudflared 升級**（11/09：裝的是 2026.10.0，最新 2026.10.7）：系統管理員 PowerShell 跑
    `Stop-Service Cloudflared` → `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`
 7. [ ] **GitHub 門面**（改的是別的 repo）
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`；這兩個的 README 補截圖／架構圖／安裝步驟
-   → profile README（`kbs0830/kbs0830`）做成跟網站一樣的風格（要做 Claude 可以幫忙寫）
+   → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
+     要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
+   → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
 8. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
    Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
 
-**內容**
-- [x] **定位一句話**：Hero 副標要不要從「学生開発者 · Claude × Gemini」改成「Full-stack Developer · AI × Web」之類
-  （2026-07 外部 review 的第 1 點）。決定後同步改 title／OG／JSON-LD `jobTitle`／履歷
-- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
+**內容- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
 - [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、
   真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
 - [ ] **均線回測程式的 bug 要不要修**（改的是 school repo，網站目前不放報酬數字）：沒持股時跌破 MA60 也記一筆 0 張賣出、
@@ -46,16 +45,24 @@
 - [ ] **作品量化成果**：購票系統處理過幾筆報名…**有真的數字才放**（匯率系統「6 家銀行、6 條執行緒並行」11/09 已從原始碼補上）
 - [ ] **履歷要不要加經歷**：證照 11/09 已從你的 104 履歷 PDF 加上（`/resume`）。同一份 PDF 還有工作經歷
   （偏鄉課輔志工、鈴鹿賽道樂園、淨園農場），要不要放、放哪幾個跟 Claude 說（電話、地址、役別不會放）
-- [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School，要跟證書一致的話給 Claude 官方英文名
+- [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School。11/09 Claude 查了學校官網、維基都沒有官方英文名
+  （英文維基那條是另一間「中正高中」），要看你的畢業證書／證照上怎麼寫
 - [ ] **機型**：想記哪班的機型，給 Claude 航班代碼＋機型（`/flights` 會自動顯示）
+- [ ] **看 3 篇部落格草稿**（11/09 Claude 寫的，都在 `content/drafts/`，不會上線）：CSP 正式開抓到 Cloudflare 偷插 script、
+  中文 tag 網址上線才 404、灰字疊 opacity 被無障礙檢查抓 20 處。內容照當天實際紀錄寫（時間、數字都對過 log）。
+  OK 的話說「發布 ○○」，Claude 搬進 `content/blog/` 改日期；要改哪裡直接說
+- [ ] **新作品候選**（11/09 在桌面發現）：
+  → **团‧鐵道**（`Desktop/团‧鐵道`，GitHub `TuanRail-TransitSociety`，Flask＋Solari 翻牌看板風格的社團官網，commit 都是你的）——
+    要放的話：你在社團的角色？成員介紹卡片有真名的話不會放
+  → **大手門資訊工作室 OTEMON**（`Desktop/大手門`：照片數位化掃描、到府收件、大學生創業）——要不要放網站（作品？經歷？時間軸？）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
   pnpm v11 native build、PowerShell 5.1 沒 BOM 變 Big5、node.exe 無聲死掉 4 小時→自己寫 watchdog、
   **11/09 新的**：中文 tag 網址 build 跟單元測試都過、上線才 404（後來加了「sitemap 每個網址都要 200」的測試）、
   PowerShell `-like` 把 `[ROLLBACK]` 的方括號當萬用字元（週報算出「自動退回 5946 次」）
 
 **設計／取捨**
-- [ ] **首頁 LCP**：~11/18 看真實訪客 Web Vitals（有提醒信），首頁 LCP p75 ≤2.5s 就不用動；
-  超過再決定要不要把 Hero 進場動畫縮短（會削弱「gentle fade-in」）
+- [ ] **首頁 LCP**：11/09 先看了：真實訪客 p75 **1.88s**（25 筆）已經 good，INP 72ms、CLS 0 也都 good →
+  Hero 動畫**不用縮短**。11/18 提醒信樣本多一點再看一次，還是 ≤2.5s 就結案
 - [ ] **時間軸互動**：現在是滑鼠移上去／點一下展開、移開收起；想要回到「點一下固定展開、再點收起」跟 Claude 說
 - [ ] **先隱藏的東西**，想恢復哪個跟 Claude 說：
   → **下載履歷按鈕**（`/resume` 頁跟 PDF 照舊在，只是沒入口；恢復方法在 `ContactSection.tsx` 註解）
@@ -64,8 +71,9 @@
   → **頁首以外的桌機特效**：游標光圈、點擊漣漪、卡片聚光燈＋3D 傾斜、小標解碼、背景直書大字、時間軸畫線（commit `cdf68f9`）
 
 **要你建帳號／金鑰才能做**
-- [ ] **桌機以外的外部監控**：停電、整台當機時 watchdog 也跟著停。用 GitHub 雲端 runner 每 10 分鐘打一次網站、
-  連續失敗寄信到 otemon。要你在 repo 加兩個 Secret（SMTP 帳密），程式 Claude 寫
+- [ ] **（選做）外部監控的信改寄 otemon**：11/09 已上線（`.github/workflows/uptime.yml`，GitHub 雲端每 10 分鐘打一次，掛了開 issue，
+  GitHub 寄通知到你 GitHub 帳號的信箱）。想讓它也寄到 otemon：repo → Settings → Secrets and variables → Actions →
+  New repository secret，加 `ALERT_SMTP_USER`、`ALERT_SMTP_PASS`（跟 `.env.local` 同一組值）
 - [ ] **Renovate patch 更新自動合併**（需要一組 fine-grained PAT）：內建 token 開的 PR 不會觸發 workflow、沒測試結果可依據
 - [ ] **聯絡表單**：要申請 EmailJS／Formspree 帳號（之前 mailto 版你說不需要）
 
