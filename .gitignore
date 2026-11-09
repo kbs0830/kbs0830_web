@@ -52,3 +52,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 部落格草稿：使用者看過才搬進 content/blog/（見 CLAUDE.md）
+content/drafts/
