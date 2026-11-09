@@ -24,9 +24,8 @@ export default function VisitorStats() {
   const [stats, setStats] = useState<VisitorStatsData | null>(null);
 
   useEffect(() => {
-    // POST 本身就是這次造訪的回報（只有真的執行這段 JS 的瀏覽器才會打到），
-    // 回傳值直接是回報後的最新彙總，不用再多打一次 GET。
-    fetch("/api/visitor-stats", { method: "POST" })
+    // 只讀。回報造訪是 layout 的 VisitBeacon（每一頁都算，2026-11-09 起），這裡再 POST 首頁會算兩次
+    fetch("/api/visitor-stats")
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});

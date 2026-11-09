@@ -5,9 +5,9 @@
 // 內容跟頁面一致、只換格式；另外**加上中文本名**：這是只有 AI 工具會讀、人在網頁上看不到的地方，
 // 使用者 2026-11-05 確認「AI 跟爬蟲要找得到名字，只是不要顯示在網頁上」（CLAUDE.md Key Constraints 1）
 import { projects, type Project } from "./projects";
-import { getAllPosts, getPostBySlug } from "./blog";
+import { getAllPosts, getAllTags, getPostBySlug, getPostsByTagSlug } from "./blog";
 import { skills, statusLines, timeline } from "./about";
-import { education, nowItems, resumeFeaturedSlugs, resumeRole, resumeSkillGroups, usesGroups } from "./page-content";
+import { certifications, education, nowItems, resumeFeaturedSlugs, resumeRole, resumeSkillGroups, usesGroups } from "./page-content";
 import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
 import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "./hotels";
@@ -100,6 +100,15 @@ ${posts.map((p) => `- [${p.title}](${mdUrl(`blog/${p.slug}`)})（${p.date}）：
 ${footer("blog")}`;
 }
 
+function blogTag(slug: string) {
+  const found = getPostsByTagSlug(slug);
+  if (!found) return null;
+  return `# 標籤：${found.tag}
+
+${found.posts.map((p) => `- [${p.title}](${mdUrl(`blog/${p.slug}`)})（${p.date}）：${p.description}`).join("\n")}
+${footer(`blog/tags/${slug}`)}`;
+}
+
 function blogPost(slug: string) {
   const post = getPostBySlug(slug);
   if (!post) return null;
@@ -108,7 +117,7 @@ function blogPost(slug: string) {
 > ${post.description}
 
 - 日期：${post.date}
-- 標籤：${post.tags.join("、")}
+- 標籤：${post.tags.join("、")}${post.series ? `\n- 系列：「${post.series}」第 ${post.seriesOrder} 篇` : ""}
 
 ${post.content.trim()}
 ${footer(`blog/${slug}`)}`;
@@ -131,6 +140,10 @@ ${education.map((e) => `- **${e.school} ${e.program}**（${e.period}）\n  ${e.s
 ## 技能 · Skills
 
 ${resumeSkillGroups.map((g) => `- **${g.label}**：${g.items.join("、")}`).join("\n")}
+
+## 證照 · Certifications
+
+${certifications.map((g) => `- **${g.group}**：${g.items.map((c) => [c.name, "detail" in c ? c.detail : "", "issuer" in c ? `（${c.issuer}）` : ""].join("")).join("、")}`).join("\n")}
 
 ## 作品 · Projects
 
@@ -219,6 +232,7 @@ export function markdownPaths(): string[] {
     "hotels",
     "blog",
     ...getAllPosts().map((p) => `blog/${p.slug}`),
+    ...getAllTags().map((t) => `blog/tags/${t.slug}`),
     ...projects.map((p) => `projects/${p.slug}`),
   ];
 }
@@ -241,6 +255,7 @@ export function renderMarkdown(path: string): string | null {
     case "blog":
       return blogIndex();
   }
+  if (path.startsWith("blog/tags/")) return blogTag(path.slice("blog/tags/".length));
   const [section, slug, ...rest] = path.split("/");
   if (!slug || rest.length) return null;
   if (section === "blog") return blogPost(slug);

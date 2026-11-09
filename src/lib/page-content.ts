@@ -64,6 +64,14 @@ export const education = [
   },
 ];
 
+// 證照（2026-11-09 使用者給的 104 履歷 PDF「資格認證」那段，原文照抄、沒查到發證單位的就不寫）。
+// 同一份 PDF 裡的電話、地址、役別、工作經歷、求職條件都不放（使用者只說資格認證可以寫）。
+export const certifications = [
+  { group: "技術", items: [{ name: "丙級電腦硬體裝修技術士", issuer: "勞動部勞動力發展署技能檢定中心" }, { name: "GTC 全民科技力認證" }, { name: "業餘無線電第三級" }] },
+  { group: "語言", items: [{ name: "Duolingo 英語測試", detail: "80 分" }] },
+  { group: "其他", items: [{ name: "珠算心算聯合測試五級" }, { name: "普通小型車駕照（手排）", issuer: "交通部公路總局" }, { name: "普通重型機車駕照", issuer: "交通部公路總局" }] },
+] satisfies { group: string; items: { name: string; issuer?: string; detail?: string }[] }[];
+
 export const resumeSkillGroups = [
   { label: "AI / 機器学習", items: ["Python", "YOLOv8", "ONNX Runtime", "TensorFlow.js", "Gemini API", "OpenCV"] },
   { label: "後端", items: ["FastAPI", "Flask", "REST API 設計", "Google Sheets API"] },

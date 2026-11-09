@@ -134,9 +134,17 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </p>
       )}
 
+      {/* tag 連回首頁作品集並篩好（ProjectFilter 讀 ?tag=）。用一般 <a>：client 換頁時網址參數不一定已經換好 */}
       <div className="flex flex-wrap gap-1.5 mt-12">
         {project.tags.map((tag) => (
-          <TagBadge key={tag}>{tag}</TagBadge>
+          <a
+            key={tag}
+            href={`/?tag=${encodeURIComponent(tag)}#portfolio`}
+            title={`看其他用到 ${tag} 的作品`}
+            className="hover:opacity-70 transition-opacity"
+          >
+            <TagBadge>{tag}</TagBadge>
+          </a>
         ))}
       </div>
     </PageShell>

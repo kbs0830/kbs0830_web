@@ -117,6 +117,12 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
 # --- 每日備份（超過 24 小時沒成功備份才真的跑，失敗由 backup.ps1 自己寄信，不影響監控結果）---
 & (Join-Path $PSScriptRoot "backup.ps1") -IfOlderThanHours 24 | Out-Null
 
+# --- 每週流量週報（週一 09:00 後寄一封，這週寄過就跳過）---
+try { & (Join-Path $PSScriptRoot "weekly-report.ps1") | Out-Null } catch { Log "[WARN] weekly-report.ps1 失敗：$($_.Exception.Message)" }
+
+# --- 每季備份還原演練（超過 90 天沒演練才真的跑：從 GitHub 下載、解密、跟 D: 逐檔比，結果寄信）---
+try { & (Join-Path $PSScriptRoot "restore-drill.ps1") -IfOlderThanDays 90 | Out-Null } catch { Log "[WARN] restore-drill.ps1 失敗：$($_.Exception.Message)" }
+
 # --- 提醒信（reminders.json 排的日期到了就寄，每則只寄一次；失敗不影響監控結果）---
 try { & (Join-Path $PSScriptRoot "reminders.ps1") | Out-Null } catch { Log "[WARN] reminders.ps1 失敗：$($_.Exception.Message)" }
 

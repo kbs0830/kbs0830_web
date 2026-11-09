@@ -422,6 +422,15 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 關機錯過會補寄；寄不出去不記已寄、下一輪再試。`check` 欄位在信裡附即時檢查：`web-vitals`（p75）、`http-redirect`
 （已生效就寫「不用做了」）。**TODO 新增有日期的使用者待辦時，順手在 `reminders.json` 加一筆**。實測過 S4U 身分寄得出去。
 
+**每週週報（2026-11-09，`scripts/weekly-report.ps1`）**：watchdog 每輪呼叫，週一 09:00 後寄一封（這週寄過就跳過，關機錯過開機補寄）。
+內容：Cloudflare 7 天（跟前一週比）、真人造訪／未過濾流量增加多少（這兩份只存累計，跟上次寄信的快照 `data/weekly-report-state.json` 相減）、
+首頁 Web Vitals p75、部署成功／失敗／退回次數、watchdog 重啟次數。`-DryRun` 只印不寄。
+⚠️ PowerShell 地雷（寫的時候踩到）：`$home` 是內建唯讀變數不能拿來用；`-like "*[ROLLBACK]*"` 的方括號是萬用字元，要用 `.Contains()`。
+
+**每季備份還原演練（2026-11-09，`scripts/restore-drill.ps1`）**：watchdog 帶 `-IfOlderThanDays 90` 呼叫。從 GitHub **重新 clone**
+備份 repo（不用 D: 那份 clone）→ 解密 → 解壓 → 跟 D: 最新一份逐檔比 SHA256，成功失敗都寄信；失敗隔天重試（信 1 天冷卻）。
+第一次 11/09 手動跑過：17 個檔案全部相同。上次演練時間在 `D:\Backups\kbs0830\last-restore-drill.txt`。
+
 **外網檢查（2026-11-03）**：localhost 健康時，watchdog 再從外網打一次 `https://kbs0830.com/`
 （30 秒內重試）。2026-10-29 那次是 origin 正常、Tunnel 斷 4 天，localhost 檢查完全看不出來。
 失敗只寄信（key `tunnel`），不自動重啟 Cloudflared：一般權限重啟不了服務，服務本身也有當機自動重啟。
@@ -601,6 +610,10 @@ deploy.bat
 
 **分兩區塊：個人専案 ／ 課程専題**，Portfolio section 頂部有依 tag（Python / Next.js / AI…）
 （2026-11-09 起篩選列只直接列「2 個以上作品用到」的 tag，只出現一次的收在「+N 更多」；選中的那個收合後還會留著）
+**技能 ↔ 作品互連（2026-11-09）**：About 的技能 chip 對得到作品 tag（`projects.ts` 的 `tagForSkill()`，會去掉版本號：
+「Next.js 16」→「Next.js」）就變成 `<a href="#portfolio" data-filter-tag>`，`ProjectFilter` 在 document 上監聽點擊、不重新載入；
+作品詳細頁的 tag 是一般 `<a href="/?tag=X#portfolio">`（整頁載入，`ProjectFilter` 用 `useSyncExternalStore` 讀網址）——
+用 next/link 的話 client 換頁時網址參數不一定已經換好
 篩選卡片的 filter bar（`src/components/sections/PortfolioSection.tsx`），卡片 hover lift。
 
 個人専案（`isPersonal: true`，見 `src/lib/projects.ts`）：
@@ -661,6 +674,15 @@ deploy.bat
 `params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題、Task Scheduler 72 小時上限、Tunnel 斷 4 天、
 `/blog/.env` 回 500（cwd 是 System32）、VS Code 鎖住 `.next`（雙槽部署由來）、CI 灌了 1037 筆假訪客）。
 **草稿放 `content/drafts/`**（`blog.ts` 不讀、不進 git），使用者看過才搬進 `content/blog/`、日期改成發佈當天。
+**2026-11-09 加的功能**（`lib/blog.ts`，都有單元測試）：
+- 系列文：frontmatter `series: "自架網站維運"` ＋ `seriesOrder: N`，文章開頭出現系列導覽（目前 5 篇）。新文章屬於同系列就照加
+- 上一篇／下一篇（依日期）、相關文章（共同 tag，**不含同系列**——系列導覽已經列了）
+- 目錄：4 個以上 `##` 小標才出現，原生 `<details>` 預設收起；h2 的 id 跟目錄都用 `headingId()`，改規則兩邊一起變
+- tag 頁 `/blog/tags/<tagSlug>`：`Next.js` → `next-js`（網址結尾不能像 `.js` 檔，server.js 會當靜態資源不計流量）。
+  sitemap、Markdown 版（`/blog/tags/next-js.md`）都有；中文 tag（`隱私`）的 Markdown 版 `Link` header 要 `encodeURI`
+  （header 只能 ASCII，build 時第一次就因為這個炸掉）
+- 首頁作品集下面有「最新文章」3 篇（`components/sections/LatestPosts.tsx`）
+
 ⚠️ **MDX 沒裝 remark-gfm，不支援 Markdown 表格**（`| a | b |` 會原樣印出一排直線），用清單代替。新增文章前
 先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的
 `Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
@@ -673,7 +695,9 @@ deploy.bat
 
 ### 7. `/resume`（獨立頁面）
 教育／技能／作品，內容全部取自網站上已經有的真實資料（timeline、skills、projects.ts），
-**沒有編造任何新的經歷、證照或年資**。套用 `globals.css` 既有的 `@media print` 樣式
+**沒有編造任何新的經歷、證照或年資**。**證照（2026-11-09）** 是使用者給的 104 履歷 PDF
+「資格認證」那段照抄（`lib/page-content.ts` 的 `certifications`）；同一份 PDF 的電話、地址、役別、工作經歷、求職條件**都沒用**
+（經歷要不要放還在問，見 TODO）。套用 `globals.css` 既有的 `@media print` 樣式
 （列印時去色、A4 排版）。`public/resume.pdf` 是用 `scripts/generate-resume-pdf.js`
 （Playwright headless Chromium 印 `/resume` 頁面）產生的**靜態快照**，不是即時渲染——
 2026-11 起部署時偵測到 `/resume` 內容來源有變會**自動重印並 commit**（見「CI/CD」）；手動重印：
@@ -692,6 +716,8 @@ deploy.bat
 - **只存國家代碼＋次數，不存 IP、不存任何個人可識別資訊**
 - 沒有 `cf-ipcountry` header（沒經過 Cloudflare：CI E2E、本機測試、印履歷 PDF）的回報完全不寫入（2026-11-05 起，
   之前記成 `XX`，累積 1037 筆假資料才發現）。跟 Web Vitals 同一條規則
+- **2026-11-09 起每一頁都算**：回報是 layout 的 `VisitBeacon.tsx`（每換一頁 POST 一次），頁尾 `VisitorStats` 只讀（GET），
+  不然首頁會算兩次。之前只有首頁頁尾會回報，直接開文章／作品頁的訪客沒算到
 - `src/app/api/visitor-stats/route.ts` 讀這份 JSON 回傳彙總（total／countryCount／前 5 名），
   `src/components/ui/VisitorStats.tsx`（Footer）用 regional indicator symbol 公式把國碼即時轉成
   國旗 emoji 顯示，不需要維護國碼對照表
@@ -711,6 +737,13 @@ deploy.bat
   `/api/visitor-stats` 回傳的 `raw` 欄位讀它（`RAW_TRAFFIC_FILE` 環境變數，server.js 設）。測試：`scripts/lib/raw-traffic.test.ts`
   （vitest `include` 有加 `scripts/**/*.test.ts`）
 - 2026-11-06 才開始記，之前的 `server.log` 沒有 UA，補不回來
+
+### CSP（2026-11-09，先 report-only）
+- `next.config.ts` 的 `Content-Security-Policy-Report-Only`：**不擋任何東西**，違規回報到 `/api/csp-report`，
+  只存「指令＋被擋的網域＋頁面路徑 → 次數」到 `data/csp-reports.json`（`CSP_REPORT_FILE`，server.js 設），只收有 `cf-ipcountry` 的
+- 看結果：`curl https://kbs0830.com/api/csp-report`。12/09 有提醒信，沒誤擋就把 key 改成 `Content-Security-Policy`
+- 新增外部資源（圖片網域、script、API）要記得加進 policy，不然正式開之後會被擋
+- `'unsafe-inline'` 拿不掉：深色模式 inline script、JSON-LD、Next 的 hydration script 都是 inline；改 nonce 會讓所有頁面變動態
 
 ### 公開流量頁 `/stats`（2026-11-09）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家

@@ -3,6 +3,7 @@ import { fontVariables } from "./fonts";
 import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
 import WebVitals from "@/components/ui/WebVitals";
+import VisitBeacon from "@/components/ui/VisitBeacon";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -97,6 +98,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <WebVitals />
+        <VisitBeacon />
         {children}
       </body>
     </html>

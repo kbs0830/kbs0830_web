@@ -3,7 +3,7 @@
 這裡**只放還沒做的**；做完的搬到 [DONE.md](DONE.md)（2026-11-09 拆開）。
 做完任何一項跟 Claude 說，它會回查、從這裡刪掉、記進 DONE.md。
 
-📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、
+📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、12/09 CSP、
 2026 年底 GHA 鈦金、2027/04/18 網域續約、2027/08/31 年級更新、2027 年底 IHG 酒廊、2028 年底華航金卡。
 
 ---
@@ -46,7 +46,10 @@
   東西在別的地方就給 Claude 路徑；沒有的話 Claude 拿掉
 - [ ] **路口排雷「v2 重構版由我完成」對不對**：Claude 是看 git 紀錄（17 個 commit 都是你的信箱）寫的，不對就說
 - [ ] **作品量化成果**：購票系統處理過幾筆報名…**有真的數字才放**（匯率系統「6 家銀行、6 條執行緒並行」11/09 已從原始碼補上）
-- [ ] **履歷要不要加證照／經歷**（之前問過還沒回）
+- [ ] **履歷要不要加經歷**：證照 11/09 已從你的 104 履歷 PDF 加上（`/resume`）。同一份 PDF 還有工作經歷
+  （偏鄉課輔志工、鈴鹿賽道樂園、淨園農場），要不要放、放哪幾個跟 Claude 說（電話、地址、役別不會放）
+- [ ] **加新套件要停站 1～2 分鐘**：Markdown 表格（`remark-gfm`）、E2E 無障礙檢查（`axe-core`）都要裝新套件，
+  部署時會先停站裝套件再 build。OK 的話說一聲，Claude 挑你不在線上的時間推
 - [ ] **履歷高中英文校名**：現在寫 Kaohsiung Municipal Zhongzheng Vocational High School，要跟證書一致的話給 Claude 官方英文名
 - [ ] **機型**：想記哪班的機型，給 Claude 航班代碼＋機型（`/flights` 會自動顯示）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
@@ -80,27 +83,10 @@
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 
-**首頁／內容**
-- [ ] **首頁顯示最新文章**（2～3 篇），部落格不再只靠頁尾一個小連結
-- [ ] **技能 ↔ 作品互連**：點技能看用到它的作品，作品頁的技術 tag 連回去
-- [ ] **造訪數改成每一頁都算**（現在「共 N 次造訪」只在首頁回報）
-
-**部落格（現在 8 篇）**
-- [ ] 文章底部「上一篇／下一篇」＋相關文章（依 tag）
-- [ ] 長文目錄（TOC）
-- [ ] Tag 頁 `/blog/tags/devops` 這種，sitemap 一起加
-- [ ] 系列文：「自架網站維運」那 5 篇串起來，開頭標「系列第 N 篇」
-- [ ] 支援 Markdown 表格（裝 `remark-gfm`）
-
-**監控／維運**
-- [ ] 每週流量週報（每週一寄到 otemon：訪客、爬蟲、Web Vitals、部署次數、watchdog 救了幾次）
-- [ ] 每季提醒「實際從 GitHub 下載備份解密一次」（備份沒還原過等於沒有）
-
-**品質／安全**
-- [ ] 無障礙自動檢查：E2E 加 axe-core，每次 push 掃對比度、alt、label
-- [ ] Content-Security-Policy：先 report-only 上線，確認沒擋到東西再正式開
-- [ ] 在 Firefox 實際點一次作品卡片換頁動畫（View Transitions；Safari 要你用 iPhone 看）
-- [ ] 手寫的 `useMemo` 可以拿掉（React Compiler 已經在做）：11/09 查只剩 `HeroScene.tsx` 3 處建 geometry 的，沒有效能問題，不急
+- [ ] **CSP 正式開**：11/09 先上了 report-only（不擋東西，違規回報到 `/api/csp-report`）。約 12/09 看
+  `curl https://kbs0830.com/api/csp-report`，沒有誤擋就把 `next.config.ts` 的 header 改成正式的（有提醒信）
+- [ ] 手寫的 `useMemo` 可以拿掉（React Compiler 已經在做）：只剩 `HeroScene.tsx` 3 處建 geometry 的，沒有效能問題，不急
+- [ ] Safari 換頁動畫：Chrome、Firefox 11/09 都測過正常，Safari 要你用 iPhone 點一次作品卡片
 
 ## ⏳ 等別人更新
 

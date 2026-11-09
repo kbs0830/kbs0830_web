@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { projects } from "@/lib/projects";
 import { EMAIL, GITHUB_URL } from "@/lib/site";
-import { education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@/lib/page-content";
+import { certifications, education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@/lib/page-content";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 
@@ -64,6 +64,25 @@ export default function ResumePage() {
             <div key={g.label} className="grid sm:grid-cols-[100px_1fr] gap-1 sm:gap-3">
               <p className="text-xs text-(--muted)">{g.label}</p>
               <p className="text-sm text-(--text)">{g.items.join("、")}</p>
+            </div>
+          ))}
+        </div>
+      </ResumeSection>
+
+      <ResumeSection title="證照 · Certifications">
+        <div className="space-y-2">
+          {certifications.map((g) => (
+            <div key={g.group} className="grid sm:grid-cols-[100px_1fr] gap-1 sm:gap-3">
+              <p className="text-xs text-(--muted)">{g.group}</p>
+              <ul className="text-sm text-(--text) space-y-0.5">
+                {g.items.map((c) => (
+                  <li key={c.name}>
+                    {c.name}
+                    {"detail" in c && c.detail && <span className="text-(--accent) font-mono text-xs">　{c.detail}</span>}
+                    {"issuer" in c && c.issuer && <span className="text-(--muted) text-xs">　{c.issuer}</span>}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>

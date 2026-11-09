@@ -21,7 +21,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ path?: 
       // 同一個網址依 Accept 回 HTML 或 Markdown，快取要分開存
       Vary: "Accept",
       // 告訴搜尋引擎正本是 HTML 那頁，Markdown 版不要當成重複內容
-      Link: `<${SITE_URL}${path ? `/${path}` : "/"}>; rel="canonical"`,
+      // header 只能 ASCII：中文 tag 頁（/blog/tags/隱私）要先 encodeURI
+      Link: `<${SITE_URL}${path ? `/${encodeURI(path)}` : "/"}>; rel="canonical"`,
     },
   });
 }

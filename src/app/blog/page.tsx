@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { withShare } from "@/lib/share-meta";
 import Link from "next/link";
-import { getAllPosts } from "@/lib/blog";
+import { getAllPosts, getAllTags } from "@/lib/blog";
 import TagBadge from "@/components/ui/TagBadge";
 import PageShell from "@/components/ui/PageShell";
 
@@ -22,11 +22,20 @@ export default function BlogIndexPage() {
         <a href="/feed.xml" className="hover:text-(--accent) transition-colors">RSS 訂閱 · Feed</a>
       </p>
 
+      <nav aria-label="依標籤瀏覽" className="flex flex-wrap gap-x-4 gap-y-2 mb-12 -mt-6 text-xs font-mono">
+        {getAllTags().map((t) => (
+          <Link key={t.slug} href={`/blog/tags/${t.slug}`} className="text-(--muted) hover:text-(--accent) transition-colors">
+            #{t.tag} <span className="opacity-60">{t.count}</span>
+          </Link>
+        ))}
+      </nav>
+
       <div className="space-y-10">
         {posts.map((post) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
             <p className="text-xs text-(--muted) tracking-[0.15em] mb-1.5 font-mono">
               {post.date}
+              {post.series && <span className="text-(--accent)"> · 系列「{post.series}」{post.seriesOrder}</span>}
             </p>
             <h2 className="text-lg font-light text-(--text) group-hover:text-(--accent) transition-colors mb-2">
               {post.title}

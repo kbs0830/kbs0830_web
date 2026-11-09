@@ -45,3 +45,50 @@ describe("readingMinutes", () => {
     expect(readingMinutes("短")).toBe(1);
   });
 });
+
+describe("系列文、上一篇／下一篇、相關文章、tag、目錄（2026-11-09）", () => {
+  it("自架網站維運系列 5 篇，依 seriesOrder 1～5 排", async () => {
+    const { getSeriesPosts } = await import("./blog");
+    const s = getSeriesPosts("自架網站維運");
+    expect(s.map((p) => p.seriesOrder)).toEqual([1, 2, 3, 4, 5]);
+    expect(s[0].slug).toBe("task-scheduler-72-hours");
+  });
+
+  it("上一篇＝比較舊、下一篇＝比較新；最新那篇沒有下一篇", async () => {
+    const { getAdjacentPosts } = await import("./blog");
+    const posts = getAllPosts();
+    expect(getAdjacentPosts(posts[0].slug).newer).toBeUndefined();
+    expect(getAdjacentPosts(posts[0].slug).older?.slug).toBe(posts[1].slug);
+    expect(getAdjacentPosts(posts.at(-1)!.slug).older).toBeUndefined();
+    expect(getAdjacentPosts("沒有這篇")).toEqual({});
+  });
+
+  it("相關文章：至少一個共同 tag、不含自己跟同系列", async () => {
+    const { getRelatedPosts } = await import("./blog");
+    const post = getPostBySlug("task-scheduler-72-hours")!;
+    const related = getRelatedPosts(post);
+    expect(related.length).toBeGreaterThan(0);
+    for (const r of related) {
+      expect(r.slug).not.toBe(post.slug);
+      expect(r.series).not.toBe(post.series);
+      expect(r.tags.some((t) => post.tags.includes(t))).toBe(true);
+    }
+  });
+
+  it("tag 網址：Next.js → next-js（結尾不會像 .js 檔），每個 tag 都找得回文章", async () => {
+    const { getAllTags, getPostsByTagSlug, tagSlug } = await import("./blog");
+    expect(tagSlug("Next.js")).toBe("next-js");
+    for (const t of getAllTags()) expect(getPostsByTagSlug(t.slug)?.posts.length).toBe(t.count);
+    expect(getPostsByTagSlug("沒有這個")).toBeUndefined();
+  });
+
+  it("目錄只抓 ##，程式碼區塊裡的 # 不算；id 跟 MDX 的 h2 同一個規則", async () => {
+    const { getHeadings, headingId } = await import("./blog");
+    const md = "## 第一段：原因\n內容\n```bash\n## 這是註解\n```\n### 小小標\n## Step 2 (fix)";
+    expect(getHeadings(md)).toEqual([
+      { text: "第一段：原因", id: headingId("第一段：原因") },
+      { text: "Step 2 (fix)", id: "step-2-fix" },
+    ]);
+    expect(headingId("第一段：原因")).toBe("第一段-原因");
+  });
+});

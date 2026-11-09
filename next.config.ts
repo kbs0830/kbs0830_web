@@ -18,6 +18,26 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // CSP 先 report-only（2026-11-09）：不擋任何東西，違規回報到 /api/csp-report。
+  // 看一陣子 `curl https://kbs0830.com/api/csp-report` 沒有誤擋，再把 key 改成 Content-Security-Policy。
+  // 'unsafe-inline'：<head> 的深色模式 inline script、JSON-LD、Next 的 inline hydration script 都需要（要拿掉得改 nonce，頁面會變動態）
+  {
+    key: "Content-Security-Policy-Report-Only",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "report-uri /api/csp-report",
+    ].join("; "),
+  },
 ];
 
 const distDir = process.env.NEXT_DIST_DIR || ".next";
@@ -49,7 +69,7 @@ const nextConfig: NextConfig = {
   // 只列有 Markdown 版的頁面，不要寫成 /:path*（會把 /_next、/api 也一起轉走）
   async rewrites() {
     const acceptsMarkdown = [{ type: "header" as const, key: "accept", value: ".*text/markdown.*" }];
-    const pages = ["/", "/resume", "/now", "/uses", "/flights", "/hotels", "/blog", "/blog/:slug", "/projects/:slug"];
+    const pages = ["/", "/resume", "/now", "/uses", "/flights", "/hotels", "/blog", "/blog/:slug", "/blog/tags/:tag", "/projects/:slug"];
     return {
       beforeFiles: [
         ...pages.map((source) => ({
@@ -60,6 +80,7 @@ const nextConfig: NextConfig = {
         { source: "/index.md", destination: "/md" },
         { source: "/:page(resume|now|uses|flights|hotels|blog).md", destination: "/md/:page" },
         { source: "/:section(blog|projects)/:slug.md", destination: "/md/:section/:slug" },
+        { source: "/blog/tags/:tag.md", destination: "/md/blog/tags/:tag" },
       ],
       afterFiles: [],
       fallback: [],

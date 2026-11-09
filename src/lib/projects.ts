@@ -709,3 +709,19 @@ export const projects: Project[] = [
 
 export const personalProjects = projects.filter((p) => p.isPersonal);
 export const courseProjects = projects.filter((p) => !p.isPersonal);
+
+// 技能 ↔ 作品互連（2026-11-09）：About 的技能名稱對到作品 tag（技能常帶版本號，例如「Next.js 16」→「Next.js」）。
+const projectTags = new Set(projects.flatMap((p) => p.tags));
+const tagCounts = new Map<string, number>();
+for (const t of projects.flatMap((p) => p.tags)) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+
+/** 技能名稱 → 作品 tag；沒有作品用到就回 undefined */
+export function tagForSkill(name: string): string | undefined {
+  const candidates = [name, name.replace(/\s+v?\d+(\s.*)?$/, ""), name.replace(/\s+(API|Web)$/, "")];
+  return candidates.find((c) => projectTags.has(c));
+}
+
+/** 這個 tag 有幾個作品用到 */
+export function projectCountForTag(tag: string): number {
+  return tagCounts.get(tag) ?? 0;
+}

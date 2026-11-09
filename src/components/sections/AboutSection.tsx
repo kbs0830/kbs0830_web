@@ -12,6 +12,7 @@ import Tabs from "@/components/ui/Tabs";
 import { flightStats } from "@/lib/flights";
 import { hotelStats } from "@/lib/hotels";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
+import { projectCountForTag, tagForSkill } from "@/lib/projects";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
 const pill = "px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide";
@@ -45,12 +46,27 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
         </span>
       </summary>
       <div className="flex flex-wrap gap-2 pt-4 sm:pl-[204px]">
-        {group.items.map((item) => (
-          <span key={item.name} className={`inline-flex items-center ${pill} ${pillHover}`}>
-            {item.name}
-            <ProficiencyDots level={item.level} />
-          </span>
-        ))}
+        {group.items.map((item) => {
+          const tag = tagForSkill(item.name);
+          // 有作品用到的技能：點了跳到作品集並篩出那些作品（ProjectFilter 監聽 data-filter-tag，不重新載入頁面）
+          return tag ? (
+            <a
+              key={item.name}
+              href="#portfolio"
+              data-filter-tag={tag}
+              title={`看用到 ${tag} 的作品（${projectCountForTag(tag)} 個）`}
+              className={`inline-flex items-center ${pill} hover:border-(--accent) hover:text-(--accent) transition-colors underline decoration-dotted decoration-(--border) underline-offset-4`}
+            >
+              {item.name}
+              <ProficiencyDots level={item.level} />
+            </a>
+          ) : (
+            <span key={item.name} className={`inline-flex items-center ${pill} ${pillHover}`}>
+              {item.name}
+              <ProficiencyDots level={item.level} />
+            </span>
+          );
+        })}
       </div>
     </details>
   );

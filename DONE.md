@@ -5,6 +5,18 @@
 
 ---
 
+### 2026-11-09 證照、部落格、互連、週報、還原演練、CSP
+- [x] **證照**：從 104 履歷 PDF 的「資格認證」加到 `/resume`（丙級電腦硬體裝修、GTC、Duolingo 80、業餘無線電、珠心算、駕照）。PDF 其他個資沒用
+- [x] **首頁最新文章**：作品集下面 3 篇（`LatestPosts.tsx`）
+- [x] **部落格**：上一篇／下一篇、相關文章（依 tag，不含同系列）、目錄（4 個小標以上，原生 `<details>`）、
+  tag 頁 `/blog/tags/next-js`（sitemap、Markdown 版都有）、「自架網站維運」系列 5 篇（frontmatter `series`／`seriesOrder`）
+- [x] **技能 ↔ 作品互連**：About 技能 chip 點了跳到作品集並篩好（17 個技能對得到作品）；作品頁 tag 連回 `/?tag=X#portfolio`
+- [x] **造訪數每一頁都算**：layout 的 `VisitBeacon`，頁尾改成只讀
+- [x] **每週流量週報**：`scripts/weekly-report.ps1`，watchdog 每週一 09:00 後寄；第一封 11/09 寄出
+- [x] **每季備份還原演練**：`scripts/restore-drill.ps1`，從 GitHub 重新下載→解密→跟 D: 逐檔比，90 天一次；第一次 11/09 通過（17 個檔案全同）
+- [x] **CSP report-only**：`next.config.ts` header ＋ `/api/csp-report` 收違規（只存指令＋網域＋路徑）
+- [x] **Firefox 換頁動畫**：Firefox 157 支援 View Transitions，作品卡片 → 詳細頁 → 返回都正常、沒有錯誤
+
 ### 2026-11-09 作品篩選列／作品分享圖／`/stats`
 - [x] **作品篩選列**：只直接列 2 個以上作品用到的 12 個 tag，其餘 30 個收進「+30 更多」
 - [x] **每個作品專屬分享圖**：作品名＋一句話成果＋技術 tag（`app/projects/[slug]/opengraph-image.tsx`），E2E 有測

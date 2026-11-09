@@ -1,6 +1,9 @@
 "use client";
 
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+
+// 網址只在載入時讀一次（篩選改變不回寫網址），所以不用真的訂閱
+const noopSubscribe = () => () => {};
 
 export type FilterGroup = {
   key: string;
@@ -22,10 +25,32 @@ export default function ProjectFilter({
   moreTags?: string[];
   groups: FilterGroup[];
 }) {
-  const [activeTag, setActiveTag] = useState<string | null>(null);
+  // 技能 ↔ 作品互連（2026-11-09）：
+  //   - 作品詳細頁的 tag 連到 /?tag=Python#portfolio → 這裡讀網址當初始值
+  //   - 首頁 About 的技能 chip 是 <a href="#portfolio" data-filter-tag>（server 產生），點了在這裡接住，不重新載入
+  // choice：使用者在這一頁自己選的（undefined＝還沒選，用網址上的）
+  const [choice, setChoice] = useState<string | null | undefined>(undefined);
+  const urlTag = useSyncExternalStore(
+    noopSubscribe,
+    () => new URLSearchParams(window.location.search).get("tag"),
+    () => null,
+  );
+  const allTags = [...tags, ...moreTags];
+  const fromUrl = urlTag && allTags.includes(urlTag) ? urlTag : null;
+  const activeTag = choice === undefined ? fromUrl : choice;
   const [showMore, setShowMore] = useState(false);
   // 再點一次目前選中的 tag = 取消篩選
-  const select = (tag: string | null) => setActiveTag((cur) => (cur === tag ? null : tag));
+  const select = (tag: string | null) => setChoice(activeTag === tag ? null : tag);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const el = (e.target as Element | null)?.closest?.("[data-filter-tag]");
+      const tag = el?.getAttribute("data-filter-tag");
+      if (tag) setChoice(tag); // 預設行為（跳到 #portfolio）照常
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
   const visible = groups
     .map((g) => ({ ...g, items: g.items.filter((i) => !activeTag || i.tags.includes(activeTag)) }))
     .filter((g) => g.items.length > 0);

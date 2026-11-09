@@ -35,6 +35,18 @@
       "body": "下面附上目前的真實訪客數據（p75）。Google 的及格線：LCP ≤ 2500ms、INP ≤ 200ms、CLS ≤ 0.1。\n首頁 LCP 及格＝Hero 進場動畫不用動；沒及格再跟 Claude 討論（TODO「首頁 LCP 決策點」）。\n樣本太少（n 很小）的話可以再等一陣子。"
     },
     {
+      "id": "2026-12-09-csp",
+      "date": "2026-12-09",
+      "subject": "提醒：CSP report-only 跑一個月了，看要不要正式開",
+      "body": "11/09 上了 Content-Security-Policy-Report-Only（不擋東西，只回報）。\n看回報：curl https://kbs0830.com/api/csp-report\n- 空的或只有掃描器亂打的 → 跟 Claude 說「CSP 正式開」\n- 有正常功能被擋（例如 Spotify 封面、GitHub 熱力圖）→ 把結果給 Claude 調整規則"
+    },
+    {
+      "id": "2026-12-31-gha-titanium",
+      "date": "2026-12-31",
+      "subject": "提醒：GHA DISCOVERY 鈦金今年底到期，/hotels 會籍要更新",
+      "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+    },
+    {
       "id": "2027-04-18-domain",
       "date": "2027-04-18",
       "subject": "提醒：kbs0830.com 網域 5/18 到期，確認會自動續約",
@@ -45,12 +57,6 @@
       "date": "2027-08-31",
       "subject": "提醒：網站上的年級／年齡要更新（三年級 → 四年級）",
       "body": "9 月開學就是大四了，網站上寫「三年級」「20 歲」的地方要改：\n- src/lib/about.ts 的 statusLines（首頁現況卡）\n- src/lib/page-content.ts 的 nowItems（/now）\n- src/components/ui/TerminalMode.tsx 的 ABOUT_TXT（終端機 cat about.txt）\n跟 Claude 說「升大四了，幾歲」它會一起改。"
-    },
-    {
-      "id": "2026-12-31-gha-titanium",
-      "date": "2026-12-31",
-      "subject": "提醒：GHA DISCOVERY 鈦金今年底到期，/hotels 會籍要更新",
-      "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
     },
     {
       "id": "2027-12-31-ihg-lounge",

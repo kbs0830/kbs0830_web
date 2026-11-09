@@ -3,6 +3,8 @@ title: "掃描器打 /blog/.env 拿到 500：Task Scheduler 的工作目錄是 S
 titleEn: "Why /blog/.env returned 500 instead of 404 — the working directory was System32"
 date: "2026-11-09"
 description: "部落格文章都正常，但任何不存在的文章網址都回 500。原因不在 Next.js，而在 Windows 工作排程器啟動 Node.js 時，process.cwd() 根本不是專案資料夾。"
+series: "自架網站維運"
+seriesOrder: 2
 tags: ["Next.js", "Windows", "Debugging"]
 ---
 

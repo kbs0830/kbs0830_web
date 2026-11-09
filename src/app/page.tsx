@@ -10,6 +10,7 @@ import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
+import LatestPosts from "@/components/sections/LatestPosts";
 import { projects } from "@/lib/projects";
 import { PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
@@ -28,6 +29,7 @@ export default function Home() {
         <HeroSection />
         <AboutSection />
         <PortfolioSection />
+        <LatestPosts />
         <ContactSection />
       </main>
       <footer className="py-8 border-t border-(--border)">
