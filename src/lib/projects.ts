@@ -243,7 +243,7 @@ export const projects: Project[] = [
     },
   },
   {
-    // 數字全部有出處：CLAUDE.md（部署／監控／備份章節）、TODO.md、git log。改這裡之前先確認還是真的
+    // 數字全部有出處：CLAUDE.md（部署／監控／備份章節）、DONE.md、git log。改這裡之前先確認還是真的
     slug: "kbs0830-web",
     title: "kbs0830.com — This Site",
     titleJa: "本サイト",

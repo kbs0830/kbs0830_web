@@ -157,4 +157,4 @@ node scripts/generate-resume-pdf.js <url>    # 或指定其他 URL（例如本�
 - ISP 封鎖 inbound port 80/443，故改用 Cloudflare Tunnel
 - 區網內裝置需將 DNS 改為 `8.8.8.8` 才能解析 `kbs0830.com`
 - 監控、Email 通知、每日自動備份：見 `CLAUDE.md`「健康監控」「自動備份」
-- 待辦事項與優先順序見 `TODO.md`；架構細節、設計規範、踩過的坑見 `CLAUDE.md`
+- 待辦事項見 `TODO.md`、已完成紀錄見 `DONE.md`；架構細節、設計規範、踩過的坑見 `CLAUDE.md`

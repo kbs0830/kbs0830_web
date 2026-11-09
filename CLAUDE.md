@@ -643,7 +643,7 @@ deploy.bat
 ### 4. Contact（連絡先）
 - 中文主文，英文次之
 - Email + GitHub 按鈕（磁吸效果），Email 複製回饋（clipboard + 已複製！toast）
-- 沒有留言表單：曾做過 mailto 版，使用者覺得不需要已移除；見 `TODO.md` 中低優先「聯絡表單」
+- 沒有留言表單：曾做過 mailto 版，使用者覺得不需要已移除；見 `TODO.md`「聯絡表單」
 - 「下載履歷」按鈕 **2026-11-05 依使用者要求先隱藏**（`ContactSection.tsx` 留了恢復方法），`/llms.txt`、Markdown 版也拿掉 PDF 連結；
   `/resume` 頁面跟 `public/resume.pdf` 照舊（部署照常自動重印）
 
@@ -894,7 +894,8 @@ kbs0830_web/
 ├── src/generated/diagrams/    # render-diagrams.mjs 預先畫好的架構圖 SVG（進版控）
 ├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
 ├── CLAUDE.md
-├── TODO.md                   # 優先度分區的待辦清單，含已完成歸檔
+├── TODO.md                   # 只放還沒做的（你要動手／要決定／Claude 可直接做的點子）
+├── DONE.md                   # 已完成紀錄（2026-11-09 從 TODO.md 拆出來）；做完的事從 TODO 搬過來
 └── package.json
 ```
 
