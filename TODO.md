@@ -29,7 +29,13 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
    → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
-8. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
+8. [ ] **Cloudflare token 加兩個權限（開靜態頁快取）**：dash.cloudflare.com → My Profile → API Tokens → `kbs0830-config` 那行 **⋯ → 編輯**
+   → 新增兩行：**區域｜快取規則（Cache Rules）｜編輯**、**區域｜快取清除（Cache Purge）｜清除** → 繼續 → 更新 Token
+   （token 字串不變，`.env.local` 不用改）→ 跟 Claude 說，它跑 `-Apply` 開快取、回查第二次打是 HIT
+9. [ ] **GitHub 通知改寄 otemon**（E2E 失敗、外部監控 issue、Renovate PR 這些系統信）：
+   → github.com/settings/emails → Add email address：`otemon.pcwork@gmail.com` → 去 otemon 收驗證信點連結
+   → github.com/settings/notifications → **Default notifications email** 選 otemon
+10. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
    Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
@@ -51,10 +57,6 @@
 - [ ] **看 3 篇部落格草稿**（11/09 Claude 寫的，都在 `content/drafts/`，不會上線）：CSP 正式開抓到 Cloudflare 偷插 script、
   中文 tag 網址上線才 404、灰字疊 opacity 被無障礙檢查抓 20 處。內容照當天實際紀錄寫（時間、數字都對過 log）。
   OK 的話說「發布 ○○」，Claude 搬進 `content/blog/` 改日期；要改哪裡直接說
-- [ ] **新作品候選**（11/09 在桌面發現）：
-  → **团‧鐵道**（`Desktop/团‧鐵道`，GitHub `TuanRail-TransitSociety`，Flask＋Solari 翻牌看板風格的社團官網，commit 都是你的）——
-    要放的話：你在社團的角色？成員介紹卡片有真名的話不會放
-  → **大手門資訊工作室 OTEMON**（`Desktop/大手門`：照片數位化掃描、到府收件、大學生創業）——要不要放網站（作品？經歷？時間軸？）
 - [ ] **部落格新文章**：要真的踩過的坑才寫。題材庫：Tailwind v4 `[--var]` 全站 116 處、Task Scheduler wrapper 孤兒 process、
   pnpm v11 native build、PowerShell 5.1 沒 BOM 變 Big5、node.exe 無聲死掉 4 小時→自己寫 watchdog、
   **11/09 新的**：中文 tag 網址 build 跟單元測試都過、上線才 404（後來加了「sitemap 每個網址都要 200」的測試）、
@@ -77,10 +79,6 @@
 - [ ] **Renovate patch 更新自動合併**（需要一組 fine-grained PAT）：內建 token 開的 PR 不會觸發 workflow、沒測試結果可依據
 - [ ] **聯絡表單**：要申請 EmailJS／Formspree 帳號（之前 mailto 版你說不需要）
 
-**大功能，要先拍板做不做**
-- [ ] **Umami 自架分析**：要在桌機跑 Docker
-- [ ] **日文版 `/ja`**：每頁都要日文全文翻譯，跟「中文優先」方針要先對齊
-- [ ] **開源貢獻區塊**：要先有合併到別人 repo 的 PR 可以展示
 
 **其他**
 - [ ] **Claude Code 遠端 session 的問題**：下次發生時把錯誤訊息或狀況記下來給 Claude

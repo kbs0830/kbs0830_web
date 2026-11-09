@@ -12,7 +12,10 @@
 - [x] **首頁 LCP 先看**：p75 1.88s 已 good，不用縮動畫
 - [x] **profile README 草稿**（跟網站同風格）；Bing、高中英文校名查過（Bing 還是 0 筆、官方英文名查不到）
 - [x] **網域到期日更正**：Verisign RDAP 是 2027-06-16（TODO 原本寫 5/18），提醒信改 5/16
-- [x] 盤點：沒有待合併的 Renovate PR；桌面發現新作品候選（团‧鐵道、大手門資訊工作室），列進 TODO 問使用者
+- [x] 盤點：沒有待合併的 Renovate PR；桌面發現团‧鐵道、大手門資訊工作室——使用者 11/09 說**都不要放**
+- [x] 手機頁尾 Cloudflare／未過濾數字恢復顯示（之前整行隱藏，使用者以為 Cloudflare 資料不見了）
+- [x] 靜態頁快取規則＋部署清快取寫好（等 token 加權限）
+- [x] 23:18、23:21 兩次 E2E 失敗＝Claude 手動開的 3100 server 沒關、跟 CI 搶 port，已關掉；之後手動測試用 3200
 
 ### 2026-11-09 Cloudflare 設定腳本、VS Code schema 警告
 - [x] `scripts/cloudflare-config.ps1`：Always Use HTTPS、HSTS、www 導向、WAF 擋掃描器。預設只檢查，`-Apply` 才改、改完 curl 回查；
