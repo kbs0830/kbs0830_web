@@ -1,5 +1,8 @@
 import { ImageResponse } from "next/og";
+import { brandIconDataUri } from "@/lib/brand-icon";
 
+// 網站圖示（圖形在 lib/brand-icon.ts，2026-11-12 換成終端機視窗）。
+// 32 用簡化版（分頁上看得清楚），192／512 用完整版（PWA、Android 主畫面）。
 export const contentType = "image/png";
 
 const variants = [
@@ -22,31 +25,8 @@ export default async function Icon({ id }: { id: Promise<string> }) {
   const iconId = await id;
   const { width, height } = variants.find((v) => v.id === iconId) ?? variants[0];
   return new ImageResponse(
-    (
-      <div
-        style={{
-          background: "#2d5a8e",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: width * 0.15,
-        }}
-      >
-        <span
-          style={{
-            color: "white",
-            fontSize: width * 0.4,
-            fontWeight: 300,
-            letterSpacing: "0.06em",
-            fontFamily: "Georgia, serif",
-          }}
-        >
-          PL
-        </span>
-      </div>
-    ),
-    { width, height }
+    // eslint-disable-next-line @next/next/no-img-element -- ImageResponse（satori）只認 <img>
+    <img src={brandIconDataUri(width <= 32 ? "small" : "full")} width={width} height={height} alt="" />,
+    { width, height },
   );
 }
