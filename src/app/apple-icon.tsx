@@ -9,7 +9,7 @@ export const contentType = "image/png";
 export default function AppleIcon() {
   return new ImageResponse(
     // eslint-disable-next-line @next/next/no-img-element -- ImageResponse（satori）只認 <img>
-    <img src={brandIconDataUri("apple")} width={180} height={180} alt="" />,
+    <img src={brandIconDataUri("apple", process.env.NODE_ENV === "development" ? "dev" : "ok")} width={180} height={180} alt="" />,
     size,
   );
 }

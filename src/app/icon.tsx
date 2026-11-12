@@ -5,6 +5,9 @@ import { brandIconDataUri } from "@/lib/brand-icon";
 // 32 用簡化版（分頁上看得清楚），192／512 用完整版（PWA、Android 主畫面）。
 export const contentType = "image/png";
 
+// 本機 next dev 用綠色視窗（分頁一眼分得出是本機還是正式站）；正式 build 是靛藍
+const ICON_STATUS = process.env.NODE_ENV === "development" ? "dev" : "ok";
+
 const variants = [
   { id: "32", width: 32, height: 32 },
   { id: "192", width: 192, height: 192 },
@@ -26,7 +29,7 @@ export default async function Icon({ id }: { id: Promise<string> }) {
   const { width, height } = variants.find((v) => v.id === iconId) ?? variants[0];
   return new ImageResponse(
     // eslint-disable-next-line @next/next/no-img-element -- ImageResponse（satori）只認 <img>
-    <img src={brandIconDataUri(width <= 32 ? "small" : "full")} width={width} height={height} alt="" />,
+    <img src={brandIconDataUri(width <= 32 ? "small" : "full", ICON_STATUS)} width={width} height={height} alt="" />,
     { width, height },
   );
 }

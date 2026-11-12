@@ -45,6 +45,10 @@ jobs:
             if [ "$code" = "200" ] && grep -q "PINGWEI LI" page.html; then
               echo "up=true" >> "$GITHUB_OUTPUT"; echo "OK ($code)"; exit 0
             fi
+            # 維修模式（scripts/maintenance.ps1）是故意的 503，不算掛
+            if [ "$code" = "503" ] && grep -q "kbs0830-maintenance" page.html; then
+              echo "up=true" >> "$GITHUB_OUTPUT"; echo "maintenance mode (503)"; exit 0
+            fi
             echo "try $i: HTTP $code"; sleep 20
           done
           echo "up=false" >> "$GITHUB_OUTPUT"

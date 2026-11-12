@@ -74,6 +74,38 @@ function log(line) {
   process.stdout.write(msg);
 }
 
+// 維修模式（2026-11-12）：data/maintenance.flag 存在時，頁面請求回 503＋維修頁（分頁圖示是琥珀色的視窗）。
+// 開關：powershell -File scripts\maintenance.ps1 -On "原因"／-Off。檔案內容就是頁面上顯示的說明。
+// 只擋「頁面」：/_next/、/api/、/status/、有副檔名的靜態檔照常放行——Cloudflare 快取裡的頁面還會來要 JS／CSS，
+// 擋掉的話已經快取的頁面也會壞。watchdog、外部監控看到這頁不會當成網站掛了（見 watchdog.ps1／uptime.yml）。
+// MAINTENANCE_FLAG：測試用，指到別的檔案（不然在這台桌機測維修模式會讓正式站真的進入維修）
+const maintenanceFlag = process.env.MAINTENANCE_FLAG || path.join(dataDir, "maintenance.flag");
+const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+function serveMaintenance(req, res) {
+  if (!fs.existsSync(maintenanceFlag)) return false;
+  const p = (req.url || "/").split("?")[0];
+  if (p.startsWith("/_next/") || p.startsWith("/api/") || p.startsWith("/status/") || /\.[a-z0-9]+$/i.test(p)) return false;
+  let reason = "";
+  try {
+    reason = fs.readFileSync(maintenanceFlag, "utf8").trim();
+  } catch {}
+  res.writeHead(503, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-store",
+    "Retry-After": "600",
+  });
+  res.end(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- kbs0830-maintenance -->
+<title>維修中 · Maintenance — PINGWEI LI</title><meta name="robots" content="noindex">
+<link rel="icon" href="/status/maintenance.svg" type="image/svg+xml">
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fafaf8;color:#1a1a1a;font-family:system-ui,"Noto Sans TC",sans-serif;padding:24px;box-sizing:border-box}
+main{max-width:420px;text-align:center}img{width:72px;height:72px}h1{font-weight:300;font-size:28px;margin:24px 0 8px}
+p{color:#6b6b6b;line-height:1.8;margin:0 0 6px;font-size:15px}.en{font-size:13px}</style></head>
+<body><main><img src="/status/maintenance.svg" alt=""><h1>維修中 · Maintenance</h1>
+<p>${escapeHtml(reason || "網站正在維護，很快就回來。")}</p><p class="en">Back soon. Please try again in a few minutes.</p></main></body></html>`);
+  return true;
+}
+
 const port = Number(process.env.PORT) || 3000;
 const app = next({ dev: false, dir: projectDir });
 const handle = app.getRequestHandler();
@@ -87,6 +119,7 @@ app
         log(`${req.method} ${req.url} ${res.statusCode} ${Date.now() - start}ms`);
         recordRawHit(process.env.RAW_TRAFFIC_FILE, req);
       });
+      if (serveMaintenance(req, res)) return;
       try {
         await handle(req, res);
       } catch (err) {

@@ -523,6 +523,15 @@ Set-ScheduledTask -TaskName GitHubActionsRunner -Settings $s1
 `scripts/server.js` 裡的 `MEM` 診斷 log 予以保留（診斷過程證明它有用，且成本低），但
 **不要**再假設它是為了追蹤 memory leak；現在它單純是通用的健康度觀察數據。
 
+### 維修模式（2026-11-12，`scripts/maintenance.ps1`）
+- `powershell -File scripts\maintenance.ps1 -On "原因"`／`-Off`／不帶參數看狀態。寫 `data\maintenance.flag`，**不用重啟**：
+  `scripts/server.js` 每個請求看它在不在，在的話頁面回 503＋維修頁（琥珀色分頁圖示、顯示原因、HTML 跳脫過）
+- 只擋頁面：`/_next/`、`/api/`、`/status/`、有副檔名的照常放行——Cloudflare 快取裡的頁面維修中照常給、還會來要 JS
+- watchdog 看到 flag 就不檢查網站／外網、不自動重啟、不寄「網站掛了」；**開超過 12 小時寄信提醒**，關掉補一封
+- GitHub 外部監控（uptime.yml）看到 503＋`kbs0830-maintenance` 標記算正常
+- ⚠️ **測試維修模式不能直接建 `data\maintenance.flag`**：正式站讀的是同一個檔案，會真的進入維修。
+  測試用 `MAINTENANCE_FLAG=<暫存檔> PORT=3200 node scripts/server.js`
+
 ### 手動啟動
 
 ```powershell
@@ -897,6 +906,7 @@ kbs0830_web/
 │   │   ├── icon.tsx / apple-icon.tsx / favicon.ico  # 網站圖示（2026-11-12 換成「終端機視窗＋櫻花粉的日」，使用者挑的）。
 │   │   │                        # 圖形唯一來源 lib/brand-icon.ts（full／small／apple 三版）；favicon.ico 用 scripts/build-favicon.mjs 產生，
 │   │   │                        # 改圖示要重跑那支。櫻花粉 #f2a7b8 只用在圖示，網站強調色照舊只有靛藍。不放字母（使用者不要 P）
+│   │   │                        # 狀態色（視窗顏色）：正常＝靛藍、本機 next dev＝綠、維修模式＝琥珀、頁面出錯＝紅（StatusFavicon.tsx）
 │   │   ├── opengraph-image.tsx  # OG 社群預覽圖，動態生成
 │   │   ├── manifest.ts          # PWA manifest
 │   │   ├── robots.ts / sitemap.ts

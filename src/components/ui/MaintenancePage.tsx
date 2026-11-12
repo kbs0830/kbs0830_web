@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MoonIcon, SunIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
+import StatusFavicon from "@/components/ui/StatusFavicon";
 
 // 睡著的小臉：稀疏細線 + 飄浮 zzz，呼應首頁 3D 場景的細線美學
 const SleepyMascot = () => (
@@ -39,6 +40,8 @@ export default function MaintenancePage({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-(--bg)">
+      {/* 這頁只在出錯時出現（error.tsx／global-error.tsx）：分頁圖示換成紅色視窗 */}
+      <StatusFavicon status="error" />
       <button
         onClick={toggle}
         aria-label="切換背景 · Toggle background"

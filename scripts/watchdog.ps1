@@ -32,8 +32,21 @@ function Notify($result) { if ($result) { Log "通知：$result" } }
 
 $exitCode = 0
 
+# --- 維修模式（scripts\maintenance.ps1）：網站故意回 503，不要當成掛了去重啟、也不寄「網站掛了」---
+$maintenanceFlag = Join-Path $repo "data\maintenance.flag"
+$inMaintenance = Test-Path $maintenanceFlag
+if ($inMaintenance -and (Get-Item $maintenanceFlag).LastWriteTime -lt (Get-Date).AddHours(-12)) {
+    Notify (Send-Alert -Key "maintenance-long" -CooldownMinutes 720 -Subject "🟠 維修模式已經開超過 12 小時" `
+        -Body "data\maintenance.flag 還在，網站沒快取到的頁面都顯示「維修中」，watchdog 也暫停自動重啟。`n忘了關的話：powershell -File scripts\maintenance.ps1 -Off")
+}
+if (-not $inMaintenance) { Notify (Clear-Alert -Key "maintenance-long" -Subject "✅ 維修模式已關閉") }
+
 # --- 網站健康檢查 ---
-$result = Test-SiteHealth -Url "http://localhost:3000/" -MaxWaitSeconds 10
+if ($inMaintenance) {
+    $result = @{ Success = $true; Reason = "維修模式，跳過" }
+} else {
+    $result = Test-SiteHealth -Url "http://localhost:3000/" -MaxWaitSeconds 10
+}
 
 if (-not $result.Success) {
     # 正常時不寫 log，避免每 5 分鐘一筆灌爆 watchdog.log；只在異常/處理過程才記錄。
@@ -72,7 +85,7 @@ if ($exitCode -eq 0) { Notify (Clear-Alert -Key "site" -Subject "✅ 網站已�
 # origin 本身壞掉時上面已經處理過，這裡只在 origin 正常時看「外面連不連得進來」。
 # Test-SiteHealth 會在 30 秒內重試，偶發的網路抖動不會誤報。
 # 不自動重啟 Cloudflared：服務本身有「當機自動重啟」，而且一般權限重啟不了服務；這裡只負責讓人知道。
-if ($exitCode -eq 0) {
+if ($exitCode -eq 0 -and -not $inMaintenance) {
     $public = Test-SiteHealth -Url "https://kbs0830.com/" -MaxWaitSeconds 30
     if ($public.Success) {
         Notify (Clear-Alert -Key "tunnel" -Subject "✅ 外網已經連得到網站")
