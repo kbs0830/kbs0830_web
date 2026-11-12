@@ -11,13 +11,17 @@ import { NextRequest } from "next/server";
 describe("visitor-stats API route", () => {
   let statsFile: string;
   let rawFile: string;
+  let detailFile: string;
 
   beforeEach(() => {
     const id = `${Date.now()}-${Math.random()}`;
     statsFile = path.join(os.tmpdir(), `visitor-stats-test-${id}.json`);
     rawFile = path.join(os.tmpdir(), `raw-traffic-test-${id}.json`);
+    // 訪客分析明細也要指到暫存檔：2026-11-12 第一版漏了，跑測試就往正式的 data/visits-detail.json 寫了 8 筆「(其他)」
+    detailFile = path.join(os.tmpdir(), `visits-detail-test-${id}.json`);
     process.env.VISITOR_STATS_FILE = statsFile;
     process.env.RAW_TRAFFIC_FILE = rawFile;
+    process.env.VISITS_DETAIL_FILE = detailFile;
     // 不能讀到正式的 data/cloudflare-daily.json，也不能真的打 Cloudflare
     process.env.CLOUDFLARE_STATS_FILE = path.join(os.tmpdir(), `cf-test-${id}.json`);
     delete process.env.CLOUDFLARE_ANALYTICS_TOKEN;
@@ -25,9 +29,10 @@ describe("visitor-stats API route", () => {
   });
 
   afterEach(() => {
-    for (const f of [statsFile, rawFile]) if (fs.existsSync(f)) fs.unlinkSync(f);
+    for (const f of [statsFile, rawFile, detailFile]) if (fs.existsSync(f)) fs.unlinkSync(f);
     delete process.env.VISITOR_STATS_FILE;
     delete process.env.RAW_TRAFFIC_FILE;
+    delete process.env.VISITS_DETAIL_FILE;
   });
 
   it("GET 帶出未過濾流量，爬蟲名稱依次數排序取前 5", async () => {
@@ -44,6 +49,20 @@ describe("visitor-stats API route", () => {
       since: "2026-11-06", total: 20, browser: 5, ai: 9, search: 4, bot: 2,
       topBots: [["ClaudeBot", 6], ["Googlebot", 4], ["Amazonbot", 3], ["GPTBot", 2], ["PerplexityBot", 1]],
     });
+  });
+
+  it("POST 帶 body 會寫訪客分析明細（寫到暫存檔，不碰正式資料）", async () => {
+    const { POST } = await import("./route");
+    await POST(
+      new NextRequest("http://localhost/api/visitor-stats", {
+        method: "POST",
+        headers: { "cf-ipcountry": "TW", "user-agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/142.0.0.0 Safari/537.36" },
+        body: JSON.stringify({ path: "/blog", ref: "https://www.google.com/", newSession: true, newVisitor: true }),
+      }),
+    );
+    const detail = JSON.parse(fs.readFileSync(detailFile, "utf8"));
+    expect(detail.pages).toEqual({ "/blog": 1 });
+    expect(detail.referrers).toEqual({ "google.com": 1 });
   });
 
   it("GET 在資料檔還不存在時回傳空統計，不會噴錯", async () => {
