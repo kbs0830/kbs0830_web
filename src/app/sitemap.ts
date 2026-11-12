@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { projects } from "@/lib/projects";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site";
 
 type Entry = MetadataRoute.Sitemap[number];
@@ -26,6 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/stats", "daily", 0.3),
     ...projects.map((p) => page(`/projects/${p.slug}`, "monthly", 0.7)),
     ...getAllPosts().map((post) => page(`/blog/${post.slug}`, "monthly", 0.6, new Date(post.date))),
-    ...getAllTags().map((t) => page(`/blog/tags/${t.slug}`, "monthly", 0.3)),
+    // tag 頁 noindex（2026-11-12，見 app/blog/tags/[tag]/page.tsx），不列
   ];
 }

@@ -46,6 +46,8 @@ process.env.RAW_TRAFFIC_FILE = path.join(dataDir, "raw-traffic.json");
 process.env.CLOUDFLARE_STATS_FILE = path.join(dataDir, "cloudflare-daily.json");
 // CSP report-only 的違規回報（src/app/api/csp-report/route.ts）
 process.env.CSP_REPORT_FILE = path.join(dataDir, "csp-reports.json");
+// 訪客分析明細（src/lib/visit-detail.ts）：頁面、來源、裝置、時段、新訪客
+process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。

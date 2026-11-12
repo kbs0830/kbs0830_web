@@ -23,6 +23,9 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
     title: `${found.tag} · 技術部落格 — PINGWEI LI`,
     description: `標記「${found.tag}」的 ${found.posts.length} 篇文章：踩過的坑跟解法。`,
     alternates: { canonical: `/blog/tags/${tag}`, types: { "text/markdown": `/blog/tags/${tag}.md` } },
+    // 不建立索引、但連結照跟（2026-11-12 看 Search Console）：tag 頁只是文章清單的子集，內容跟 /blog 重複，
+    // 「已檢索 - 尚未建立索引」27 頁裡有一大塊是這種。讓 Google 把力氣花在文章本身；sitemap 也不列
+    robots: { index: false, follow: true },
   });
 }
 

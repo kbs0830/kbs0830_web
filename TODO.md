@@ -12,6 +12,10 @@
 
 1. [ ] **Search Console 看驗證結果** 🔴 11/05 按了「驗證修正」，「驗證中」是正常的，**~11/19 前看結果，不用再按**
    → 11/12 有提醒信叫你匯出「檢索統計資料」（檢索次數回升、5xx 歸零＝恢復）
+   → 📍 **11/12 匯出（使用者給的 Coverage CSV）**：已建立索引 **11**（10/24 起沒變）、未建立 42（11/07 從 19 跳上來＝新頁面被發現）；
+     5xx 7 頁、404 2 頁還在驗證；「已檢索 - 尚未建立索引」27 驗證**失敗**（Google 看過但選擇先不收，新站常見）；
+     「頁面會重新導向」2＝http／www 導向，正常。每天曝光 0～4 次。11/12 Claude 把 14 個 tag 頁設 noindex＋移出 sitemap（43→29），
+     讓 Google 專心收文章跟作品頁
    → 📍 11/09 截圖：已建立索引 11（11/04 是 4）。5xx 7 頁是 10 月斷線留下的，驗證跑完應該歸零；
      「已檢索／已找到但未建立索引」是 Google 自己的排程，不是錯誤
    → 11/09 新增 5 個作品頁、`/stats`、14 個部落格 tag 頁，sitemap 從 23 變 **43** 個網址（11/09 晚上回查全部 200），
@@ -32,8 +36,6 @@
 8. [ ] **GitHub 通知改寄 otemon**（E2E 失敗、外部監控 issue、Renovate PR 這些系統信）：
    → github.com/settings/emails → Add email address：`otemon.pcwork@gmail.com` → 去 otemon 收驗證信點連結
    → github.com/settings/notifications → **Default notifications email** 選 otemon
-9. [ ] **用 iPhone 看一次 Safari**：點作品卡片進詳細頁（換頁動畫）、首頁捲一遍。Chrome、Firefox 11/09 都測過正常，
-   Safari 只有你的手機能測；有怪怪的地方截圖給 Claude
 
 ## 🤔 你要決定或提供素材的
 

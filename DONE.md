@@ -5,6 +5,14 @@
 
 ---
 
+### 2026-11-12 訪客分析頁、頁尾拿掉未過濾、tag 頁 noindex
+- [x] **頁尾「未過濾 N 次…」那行拿掉**（使用者要求）
+- [x] **訪客分析頁**（`/stats` 升級）：每日瀏覽／造訪／新訪客、熱門頁面、來源網域、裝置／瀏覽器／作業系統、24 小時時段；
+  不用 cookie、不存 IP／完整 UA／完整網址。資料從 11/12 部署後開始累積；有進每日備份
+- [x] **Search Console 11/12 匯出看過**：索引 11 頁沒變、未建立 42；14 個 tag 頁設 noindex＋移出 sitemap（43→29）
+- [x] **Safari（WebKit 27.2）測過**：使用者沒有 iPhone，改用 Playwright WebKit 模擬 iPhone 13——換頁動畫、標題、
+  4 頁沒溢出、0 CSP 違規、0 錯誤
+
 ### 2026-11-09 TODO 盡量做（使用者：「todo 都做，有要我幫再說」）
 - [x] **桌機以外的外部監控**：`.github/workflows/uptime.yml`，GitHub 雲端（不是桌機 runner）每 10 分鐘打一次，連 3 次失敗開 uptime issue、
   恢復自動關；不需要 secret，有 SMTP secret 再加寄 otemon。UA `kbs0830-uptime` 不算進流量統計

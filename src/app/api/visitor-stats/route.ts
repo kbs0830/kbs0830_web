@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
 import { readRawTraffic } from "@/lib/site-stats";
+import { recordVisit, type VisitInput } from "@/lib/visit-detail";
 
 // production 由 scripts/server.js 透過 VISITOR_STATS_FILE 傳絕對路徑進來，
 // 因為 Task Scheduler 啟動時的 process.cwd() 不保證是專案根目錄。
@@ -53,6 +54,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(summarize(readStats()));
   }
 
+  // 訪客分析的明細（VisitBeacon 送來的頁面、來源、新訪客）。body 要在下面同步區段「之前」讀完（await）；
+  // 沒有 body（舊版頁面、keepalive 失敗）就當空的，國家照算
+  let input: VisitInput = {};
+  try {
+    const text = await req.text();
+    if (text && text.length < 2000) input = JSON.parse(text);
+  } catch {}
+
   // 這段 read-modify-write 中間刻意不夾雜任何 await，靠 fs.*Sync 的同步阻塞特性
   // 讓 Node.js 事件迴圈不會在兩次 request 的 handler 之間交錯執行，藉此避免
   // lost update 競態條件——這個正確性依賴「同步 fs 呼叫」+「scripts/server.js
@@ -70,6 +79,7 @@ export async function POST(req: NextRequest) {
   } catch {
     // 寫檔失敗不影響回應，下次還有機會
   }
+  recordVisit(input, ua);
 
   return NextResponse.json(summarize(stats));
 }

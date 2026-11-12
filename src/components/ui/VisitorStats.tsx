@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { RawTraffic } from "@/app/api/visitor-stats/route";
 import type { CloudflareSummary } from "@/lib/cloudflare-analytics";
 
 function countryCodeToFlag(code: string) {
@@ -14,7 +13,6 @@ interface VisitorStatsData {
   total: number;
   countryCount: number;
   top: [string, number][];
-  raw: RawTraffic | null;
   cloudflare: CloudflareSummary | null;
 }
 
@@ -32,7 +30,7 @@ export default function VisitorStats() {
   }, []);
 
   if (!stats) return null;
-  const { raw, cloudflare: cf } = stats;
+  const { cloudflare: cf } = stats;
 
   return (
     <>
@@ -59,21 +57,7 @@ export default function VisitorStats() {
           <span className="whitespace-nowrap">· 累計 {n(cf.total.pageViews)} 次瀏覽</span>
         </p>
       )}
-      {/* 未過濾：server 端每個頁面請求都算，AI 爬蟲／搜尋引擎／掃描器都在裡面（scripts/lib/raw-traffic.js）。手機只顯示總數跟 AI 爬蟲 */}
-      {raw && raw.total > 0 && (
-        <p
-          className="text-xs text-(--muted) font-light tracking-[0.1em] font-mono"
-          title={
-            `${raw.since} 起，每一個頁面請求都算（不執行 JS 的爬蟲也算）` +
-            (raw.topBots.length ? `\n最常來的爬蟲：${raw.topBots.map(([name, c]) => `${name} ${c}`).join("、")}` : "")
-          }
-        >
-          <span className="whitespace-nowrap">未過濾 {n(raw.total)} 次</span>{" "}
-          <span className="hidden sm:inline whitespace-nowrap">· 瀏覽器 {n(raw.browser)} </span>
-          <span className="whitespace-nowrap">· AI 爬蟲 {n(raw.ai)}</span>{" "}
-          <span className="hidden sm:inline whitespace-nowrap">· 搜尋引擎 {n(raw.search)} · 其他機器人 {n(raw.bot)}</span>
-        </p>
-      )}
+      {/* 「未過濾」那行 2026-11-09 依使用者要求拿掉（Cloudflare 快取之後它只數得到沒命中快取的請求）；細節在 /stats */}
     </>
   );
 }

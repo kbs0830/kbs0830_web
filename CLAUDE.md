@@ -686,6 +686,8 @@ deploy.bat
 - 上一篇／下一篇（依日期）、相關文章（共同 tag，**不含同系列**——系列導覽已經列了）
 - 目錄：4 個以上 `##` 小標才出現，原生 `<details>` 預設收起；h2 的 id 跟目錄都用 `headingId()`，改規則兩邊一起變
 - tag 頁 `/blog/tags/<tagSlug>`：`Next.js` → `next-js`（網址結尾不能像 `.js` 檔，server.js 會當靜態資源不計流量）。
+  **tag 頁 noindex、不進 sitemap（2026-11-12）**：Search Console「已檢索 - 尚未建立索引」27 頁，tag 頁是文章清單的子集、
+  內容重複；讓 Google 專心收文章。頁面照常可以開、站內連結照跟（`robots: { index: false, follow: true }`）。
   **網址只能英數字**：中文 tag 要在 `blog.ts` 的 `TAG_SLUGS` 加對照（`隱私` → `privacy`）——直接用中文時 Next 預先產生的頁面
   跟瀏覽器送來的編碼網址對不上，上線 404（build、單元測試都過）。單元測試跟 `e2e/sitemap.spec.ts`（sitemap 每個網址都要 200）會擋
   sitemap、Markdown 版（`/blog/tags/next-js.md`）都有；中文 tag（`隱私`）的 Markdown 版 `Link` header 要 `encodeURI`
@@ -777,7 +779,16 @@ deploy.bat
   `cloudflareinsights.com`）——curl、本機、E2E 都看不到。正式開 CSP 後幾分鐘就從 `/api/csp-report` 抓到被擋，已加進
   script-src／connect-src。**改 Cloudflare 設定（開新功能）後要看一次 csp-report**
 
-### 公開流量頁 `/stats`（2026-11-09）
+### 訪客分析 `/stats`（2026-11-09 公開流量頁 → 2026-11-12 升級成訪客分析）
+- 使用者要「訪客分析的頁面」。真人訪客：每日瀏覽／造訪／新訪客、熱門頁面（路徑轉成頁名）、從哪裡來（只記網域）、
+  裝置／瀏覽器／作業系統、24 小時時段；下面接國家、Cloudflare（含機器人）、到達主機的請求＋爬蟲排行
+- 明細資料：`lib/visit-detail.ts` → `data/visits-detail.json`（`VISITS_DETAIL_FILE`，server.js 設；有進每日備份）。
+  `VisitBeacon` 每頁 POST `{path, ref, newSession, newVisitor}` 到 `/api/visitor-stats`；新訪客／工作階段是瀏覽器自己的
+  localStorage／sessionStorage 旗標，**不是 cookie、不送 ID**。只存分類次數：路徑只收本站路由格式、來源只留網域、UA 粗分後不存。
+  每日數字留 120 天。單元測試 `visit-detail.test.ts`（含「存下來的沒有完整 UA／query」）
+- 頁尾「未過濾 N 次…」那行 2026-11-12 依使用者要求拿掉（快取之後它只數得到沒命中的請求），細節留在 /stats
+
+### 公開流量頁 `/stats`（2026-11-09 第一版，以下是當時的紀錄）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家
 - 資料跟頁尾同一份：讀取集中在 `lib/site-stats.ts`（國家、未過濾、爬蟲排行；爬蟲分類直接 import `scripts/lib/raw-traffic.js` 的 `classify`，
   名單只維護一份）＋ `lib/cloudflare-analytics.ts` 的 `readCloudflareDays()`
