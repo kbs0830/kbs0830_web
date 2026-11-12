@@ -12,6 +12,7 @@ describe("visitor-stats API route", () => {
   let statsFile: string;
   let rawFile: string;
   let detailFile: string;
+  let featureFile: string;
 
   beforeEach(() => {
     const id = `${Date.now()}-${Math.random()}`;
@@ -22,6 +23,8 @@ describe("visitor-stats API route", () => {
     process.env.VISITOR_STATS_FILE = statsFile;
     process.env.RAW_TRAFFIC_FILE = rawFile;
     process.env.VISITS_DETAIL_FILE = detailFile;
+    featureFile = path.join(os.tmpdir(), `feature-release-test-${id}.json`);
+    process.env.FEATURE_RELEASE_FILE = featureFile;
     // 不能讀到正式的 data/cloudflare-daily.json，也不能真的打 Cloudflare
     process.env.CLOUDFLARE_STATS_FILE = path.join(os.tmpdir(), `cf-test-${id}.json`);
     delete process.env.CLOUDFLARE_ANALYTICS_TOKEN;
@@ -29,7 +32,8 @@ describe("visitor-stats API route", () => {
   });
 
   afterEach(() => {
-    for (const f of [statsFile, rawFile, detailFile]) if (fs.existsSync(f)) fs.unlinkSync(f);
+    for (const f of [statsFile, rawFile, detailFile, featureFile]) if (fs.existsSync(f)) fs.unlinkSync(f);
+    delete process.env.FEATURE_RELEASE_FILE;
     delete process.env.VISITOR_STATS_FILE;
     delete process.env.RAW_TRAFFIC_FILE;
     delete process.env.VISITS_DETAIL_FILE;
@@ -65,10 +69,22 @@ describe("visitor-stats API route", () => {
     expect(detail.referrers).toEqual({ "google.com": 1 });
   });
 
+  it("新功能上線 12 小時內回傳 newFeature（只有到期時間），過期就是 null", async () => {
+    const until = new Date(Date.now() + 3600_000).toISOString();
+    fs.writeFileSync(featureFile, JSON.stringify({ until, title: "feat: 祕密的 commit 訊息", commit: "abc1234" }));
+    const { GET } = await import("./route");
+    const body = await (await GET()).json();
+    expect(body.newFeature).toEqual({ until });
+    expect(JSON.stringify(body)).not.toContain("祕密");
+
+    fs.writeFileSync(featureFile, JSON.stringify({ until: new Date(Date.now() - 1000).toISOString() }));
+    expect((await (await GET()).json()).newFeature).toBeNull();
+  });
+
   it("GET 在資料檔還不存在時回傳空統計，不會噴錯", async () => {
     const { GET } = await import("./route");
     const body = await (await GET()).json();
-    expect(body).toEqual({ total: 0, countryCount: 0, top: [], raw: null, cloudflare: null });
+    expect(body).toEqual({ total: 0, countryCount: 0, top: [], raw: null, cloudflare: null, newFeature: null });
   });
 
   it("POST 依 cf-ipcountry 累加次數，GET 讀得到剛寫入的結果", async () => {

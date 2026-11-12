@@ -48,7 +48,7 @@ console.log(`favicon.ico → ${path.relative(root, out)}（${sizes.join("／")}p
 // 狀態色的分頁圖示（SVG）：維修模式頁是 scripts/server.js 直接回的純 HTML，拿不到 lib，所以預先寫成檔案
 const statusDir = path.join(root, "public", "status");
 fs.mkdirSync(statusDir, { recursive: true });
-for (const status of ["ok", "dev", "maintenance", "error"]) {
+for (const status of ["ok", "dev", "maintenance", "error", "new"]) {
   fs.writeFileSync(path.join(statusDir, `${status}.svg`), brandIconSvg("small", status));
 }
-console.log("public/status/{ok,dev,maintenance,error}.svg");
+console.log("public/status/{ok,dev,maintenance,error,new}.svg");

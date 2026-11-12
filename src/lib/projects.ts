@@ -267,6 +267,7 @@ export const projects: Project[] = [
           headingEn: "Architecture",
           body: [
             "訪客 → Cloudflare（DNS、HTTPS、www 導向）→ Cloudflare Tunnel → 桌機上的 Next.js 16",
+            "靜態頁由 Cloudflare 快取直接回應，部署切換版本後自動清快取；Cloudflare 設定（HTTPS、HSTS、擋掃描器）寫成腳本，每次部署檢查有沒有被改掉",
             "自訂 Node.js server 包住 Next.js，負責 request／error log；開機由 Windows 工作排程器啟動，不需要登入",
             "首頁四個區塊都是 Server Component，只有打字效果、3D 背景、作品篩選這類小互動才送 JavaScript 到瀏覽器",
             "Hero 的 3D 背景用 Three.js + React Three Fiber，只在桌機寬度載入，手機完全不下載",
@@ -288,7 +289,19 @@ export const projects: Project[] = [
           body: [
             "Watchdog 每 5 分鐘：檢查網站、CI runner 是否還活著，並從外網打一次確認 Tunnel 通；異常自動重啟，修不好寄信通知（同一件事 1 小時內只寄一封）",
             "追過的真實問題：網站每 3 天準時掛一次。比對記憶體 log 排除了 memory leak，最後查到是 Windows 工作排程器預設「執行超過 72 小時強制停止」",
-            "每日備份不在 git 裡的設定與憑證：另一顆硬碟保留 30 份，另外用 AES-256 加密推到 GitHub 私有 repo，實際還原測試過",
+            "每日備份不在 git 裡的設定與憑證：另一顆硬碟保留 30 份，另外用 AES-256 加密推到 GitHub 私有 repo，每 90 天自動從 GitHub 下載、解密、逐檔比對一次",
+            "桌機以外的監控：GitHub 雲端機器定時從外面打網站，連不到就自動開 issue 通知，恢復時自動關掉",
+            "維修模式：一行指令讓網站顯示維修頁，監控不會誤判成當機；開太久會寄信提醒",
+          ],
+        },
+        {
+          heading: "會看狀態的網站圖示",
+          headingEn: "Status-aware favicon",
+          body: [
+            "分頁上的圖示是一個終端機視窗＋一顆櫻花粉的日，視窗的顏色就是網站現在的狀態",
+            "靛藍：正常運作｜櫻花粉：新功能剛上線（部署時看到新功能的 commit，自動維持 12 小時後換回）",
+            "琥珀：維修中｜紅：頁面出錯｜綠：在自己電腦上開發中（一眼分得出是本機還是正式站）",
+            "同一份 SVG 產生所有尺寸：分頁、手機主畫面、favicon.ico，小尺寸另外畫一版簡化的，16px 也看得清楚",
           ],
         },
         {
@@ -298,8 +311,9 @@ export const projects: Project[] = [
             "拿掉動畫函式庫（改用 CSS、原生 <dialog>、React View Transitions）並改成 Server Components，手機首頁 JavaScript 從 225 KB 降到 170 KB",
             "作品架構圖改在部署前用 Playwright 預先畫成 SVG，作品頁 JavaScript 從 2.8 MB 降到 565 KB",
             "Lighthouse 無障礙／最佳實務／SEO 三項 100",
-            "自架訪客國家統計與真實訪客 Web Vitals：只存國家代碼和數值，不存 IP",
-            "Vitest 單元測試＋Playwright E2E；commit 前自動跑 ESLint 與型別檢查",
+            "自架訪客分析（/stats）與真實訪客 Web Vitals：只存彙總數字，不存 IP、不用 cookie",
+            "Content-Security-Policy 正式開啟，被擋的資源自動回報",
+            "Vitest 單元測試＋Playwright E2E（含 axe 無障礙檢查、sitemap 每頁 200、CSP 違規）；commit 前自動跑 ESLint 與型別檢查",
           ],
         },
       ],

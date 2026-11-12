@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { setFavicon } from "@/components/ui/StatusFavicon";
 
 // 真人造訪計數（TODO「造訪數改成每一頁都算」，2026-11-09）。掛在 layout，每換一頁（含站內 client 換頁）回報一次。
 // 只有真的執行 JS 的瀏覽器才會送；伺服器端再擋沒 cf-ipcountry（測試、本機）跟機器人 UA（見 /api/visitor-stats）。
@@ -30,7 +31,13 @@ export default function VisitBeacon() {
     const newSession = flag(() => sessionStorage, "kbs-session");
     const newVisitor = newSession ? flag(() => localStorage, "kbs-visited") : false;
     const body = JSON.stringify({ path: location.pathname, ref: newSession ? document.referrer : "", newSession, newVisitor });
-    fetch("/api/visitor-stats", { method: "POST", keepalive: true, body }).catch(() => {});
+    fetch("/api/visitor-stats", { method: "POST", keepalive: true, body })
+      .then((r) => r.json())
+      .then((d: { newFeature?: { until: string } | null }) => {
+        // 新功能上線 12 小時內：分頁圖示換成櫻花粉視窗（deploy.ps1 寫 data/feature-release.json）
+        if (d.newFeature && Date.parse(d.newFeature.until) > Date.now()) setFavicon("new");
+      })
+      .catch(() => {});
   }, [pathname]);
   return null;
 }

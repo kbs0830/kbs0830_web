@@ -906,7 +906,10 @@ kbs0830_web/
 │   │   ├── icon.tsx / apple-icon.tsx / favicon.ico  # 網站圖示（2026-11-12 換成「終端機視窗＋櫻花粉的日」，使用者挑的）。
 │   │   │                        # 圖形唯一來源 lib/brand-icon.ts（full／small／apple 三版）；favicon.ico 用 scripts/build-favicon.mjs 產生，
 │   │   │                        # 改圖示要重跑那支。櫻花粉 #f2a7b8 只用在圖示，網站強調色照舊只有靛藍。不放字母（使用者不要 P）
-│   │   │                        # 狀態色（視窗顏色）：正常＝靛藍、本機 next dev＝綠、維修模式＝琥珀、頁面出錯＝紅（StatusFavicon.tsx）
+│   │   │                        # 狀態色（視窗顏色）：正常＝靛藍、本機 next dev＝綠、維修模式＝琥珀、頁面出錯＝紅（StatusFavicon.tsx）、
+│   │   │                        # 新功能上線 12 小時＝櫻花粉（deploy.ps1 的 Update-FeatureRelease：這次部署範圍有 `feat` 開頭的 commit
+│   │   │                        # 就寫 data/feature-release.json → /api/visitor-stats 回 newFeature（只給到期時間）→ VisitBeacon 換圖示；出錯的紅色優先）
+│   │   │                        # 所以 commit 訊息要照慣例：真的是新功能才用 feat，修 bug／文件用 fix／docs，不然會誤亮櫻花粉
 │   │   ├── opengraph-image.tsx  # OG 社群預覽圖，動態生成
 │   │   ├── manifest.ts          # PWA manifest
 │   │   ├── robots.ts / sitemap.ts

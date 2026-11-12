@@ -48,6 +48,8 @@ process.env.CLOUDFLARE_STATS_FILE = path.join(dataDir, "cloudflare-daily.json");
 process.env.CSP_REPORT_FILE = path.join(dataDir, "csp-reports.json");
 // 訪客分析明細（src/lib/visit-detail.ts）：頁面、來源、裝置、時段、新訪客
 process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
+// 新功能上線 12 小時（deploy.ps1 寫，分頁圖示櫻花粉）
+process.env.FEATURE_RELEASE_FILE = path.join(dataDir, "feature-release.json");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。

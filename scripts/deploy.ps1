@@ -61,6 +61,24 @@ function Submit-IndexNow {
     }
 }
 
+# 新功能上線（2026-11-12，使用者：「推送新功能（持續 12 小時）就給我櫻花粉」）：這次部署的 commit 裡有 feat 開頭的，
+# 就寫 data/feature-release.json（12 小時後到期）；/api/visitor-stats 帶出去，VisitBeacon 把分頁圖示換成櫻花粉視窗。
+# 要在 Update-ResumePdf 之前跑：它會更新 last-deployed-commit.txt。失敗只記 log。
+function Update-FeatureRelease {
+    $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
+    try {
+        if (-not (Test-Path $lastFile)) { return }
+        $subjects = @(git log --format=%s "$((Get-Content $lastFile -Raw).Trim())..HEAD")
+        $feat = $subjects | Where-Object { $_ -match '^feat(\(|:|!)' } | Select-Object -First 1
+        if (-not $feat) { return }
+        $info = @{ until = (Get-Date).ToUniversalTime().AddHours(12).ToString("o"); title = $feat; commit = (git rev-parse --short HEAD).Trim() }
+        [IO.File]::WriteAllText((Join-Path $repo "data\feature-release.json"), ($info | ConvertTo-Json), (New-Object Text.UTF8Encoding($false)))
+        Log "新功能上線：$feat → 分頁圖示櫻花粉 12 小時"
+    } catch {
+        Log "[WARN] feature-release 沒更新：$($_.Exception.Message)"
+    }
+}
+
 # public/resume.pdf 是 /resume 的列印快照，不會自己更新。內容來源跟上次部署比有變，
 # 就對剛上線的正式站重印一份（由 Publish-GeneratedFiles commit）。PDF 每次產生 bytes
 # 都不同，所以不能每次部署都印。失敗只記 log，不影響這次部署的結果。
@@ -184,6 +202,7 @@ try {
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
     Submit-IndexNow
+    Update-FeatureRelease
     # Cloudflare 設定有沒有被改掉（www 導向、HTTPS、HSTS、WAF）：只檢查，漂移就寫 log＋寄信，不擋部署
     try { & (Join-Path $PSScriptRoot "cloudflare-config.ps1") -Check -Quiet | Out-Null } catch { Log "[WARN] cloudflare-config 檢查失敗：$($_.Exception.Message)" }
     Update-ResumePdf

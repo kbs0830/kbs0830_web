@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
-import { readRawTraffic } from "@/lib/site-stats";
+import { readFeatureRelease, readRawTraffic } from "@/lib/site-stats";
 import { recordVisit, type VisitInput } from "@/lib/visit-detail";
 
 // production 由 scripts/server.js 透過 VISITOR_STATS_FILE 傳絕對路徑進來，
@@ -33,7 +33,7 @@ function summarize(stats: Record<string, number>) {
   const top = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
   // Cloudflare 的數字一小時更新一次，在背景跑、不等它（這次回應用檔案裡現有的）
   void refreshCloudflareIfStale();
-  return { total, countryCount: entries.length, top, raw: readRawTraffic(), cloudflare: readCloudflareSummary() };
+  return { total, countryCount: entries.length, top, raw: readRawTraffic(), cloudflare: readCloudflareSummary(), newFeature: readFeatureRelease() };
 }
 
 export async function GET() {

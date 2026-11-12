@@ -10,12 +10,15 @@ const SAKURA = "#f2a7b8"; // 櫻花粉（只用在圖示的「日」）
 // 狀態色（2026-11-12 使用者：「多換一些顏色代表其他的狀態，維修、正常、有問題」）：視窗的顏色換掉，日照舊是櫻花粉。
 //   ok：正式站正常（靛藍）      dev：本機 next dev（綠，分頁一眼分得出是本機還是正式站）
 //   maintenance：維修模式（琥珀，scripts/maintenance.ps1 開）   error：頁面出錯（紅，error.tsx／global-error.tsx）
-export type IconStatus = "ok" | "dev" | "maintenance" | "error";
+//   new：新功能剛上線 12 小時內（櫻花粉視窗，日改成暖白免得跟視窗同色；使用者：「推送新功能就給我櫻花粉」）
+//        deploy.ps1 看到 feat commit 就寫 data/feature-release.json，VisitBeacon 從回報的回應知道要換
+export type IconStatus = "ok" | "dev" | "maintenance" | "error" | "new";
 export const STATUS_COLOR: Record<IconStatus, string> = {
   ok: "#2d5a8e",
   dev: "#2f7d5b",
   maintenance: "#c98a1b",
   error: "#c0392b",
+  new: "#e0809c", // 比日的櫻花粉深一階：白色的 >_ 疊上去才看得清楚
 };
 
 /**
@@ -25,11 +28,12 @@ export const STATUS_COLOR: Record<IconStatus, string> = {
  */
 export function brandIconSvg(variant: "full" | "small" | "apple", status: IconStatus = "ok"): string {
   const B = STATUS_COLOR[status];
+  const SUN = status === "new" ? W : SAKURA;
   if (variant === "small") {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <rect width="512" height="512" rx="96" fill="${B}"/>
 <path d="M0 140 L512 140" stroke="${W}" stroke-width="30" opacity="0.5"/>
-<circle cx="410" cy="76" r="48" fill="${SAKURA}"/>
+<circle cx="410" cy="76" r="48" fill="${SUN}"/>
 <path d="M90 210 L200 300 L90 390" fill="none" stroke="${W}" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M242 390 L390 390" stroke="${W}" stroke-width="60" stroke-linecap="round"/>
 </svg>`;
@@ -44,7 +48,7 @@ ${bg}
 <path d="M76 162 L436 162" stroke="${W}" stroke-width="6" opacity="0.35"/>
 <circle cx="110" cy="133" r="9" fill="${W}" opacity="0.7"/>
 <circle cx="138" cy="133" r="9" fill="${W}" opacity="0.7"/>
-<circle cx="394" cy="133" r="17" fill="${SAKURA}"/>
+<circle cx="394" cy="133" r="17" fill="${SUN}"/>
 <path d="M140 222 L208 282 L140 342" fill="none" stroke="${W}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M242 342 L322 342" stroke="${W}" stroke-width="26" stroke-linecap="round"/>
 </svg>`;
