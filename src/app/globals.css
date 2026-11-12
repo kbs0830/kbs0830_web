@@ -20,6 +20,11 @@
 
   /* 全站唯一一條動畫 easing（原本 framer 每個元件各寫一次 [0.25, 0.1, 0.25, 1]） */
   --ease-ma: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* 告訴瀏覽器目前是淺色：原生捲軸、<dialog> 背景、Ctrl+F 高亮、表單元件跟著主題走
+     （沒設的話深色模式下這些還是白色的） */
+  color-scheme: light;
+  accent-color: var(--accent);
 }
 
 [data-theme="dark"] {
@@ -33,6 +38,7 @@
                             （2026-07 跑 Lighthouse 抓到），這個色差極小、肉眼幾乎看不出來 */
   --accent-lt: #1a2a3a;
   --nav-bg:    rgb(15 15 13 / 0.9);
+  color-scheme: dark;
 }
 
 /* 主題切換鈕：兩個 icon 都 render，由 CSS 依 data-theme 決定顯示哪個——
@@ -92,6 +98,10 @@ body {
   background: var(--border);
   border-radius: 2px;
 }
+
+/* 標題換行平均（不會剩一個字掛在第二行）；內文避免最後一行只剩一兩個字 */
+h1, h2, h3 { text-wrap: balance; }
+p, li, figcaption { text-wrap: pretty; }
 
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -227,7 +237,7 @@ details.disclosure[open]::details-content {
 }
 
 /* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
-@media (max-width: 639px) {
+@media (width < 640px) {
   .filter-scroll {
     scrollbar-width: none;
     mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
@@ -299,7 +309,7 @@ details.disclosure[open]::details-content {
 /* Hero 捲動驅動的動畫（CSS scroll-driven，跑在 compositor、零 JS）。不支援的瀏覽器維持靜止的樣子 */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    @media (min-width: 768px) {
+    @media (width >= 768px) {
       /* Hero 文字往下捲時上飄、淡出 */
       .hero-parallax {
         animation: hero-out linear both;

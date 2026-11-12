@@ -43,7 +43,7 @@ const HeroSceneSkeleton = () => (
 // Hero 背景：桌機載入 three.js 3D 場景，手機載入 Canvas 2D 輕量版（不載 three.js）。server 端還不知道
 // 是哪種裝置（useMediaQuery 回傳 null）→ 先畫骨架屏，確定裝置後才下載對應的 chunk。
 export default function HeroBackground() {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery("(width >= 768px)");
 
   if (isDesktop === null) return <HeroSceneSkeleton />;
   if (!isDesktop) return (

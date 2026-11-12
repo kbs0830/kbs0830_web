@@ -42,7 +42,7 @@ const lineClass = "block w-5 h-px bg-(--muted) transition duration-200";
 
 export default function NavBar() {
   const solid = useScrolledPast(60);
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(width >= 640px)");
   const [activeSection, setActiveSection] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const drawerOpen = menuOpen && !isDesktop;

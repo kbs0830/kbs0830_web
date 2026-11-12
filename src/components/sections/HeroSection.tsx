@@ -13,7 +13,7 @@ const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
 
 export default function HeroSection() {
   return (
-    <section id="top" className="relative min-h-screen flex flex-col justify-center overflow-hidden">
+    <section id="top" className="relative min-h-svh flex flex-col justify-center overflow-hidden">
       <HeroBackground />
       <HeroNameScramble />
 

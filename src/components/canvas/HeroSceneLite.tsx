@@ -88,11 +88,11 @@ export default function HeroSceneLite() {
 
     resize();
     draw();
-    if (reduced) {
-      const onResize = () => { resize(); draw(); };
-      addEventListener("resize", onResize);
-      return () => removeEventListener("resize", onResize);
-    }
+    // 看 canvas 自己的尺寸（不是 window resize）：手機捲動時網址列伸縮會一直觸發 window resize，
+    // Hero 用 svh 高度不會變，這裡就不會白白重設畫布
+    const ro = new ResizeObserver(() => { resize(); draw(); });
+    ro.observe(canvas);
+    if (reduced) return () => ro.disconnect();
 
     let raf = 0, last = 0, visible = true;
     const loop = (now: number) => {
@@ -133,7 +133,6 @@ export default function HeroSceneLite() {
     addEventListener("deviceorientation", onOrient);
     addEventListener("touchmove", onTouch, { passive: true });
     addEventListener("touchend", onTouchEnd, { passive: true });
-    addEventListener("resize", resize);
 
     // 切換深淺色主題時換線條顏色
     const mo = new MutationObserver(readColor);
@@ -144,11 +143,11 @@ export default function HeroSceneLite() {
       stop();
       io.disconnect();
       mo.disconnect();
+      ro.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       removeEventListener("deviceorientation", onOrient);
       removeEventListener("touchmove", onTouch);
       removeEventListener("touchend", onTouchEnd);
-      removeEventListener("resize", resize);
     };
   }, []);
 

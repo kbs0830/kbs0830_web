@@ -13,16 +13,17 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    import("mermaid").then(async (mod) => {
-      const mermaid = mod.default;
-      mermaid.initialize(mermaidConfig(document.documentElement.getAttribute("data-theme") === "dark"));
+    (async () => {
       try {
+        const { default: mermaid } = await import("mermaid");
+        mermaid.initialize(mermaidConfig(document.documentElement.getAttribute("data-theme") === "dark"));
         const { svg } = await mermaid.render(`mermaid-${id}`, chart);
         if (!cancelled) setSvg(svg);
       } catch {
+        // chunk 載不到或圖語法錯：都當成畫不出來
         if (!cancelled) setFailed(true);
       }
-    });
+    })();
     return () => {
       cancelled = true;
     };

@@ -5,6 +5,13 @@
 
 ---
 
+### 2026-11-12 全站換新寫法（使用者：「有沒有太過舊的技術，幫我都用新技術新寫法」）
+- [x] 彈窗確認全部是原生 `<dialog>`（終端機、快捷鍵說明），沒有 div＋JS 舊寫法
+- [x] error boundary `reset` → `retry`（Next 16.3）；`color-scheme`＋`accent-color`；`min-h-screen` → `min-h-svh`；
+  分頁底線、手機 Hero canvas 改 `ResizeObserver`；媒體查詢範圍語法；fetch 改 async/await＋AbortController，Spotify 背景分頁不輪詢；
+  標題 `text-wrap: balance`／內文 `pretty`；深色模式 inline script 改 `const`＋`catch {}`
+- [x] 套件只差 patch 版（next 16.4.6、tailwind 4.3.5、playwright 1.65），交給週一 Renovate；TS 7、@types/node 26 照舊擋著
+
 ### 2026-11-12 新圖示
 - [x] **狀態色圖示**（使用者：「多換一些顏色代表其他的狀態」）：正常＝靛藍、本機開發＝綠、維修中＝琥珀、頁面出錯＝紅（日照舊櫻花粉）
 - [x] **新功能上線 12 小時＝櫻花粉圖示**（使用者：「推送新功能(持續12小時)就給我櫻花粉，然後把這個寫進網站特色」）：

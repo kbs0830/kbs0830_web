@@ -6,7 +6,7 @@ import { useEffect } from "react";
 // 只在「寬螢幕＋滑鼠＋沒開減少動態」時啟用。不在載入時播——<h1> 是 LCP 元素，載入時改它的字會讓 LCP 重算。
 // 直接改 text node 的 nodeValue（不換掉 node，React 之後照常更新）；半形字換成英數，寬度幾乎不變。
 // 2026-11-05 曾經做過全站版（游標光圈、卡片聚光燈、小標解碼…），使用者試完說「頁首就好」，只留 Hero。
-const FX_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
+const FX_QUERY = "(width >= 768px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
 const KANA = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン";
 const ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+<>/";
 const pick = (s: string) => s[Math.floor(Math.random() * s.length)];

@@ -91,7 +91,7 @@ export default function RootLayout({
             讀不到 localStorage / matchMedia（例如被封鎖或不支援）一律 fallback 回淺色。 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('theme');var t=(s==='dark'||s==='light')?s:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`,
+            __html: `{const d=document.documentElement.dataset;try{const s=localStorage.getItem('theme');d.theme=s==='dark'||s==='light'?s:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{d.theme='light'}}`,
           }}
         />
         <JsonLd data={jsonLd} />

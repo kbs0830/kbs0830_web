@@ -163,6 +163,16 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
   歸零，`margin: auto` 要自己補（第一版沒注意到，終端機跑到左上角、佔滿全寬）
 - 列印樣式會強制把 `[data-reveal]`／`.enter-*` 顯示出來，不然還沒捲到的區塊印出來是空白
 
+### 寫法慣例（2026-11-12 全站檢查過一輪，使用者：「都用新技術新寫法」）
+- 全螢幕高度用 `min-h-svh`，不要 `min-h-screen`（100vh 在手機會被網址列吃掉一截、捲動時跟著跳）
+- 量元素尺寸用 `ResizeObserver` 看元素本身，不要 `window` 的 resize（字型晚載入、手機網址列伸縮都抓不準）
+- 媒體查詢用範圍語法：CSS `@media (width < 640px)`、JS `useMediaQuery("(width >= 768px)")`
+- fetch 一律 async/await＋`AbortController`（元件卸載就 abort）；輪詢的東西分頁在背景時不要打（`document.hidden`）
+- `error.tsx`／`global-error.tsx` 用 Next 16.3 的 `retry`（會重新跟伺服器要資料），不是 `reset`
+- 主題色靠 `color-scheme`（`:root` light／`[data-theme="dark"]` dark）讓原生捲軸、`<dialog>`、Ctrl+F 高亮跟著變
+- 標題 `text-wrap: balance`、內文 `text-wrap: pretty`（globals.css 全域設好了）
+- 彈窗只用 `<Modal>`（原生 `<dialog>`），不要自己寫 div 遮罩＋Esc 監聽
+
 ### pnpm 注意事項
 
 pnpm v11 native build 限制：`sharp` 和 `unrs-resolver` 需要 build scripts。

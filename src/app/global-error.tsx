@@ -8,10 +8,10 @@ import "./globals.css";
 // global-error 取代整個 root layout，需要自帶 <html>/<body> 與字型
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
     console.error(
@@ -27,7 +27,7 @@ export default function GlobalError({
     >
       <body className="min-h-full">
         <MaintenancePage
-          onRetry={reset}
+          onRetry={retry}
           errorMessage={process.env.NODE_ENV === "development" ? error.message : undefined}
         />
       </body>

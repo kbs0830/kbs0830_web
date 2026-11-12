@@ -23,10 +23,16 @@ export default function VisitorStats() {
 
   useEffect(() => {
     // 只讀。回報造訪是 layout 的 VisitBeacon（每一頁都算，2026-11-09 起），這裡再 POST 首頁會算兩次
-    fetch("/api/visitor-stats")
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {});
+    const ac = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch("/api/visitor-stats", { signal: ac.signal });
+        setStats(await res.json());
+      } catch {
+        // 讀不到就不顯示
+      }
+    })();
+    return () => ac.abort();
   }, []);
 
   if (!stats) return null;

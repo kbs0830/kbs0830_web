@@ -14,19 +14,22 @@ export default function SpotifyNowPlaying() {
   const [data, setData] = useState<NowPlaying | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchData = () => {
-      fetch("/api/spotify/now-playing")
-        .then((res) => res.json())
-        .then((d: NowPlaying) => {
-          if (!cancelled) setData(d);
-        })
-        .catch(() => {});
+    // 離開頁面時 abort 還沒回來的請求；分頁在背景時不輪詢，切回來馬上抓一次
+    const ac = new AbortController();
+    const fetchData = async () => {
+      if (document.hidden) return;
+      try {
+        const res = await fetch("/api/spotify/now-playing", { signal: ac.signal });
+        setData((await res.json()) as NowPlaying);
+      } catch {
+        // abort 或網路錯誤：維持原本顯示
+      }
     };
     fetchData();
     const id = setInterval(fetchData, 60_000);
+    document.addEventListener("visibilitychange", fetchData, { signal: ac.signal });
     return () => {
-      cancelled = true;
+      ac.abort();
       clearInterval(id);
     };
   }, []);

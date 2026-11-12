@@ -39,7 +39,7 @@ export default function MaintenancePage({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-(--bg)">
+    <div className="min-h-svh flex flex-col items-center justify-center px-6 bg-(--bg)">
       {/* 這頁只在出錯時出現（error.tsx／global-error.tsx）：分頁圖示換成紅色視窗 */}
       <StatusFavicon status="error" />
       <button

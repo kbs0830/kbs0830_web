@@ -14,12 +14,15 @@ export default function CopyEmailButton({ email, className }: { email: string; c
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  const copy = () => {
-    navigator.clipboard.writeText(email).then(() => {
-      setCopied(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setCopied(false), 1800);
-    });
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+    } catch {
+      return; // 沒權限（非 https、被瀏覽器擋）：不顯示「已複製」
+    }
+    setCopied(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 1800);
   };
 
   return (

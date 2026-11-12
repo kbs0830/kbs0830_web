@@ -31,13 +31,17 @@ export default function VisitBeacon() {
     const newSession = flag(() => sessionStorage, "kbs-session");
     const newVisitor = newSession ? flag(() => localStorage, "kbs-visited") : false;
     const body = JSON.stringify({ path: location.pathname, ref: newSession ? document.referrer : "", newSession, newVisitor });
-    fetch("/api/visitor-stats", { method: "POST", keepalive: true, body })
-      .then((r) => r.json())
-      .then((d: { newFeature?: { until: string } | null }) => {
+    // 不 abort：keepalive 就是要換頁後也送得出去
+    (async () => {
+      try {
+        const res = await fetch("/api/visitor-stats", { method: "POST", keepalive: true, body });
+        const d: { newFeature?: { until: string } | null } = await res.json();
         // 新功能上線 12 小時內：分頁圖示換成櫻花粉視窗（deploy.ps1 寫 data/feature-release.json）
         if (d.newFeature && Date.parse(d.newFeature.until) > Date.now()) setFavicon("new");
-      })
-      .catch(() => {});
+      } catch {
+        // 回報失敗不影響頁面
+      }
+    })();
   }, [pathname]);
   return null;
 }

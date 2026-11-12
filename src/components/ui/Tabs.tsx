@@ -33,8 +33,10 @@ export default function Tabs({ items, label }: { items: TabItem[]; label: string
       indicator.current.style.width = `${btn.offsetWidth}px`;
     };
     place();
-    window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
+    // 看分頁列本身的尺寸，不是整個視窗：字型晚一點載入、標籤寬度變了也會重新對齊（window resize 抓不到這種）
+    const ro = new ResizeObserver(place);
+    for (const el of list.current?.querySelectorAll("[data-tab-label]") ?? []) ro.observe(el);
+    return () => ro.disconnect();
   }, [active]);
 
   // React 的 hidden 只接受 boolean，until-found 自己補上；React 之後把 hidden 改回 false 時會整個拿掉
