@@ -79,7 +79,7 @@ export function countryFlag(code: string) {
 
 /**
  * 新功能上線中？（2026-11-12）deploy.ps1 看到 feat commit 就寫 data/feature-release.json，12 小時後到期。
- * 只回到期時間（commit 訊息不往外送）；VisitBeacon 拿到就把分頁圖示換成櫻花粉視窗。
+ * 只回到期時間（commit 訊息不往外送）；VisitBeacon 拿到就把分頁圖示的指示燈點亮成櫻花粉。
  */
 export function readFeatureRelease(now = new Date()): { until: string } | null {
   try {

@@ -5,7 +5,7 @@ import { brandIconSvgUrl, type IconStatus } from "@/lib/brand-icon";
 
 /**
  * 把分頁圖示換成狀態色（2026-11-12），回傳「換回原本」的函式。
- * 用的地方：頁面出錯（紅，MaintenancePage）、新功能上線 12 小時內（櫻花粉，VisitBeacon）。
+ * 用的地方：頁面出錯（紅，MaintenancePage）、新功能上線 12 小時內（指示燈亮櫻花粉，VisitBeacon）。
  * 出錯優先：已經是紅色時，其他狀態不會把它蓋掉。
  */
 export function setFavicon(status: IconStatus): () => void {

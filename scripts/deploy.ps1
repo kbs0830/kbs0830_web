@@ -62,7 +62,7 @@ function Submit-IndexNow {
 }
 
 # 新功能上線（2026-11-12，使用者：「推送新功能（持續 12 小時）就給我櫻花粉」）：這次部署的 commit 裡有 feat 開頭的，
-# 就寫 data/feature-release.json（12 小時後到期）；/api/visitor-stats 帶出去，VisitBeacon 把分頁圖示換成櫻花粉視窗。
+# 就寫 data/feature-release.json（12 小時後到期）；/api/visitor-stats 帶出去，VisitBeacon 把分頁圖示的指示燈點亮成櫻花粉。
 # 要在 Update-ResumePdf 之前跑：它會更新 last-deployed-commit.txt。失敗只記 log。
 function Update-FeatureRelease {
     $lastFile = Join-Path $repo "data\last-deployed-commit.txt"
@@ -73,7 +73,7 @@ function Update-FeatureRelease {
         if (-not $feat) { return }
         $info = @{ until = (Get-Date).ToUniversalTime().AddHours(12).ToString("o"); title = $feat; commit = (git rev-parse --short HEAD).Trim() }
         [IO.File]::WriteAllText((Join-Path $repo "data\feature-release.json"), ($info | ConvertTo-Json), (New-Object Text.UTF8Encoding($false)))
-        Log "新功能上線：$feat → 分頁圖示櫻花粉 12 小時"
+        Log "新功能上線：$feat → 分頁圖示指示燈亮櫻花粉 12 小時"
     } catch {
         Log "[WARN] feature-release 沒更新：$($_.Exception.Message)"
     }

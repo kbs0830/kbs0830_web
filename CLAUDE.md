@@ -249,7 +249,8 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 ### 單元測試（Vitest）
 
 `src/**/*.test.ts`，`pnpm test:unit` 執行（`vitest.config.mts`，node 環境、`@/*` alias
-跟 `tsconfig.json` 對齊）。跟 Playwright 分開維護：Vitest 測純函式跟 API route 的邏輯
+跟 `tsconfig.json` 對齊）。⚠️ Claude 的 Git Bash 有時會讓**所有**測試檔都報
+`Cannot read properties of undefined (reading 'config')`（0 tests）——環境問題不是程式壞掉，改用 PowerShell 跑就正常（2026-11-12）。跟 Playwright 分開維護：Vitest 測純函式跟 API route 的邏輯
 分支，不需要真的開瀏覽器。目前測：
 - `src/lib/blog.ts` 的 `getAllPosts()`／`getPostBySlug()`——直接讀 `content/blog/*.mdx`
   真實文章，不 mock fs（三篇文章目前 date 剛好都相同，正好覆蓋排序 comparator 對
@@ -913,11 +914,12 @@ kbs0830_web/
 │   │   ├── globals.css          # CSS variables 設計系統，@source not "../../**/*.md" 排除文件污染編譯
 │   │   ├── not-found.tsx        # 自訂 404
 │   │   ├── error.tsx / global-error.tsx  # render 錯誤 boundary（console log + timestamp/digest/path）
-│   │   ├── icon.tsx / apple-icon.tsx / favicon.ico  # 網站圖示（2026-11-12 換成「終端機視窗＋櫻花粉的日」，使用者挑的）。
+│   │   ├── icon.tsx / apple-icon.tsx / favicon.ico  # 網站圖示（2026-11-12 換成「終端機視窗＋右上角指示燈」，使用者挑的）。
 │   │   │                        # 圖形唯一來源 lib/brand-icon.ts（full／small／apple 三版）；favicon.ico 用 scripts/build-favicon.mjs 產生，
 │   │   │                        # 改圖示要重跑那支。櫻花粉 #f2a7b8 只用在圖示，網站強調色照舊只有靛藍。不放字母（使用者不要 P）
 │   │   │                        # 狀態色（視窗顏色）：正常＝靛藍、本機 next dev＝綠、維修模式＝琥珀、頁面出錯＝紅（StatusFavicon.tsx）、
-│   │   │                        # 新功能上線 12 小時＝櫻花粉（deploy.ps1 的 Update-FeatureRelease：這次部署範圍有 `feat` 開頭的 commit
+│   │   │                        # 右上角的點＝新功能指示燈（使用者：「櫻花粉指示燈指右上角的點，不是整個 ICON」）：平常暖白（沒亮），
+│   │   │                        # 新功能上線 12 小時亮櫻花粉、稍微大一點，視窗照舊靛藍（deploy.ps1 的 Update-FeatureRelease：這次部署範圍有 `feat` 開頭的 commit
 │   │   │                        # 就寫 data/feature-release.json → /api/visitor-stats 回 newFeature（只給到期時間）→ VisitBeacon 換圖示；出錯的紅色優先）
 │   │   │                        # 所以 commit 訊息要照慣例：真的是新功能才用 feat，修 bug／文件用 fix／docs，不然會誤亮櫻花粉
 │   │   ├── opengraph-image.tsx  # OG 社群預覽圖，動態生成

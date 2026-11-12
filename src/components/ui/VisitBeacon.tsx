@@ -36,7 +36,7 @@ export default function VisitBeacon() {
       try {
         const res = await fetch("/api/visitor-stats", { method: "POST", keepalive: true, body });
         const d: { newFeature?: { until: string } | null } = await res.json();
-        // 新功能上線 12 小時內：分頁圖示換成櫻花粉視窗（deploy.ps1 寫 data/feature-release.json）
+        // 新功能上線 12 小時內：分頁圖示右上角指示燈亮櫻花粉（deploy.ps1 寫 data/feature-release.json）
         if (d.newFeature && Date.parse(d.newFeature.until) > Date.now()) setFavicon("new");
       } catch {
         // 回報失敗不影響頁面
