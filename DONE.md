@@ -5,6 +5,10 @@
 
 ---
 
+### 2026-11-13 GitHub 通知改寄 otemon（使用者設好的）
+- [x] GitHub 帳號加了 `otemon.pcwork@gmail.com`、Default notifications email 選它：E2E 失敗、外部監控（uptime.yml）開的 issue、Renovate PR 都改寄 otemon
+- [x] 所以 TODO「（選做）外部監控的信改寄 otemon」也不用做了。uptime.yml 自己寄信那段（repo secret `ALERT_SMTP_USER`／`ALERT_SMTP_PASS`）還留著，沒設就跳過
+
 ### 2026-11-13 外網檢查不再因為一分鐘抖動就寄信
 - [x] 11/13 01:46 Tunnel 慢了約一分鐘（server.log 看到 chunk 晚 60 秒才到），watchdog 一輪失敗就寄「外網連不到」，5 分鐘後又寄「恢復」
 - [x] 改成連續兩輪都失敗才寄；chunk 逾時會重試、原因寫「逾時」，不再誤寫成「build hash 對不上」（404／500 照舊馬上判失敗）

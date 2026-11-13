@@ -33,13 +33,11 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
    → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
-8. [ ] **GitHub 通知改寄 otemon**（E2E 失敗、外部監控 issue、Renovate PR 這些系統信）：
-   → github.com/settings/emails → Add email address：`otemon.pcwork@gmail.com` → 去 otemon 收驗證信點連結
-   → github.com/settings/notifications → **Default notifications email** 選 otemon
 
 ## 🤔 你要決定或提供素材的
 
-**內容- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
+**內容**
+- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
 - [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、
   真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
 - [ ] **均線回測程式的 bug 要不要修**（改的是 school repo，網站目前不放報酬數字）：沒持股時跌破 MA60 也記一筆 0 張賣出、
@@ -72,9 +70,6 @@
   → **頁首以外的桌機特效**：游標光圈、點擊漣漪、卡片聚光燈＋3D 傾斜、小標解碼、背景直書大字、時間軸畫線（commit `cdf68f9`）
 
 **要你建帳號／金鑰才能做**
-- [ ] **（選做）外部監控的信改寄 otemon**：11/09 已上線（`.github/workflows/uptime.yml`，GitHub 雲端每 10 分鐘打一次，掛了開 issue，
-  GitHub 寄通知到你 GitHub 帳號的信箱）。想讓它也寄到 otemon：repo → Settings → Secrets and variables → Actions →
-  New repository secret，加 `ALERT_SMTP_USER`、`ALERT_SMTP_PASS`（跟 `.env.local` 同一組值）
 - [ ] **Renovate patch 更新自動合併**（需要一組 fine-grained PAT）：內建 token 開的 PR 不會觸發 workflow、沒測試結果可依據
 - [ ] **聯絡表單**：要申請 EmailJS／Formspree 帳號（之前 mailto 版你說不需要）
 
