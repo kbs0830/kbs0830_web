@@ -51,13 +51,28 @@ function Test-SiteHealth {
 
     foreach ($chunk in $chunkMatches) {
         $chunkUrl = "$($baseUri.Scheme)://$($baseUri.Authority)$chunk"
-        try {
-            $chunkResp = Invoke-WebRequest -Uri $chunkUrl -UseBasicParsing -TimeoutSec 5
-            $code = $chunkResp.StatusCode
-        } catch {
-            $code = $_.Exception.Response.StatusCode.value__
+        # 有拿到狀態碼（404／500）就直接判定，那是 build 對不上，重試也不會好；
+        # 沒拿到（逾時、連線斷掉）才在期限內重試——2026-11-13 01:46 外網檢查就是 Tunnel 慢了一分鐘，
+        # 一個 chunk 逾時就被當成「build hash 對不上」寄了告警信。
+        $code = $null
+        while ($true) {
+            try {
+                $chunkResp = Invoke-WebRequest -Uri $chunkUrl -UseBasicParsing -TimeoutSec 5
+                $code = $chunkResp.StatusCode
+            } catch {
+                $code = $null
+                if ($_.Exception.Response) { $code = $_.Exception.Response.StatusCode.value__ }
+            }
+            if ($code -or (Get-Date) -ge $deadline) { break }
+            Start-Sleep -Seconds 1
         }
 
+        if (-not $code) {
+            return [PSCustomObject]@{
+                Success = $false
+                Reason  = "Chunk $chunk 在 $MaxWaitSeconds 秒內一直沒有回應（逾時／連線失敗）(Chunk request timed out)"
+            }
+        }
         if ($code -ne 200) {
             return [PSCustomObject]@{
                 Success = $false

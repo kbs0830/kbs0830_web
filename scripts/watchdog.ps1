@@ -85,13 +85,25 @@ if ($exitCode -eq 0) { Notify (Clear-Alert -Key "site" -Subject "✅ 網站已�
 # origin 本身壞掉時上面已經處理過，這裡只在 origin 正常時看「外面連不連得進來」。
 # Test-SiteHealth 會在 30 秒內重試，偶發的網路抖動不會誤報。
 # 不自動重啟 Cloudflared：服務本身有「當機自動重啟」，而且一般權限重啟不了服務；這裡只負責讓人知道。
+# 連續兩輪（間隔 5 分鐘）都失敗才寄信：2026-11-13 01:46 Tunnel 慢了一分鐘，一輪失敗就寄了「掛了」＋「恢復」兩封。
+# 真的斷線最晚 10 分鐘內還是會知道。第一輪失敗記在 data\alerts\tunnel.pending。
+$tunnelPending = Join-Path $repo "data\alerts\tunnel.pending"
 if ($exitCode -eq 0 -and -not $inMaintenance) {
     $public = Test-SiteHealth -Url "https://kbs0830.com/" -MaxWaitSeconds 30
     if ($public.Success) {
+        if (Test-Path $tunnelPending) {
+            Remove-Item $tunnelPending -Force
+            Log "外網檢查恢復（上一輪失敗只是一次，沒寄信）"
+        }
         Notify (Clear-Alert -Key "tunnel" -Subject "✅ 外網已經連得到網站")
+    } elseif (-not ((Test-Path $tunnelPending) -and (Get-Item $tunnelPending).LastWriteTime -gt (Get-Date).AddMinutes(-15))) {
+        # 沒有「上一輪失敗」紀錄，或那筆已經是 15 分鐘前的（中間有成功過／被維修模式跳過）：當成第一次
+        New-Item -ItemType Directory -Path (Split-Path $tunnelPending) -Force | Out-Null
+        Set-Content -Path $tunnelPending -Value (Get-Date -Format o)
+        Log "[WARN] 外網檢查失敗一次，下一輪再確認才通知：$($public.Reason)"
     } else {
         $svc = (Get-Service Cloudflared -ErrorAction SilentlyContinue).Status
-        Log "[FAILED] origin 正常但外網連不到：$($public.Reason)（Cloudflared 服務：$svc）"
+        Log "[FAILED] origin 正常但外網連不到（連續兩輪）：$($public.Reason)（Cloudflared 服務：$svc）"
         Notify (Send-Alert -Key "tunnel" -Subject "🔴 外網連不到網站（origin 正常，疑似 Tunnel）" `
             -Body "localhost:3000 正常，但 https://kbs0830.com/ 失敗：$($public.Reason)`nCloudflared 服務狀態：$svc`n`n先試：系統管理員 PowerShell 跑 Restart-Service Cloudflared")
         $exitCode = 1

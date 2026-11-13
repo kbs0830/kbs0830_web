@@ -5,6 +5,10 @@
 
 ---
 
+### 2026-11-13 外網檢查不再因為一分鐘抖動就寄信
+- [x] 11/13 01:46 Tunnel 慢了約一分鐘（server.log 看到 chunk 晚 60 秒才到），watchdog 一輪失敗就寄「外網連不到」，5 分鐘後又寄「恢復」
+- [x] 改成連續兩輪都失敗才寄；chunk 逾時會重試、原因寫「逾時」，不再誤寫成「build hash 對不上」（404／500 照舊馬上判失敗）
+
 ### 2026-11-12 全站換新寫法（使用者：「有沒有太過舊的技術，幫我都用新技術新寫法」）
 - [x] 彈窗確認全部是原生 `<dialog>`（終端機、快捷鍵說明），沒有 div＋JS 舊寫法
 - [x] error boundary `reset` → `retry`（Next 16.3）；`color-scheme`＋`accent-color`；`min-h-screen` → `min-h-svh`；
