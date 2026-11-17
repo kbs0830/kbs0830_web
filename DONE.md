@@ -9,7 +9,7 @@
 - [x] `scripts/lib/search-console.js`：點擊／曝光／平均排名（跟前一週比）、前 5 搜尋字詞／頁面、sitemap 每個網址的收錄狀態（URL Inspection API）
 - [x] 接進 `weekly-report.ps1`（沒設金鑰就不顯示）、上週收錄數存進快照可以比；金鑰檔加進每日備份；單元測試 6 個
 - [x] 用假金鑰實際打過 Google token 端點（回「account not found」＝JWT 格式正確），三種情況（有資料／出錯／沒設定）都 dry-run 過
-- [ ] 等使用者建服務帳號（TODO 🙋 第 9 項），之後 Claude 實際跑一次
+- [x] 使用者建好服務帳號 `kbs0830-weekly`（資源 `sc-domain:kbs0830.com`），11/17 第一次實際跑：sitemap 29 個網址收錄 25 個、一週曝光 25／點擊 2；完整資料寄到 otemon。順手修：頁面／字詞改照曝光排序（API 預設照點擊）、收錄查詢 6 個並行（94 秒 → 41 秒）
 
 ### 2026-11-13 GitHub 通知改寄 otemon（使用者設好的）
 - [x] GitHub 帳號加了 `otemon.pcwork@gmail.com`、Default notifications email 選它：E2E 失敗、外部監控（uptime.yml）開的 issue、Renovate PR 都改寄 otemon

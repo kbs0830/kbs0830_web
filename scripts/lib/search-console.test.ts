@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import crypto from "crypto";
-import { pickSite, signJwt, summarizeInspections, totals, weekRanges } from "./search-console.js";
+import { pickSite, signJwt, summarizeInspections, topRows, totals, weekRanges } from "./search-console.js";
 
 describe("signJwt", () => {
   it("用服務帳號私鑰簽出驗得過的 RS256 JWT，scope 只有唯讀", () => {
@@ -74,5 +74,18 @@ describe("summarizeInspections", () => {
       查詢失敗: 1,
     });
     expect(r.notIndexed).toEqual(["/stats", "/uses", "/now"]);
+  });
+});
+
+describe("topRows", () => {
+  it("照曝光排（同曝光再比點擊），只取前 n 個", () => {
+    const rows = [
+      { keys: ["/"], clicks: 2, impressions: 6 },
+      { keys: ["/a"], clicks: 0, impressions: 1 },
+      { keys: ["/b"], clicks: 0, impressions: 5 },
+      { keys: ["/c"], clicks: 1, impressions: 5 },
+    ];
+    expect(topRows({ rows }, 3).map((r: { key: string }) => r.key)).toEqual(["/", "/c", "/b"]);
+    expect(topRows({})).toEqual([]);
   });
 });

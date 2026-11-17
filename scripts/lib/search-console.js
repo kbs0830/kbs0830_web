@@ -84,8 +84,12 @@ function totals(resp) {
   return { clicks: r.clicks || 0, impressions: r.impressions || 0, ctr: r.ctr || 0, position: r.position || 0 };
 }
 
-function topRows(resp) {
-  return ((resp && resp.rows) || []).map((r) => ({ key: r.keys[0], clicks: r.clicks, impressions: r.impressions }));
+/** 照曝光排、取前 n 個（API 預設照點擊排；新站點擊幾乎都是 0，照點擊排等於亂排） */
+function topRows(resp, n = 5) {
+  return ((resp && resp.rows) || [])
+    .map((r) => ({ key: r.keys[0], clicks: r.clicks, impressions: r.impressions }))
+    .sort((a, b) => b.impressions - a.impressions || b.clicks - a.clicks)
+    .slice(0, n);
 }
 
 /** 每個網址的檢查結果 → 已收錄幾個、各狀態幾個、沒收錄的是哪些 */
@@ -144,16 +148,16 @@ async function run() {
   const [cur, prev, queries, pages] = await Promise.all([
     q(w.cur),
     q(w.prev),
-    q(w.cur, { dimensions: ["query"], rowLimit: 5 }),
-    q(w.cur, { dimensions: ["page"], rowLimit: 5 }),
+    q(w.cur, { dimensions: ["query"], rowLimit: 100 }),
+    q(w.cur, { dimensions: ["page"], rowLimit: 100 }),
   ]);
 
-  // sitemap 每個網址查一次索引狀態（3 個一起查，不要一次全部打出去）
+  // sitemap 每個網址查一次索引狀態（6 個一起查，不要一次全部打出去；一次約 3 秒，3 個一起時 29 個網址要 90 秒）
   const xml = await (await fetch(`${SITE}/sitemap.xml`, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15000) })).text();
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   const results = [];
-  for (let i = 0; i < urls.length; i += 3) {
-    const batch = urls.slice(i, i + 3).map(async (url) => {
+  for (let i = 0; i < urls.length; i += 6) {
+    const batch = urls.slice(i, i + 6).map(async (url) => {
       try {
         const d = await api("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect", {
           inspectionUrl: url,

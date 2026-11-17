@@ -35,16 +35,6 @@
    → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
 8. [ ] **確認 FoodLens repo 裡的 `irs_1774….pdf`** 🟠（2026-11-17 Claude 發現）：公開 repo 根目錄、3 頁 Word 檔，Claude 讀不到內容。
    是個人文件就要從 git 歷史整個清掉（跟 Claude 說）；是專題文件就把這項刪掉
-9. [ ] **Search Console 自動進週報：建服務帳號** 🟠（程式 11/17 已經寫好，等金鑰；做完以後就不用再手動匯出 CSV）
-   → ① https://console.cloud.google.com → 上方「選取專案」→「新增專案」，名稱隨意（例：`kbs0830-weekly`）
-   → ② 左上選單「API 和服務」→「程式庫」→ 搜 **Google Search Console API** →「啟用」
-   → ③「IAM 與管理」→「服務帳戶」→「建立服務帳戶」，名稱 `kbs0830-weekly`，角色**不用選**，按完成
-   → ④ 點進那個服務帳戶 →「金鑰」→「新增金鑰」→「建立新的金鑰」→ JSON → 會下載一個 .json
-   → ⑤ 把它放到**桌機** `C:\Users\user\.kbs0830-gsc-key.json`（⚠️ 這是密鑰：不要貼到對話、不要放進 repo）
-   → ⑥ Search Console → kbs0830.com →「設定」→「使用者和權限」→「新增使用者」→ 填服務帳戶的 email
-     （長得像 `kbs0830-weekly@專案ID.iam.gserviceaccount.com`），權限選**完整**（程式只拿唯讀 token，改不了任何東西）
-   → ⑦ `.env.local` 加一行 `GSC_KEY_FILE=C:\Users\user\.kbs0830-gsc-key.json`，跟 Claude 說「金鑰放好了」→ Claude 跑一次確認
-   → 撤銷：刪服務帳戶的金鑰，或 Search Console 把那個使用者移除
 
 ## 🤔 你要決定或提供素材的
 
@@ -102,7 +92,6 @@
 2. **停電也不斷線**（A2）：10/29 斷 4 天、11/06 停電，都會變成訪客沒感覺
 3. **網站更新紀錄 /changelog**（B1）：小工程，跟櫻花粉指示燈是同一套邏輯
 4. **每月自動故障演練**（C1）：故意把網站停掉，確認 watchdog 真的救得回來，跟每季的備份還原演練同一個思路
-5. ~~Search Console 數字自動進週報（C4）~~ 11/17 程式寫好了，等你建服務帳號（上面🙋第 9 項）
 
 **A. 大更新（🟥 好幾天）**
 
