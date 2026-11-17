@@ -1015,6 +1015,7 @@ kbs0830_web/
 ├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
 ├── CLAUDE.md
 ├── TODO.md                   # 只放還沒做的（你要動手／要決定／Claude 可直接做的點子）
+├── IDEAS.md                  # 點子庫（2026-11-17 腦力激盪），還沒決定做；決定做的搬進 TODO.md
 ├── DONE.md                   # 已完成紀錄（2026-11-09 從 TODO.md 拆出來）；做完的事從 TODO 搬過來
 └── package.json
 ```

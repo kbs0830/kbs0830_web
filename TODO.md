@@ -33,6 +33,8 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
    → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
+8. [ ] **確認 FoodLens repo 裡的 `irs_1774….pdf`** 🟠（2026-11-17 Claude 發現）：公開 repo 根目錄、3 頁 Word 檔，Claude 讀不到內容。
+   是個人文件就要從 git 歷史整個清掉（跟 Claude 說）；是專題文件就把這項刪掉
 
 ## 🤔 你要決定或提供素材的
 
@@ -81,7 +83,7 @@
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 
-（目前都做完了。有新點子會加在這裡）
+（目前都做完了。2026-11-17 腦力激盪的點子都在 [IDEAS.md](IDEAS.md)，決定做的再搬過來）
 
 ## ⏳ 等別人更新
 
