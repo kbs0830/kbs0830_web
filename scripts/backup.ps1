@@ -47,6 +47,7 @@ try {
     # --- 檔案 ---
     Copy-IfExists (Join-Path $repo ".env.local") (Join-Path $dest "env\.env.local")
     Copy-IfExists (Join-Path $userHome ".cloudflared") (Join-Path $dest "cloudflared")
+    Copy-IfExists (Join-Path $userHome ".kbs0830-gsc-key.json") (Join-Path $dest "gsc\kbs0830-gsc-key.json")  # Search Console 服務帳號金鑰（2026-11-17，週報用）
     Copy-IfExists (Join-Path $repo "data\visitor-stats.json") (Join-Path $dest "data\visitor-stats.json")
     Copy-IfExists (Join-Path $repo "data\web-vitals.json") (Join-Path $dest "data\web-vitals.json")
     Copy-IfExists (Join-Path $repo "data\raw-traffic.json") (Join-Path $dest "data\raw-traffic.json")

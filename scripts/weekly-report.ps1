@@ -4,6 +4,7 @@
 #   - 首頁 Web Vitals p75（/api/web-vitals）
 #   - 部署：成功／失敗／自動退回次數（logs\deploy.log）
 #   - watchdog：網站／runner 自動重啟、外網斷線次數（logs\watchdog.log）
+#   - Google 搜尋：點擊／曝光／排名、sitemap 網址的索引狀態（scripts\lib\search-console.js，要 .env.local 的 GSC_KEY_FILE）
 #
 # 由 watchdog.ps1 每 5 分鐘呼叫；這週（週一起算）已經寄過就直接結束。桌機週一關機的話，開機後補寄。
 # 手動：powershell -File scripts\weekly-report.ps1 -DryRun（只印不寄）、-Force（這週寄過也再寄）
@@ -110,6 +111,40 @@ try {
     }
 } catch { $lines += "【Web Vitals】讀不到：$($_.Exception.Message)"; $lines += "" }
 
+# --- Google 搜尋（Search Console，TODO C4，2026-11-17）---
+# scripts\lib\search-console.js 抓搜尋成效（點擊／曝光／排名，跟前一週比）＋ sitemap 每個網址的索引狀態，印一行 JSON。
+# 沒設 .env.local 的 GSC_KEY_FILE → skipped，這段不顯示；出錯就寫一行原因，週報照寄。
+$gsc = $null
+try {
+    $gscOut = & node (Join-Path $PSScriptRoot "lib\search-console.js") 2>$null
+    if ($gscOut) { $gsc = ($gscOut -join "") | ConvertFrom-Json }
+} catch { $gsc = [PSCustomObject]@{ error = $_.Exception.Message } }
+if ($gsc -and $gsc.error) {
+    $lines += "【Google 搜尋】讀不到：$($gsc.error)"
+    $lines += ""
+} elseif ($gsc -and -not $gsc.skipped) {
+    $a = $gsc.analytics
+    $lines += "【Google 搜尋】$($a.range)（Search Console 的資料晚 2～3 天）"
+    $pos = ""
+    if ($a.cur.impressions -gt 0) { $pos = "、平均排名 $([math]::Round($a.cur.position, 1))" }
+    $lines += "  點擊 $(N $a.cur.clicks) $(Delta $a.cur.clicks $a.prev.clicks)、曝光 $(N $a.cur.impressions) $(Delta $a.cur.impressions $a.prev.impressions)$pos"
+    if ($a.queries -and $a.queries.Count -gt 0) {
+        $lines += "  搜尋字詞：$(($a.queries | ForEach-Object { "$($_.key)（曝光 $($_.impressions)、點擊 $($_.clicks)）" }) -join '、')"
+    }
+    if ($a.pages -and $a.pages.Count -gt 0) {
+        $lines += "  曝光最多的頁面：$(($a.pages | ForEach-Object { "$($_.key)（$($_.impressions)）" }) -join '、')"
+    }
+    $ix = $gsc.index
+    $was = ""
+    if ($state -and $state.gscIndexed) { $was = "（上週 $($state.gscIndexed)）" }
+    $lines += "  已建立索引：sitemap $($ix.total) 個網址中 $($ix.indexed) 個$was"
+    $lines += "  $(($ix.states.PSObject.Properties | Sort-Object Value -Descending | ForEach-Object { "$($_.Name) $($_.Value)" }) -join '、')"
+    if ($ix.notIndexed -and $ix.notIndexed.Count -gt 0 -and $ix.notIndexed.Count -le 12) {
+        $lines += "  還沒收錄：$($ix.notIndexed -join '、')"
+    }
+    $lines += ""
+}
+
 # --- log：最近 7 天 ---
 function Count-Log($path, $pattern) {
     if (-not (Test-Path $path)) { return 0 }
@@ -137,5 +172,6 @@ Write-TimestampedLog -LogFile $logFile -Message "[WEEKLY] 週報：$r"
 if ($r -like "sent*") {
     $snap = @{ week = $weekKey; at = $now.ToString("o"); visits = $visits }
     if ($raw) { $snap.raw = @{ total = $raw.total; browser = $raw.browser; ai = $raw.ai; search = $raw.search; bot = $raw.bot } }
+    if ($gsc -and $gsc.index) { $snap.gscIndexed = $gsc.index.indexed }
     [IO.File]::WriteAllText($stateFile, ($snap | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
 }

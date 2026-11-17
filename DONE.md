@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-11-17 Search Console 進週報（TODO 點子 C4，程式部分）
+- [x] `scripts/lib/search-console.js`：點擊／曝光／平均排名（跟前一週比）、前 5 搜尋字詞／頁面、sitemap 每個網址的收錄狀態（URL Inspection API）
+- [x] 接進 `weekly-report.ps1`（沒設金鑰就不顯示）、上週收錄數存進快照可以比；金鑰檔加進每日備份；單元測試 6 個
+- [x] 用假金鑰實際打過 Google token 端點（回「account not found」＝JWT 格式正確），三種情況（有資料／出錯／沒設定）都 dry-run 過
+- [ ] 等使用者建服務帳號（TODO 🙋 第 9 項），之後 Claude 實際跑一次
+
 ### 2026-11-13 GitHub 通知改寄 otemon（使用者設好的）
 - [x] GitHub 帳號加了 `otemon.pcwork@gmail.com`、Default notifications email 選它：E2E 失敗、外部監控（uptime.yml）開的 issue、Renovate PR 都改寄 otemon
 - [x] 所以 TODO「（選做）外部監控的信改寄 otemon」也不用做了。uptime.yml 自己寄信那段（repo secret `ALERT_SMTP_USER`／`ALERT_SMTP_PASS`）還留著，沒設就跳過

@@ -443,6 +443,10 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 **每週週報（2026-11-09，`scripts/weekly-report.ps1`）**：watchdog 每輪呼叫，週一 09:00 後寄一封（這週寄過就跳過，關機錯過開機補寄）。
 內容：Cloudflare 7 天（跟前一週比）、真人造訪／未過濾流量增加多少（這兩份只存累計，跟上次寄信的快照 `data/weekly-report-state.json` 相減）、
 首頁 Web Vitals p75、部署成功／失敗／退回次數、watchdog 重啟次數。`-DryRun` 只印不寄。
+**Google 搜尋（2026-11-17，TODO C4）**：`scripts/lib/search-console.js`（Node，PS 5.1 讀不了 PEM 私鑰沒辦法簽 JWT）抓點擊／曝光／排名＋前 5 字詞／頁面，
+再把 sitemap 每個網址丟 URL Inspection API 查收錄（**API 沒有「已建立索引總數」**，只能逐頁查；每天 2000 次配額）。
+金鑰＝服務帳號 JSON，放 `C:\Users\user\.kbs0830-gsc-key.json`（不進 repo、有進每日備份），`.env.local` 的 `GSC_KEY_FILE` 指過去；
+沒設就 skipped、這段不顯示。token scope 只有 `webmasters.readonly`。搜尋字詞只進信、不存檔。單元測試 `search-console.test.ts`
 ⚠️ PowerShell 地雷（寫的時候踩到）：`$home` 是內建唯讀變數不能拿來用；`-like "*[ROLLBACK]*"` 的方括號是萬用字元，要用 `.Contains()`。
 
 **每季備份還原演練（2026-11-09，`scripts/restore-drill.ps1`）**：watchdog 帶 `-IfOlderThanDays 90` 呼叫。從 GitHub **重新 clone**
@@ -466,7 +470,7 @@ Enable-ScheduledTask -TaskName "kbs0830_Watchdog"
 
 watchdog 每 5 分鐘呼叫一次 `backup.ps1 -IfOlderThanHours 24`，超過 24 小時沒成功備份才真的跑
 （不另開排程工作：建排程要管理員權限）。備份「不在 git 裡、壞了會真的不見」的東西：
-`.env.local`、`~/.cloudflared/`（tunnel 憑證）、`data/visitor-stats.json`、`data/web-vitals.json`、`.git/config`（push 設定）、
+`.env.local`、`~/.cloudflared/`（tunnel 憑證）、`~/.kbs0830-gsc-key.json`（Search Console 服務帳號，週報用）、`data/visitor-stats.json`、`data/web-vitals.json`、`.git/config`（push 設定）、
 deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設定。
 
 | | 位置 | 格式 | 保留 |
