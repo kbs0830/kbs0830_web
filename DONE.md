@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-20 FR24 雷達（T-RCKH76）收訊修好
+- [x] 原本一分鐘約 100 萬個疑似訊號一個都解不出來（accepted 0、雜訊 -31 dBFS）：增益沒設＝最大。使用者在 settings 的 Process arguments 填 `--gain 40`
+- [x] 改完重啟時 fr24feed 卡在「關到一半」（`monitor.json` 的 `shutdown: yes`、接收器斷線 30 分鐘，網頁的 Restart 沒反應；`restart.html` 一打開就會觸發重啟），使用者拔電重開才好
+- [x] 重開後 41 分鐘：6,663 則訊息、21 架、位置解碼 1,021 次 0 失敗（含小港機場地面的飛機），雜訊 -37 dBFS
+
 ### 2026-11-17 Search Console 進週報（TODO 點子 C4，程式部分）
 - [x] `scripts/lib/search-console.js`：點擊／曝光／平均排名（跟前一週比）、前 5 搜尋字詞／頁面、sitemap 每個網址的收錄狀態（URL Inspection API）
 - [x] 接進 `weekly-report.ps1`（沒設金鑰就不顯示）、上週收錄數存進快照可以比；金鑰檔加進每日備份；單元測試 6 個
