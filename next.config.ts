@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 
 // 頁尾的「版本＋最後更新時間」：build 當下 HEAD 的 commit（hash 跟 commit 時間）。
 // 部署一定是在 git repo 裡 build；萬一讀不到（沒有 git）就顯示 dev，不讓 build 失敗
@@ -16,12 +16,20 @@ const head = gitHead();
 // /changelog 的資料（lib/changelog.ts）：只留 feat commit 的「短 hash␟時間␟標題」。
 // 在這裡讀、用 env 傳給頁面——2026-11-21 第一次上線時頁面自己在產生靜態頁的 worker 裡跑 git log，
 // 自己 build 正常、CI runner 部署的 build 卻是空的（next.config 這裡的 git 一直正常），所以改成在這裡讀。
+// 第二次（同一天）改到這裡還是空的、也沒有錯誤：git 有跑、但輸出裡找不到 feat 那幾行。
+// 改成不經過 cmd.exe 直接執行 git（格式字串裡的 % 不會被 shell 碰到），找不到時把輸出的樣子記進 build log。
 function gitFeatLog() {
   try {
-    return execSync("git log --no-merges --format=%h%x1f%cI%x1f%s", { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 })
-      .split("\n")
-      .filter((line) => /\x1ffeat[(!:]/.test(line))
-      .join("\n");
+    const raw = execFileSync("git", ["log", "--no-merges", "--format=%h%x1f%cI%x1f%s"], {
+      encoding: "utf8",
+      maxBuffer: 16 * 1024 * 1024,
+      windowsHide: true,
+    });
+    const lines = raw.split("\n").filter((line) => /\x1ffeat[(!:]/.test(line));
+    if (lines.length === 0) {
+      console.warn(`[changelog] git log 有輸出但沒有 feat：${raw.split("\n").length} 行，第一行 ${JSON.stringify(raw.split("\n")[0])}`);
+    }
+    return lines.join("\n");
   } catch (e) {
     console.warn(`[changelog] git log 失敗：${e instanceof Error ? e.message : e}`);
     return "";

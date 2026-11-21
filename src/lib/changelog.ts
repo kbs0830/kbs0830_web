@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 // 網站更新紀錄 /changelog（TODO B1，2026-11-21）：從 git 的 `feat` commit 自動產生，跟新功能指示燈
 // （deploy.ps1 的 Update-FeatureRelease）同一條規則——commit 訊息照慣例寫，真的是新功能才用 feat。
@@ -84,9 +84,11 @@ export function readChangelog(): ChangelogEntry[] {
   if (fromBuild) return parseChangelog(fromBuild);
   // 單元測試、沒有經過 next.config 的情況才直接讀 git
   try {
-    const raw = execSync("git log --no-merges --format=%h%x1f%cI%x1f%s", {
+    // 不經過 cmd.exe（格式字串的 % 不給 shell 碰）
+    const raw = execFileSync("git", ["log", "--no-merges", "--format=%h%x1f%cI%x1f%s"], {
       encoding: "utf8",
       maxBuffer: 16 * 1024 * 1024,
+      windowsHide: true,
     });
     return parseChangelog(raw);
   } catch (e) {
