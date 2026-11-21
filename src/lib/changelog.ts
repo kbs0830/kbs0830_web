@@ -42,6 +42,7 @@ const SCOPE_NAMES: Record<string, string> = {
   cloudflare: "Cloudflare",
   flights: "飛行紀錄",
   footer: "頁尾",
+  hero: "首頁",
   hotels: "住宿紀錄",
   mobile: "手機版",
   ops: "維運",

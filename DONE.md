@@ -5,6 +5,13 @@
 
 ---
 
+### 2026-11-22 首頁 WebGPU 版（使用者：「電腦版用 WebGPU、手機用 WebGL，電腦版更多可玩性」）
+- [x] 依「拿不拿得到 GPU」分版本（不是依電腦／手機）：WebGPU 版／WebGL 版（照舊）／手機 Canvas 2D 版（照舊）；減少動態一律 WebGL 版
+- [x] 四個玩法：流場、按住聚集／放開散開、拖曳畫星座、雙擊換形狀（名字、航線圖、網站圖示）；粒子數依 fps 自動調整（實測 RTX 3070 跑到上限 8,000 顆、100+ fps）
+- [x] 太慢、退回 WebGL2 後端、丟錯 → 自動換回 WebGL 版；Playwright 內建 Chromium 拿不到 device 的情況實際驗證過退回
+- [x] 早上那輪「A7 不做」的評估改寫：問題出在「有 navigator.gpu 但沒 GPU」的退回路徑，先拿 adapter 再決定就避開了
+- [x] 測試：E2E 89 個（headless 走 WebGL 版）、真顯卡（headless Chrome＋D3D11）跑過每個玩法的截圖、深色模式、減少動態、手機
+
 ### 2026-11-22 A7 評估（不做）＋ A5 部署失敗的修正
 - [x] **A5 第一次部署 build 失敗**（23:24，線上沒動，雙槽擋住了）：/changelog 分享圖產生時丟錯，重 build 就好——判斷是 Google Fonts 對那組字回了壞字型。
   `og-font.ts` 檢查字型檔頭＋重抓、`og-card.tsx` 先試畫、畫不出來退回英文，不再讓整個 build 失敗

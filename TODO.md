@@ -137,12 +137,6 @@
 
 ## 評估過、先不做（記下理由免得重查）
 
-- **A7 首頁 3D 改 WebGPU**（2026-11-22 實測後不做）：three 0.187 的 `three/webgpu` 可以直接換 renderer（沒有 WebGPU 會自動退回 WebGL2）。
-  實測（headless Chromium，port 3200）：現在 WebGL 版首頁 60 fps；**瀏覽器有 `navigator.gpu` 但沒有可用的 GPU 時**（被列黑名單的顯卡、部分 Linux）
-  WebGPURenderer 退回它自己的 WebGL2 後端，**掉到 12 fps**、首頁 JS 多下載約 250 KB；沒有 WebGPU 的瀏覽器則一樣（1,488 vs 1,495 KB）。
-  粒子只有 90 個，compute shader 沒有效能可省，純展示。要再試的話：先 `requestAdapter()` 拿得到才用 WebGPURenderer（避開退回路徑），
-  而且要在真的顯卡上量 60 fps（這個 session 的 headless 沒有 GPU，量不到）
-
 - **拿掉 `HeroScene.tsx` 剩下的 3 個 `useMemo`**（2026-11-09 評估）：這 3 個不是效能優化，是「整個元件生命週期只建一次」的
   three.js 物件（線條、粒子 geometry），後面有 `dispose()` 清理、`useFrame` 每幀改它們。React Compiler 的自動快取只是優化、
   不保證不重建；拿掉的話萬一被重建，就是 GPU 記憶體漏掉＋畫面閃一下。React 保證只建一次的寫法是 `useState(() => …)`，

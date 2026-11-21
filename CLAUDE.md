@@ -594,6 +594,17 @@ deploy.bat
 ### 1. Hero
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
   Hero 捲出畫面 `frameloop="never"` 完全停畫。名字滑鼠移上去會解碼一次；底部「SCROLL」光點沿細線往下滑
+- **三種版本（2026-11-22）**：`HeroBackground` 先 `navigator.gpu.requestAdapter()`——拿得到真的 GPU（不是 fallback adapter）、沒開減少動態
+  → **WebGPU 版 `HeroSceneGPU.tsx`**；不然 → WebGL 版 `HeroScene.tsx`（下面這段）；手機 → `HeroSceneLite.tsx`。
+  WebGPU 版（使用者：「電腦版要更多可玩性」，四個玩法都要、密度依效能）：粒子全在 GPU compute shader（three/webgpu＋TSL），
+  移動游標＝流場、按住＝聚集／放開＝散開、拖曳＝畫星座（星點吸粒子，4 秒後淡掉）、雙擊＝名字→航線圖→網站圖示→星空（10 秒自己回星空）。
+  數量 1,200 起、每秒量 fps：≥57 加 50%、<48 減 30%，上限 8,000（16,384 太吵壓到標題）；亮點固定 90 顆、其餘淡細點；星空模式標題那塊調淡。
+  最少數量還 <40 fps 連兩次、或 renderer 退回 WebGL2 後端、或丟錯 → 換 WebGL 版，並記在 sessionStorage（`hero-tier`）這個分頁不再試。
+  彈簧 k=4／阻尼 4.4（阻尼比約 1.1，不彈）。測試用 `?hero=webgpu`（關掉自動退回）／`?hero=webgl`。左下角一行玩法提示。
+  ⚠️ 坑：① 只看 `navigator.gpu` 不夠，要拿得到 adapter——不然 WebGPURenderer 退回 WebGL2 後端掉到 12 fps；
+  ② Playwright 內建的 Chromium 少 `dxcompiler.dll`，拿得到 adapter 但 requestDevice 失敗（剛好驗證了退回路徑）。
+  要在這台桌機用真顯卡測：`chromium.launch({ channel: "chrome", args: ["--enable-unsafe-webgpu","--enable-gpu","--use-angle=d3d11","--ignore-gpu-blocklist"] })`，
+  `window.__heroRenderer`／`__heroParticles`／`__heroFps` 看狀態；③ `uniformArray` 只在 render 時同步，只有 compute 用的資料要用 `instancedArray`（storage buffer）
 - 全螢幕 R3F 3D 背景：稀疏細線 + 靛藍粒子，慢速旋轉，隨游標位置微微傾斜（lerp 平滑，
   尊重 `prefers-reduced-motion`）。**`<Canvas>` 外面一定要包一層 `absolute inset-0` 的 div**：
   直接把 className 給 Canvas 會被它自己的 inline `position:relative; height:100%` 蓋掉，
