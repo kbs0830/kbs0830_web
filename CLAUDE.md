@@ -850,7 +850,7 @@ deploy.bat
 - 檔案路徑、同步 read-modify-write 的理由跟訪客統計一樣（`server.js` 設 `WEB_VITALS_FILE`）
 
 ### 自家 FR24 雷達（2026-11-21，/flights 最下面）
-- 使用者自己架的 ADS-B 接收器（樹莓派 Pi24 映像＋SDR 棒，FR24 代碼 T-RCKH76），在區網 `192.168.50.147`：
+- 使用者自己架的 ADS-B 接收器（樹莓派 Pi24 映像＋SDR 棒；FR24 雷達代碼不寫進 repo——repo 是公開的，接收器在使用者家），在區網 `192.168.50.147`：
   `:8754/monitor.json`（fr24feed 狀態）、`/dump1090/data/aircraft.json`（現在收到的飛機）。`.env.local` 的 `RADAR_HOST`，沒設就整個不跑
 - `scripts/server.js` 在 `app.prepare()` 之後（Next 那時才把 `.env.local` 載進 process.env）呼叫 `lib/radar.js` 的
   `startRadarPoller`：每 30 秒讀一次 → 彙總寫 `data/radar.json`（`RADAR_FILE`，可從外面指定；有進每日備份）
