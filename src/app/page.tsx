@@ -54,6 +54,12 @@ export default function Home() {
               Flights
             </Link>
             <Link
+              href="/radar"
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
+            >
+              Radar
+            </Link>
+            <Link
               href="/stats"
               className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
             >

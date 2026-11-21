@@ -236,6 +236,19 @@ details.disclosure[open]::details-content {
   to { stroke-dashoffset: 0; }
 }
 
+/* /radar 頁首的雷達圓盤（RadarLive）：掃描線慢慢轉一圈 8 秒，等速不加速（不跳不彈）。
+   reduced-motion 不轉，停在 12 點鐘方向 */
+@media (prefers-reduced-motion: no-preference) {
+  .radar-sweep {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    animation: radar-sweep 8s linear infinite;
+  }
+}
+@keyframes radar-sweep {
+  to { rotate: 360deg; }
+}
+
 /* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
 @media (width < 640px) {
   .filter-scroll {

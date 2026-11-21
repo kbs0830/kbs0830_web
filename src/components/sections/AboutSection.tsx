@@ -220,7 +220,7 @@ function FootprintPanel() {
           住宿紀錄 · Hotel Log（{hotelStats().hotels} 間 · {hotelStats().cities} 城市）→
         </Link>
         <Link
-          href="/flights#radar"
+          href="/radar"
           className="inline-block py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
         >
           自家雷達 · My Radar（即時）→

@@ -850,9 +850,14 @@ deploy.bat
 - 檔案路徑、同步 read-modify-write 的理由跟訪客統計一樣（`server.js` 設 `WEB_VITALS_FILE`）
 
 ### 自家 FR24 雷達（2026-11-21）
-- **在哪裡看得到**（使用者：「雷達、飛行紀錄、住宿紀錄可以不用藏那麼深，FR24 自架站點是一個特色」）：/flights 頁首（統計數字下面，`#radar`）、
-  首頁 About 現況卡下面的小卡（`RadarBadge`，跟 Spotify 同樣式）、足跡分頁的連結、首頁頁尾 `Flights`、作品集的個人專案 **`fr24-receiver`**
-  （詳細頁有「看即時狀態」＝`Project.live`）。作品頁內容是 11/20～21 真的除錯數字，**不寫「收得到地面滑行的飛機」**（等於說住機場旁）
+- **獨立頁 `/radar`**（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）：大數字「現在幾架」＋裝飾雷達圓盤（`RadarLive.tsx`，
+  每 30 秒更新；圓盤**不畫光點**——沒有座標也不放假位置；掃描線 `globals.css .radar-sweep`，reduced-motion 不轉、離線不畫）、
+  今天／最多同時／近 7 天／在線率、「一天的節奏」（每小時最多同時幾架，近 7 天平均＝`day.hourPeak`）、近 30 天、近 7 天航空公司、關於。
+  `force-dynamic` 每次請求讀 `lib/radar.js` 的 `detail()`，所以**跟 /stats 一樣沒有 Markdown 版**（刻意例外）；Cloudflare 不會存（no-store）。
+  圖表元件 `StatCharts.tsx`（BarChart／ShareList／Tiles，從 /stats 抽出來共用）。sitemap、/stats 頁名、a11y／privacy E2E 都加了
+- **在哪裡看得到**（使用者：「雷達、飛行紀錄、住宿紀錄可以不用藏那麼深，FR24 自架站點是一個特色」）：`/radar`；/flights 頁首的摘要（`#radar`，連到 /radar）、
+  首頁 About 現況卡下面的小卡（`RadarBadge`）、足跡分頁的連結、首頁頁尾 `Flights`／`Radar`、作品集的個人專案 **`fr24-receiver`**
+  （詳細頁「看即時狀態」＝`Project.live` → /radar）。作品頁內容是 11/20～21 真的除錯數字，**不寫「收得到地面滑行的飛機」**（等於說住機場旁）
 - 使用者自己架的 ADS-B 接收器（樹莓派 Pi24 映像＋SDR 棒；FR24 雷達代碼不寫進 repo——repo 是公開的，接收器在使用者家），在區網 `192.168.50.147`：
   `:8754/monitor.json`（fr24feed 狀態）、`/dump1090/data/aircraft.json`（現在收到的飛機）。`.env.local` 的 `RADAR_HOST`，沒設就整個不跑
 - `scripts/server.js` 在 `app.prepare()` 之後（Next 那時才把 `.env.local` 載進 process.env）呼叫 `lib/radar.js` 的

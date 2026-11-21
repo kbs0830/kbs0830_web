@@ -59,8 +59,14 @@ function applySample(prev, sample, now) {
   const current = ok ? (sample.aircraft || []).filter((a) => a && a.hex && (a.seen ?? 0) <= RECENT_SECONDS) : [];
 
   const day = (state.days[date] = state.days[date] || { polls: 0, online: 0, peak: 0, unique: 0, airlines: {} });
+  // 每小時最多同時幾架（台灣時間；/radar「一天的節奏」用）。null＝那個小時還沒有在線的紀錄（2026-11-21 晚上才加，之前的日子沒有）
+  if (!Array.isArray(day.hourPeak)) day.hourPeak = Array(24).fill(null);
   day.polls++;
-  if (ok) day.online++;
+  if (ok) {
+    day.online++;
+    const h = new Date(now + 8 * 3600_000).getUTCHours();
+    day.hourPeak[h] = Math.max(day.hourPeak[h] ?? 0, current.length);
+  }
   day.peak = Math.max(day.peak, current.length);
   for (const a of current) {
     const hex = String(a.hex).toLowerCase();
@@ -112,13 +118,49 @@ function summarize(state, now) {
     today: {
       unique: today.unique,
       peak: today.peak,
-      airlines: Object.entries(today.airlines)
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .slice(0, 6)
-        .map(([code, n]) => ({ code, name: AIRLINE_NAMES[code] || code, n })),
+      airlines: topAirlines(today.airlines, 6),
     },
     week: { unique: sum("unique"), uptime: sum("polls") ? Math.round((sum("online") / sum("polls")) * 1000) / 10 : null },
     since: state.since,
+  };
+}
+
+const topAirlines = (counts, n) =>
+  Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, n)
+    .map(([code, count]) => ({ code, name: AIRLINE_NAMES[code] || code, n: count }));
+
+/**
+ * /radar 頁用的完整資料（Server Component 直接讀檔呼叫，不經 API）：summarize() 再加
+ *   daily：近 30 天每天幾架、最多同時、在線率（沒資料的日子是 null）
+ *   hours：近 7 天（含今天）每小時「最多同時幾架」的平均
+ *   weekAirlines：近 7 天航空公司前 10
+ *   total：開始記錄以來累計架次、最多同時、記錄天數
+ * 一樣只有數字跟航空公司，沒有識別碼、座標
+ */
+function detail(state, now) {
+  const base = summarize(state, now);
+  if (!base.configured) return base;
+  const dates = Array.from({ length: 30 }, (_, i) => twDate(now - (29 - i) * 86400_000));
+  const daily = dates.map((date) => {
+    const v = state.days[date];
+    return { date, unique: v ? v.unique : null, peak: v ? v.peak : null, uptime: v && v.polls ? Math.round((v.online / v.polls) * 1000) / 10 : null };
+  });
+  const last7 = dates.slice(-7).map((d) => state.days[d]).filter(Boolean);
+  const hours = Array.from({ length: 24 }, (_, h) => {
+    const vals = last7.map((v) => (Array.isArray(v.hourPeak) ? v.hourPeak[h] : null)).filter((x) => typeof x === "number");
+    return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null;
+  });
+  const weekCounts = {};
+  for (const v of last7) for (const [k, n] of Object.entries(v.airlines || {})) weekCounts[k] = (weekCounts[k] || 0) + n;
+  const all = Object.values(state.days);
+  return {
+    ...base,
+    daily,
+    hours,
+    weekAirlines: topAirlines(weekCounts, 10),
+    total: { unique: all.reduce((n, v) => n + v.unique, 0), peak: all.reduce((m, v) => Math.max(m, v.peak), 0), days: all.length },
   };
 }
 
@@ -170,4 +212,4 @@ function startRadarPoller({ host, file, log }) {
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { AIRLINE_NAMES, airlineOf, twDate, applySample, summarize, readState, pollRadar, startRadarPoller };
+module.exports = { AIRLINE_NAMES, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller };

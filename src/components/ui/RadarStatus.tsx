@@ -6,7 +6,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 
 // 自家 FR24 雷達的即時狀態（資料見 scripts/lib/radar.js、/api/radar）。
 //   - RadarStatus：/flights 頁首的完整區塊（id="radar"，作品頁「看即時狀態」連過來）
-//   - RadarBadge：首頁 About 現況卡下面的小卡（跟 Spotify 同一種樣式），點了到 /flights#radar
+//   - RadarBadge：首頁 About 現況卡下面的小卡（跟 Spotify 同一種樣式），點了到 /radar（完整頁，有圖表）
 // 2026-11-21 使用者：「雷達、飛行紀錄、住宿紀錄可以不用藏那麼深，FR24 自架站點是一個特色」→ 從 /flights 最下面搬上來。
 // RadarStatus 載入中先畫同樣大小的骨架（數字是 –），資料回來不會把下面的內容往下推；雷達沒設定（configured: false）才整塊拿掉。
 // 隱私：只顯示數字跟航空公司，不放地圖、座標、涵蓋範圍（那些看得出接收器在哪）。
@@ -99,8 +99,8 @@ export default function RadarStatus({ className = "" }: { className?: string }) 
       <p className="text-xs text-(--muted) font-light leading-relaxed mt-4">
         自己架的 ADS-B 接收器（樹莓派＋SDR），收到的資料同時分享給 Flightradar24。
         {week && week.unique > 0 && <>近 7 天收到 {nf.format(week.unique)} 架次{week.uptime != null && `，在線 ${week.uptime}%`}。</>}
-        <Link href="/projects/fr24-receiver" className="text-(--accent) underline underline-offset-4 ml-1 whitespace-nowrap">
-          怎麼架的 →
+        <Link href="/radar" className="text-(--accent) underline underline-offset-4 ml-1 whitespace-nowrap">
+          完整雷達頁 →
         </Link>
         <span className="block text-[11px] font-mono mt-1">Self-hosted ADS-B receiver, feeding Flightradar24.</span>
       </p>
@@ -116,7 +116,7 @@ export function RadarBadge() {
   if (!data?.configured || !data.today) return null;
   return (
     <Link
-      href="/flights#radar"
+      href="/radar"
       className="group flex items-center gap-3 p-3 border border-(--border) rounded-sm bg-(--bg) hover:border-(--accent) transition-colors"
     >
       <Dot on={data.online} />

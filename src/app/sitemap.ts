@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/flights", "monthly", 0.3),
     page("/hotels", "monthly", 0.3),
     page("/stats", "daily", 0.3),
+    page("/radar", "daily", 0.5),
     ...projects.map((p) => page(`/projects/${p.slug}`, "monthly", 0.7)),
     ...getAllPosts().map((post) => page(`/blog/${post.slug}`, "monthly", 0.6, new Date(post.date))),
     // tag 頁 noindex（2026-11-12，見 app/blog/tags/[tag]/page.tsx），不列

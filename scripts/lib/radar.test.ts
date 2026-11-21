@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { airlineOf, applySample, summarize, twDate } from "./radar.js";
+import { airlineOf, applySample, detail, summarize, twDate } from "./radar.js";
 
 type Plane = { hex: string; flight?: string; seen?: number };
 const T0 = Date.parse("2026-11-21T02:00:00Z"); // 台灣 10:00
@@ -78,5 +78,44 @@ describe("summarize", () => {
 
   it("還沒設定雷達", () => {
     expect(summarize(null, T0)).toEqual({ configured: false });
+  });
+});
+
+describe("detail（/radar 頁）", () => {
+  it("每小時記最多同時幾架（台灣時間），離線的那次不記", () => {
+    let s = applySample(null, ok([{ hex: "a", seen: 0 }, { hex: "b", seen: 0 }]), T0); // 台灣 10 點
+    s = applySample(s, ok([{ hex: "a", seen: 0 }]), T0 + 60_000);
+    s = applySample(s, { reachable: false, rxConnected: false, shutdown: false, aircraft: [] }, T0 + 3600_000); // 11 點離線
+    const hp = s.days["2026-11-21"].hourPeak;
+    expect(hp[10]).toBe(2);
+    expect(hp[11]).toBeNull();
+    expect(hp).toHaveLength(24);
+  });
+
+  it("近 30 天、每小時平均、近 7 天航空公司、累計；沒資料的日子是 null", () => {
+    let s = applySample(null, ok([{ hex: "a", flight: "CAL1", seen: 0 }, { hex: "b", flight: "EVA2", seen: 0 }]), T0 - 86400_000);
+    s = applySample(s, ok([{ hex: "c", flight: "CAL3", seen: 0 }]), T0);
+    const d = detail(s, T0 + 1000);
+    if (!("daily" in d)) throw new Error("detail 沒有 daily");
+    expect(d.daily).toHaveLength(30);
+    expect(d.daily.at(-1)).toMatchObject({ date: "2026-11-21", unique: 1, peak: 1, uptime: 100 });
+    expect(d.daily.at(-2)).toMatchObject({ date: "2026-11-20", unique: 2 });
+    expect(d.daily[0].unique).toBeNull();
+    expect(d.hours[10]).toBe(1.5); // 兩天 10 點：2 架、1 架
+    expect(d.hours[3]).toBeNull();
+    expect(d.weekAirlines).toEqual([
+      { code: "CAL", name: "中華航空", n: 2 },
+      { code: "EVA", name: "長榮航空", n: 1 },
+    ]);
+    expect(d.total).toEqual({ unique: 3, peak: 2, days: 2 });
+    expect(JSON.stringify(d)).not.toMatch(/"a"|"b"|"c"|lat|lon|192\.168/);
+  });
+
+  it("舊資料（沒有 hourPeak 的日子）也不會壞", () => {
+    const s = applySample(null, ok([]), T0);
+    delete s.days["2026-11-21"].hourPeak;
+    const d = detail(s, T0);
+    if (!("hours" in d)) throw new Error("detail 沒有 hours");
+    expect(d.hours.every((h: number | null) => h === null)).toBe(true);
   });
 });

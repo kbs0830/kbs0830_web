@@ -3,6 +3,7 @@ import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
+import { BarChart, Share, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
 import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/site-stats";
 import { lastDays, readDetail } from "@/lib/visit-detail";
@@ -40,6 +41,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/flights": "飛行紀錄",
   "/hotels": "住宿紀錄",
   "/stats": "訪客分析",
+  "/radar": "自家雷達",
 };
 function pageName(path: string): string {
   if (PAGE_NAMES[path]) return PAGE_NAMES[path];
@@ -51,68 +53,6 @@ function pageName(path: string): string {
 }
 
 const sorted = (m: Record<string, number> = {}) => Object.entries(m).sort((a, b) => b[1] - a[1]);
-
-function BarChart({ bars, caption, label }: { bars: { key: string; value: number; title: string }[]; caption: React.ReactNode; label: string }) {
-  const max = Math.max(1, ...bars.map((b) => b.value));
-  const W = 600;
-  const H = 140;
-  const gap = bars.length > 24 ? 4 : 6;
-  const bw = (W - gap * (bars.length - 1)) / bars.length;
-  return (
-    <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={label}>
-        {bars.map((b, i) => {
-          const h = Math.max(b.value > 0 ? 2 : 0, (b.value / max) * (H - 4));
-          return (
-            <rect key={b.key} x={i * (bw + gap)} y={H - h} width={bw} height={h} rx={1} style={{ fill: "var(--accent)" }} opacity={0.85}>
-              <title>{b.title}</title>
-            </rect>
-          );
-        })}
-        <line x1={0} x2={W} y1={H - 0.5} y2={H - 0.5} style={{ stroke: "var(--border)" }} />
-      </svg>
-      <figcaption className="flex justify-between text-[11px] text-(--muted) font-mono mt-2">{caption}</figcaption>
-    </figure>
-  );
-}
-
-function Share({ label, value, total }: { label: string; value: number; total: number }) {
-  const pct = total > 0 ? (value / total) * 100 : 0;
-  return (
-    <li className="grid grid-cols-[minmax(0,7rem)_1fr_4.5rem] items-center gap-3 py-2">
-      <span className="text-[15px] sm:text-sm font-light text-(--text) truncate">{label}</span>
-      <span className="h-1.5 bg-(--surface) rounded-full overflow-hidden">
-        <span className="block h-full bg-(--accent) rounded-full" style={{ width: `${pct}%` }} />
-      </span>
-      <span className="text-xs text-(--muted) font-mono text-right">
-        {nf.format(value)} <span>{pct.toFixed(0)}%</span>
-      </span>
-    </li>
-  );
-}
-
-function ShareList({ entries, total }: { entries: [string, number][]; total: number }) {
-  return (
-    <ul className="border-y border-(--border) divide-y divide-(--border)">
-      {entries.map(([k, v]) => (
-        <Share key={k} label={k} value={v} total={total} />
-      ))}
-    </ul>
-  );
-}
-
-function Tiles({ items }: { items: [string, string][] }) {
-  return (
-    <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-12">
-      {items.map(([value, label]) => (
-        <div key={label} className="bg-(--bg) px-4 py-4 flex flex-col-reverse">
-          <dt className="text-[11px] text-(--muted) font-mono tracking-wide">{label}</dt>
-          <dd className="text-xl font-light text-(--text) font-mono mb-1">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
 export default function StatsPage() {
   // Cloudflare 一小時最多抓一次，背景跑不等它（這次用檔案裡現有的）

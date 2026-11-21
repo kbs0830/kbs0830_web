@@ -350,7 +350,7 @@ export const projects: Project[] = [
     highlightZh: "調整增益後，解碼從一則都沒有 → 41 分鐘 6,663 則",
     status: "完成",
     isPersonal: true,
-    live: { href: "/flights#radar", label: "看即時狀態 · Live Status" },
+    live: { href: "/radar", label: "看即時狀態 · Live Status" },
     detail: {
       intro:
         "家裡自己架的航空雷達。飛機會一直用 1090 MHz 廣播自己的位置、高度和航班代碼（ADS-B），樹莓派接一支 SDR 電視棒就收得到，解碼後即時分享給 Flightradar24。飛行紀錄頁記的是我自己搭過的航班，這台收的是從頭上飛過的。",
