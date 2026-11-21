@@ -734,6 +734,9 @@ deploy.bat
 
 ### 5.5 `/changelog`（2026-11-21，TODO B1）
 - build 時跑 `git log` 撈 `feat` commit（`lib/changelog.ts`），頁尾「最後更新」（`BuildInfo`）整段連過來。靜態頁，每次部署重新產生
+- ⚠️ git 在 `next.config.ts` 讀（env `BUILD_FEAT_LOG` 傳給頁面），而且**用 `execFileSync("git", [...])`，不要 `execSync("git log --format=%h…")`**：
+  上線當天自己 build 都正常，CI runner 部署的 build 卻整頁空白、沒有錯誤——runner 環境下經過 cmd.exe 的 `%…%` 格式字串被動到，
+  git 有輸出但找不到 feat 那幾行（改 execFileSync 才好，第三次部署才修對）。讀不到時 build log 會有 `[changelog]` 警告
 - commit 訊息會**原文公開**：本名、信箱、token、內網、雷達位置不要寫進 `feat` 的標題。寫到了會被 `PRIVATE_PATTERN` 整則濾掉；
   要改寫或隱藏舊的某一則，在 `OVERRIDES` 加「短 hash → 新文字／null」。`changelog.test.ts` 會拿真的 git log 檢查
 
