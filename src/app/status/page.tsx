@@ -103,7 +103,15 @@ export default function StatusPage() {
     <PageShell
       eyebrow="Status"
       title={<>維運狀態 &nbsp;·&nbsp; Status</>}
-      intro="這個網站跑在我家的桌機上，沒有租雲端主機。它多穩、多常更新、出過哪些事、怎麼修的，都在這裡。"
+      intro={
+        <>
+          這個網站跑在我家的桌機上，沒有租雲端主機。它多穩、多常更新、出過哪些事、怎麼修的，都在這裡。整套怎麼搭起來的看{" "}
+          <Link href="/colophon" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+            本站構造
+          </Link>
+          。
+        </>
+      }
     >
       <div className="flex items-center gap-3 mb-10 p-4 border border-(--border) rounded-sm bg-(--surface)">
         {/* 靜止的點：設計原則「不跳不彈不閃」，不用 ping 動畫 */}

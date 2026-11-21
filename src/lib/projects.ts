@@ -266,6 +266,7 @@ export const projects: Project[] = [
     highlightZh: "部署停站 5～40 秒 → 1～2 秒，健檢失敗自動退回上一版",
     status: "完成",
     isPersonal: true,
+    live: { href: "/colophon", label: "看架構圖（即時數字）· Colophon" },
     detail: {
       intro:
         "這個網站本身。沒有租雲端主機，跑在家裡的桌機（i7-12700 + RTX 3070）上；家用網路封鎖了對外的 80／443 port，所以用 Cloudflare Tunnel 從桌機往外連。網頁之外，重點是「一個人維運」需要的自動化：部署、監控、告警、備份都不需要人守在旁邊。",

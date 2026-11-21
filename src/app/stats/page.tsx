@@ -44,6 +44,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/radar": "自家雷達",
   "/changelog": "更新紀錄",
   "/status": "維運狀態",
+  "/colophon": "本站構造",
 };
 function pageName(path: string): string {
   if (PAGE_NAMES[path]) return PAGE_NAMES[path];

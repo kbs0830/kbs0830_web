@@ -747,6 +747,12 @@ deploy.bat
 - 事故報告在 `lib/incidents.ts`：**真的發生過的事才寫**，照「影響 → 怎麼發現 → 原因 → 修法 → 之後」；新的加最上面，有文章就填 `post`
 - 跟 `public/status/*.svg`（狀態色分頁圖示）同路徑前綴，兩邊都正常（測過）；維修模式會擋 `/status` 頁面、照常放行 `/status/*.svg`
 
+### 5.7 `/colophon` 本站構造（2026-11-21，TODO A8）
+- 「部署架構」做成給人看的一張圖：訪客 → Cloudflare → Tunnel → server.js → Next.js 雙槽 → data/，旁邊雷達、告警信、watchdog、部署、備份
+- 每個方塊上是即時數字（`lib/colophon.ts` 的 `readSiteFacts()`，只收集既有資料：status、Cloudflare、真人造訪、backup.log、雷達彙總）；`force-dynamic`
+- 點方塊跳到下面的說明卡（`<a href="#id">` ＋ Tailwind `target:`，零 JS）。作品「個人網站（本站）」的 `live` 連過來
+- 說明文字照 CLAUDE.md 寫，**架構改了（加服務、換部署方式）這頁要跟著改**；不放內網 IP、雷達位置
+
 ### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單

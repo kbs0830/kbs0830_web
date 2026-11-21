@@ -40,7 +40,7 @@ test("作品也有自己的分享圖，而且是 PNG", async ({ request }) => {
 });
 
 // 獨立頁面的分享圖（TODO B7，2026-11-21）：之前都是首頁那張
-for (const path of ["/flights", "/hotels", "/stats", "/radar", "/now", "/uses", "/changelog", "/status"]) {
+for (const path of ["/flights", "/hotels", "/stats", "/radar", "/now", "/uses", "/changelog", "/status", "/colophon"]) {
   test(`${path} 有自己的分享圖，而且是 PNG`, async ({ request }) => {
     const html = await (await request.get(path)).text();
     const img = meta(html, "og:image")!;

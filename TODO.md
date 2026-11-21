@@ -115,11 +115,6 @@
   - three.js 的 WebGPURenderer＋TSL，粒子改用 compute shader（數量可以加，但風格照舊「稀疏、慢」）；不支援的瀏覽器退回現在的 WebGL
   - 新技術展示，但**風險最高**：60fps 目標、相容性、R3F 支援度都要先驗證。不急
 
-- [ ] **A8. 網站架構互動圖（/colophon）**
-  - 一張可以點的圖：訪客 → Cloudflare（快取／WAF）→ Tunnel → server.js → 雙槽 .next-a／.next-b → data/，
-    watchdog、備份、CI 掛在旁邊。點每個節點看它在做什麼、加上即時數字（快取命中、上線多久、上次部署）
-  - 等於把 CLAUDE.md 的部署架構做成給人看的版本；適合放在 kbs0830-web 作品頁裡
-
 - [ ] **A9. 給 AI 用的網站 MCP 伺服器**
   - 已經有 `/llms.txt` 跟每頁 Markdown 版；再往前一步：`/mcp` 讓 AI 助理直接查「他做過哪些作品」「最新文章」
   - 唯讀、只回傳網站上本來就公開的內容；跟「AI 搜得到我的名字」的目標一致
