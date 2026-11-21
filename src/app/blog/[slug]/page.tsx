@@ -17,10 +17,12 @@ import {
   type BlogPost,
 } from "@/lib/blog";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { PERSON_ID, SITE_URL } from "@/lib/site";
+import { PERSON_ID, REPO_URL, SITE_URL } from "@/lib/site";
 import TagBadge from "@/components/ui/TagBadge";
 import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/ui/PageShell";
+import CopyCodeButton from "@/components/ui/CopyCodeButton";
+import Comments from "@/components/ui/Comments";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
@@ -95,11 +97,15 @@ const mdxComponents = {
       {...props}
     />
   ),
+  // 程式碼區塊：右上角有「複製」（CopyCodeButton 是唯一的 client 部分，程式碼本身照舊 server 產生）
   pre: (props: React.ComponentPropsWithoutRef<"pre">) => (
-    <pre
-      className="text-[12.5px] sm:text-[13px] leading-relaxed p-4 -mx-6 sm:mx-0 rounded-none sm:rounded-sm border-y sm:border-x bg-(--surface) border-(--border) overflow-x-auto mb-5 [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
-      {...props}
-    />
+    <div className="relative group mb-5 -mx-6 sm:mx-0">
+      <pre
+        className="text-[12.5px] sm:text-[13px] leading-relaxed p-4 rounded-none sm:rounded-sm border-y sm:border-x bg-(--surface) border-(--border) overflow-x-auto [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
+        {...props}
+      />
+      <CopyCodeButton />
+    </div>
   ),
   strong: (props: React.ComponentPropsWithoutRef<"strong">) => (
     <strong className="font-medium text-(--accent)" {...props} />
@@ -188,10 +194,33 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <MDXRemote source={post.content} components={mdxComponents} options={mdxOptions} />
       </article>
 
+      {/* 這篇講的修正對應的 commit（frontmatter commits，TODO A6）：想看實際改了什麼的人可以直接看 diff */}
+      {post.commits && post.commits.length > 0 && (
+        <p className="mt-10 text-xs text-(--muted) font-mono">
+          對應的修改：
+          {post.commits.map((sha, i) => (
+            <span key={sha}>
+              {i > 0 && "、"}
+              <a
+                href={`${REPO_URL}/commit/${sha}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)"
+              >
+                {sha}
+              </a>
+            </span>
+          ))}
+          （GitHub）
+        </p>
+      )}
+
       <nav aria-label="上一篇／下一篇" className="grid sm:grid-cols-2 gap-4 mt-16 pt-8 border-t border-(--border)">
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
+
+      <Comments slug={post.slug} />
 
       {related.length > 0 && (
         <section className="mt-12">

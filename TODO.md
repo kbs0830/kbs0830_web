@@ -21,6 +21,10 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
 4. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
+5. [ ] **文章留言要不要開**（giscus，11/21 Claude 做好了、預設關著）：要的話
+   ① GitHub 的 kbs0830_web repo → Settings → Features 勾 **Discussions**
+   ② 裝 https://github.com/apps/giscus （只選 kbs0830_web）
+   ③ 打開 https://giscus.app/zh-TW 填 repo、分類選 **Announcements**，把頁面最下面那段的 `data-repo-id`、`data-category-id` 貼給 Claude
 
 ## 🤔 你要決定或提供素材的
 
@@ -105,11 +109,6 @@
   - /flights＋/hotels 合成一頁：可以轉動的地球、大圓航線弧線、住過的城市點，點一下城市看那裡住過幾間
   - 首頁已經有 three.js，不用新增套件；手機沿用 HeroSceneLite 那套 Canvas 2D 投影
   - 隱私不變：不放日期，只標城市
-
-- [ ] **A6. 部落格升級**
-  - 全文搜尋：Pagefind（build 時建索引，零伺服器、中文要測斷詞）
-  - 留言：giscus（GitHub Discussions，訪客用 GitHub 登入；不收 email，不用另外註冊）
-  - 程式碼複製按鈕、每篇附「對應的 commit」連結、RSS 改全文（現在只有摘要）
 
 - [ ] **A7. 首頁 3D 用 WebGPU 重寫**
   - three.js 的 WebGPURenderer＋TSL，粒子改用 compute shader（數量可以加，但風格照舊「稀疏、慢」）；不支援的瀏覽器退回現在的 WebGL

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getAllPosts, getAllTags } from "@/lib/blog";
 import TagBadge from "@/components/ui/TagBadge";
 import PageShell from "@/components/ui/PageShell";
+import BlogSearch from "@/components/ui/BlogSearch";
 
 export const metadata: Metadata = withShare({
   title: "技術部落格 · Blog — PINGWEI LI",
@@ -29,6 +30,8 @@ export default function BlogIndexPage() {
           </Link>
         ))}
       </nav>
+
+      <BlogSearch />
 
       <div className="space-y-10">
         {posts.map((post) => (

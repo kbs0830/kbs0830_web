@@ -6,6 +6,7 @@ description: "「build 到暫存資料夾、好了再改名換上去」是最常
 series: "自架網站維運"
 seriesOrder: 4
 tags: ["Next.js", "Windows", "DevOps"]
+commits: ["08a1067"]
 ---
 
 這個網站的部署流程原本很單純：`git pull` → `next build` → 重啟 server。問題是 `next build` 會直接覆寫 `.next` 資料夾，而線上的 server 正在讀它。

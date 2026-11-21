@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { execFileSync, execSync } from "node:child_process";
+import { GISCUS } from "./src/lib/giscus";
 
 // 頁尾的「版本＋最後更新時間」：build 當下 HEAD 的 commit（hash 跟 commit 時間）。
 // 部署一定是在 git repo 裡 build；萬一讀不到（沒有 git）就顯示 dev，不讓 build 失敗
@@ -42,13 +43,15 @@ function contentSecurityPolicy(dev: boolean) {
     "default-src 'self'",
     // static.cloudflareinsights.com：Cloudflare Web Analytics 的 beacon，Cloudflare 在 edge 只對真的瀏覽器插入，
     // 本機、curl、E2E 都看不到——正式開 CSP 後幾分鐘就從 /api/csp-report 抓到它被擋（2026-11-09）
-    `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${dev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${GISCUS ? " https://giscus.app" : ""}${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
     "font-src 'self' data:",
     // cloudflareinsights.com：上面那支 beacon 把數據送回這裡（/cdn-cgi/rum）
     `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}`,
     "worker-src 'self' blob:",
+    // 文章留言（lib/giscus.ts 有設定才開）：giscus 的 iframe
+    ...(GISCUS ? ["frame-src https://giscus.app"] : []),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

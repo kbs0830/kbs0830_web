@@ -4,6 +4,7 @@ titleEn: "Next.js params is now a Promise"
 date: "2026-07-17"
 description: "幫作品集加 /projects/[slug] 動態路由時踩到的一個坑：型別檢查過、build 也成功產生了所有頁面，但每一頁實際上都是 404。"
 tags: ["Next.js", "TypeScript", "Debugging"]
+commits: ["7e70d0a"]
 ---
 
 幫作品集加 `/projects/[slug]` 動態路由的時候踩到一個很隱蔽的坑，記錄一下，因為它有一個共同點：**每一個自動化檢查都過了，只有真的用瀏覽器點進去才會發現壞掉**。

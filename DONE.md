@@ -5,6 +5,13 @@
 
 ---
 
+### 2026-11-21 A6 部落格升級
+- [x] 全文搜尋（/blog 搜尋框，中文、程式碼裡的指令都搜得到，片段標出命中的字）——自己做、沒裝 Pagefind
+- [x] 程式碼區塊「複製」按鈕；每篇文章最後「對應的修改」連到 GitHub commit（8 篇都對過 commit 內容）
+- [x] RSS 改全文（`content:encoded`）
+- [x] 留言 giscus：程式做好、預設關著，要使用者開 Discussions＋裝 app（見 TODO）；按了才載入，不會一打開文章就連第三方
+- [x] 測試：單元 132 個、E2E 85 個（port 3200）
+
 ### 2026-11-21 A9 MCP 伺服器 ＋ A10 公開 JSON API
 - [x] `/api/v1`：簡介、作品（清單／單筆）、文章（清單／單筆含全文）、現況、飛行統計，OpenAPI 3.1 規格；build 時產生、CORS 全開
 - [x] `/mcp`：MCP Streamable HTTP 伺服器，8 個唯讀工具（作品、文章、搜尋、現況、飛行統計），Claude Code 一行就能加

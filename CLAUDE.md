@@ -724,6 +724,15 @@ deploy.bat
   （header 只能 ASCII，build 時第一次就因為這個炸掉）
 - 首頁作品集下面有「最新文章」3 篇（`components/sections/LatestPosts.tsx`）
 
+**2026-11-21 部落格升級（TODO A6）**，都沒有裝新套件：
+- 全文搜尋：`lib/blog-search.ts`＋`/blog/search-index.json`（build 時產生，約 30 KB）＋`BlogSearch`（第一次聚焦才下載索引，中文直接「包含」比對，多個詞 AND）。沒用 Pagefind：要在正式站目錄裝套件、中文斷詞還要另外測
+- 程式碼區塊右上角「複製」（`CopyCodeButton`，唯一的 client 部分）
+- frontmatter `commits: ["短hash"]` → 文章最後「對應的修改」連到 GitHub commit。**新文章有對應的修正就填**
+- RSS 全文：`<content:encoded>` 用 `lib/md-html.ts` 轉（只支援文章用到的語法；文章用到表格、圖片要補，`md-html.test.ts` 會逐篇檢查）
+- 留言 giscus：`lib/giscus.ts` 是 null 就整塊不出現、CSP 也不放行 giscus.app；**要使用者開 Discussions＋裝 giscus app** 才能填（步驟寫在那個檔案）。
+  按「載入留言」才載入官方 client.js（打開文章不會連第三方）
+- E2E `blog-features.spec.ts`：⚠️ 文章頁不能用 `gotoReady`（它等的 data-hydrated 只有首頁有）
+
 **支援 Markdown 表格（2026-11-09 裝了 remark-gfm）**：表格、~~刪除線~~、任務清單都能用；表格窄螢幕可以左右滑。之前沒裝時
 `| a | b |` 會原樣印出一排直線。新增文章前
 先確認真的有實際發生過的技術細節可以寫，不要為了「補內容」硬掰。Footer 有一個不顯眼的

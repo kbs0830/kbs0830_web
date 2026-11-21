@@ -12,6 +12,8 @@ export interface BlogPost {
   /** 系列名稱（frontmatter `series`）跟第幾篇（`seriesOrder`），沒有就不是系列文 */
   series?: string;
   seriesOrder?: number;
+  /** 這篇講的修正對應的 commit 短 hash（frontmatter `commits`），文章最後連到 GitHub */
+  commits?: string[];
   content: string;
 }
 
@@ -32,6 +34,7 @@ export function getAllPosts(): BlogPost[] {
         description: data.description as string,
         tags: (data.tags as string[]) ?? [],
         ...(data.series ? { series: String(data.series), seriesOrder: Number(data.seriesOrder) || 0 } : {}),
+        ...(Array.isArray(data.commits) ? { commits: (data.commits as unknown[]).map(String) } : {}),
         content,
       };
     })

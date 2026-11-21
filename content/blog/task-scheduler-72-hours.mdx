@@ -6,6 +6,7 @@ description: "自架網站每隔三天無回應一次，懷疑過 memory leak、
 series: "自架網站維運"
 seriesOrder: 1
 tags: ["Windows", "DevOps", "Next.js"]
+commits: ["8eb23d8"]
 ---
 
 這個網站跑在我自己的桌機上：Windows 工作排程器開機時啟動 Node.js，Cloudflare Tunnel 把流量轉進來。另外有一支 watchdog 每 5 分鐘檢查一次網站，掛了就自動重啟。

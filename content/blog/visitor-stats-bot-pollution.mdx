@@ -4,6 +4,7 @@ titleEn: "How a scanner bot polluted my visitor stats"
 date: "2026-07-17"
 description: "Footer 的訪客國家統計出現一筆奇怪的「土耳其」，追查後發現是舊版統計邏輯完全擋不住偽裝成瀏覽器的漏洞掃描器。"
 tags: ["Security", "Next.js", "隱私"]
+commits: ["e61c4a9"]
 ---
 
 作品集 Footer 有一個自己刻的訪客來源國家統計小工具，不用 Clustrmaps 之類的第三方服務——直接讀 Cloudflare Tunnel 轉發請求時本來就帶著的 `cf-ipcountry` header，只聚合「國家代碼＋次數」，不存 IP、不存任何個人可識別資訊。上線一陣子後，畫面上出現「訪客來自 2 國 🇹🇼 🇹🇷」。
