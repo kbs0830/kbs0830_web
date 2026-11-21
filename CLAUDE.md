@@ -315,6 +315,12 @@ string），`https://www.kbs0830.com/blog?x=1` → 301 `https://kbs0830.com/blog
 | GitHub Actions Runner | 工作排程器 `GitHubActionsRunner`，位於 `C:\actions-runner` |
 | 健康監控 | 工作排程器 `kbs0830_Watchdog`，每 5 分鐘執行 `scripts\watchdog.ps1` |
 
+**⚠️ 這台有兩份 cloudflared（2026-11-21 查到）**：`Cloudflared` 服務跑的是 WinGet 免安裝版
+（`%LOCALAPPDATA%\Microsoft\WinGet\Packages\Cloudflare.cloudflared_…\cloudflared.exe`，setup-autostart.ps1 設的）；
+`C:\Program Files (x86)\cloudflared\` 是早期手動裝的、PATH 排前面——**直接打 `cloudflared --version` 看到的不是服務的版本**
+（11/09 就這樣誤報成 2026.10.0，服務其實是 2026.5.2）。看版本要看服務的 binPath（`Get-CimInstance Win32_Service -Filter "Name='Cloudflared'"`）。
+升級用 `scripts/upgrade-cloudflared.ps1`（管理員執行：停服務 → winget 升級 → 啟動 → 外網確認）。
+
 **這些服務的設定統一由 `scripts/setup-autostart.ps1` 建立（要用系統管理員 PowerShell 跑）。**
 2026-10-15 查到「開機自動啟動」其實一直沒做到：`Cloudflared` 服務 binPath 沒帶任何參數（空轉），
 真正扛流量的是 `start-server.bat` 開的 console 版 cloudflared；Watchdog／Runner 是
@@ -726,6 +732,11 @@ deploy.bat
 `Blog` 連結（`/now`、`/uses` 至今都沒有站內連結能點到，純靠 sitemap／直接網址發現；
 但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。
 
+### 5.5 `/changelog`（2026-11-21，TODO B1）
+- build 時跑 `git log` 撈 `feat` commit（`lib/changelog.ts`），頁尾「最後更新」（`BuildInfo`）整段連過來。靜態頁，每次部署重新產生
+- commit 訊息會**原文公開**：本名、信箱、token、內網、雷達位置不要寫進 `feat` 的標題。寫到了會被 `PRIVATE_PATTERN` 整則濾掉；
+  要改寫或隱藏舊的某一則，在 `OVERRIDES` 加「短 hash → 新文字／null」。`changelog.test.ts` 會拿真的 git log 檢查
+
 ### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
@@ -898,7 +909,7 @@ deploy.bat
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
 | OG 分享圖 | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
-| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁用 `withShare(meta, { ownImage: true })`（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
+| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁、/flights、/hotels、/stats、/radar、/now、/uses、/changelog 用 `withShare(meta, { ownImage: true })`（獨立頁的圖共用 `lib/og-card.tsx` 的 `pageCardImage`，新頁照抄三行）（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
 | RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |

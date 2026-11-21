@@ -5,6 +5,26 @@
 
 ---
 
+### 2026-11-21 「你要動手的」清單回查
+- [x] **Bing 收錄**：使用者 Bing Webmaster URL Inspection 截圖「Indexed successfully」、No SEO/GEO issues、抓到 JSON-LD＋OpenGraph（bingbot 累計 73 次）
+- [x] **網域自動續約**：使用者確認開著（RDAP 到期日 2027-06-16）
+- [x] **UptimeRobot 監控**：使用者改好設定
+- [x] **「人工智慧與深度學習」那門課**：使用者確認 FoodLens 就是這門課的期末專題 → 課程學習記録加一段、連到 FoodLens 作品頁，
+  FoodLens 頁底註明是這門課的期末專題（作品段落現在可以帶站內連結：`ProjectDetailSection.links`）
+- [x] **FoodLens repo 的 PDF**：Claude 解出內容是期末專題說明（不是個人文件），使用者決定刪（要在 GitHub 上刪，見 TODO）
+- [x] **cloudflared**：查出上次升級沒換到服務用的那份（見 TODO），寫了 `scripts/upgrade-cloudflared.ps1` 一鍵升級
+- [x] 測試：單元 103 個、E2E 68 個（port 3200）
+
+### 2026-11-21 TODO 小項目一次做掉（使用者：「優化個人的 web」）
+- [x] **B1 更新紀錄 `/changelog`**：build 時從 git 的 `feat` commit 產生（53 項、依月份、每項連到 GitHub commit），頁尾「最後更新」整段連過來；
+  有 Markdown 版、分享圖、sitemap。commit 訊息有本名／信箱／token 的，`lib/changelog.ts` 的 `OVERRIDES` 改寫或拿掉，
+  另有關鍵字保險（之後的 commit 寫到也不會上線）；「會籍含權益與效期」那則改寫成現況
+- [x] **B5** 文章頁加麵包屑結構化資料（跟作品頁同格式）
+- [x] **B6** /flights 統計下面加一行「地球到月球距離的 22%——再飛 299,585 km 就到了」，Markdown 版同步
+- [x] **B7** /flights、/hotels、/stats、/radar、/now、/uses、/changelog 各自的分享圖（共用 `lib/og-card.tsx`；/stats、/radar 不放即時數字）
+- [x] **B12** 刪掉 `public/` 沒用到的 5 個 create-next-app 預設 svg
+- [x] 測試：單元 103 個、E2E 68 個（port 3200 production build，含新頁的無障礙／隱私／分享圖）
+
 ### 2026-11-21 自家雷達獨立頁 /radar（使用者：「沒能給更好看的頁面嗎?」）
 - [x] 大數字「現在幾架」（每 30 秒更新）＋慢慢掃的雷達圓盤（裝飾，不畫光點）、4 格統計、一天的節奏（每小時）、近 30 天、近 7 天航空公司、關於這台雷達
 - [x] 資料多記每小時最多同時幾架（`hourPeak`）；/stats 的圖表抽成共用元件；首頁小卡、頁尾、作品頁、/flights 摘要都連到 /radar

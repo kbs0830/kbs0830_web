@@ -10,31 +10,24 @@
 
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
-1. [ ] **Search Console 看驗證結果** 🔴 11/05 按了「驗證修正」，「驗證中」是正常的，**~11/19 前看結果，不用再按**
-   → 11/12 有提醒信叫你匯出「檢索統計資料」（檢索次數回升、5xx 歸零＝恢復）
-   → 📍 **11/12 匯出（使用者給的 Coverage CSV）**：已建立索引 **11**（10/24 起沒變）、未建立 42（11/07 從 19 跳上來＝新頁面被發現）；
-     5xx 7 頁、404 2 頁還在驗證；「已檢索 - 尚未建立索引」27 驗證**失敗**（Google 看過但選擇先不收，新站常見）；
-     「頁面會重新導向」2＝http／www 導向，正常。每天曝光 0～4 次。11/12 Claude 把 14 個 tag 頁設 noindex＋移出 sitemap（43→29），
-     讓 Google 專心收文章跟作品頁
-   → 📍 11/09 截圖：已建立索引 11（11/04 是 4）。5xx 7 頁是 10 月斷線留下的，驗證跑完應該歸零；
-     「已檢索／已找到但未建立索引」是 Google 自己的排程，不是錯誤
-   → 11/09 新增 5 個作品頁、`/stats`、14 個部落格 tag 頁，sitemap 從 23 變 **43** 個網址（11/09 晚上回查全部 200），
-     新頁面要等 Google 自己來收，不用一頁一頁按「要求建立索引」
-2. [ ] **Bing 收錄回查**（11/08 提醒信已寄；11/09 Claude 查 `site:kbs0830.com` 還是 0 筆，bingbot 11/06 起來了 16 次，每次部署都有 IndexNow）：Bing 搜 `site:kbs0830.com` 有結果、或 Bing Webmaster → URL Inspection
-   顯示「Indexed」才算數；還是「Discovered but not crawled」就把畫面給 Claude
-3. [ ] **IG 簡介放網站連結** 🟠
-4. [ ] **網域續約** 🟡 kbs0830.com 在 Cloudflare Registrar，**2027-06-16 到期**（11/09 查 Verisign RDAP 更正，之前寫的 5/18 是錯的；5/16 有提醒信）
-   → Domain Registration → Manage：Auto-renew 開著、信用卡到時候還有效（過期＝整站全斷）
-5. [ ] **UptimeRobot 監控設定** 🟡 10 月月報 0%，但實際只斷約 4 天——監控本身設錯（告警信有寄出、你有收到）
-6. [ ] **cloudflared 升級**（11/09：裝的是 2026.10.0，最新 2026.10.7）：系統管理員 PowerShell 跑
-   `Stop-Service Cloudflared` → `winget upgrade Cloudflare.cloudflared` → `Start-Service Cloudflared`
-7. [ ] **GitHub 門面**（改的是別的 repo）
-   → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`；這兩個的 README 補截圖／架構圖／安裝步驟
+1. [ ] **cloudflared：把服務切到新版那份（再跑一次同一行）** 🔴
+   → 11/21 第一次跑：winget 這次給的是 MSI，`C:\Program Files (x86)\cloudflared\` 那份升到 **2026.11.1** ✅，
+     但服務還指著舊的免安裝版 **2026.5.2**（網站正常，只是版本舊）。腳本已經改成「升級完把服務指到最新那份」（已在本機乾跑確認會選對）
+   → 用**系統管理員** PowerShell 再跑一次（外網斷 30 秒～1 分鐘）：
+     `powershell -ExecutionPolicy Bypass -File C:\Users\user\Desktop\kbs0830_web-master\scripts\upgrade-cloudflared.ps1`
+   → 會看到「服務改用新的那份：C:\Program Files (x86)\…」跟綠字「完成：服務現在是 2026.11.1」；有紅字把整個視窗截圖給 Claude
+   → 之後 `winget upgrade` 升的就是服務在用的這份；舊的免安裝版確認沒問題後可以刪（Claude 會提醒）
+2. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
+   不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）
+3. [ ] **Search Console 5xx／404 驗證**：不用動作，等 Google 跑完。📍 **11/21 匯出**：已建立索引 **31**（11/10 從 11 跳上來）、未建立 24；
+   5xx 7、404 2、已找到未建立 4 都是「驗證已開始」；「已檢索 - 尚未建立索引」9（11/12 是 27，tag 頁 noindex 後變少）；
+   「頁面會重新導向」2＝http／www 導向，本來就該導，驗證「失敗」不用理。API 查 sitemap 31 頁有 25 頁已收錄（沒收的多是新頁）
+4. [ ] **GitHub 門面**（11/21 使用者：最後做；改的是別的 repo）
+   → About（描述、網站、topics）三個 repo 都空的；Claude 11/21 給了要貼的文字（FoodLens、YARTIX、kbs0830_web）
+   → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`、`kbs0830_web`；前兩個的 README 補截圖／架構圖／安裝步驟
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
-   → 兩個 repo 的 About（描述、網站連結、topics）都是空的：repo 頁右上「⚙️」填，FoodLens 可填「瀏覽器端 YOLOv8 ＋ Gemini 飲食分析」
-8. [ ] **確認 FoodLens repo 裡的 `irs_1774….pdf`** 🟠（2026-11-17 Claude 發現）：公開 repo 根目錄、3 頁 Word 檔，Claude 讀不到內容。
-   是個人文件就要從 git 歷史整個清掉（跟 Claude 說）；是專題文件就把這項刪掉
+5. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
 
 ## 🤔 你要決定或提供素材的
 
@@ -44,8 +37,6 @@
   真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
 - [ ] **均線回測程式的 bug 要不要修**（改的是 school repo，網站目前不放報酬數字）：沒持股時跌破 MA60 也記一筆 0 張賣出、
   賣出時手續費／證交稅用加的（應該扣）、沒檢查本金夠不夠（聯發科一張就超過 100 萬，跑完資金變負）。修完網站可以補報酬率
-- [ ] **「人工智慧與深度學習」要不要留**：課程學習記録寫了這門課、tag 有「深度學習」，但 school 裡這個資料夾是空的。
-  東西在別的地方就給 Claude 路徑；沒有的話 Claude 拿掉
 - [ ] **路口排雷「v2 重構版由我完成」對不對**：Claude 是看 git 紀錄（17 個 commit 都是你的信箱）寫的，不對就說
 - [ ] **作品量化成果**：購票系統處理過幾筆報名…**有真的數字才放**（匯率系統「6 家銀行、6 條執行緒並行」11/09 已從原始碼補上）
 - [ ] **履歷要不要加經歷**：證照 11/09 已從你的 104 履歷 PDF 加上（`/resume`）。同一份 PDF 還有工作經歷
@@ -86,12 +77,11 @@
 
 標記：🟥 大（好幾天）🟧 中（一兩天）🟩 小（一次做完）｜🙋 需要你提供東西｜⭐ Claude 推薦。2026-11-17 腦力激盪整理（使用者：「多想一些點子」「工作量大點的」），還沒決定要做；不做的搬到最下面「評估過、先不做」
 
-**⭐ Claude 推薦的前五名**
+**⭐ Claude 推薦的**
 
 1. **FoodLens 線上試玩**（A1）：作品集最強的證明是「直接能玩」，而且剛好證明 FoodLens 的賣點「影像不離開裝置」
 2. **停電也不斷線**（A2）：10/29 斷 4 天、11/06 停電，都會變成訪客沒感覺
-3. **網站更新紀錄 /changelog**（B1）：小工程，跟櫻花粉指示燈是同一套邏輯
-4. **每月自動故障演練**（C1）：故意把網站停掉，確認 watchdog 真的救得回來，跟每季的備份還原演練同一個思路
+3. **每月自動故障演練**（C1）：故意把網站停掉，確認 watchdog 真的救得回來，跟每季的備份還原演練同一個思路
 
 **A. 大更新（🟥 好幾天）**
 
@@ -154,19 +144,14 @@
 
 **B. 網站功能（🟧／🟩）**
 
-- [ ] **B1. 網站更新紀錄 /changelog** ⭐ 🟩：從 `feat` commit 自動產生，頁尾「最後更新」連過來。commit 訊息要寫給人看的（現在大多是）
 - [ ] **B2. 終端機加指令** 🟩：`neofetch`（真實硬體規格）、`uptime`、`blog`、`status`、`history`、Tab 自動補完
 - [ ] **B3. 頁尾二十四節氣** 🟩：時鐘旁邊加小字「立冬」，瀏覽器端算
 - [ ] **B4. 「いま N 人」** 🟧：頁尾顯示現在正在看網站的人數（每頁每 30 秒報一次、只記數字），分頁在背景時不報
-- [ ] **B5. 文章頁麵包屑結構化資料** 🟩：作品頁有，文章頁沒有
-- [ ] **B6. /flights 趣味換算** 🟩：「總距離 ≈ 繞地球 N 圈／到月球的 N%」
-- [ ] **B7. 每頁專屬分享圖** 🟩：/flights、/hotels、/stats、/now 還在用全站預設圖
 - [ ] **B8. `/.well-known/security.txt`** 🟩：現在是 404。RFC 9116 標準檔，寫聯絡方式（用 otemon 還是 1394kbs 要你決定）
 - [ ] **B9. 作品頁改成案例格式** 🟧：每個作品固定「問題 → 我的決定 → 取捨 → 結果」四段，面試官最想看「為什麼這樣做」。
   只用 repo 裡真的有的資訊，沒有的段落就不寫
 - [ ] **B10. 文章離線閱讀** 🟧：Service Worker 快取讀過的文章，沒網路也打得開（PWA manifest 已經有了）
 - [ ] **B11. 列印版文章** 🟩：履歷已經有列印樣式，文章也排一份（程式碼不截斷、連結印出網址）
-- [ ] **B12. 清掉 create-next-app 留下的預設圖** 🟩：`public/` 的 file／globe／next／vercel／window.svg 全站都沒用到（2026-11-17 查過）
 
 **C. 維運／品質**
 

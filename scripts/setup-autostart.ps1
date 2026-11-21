@@ -41,9 +41,13 @@ Set-ScheduledTask -TaskName kbs0830_Watchdog -Principal $principal | Out-Null
 
 # ── 2. Cloudflared 服務：真的帶參數去跑 tunnel ─────────────────────────────────
 Write-Host "[3/3] Cloudflared 服務：指定 config 並設定失敗自動重啟"
-$link = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\cloudflared.exe"
-$exe = (Get-Item $link).Target   # WinGet Links 是 symlink，服務要指到實體檔
-if (-not $exe) { $exe = $link }
+# 2026-11-21 起優先用 Program Files (x86) 那份：winget 升級（MSI）升的是它（見 upgrade-cloudflared.ps1）
+$exe = "${env:ProgramFiles(x86)}\cloudflared\cloudflared.exe"
+if (-not (Test-Path $exe)) {
+  $link = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\cloudflared.exe"
+  $exe = (Get-Item $link).Target   # WinGet Links 是 symlink，服務要指到實體檔
+  if (-not $exe) { $exe = $link }
+}
 if (-not (Test-Path $cloudflaredConfig)) { throw "找不到 $cloudflaredConfig" }
 
 $binPath = "`"$exe`" tunnel --config `"$cloudflaredConfig`" run"
