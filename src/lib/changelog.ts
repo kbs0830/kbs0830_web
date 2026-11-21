@@ -35,7 +35,9 @@ export const PRIVATE_PATTERN =
   /李秉威|本名|real name|alternateName|otemon|@[a-z0-9-]+\.[a-z]|192\.168\.|token|金鑰|secret|password|小港|雷達代碼/i;
 
 const SCOPE_NAMES: Record<string, string> = {
+  api: "API",
   blog: "部落格",
+  colophon: "本站構造",
   brand: "網站圖示",
   cloudflare: "Cloudflare",
   flights: "飛行紀錄",
@@ -49,6 +51,8 @@ const SCOPE_NAMES: Record<string, string> = {
   security: "安全性",
   seo: "SEO",
   stats: "訪客分析",
+  status: "維運狀態",
+  travel: "旅行地球",
   ui: "介面",
 };
 
