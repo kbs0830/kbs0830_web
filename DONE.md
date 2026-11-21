@@ -5,6 +5,13 @@
 
 ---
 
+### 2026-11-21 自家雷達放上網站（TODO 點子 B13）
+- [x] /flights 最下面「自家雷達 · My Radar」：收訊中／離線、現在／今天／最多同時幾架、今天的航空公司、近 7 天架次跟在線率
+- [x] server.js 每 30 秒在區網讀雷達 → `data/radar.json` → `/api/radar` 只回數字（金鑰、內網 IP、識別碼、座標都不出去）
+- [x] watchdog：雷達離線 15 分鐘、白天 2 小時 0 架就寄信；週報加「自家雷達」；radar.json 進每日備份
+- [x] 測試：單元 9 個、watchdog 6 種狀態、週報假資料、a11y／CSP／隱私 E2E 29 個（port 3200）
+- [ ] 「列出頭上這幾班（航班代碼＋高度、不放座標）」要不要做，等使用者決定
+
 ### 2026-11-20 FR24 雷達（T-RCKH76）收訊修好
 - [x] 原本一分鐘約 100 萬個疑似訊號一個都解不出來（accepted 0、雜訊 -31 dBFS）：增益沒設＝最大。使用者在 settings 的 Process arguments 填 `--gain 40`
 - [x] 改完重啟時 fr24feed 卡在「關到一半」（`monitor.json` 的 `shutdown: yes`、接收器斷線 30 分鐘，網頁的 Restart 沒反應；`restart.html` 一打開就會觸發重啟），使用者拔電重開才好

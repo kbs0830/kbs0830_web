@@ -849,6 +849,23 @@ deploy.bat
 - 用途：TODO「首頁 LCP 決策點」要不要縮短 Hero 進場動畫，看真實訪客的 p75，不再只靠 Lighthouse 模擬值
 - 檔案路徑、同步 read-modify-write 的理由跟訪客統計一樣（`server.js` 設 `WEB_VITALS_FILE`）
 
+### 自家 FR24 雷達（2026-11-21，/flights 最下面）
+- 使用者自己架的 ADS-B 接收器（樹莓派 Pi24 映像＋SDR 棒，FR24 代碼 T-RCKH76），在區網 `192.168.50.147`：
+  `:8754/monitor.json`（fr24feed 狀態）、`/dump1090/data/aircraft.json`（現在收到的飛機）。`.env.local` 的 `RADAR_HOST`，沒設就整個不跑
+- `scripts/server.js` 在 `app.prepare()` 之後（Next 那時才把 `.env.local` 載進 process.env）呼叫 `lib/radar.js` 的
+  `startRadarPoller`：每 30 秒讀一次 → 彙總寫 `data/radar.json`（`RADAR_FILE`，可從外面指定；有進每日備份）
+- `/api/radar`（`force-dynamic`、no-store）回 `summarize()`：現在／今天／最多同時幾架、今天的航空公司（呼號前三碼，
+  `AIRLINE_NAMES` 只放確定的，其他顯示三碼）、近 7 天架次＋在線率。`RadarStatus.tsx`（client）每分鐘讀、背景分頁不讀，
+  `configured: false` 就整塊不顯示；放頁面最下面避免 CLS
+- **隱私**：`monitor.json` 有 FR24 分享金鑰（fr24key）跟內網 IP——只挑需要的欄位，金鑰／IP 不存也不出去。
+  **不存座標、不算涵蓋範圍／最遠距離**（畫出收到的飛機位置就看得出接收器＝使用者家在哪）。今天看過的飛機識別碼只為了數不重複、
+  換日就丟、不經 API。「列出頭上這幾班（航班代碼＋高度）」問過使用者還沒選，先不做。`radar.test.ts` 會擋公開資料出現識別碼／IP／座標
+- watchdog 看 `data/radar.json` 的 status：離線超過 15 分鐘寄信（key `radar`，原因分「讀不到／卡在關機／SDR 斷線」）、
+  07–23 點在線但 2 小時 0 架寄信（key `radar-quiet`，12 小時冷卻）；status 超過 5 分鐘沒更新（server 沒在讀）不判斷。週報有「自家雷達」一段
+- ⚠️ fr24feed 重啟可能卡在「關到一半」（`monitor.json` 的 `shutdown: yes`、`rx_connected: 0`，FR24 那邊照樣 connected）：
+  網頁的 Restart 沒用（它以為自己正在關），要拔電或 `sudo systemctl restart fr24feed`。**`restart.html` 一打開（GET）就會觸發重啟**，不要為了看內容去抓它
+- 收訊：增益 `--gain 40`（settings 的 Process arguments；沒設＝最大，雜訊蓋掉訊號、一則都解不出來）
+
 ### Spotify「正在聽」
 - 元件：`src/components/ui/SpotifyNowPlaying.tsx`，後端：`src/app/api/spotify/now-playing/route.ts`
 - 用 `SPOTIFY_REFRESH_TOKEN` 換 access token，抓「正在播放／最近播放」單曲

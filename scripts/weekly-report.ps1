@@ -4,6 +4,7 @@
 #   - 首頁 Web Vitals p75（/api/web-vitals）
 #   - 部署：成功／失敗／自動退回次數（logs\deploy.log）
 #   - watchdog：網站／runner 自動重啟、外網斷線次數（logs\watchdog.log）
+#   - 自家雷達：近 7 天架次、最多同時、在線率、航空公司（data\radar.json）
 #   - Google 搜尋：點擊／曝光／排名、sitemap 網址的索引狀態（scripts\lib\search-console.js，要 .env.local 的 GSC_KEY_FILE）
 #
 # 由 watchdog.ps1 每 5 分鐘呼叫；這週（週一起算）已經寄過就直接結束。桌機週一關機的話，開機後補寄。
@@ -143,6 +144,26 @@ if ($gsc -and $gsc.error) {
         $lines += "  還沒收錄：$($ix.notIndexed -join '、')"
     }
     $lines += ""
+}
+
+# --- 自家雷達（2026-11-21，data\radar.json 每天的彙總，台灣日期）---
+$radar = Read-Json (Join-Path $dataDir "radar.json")
+if ($radar -and $radar.days) {
+    $u = 0; $peak = 0; $polls = 0; $on = 0; $airl = @{}
+    for ($d = $now.Date.AddDays(-7); $d -lt $now.Date; $d = $d.AddDays(1)) {
+        $v = $radar.days.($d.ToString("yyyy-MM-dd"))
+        if (-not $v) { continue }
+        $u += $v.unique; $polls += $v.polls; $on += $v.online
+        if ($v.peak -gt $peak) { $peak = $v.peak }
+        foreach ($p in $v.airlines.PSObject.Properties) { $airl[$p.Name] = [int]$airl[$p.Name] + [int]$p.Value }
+    }
+    if ($polls -gt 0) {
+        $lines += "【自家雷達】近 7 天收到 $(N $u) 架次（每天平均 $(N ([math]::Round($u / 7)))）、最多同時 $peak 架、在線 $([math]::Round($on / $polls * 100, 1))%"
+        if ($airl.Count -gt 0) {
+            $lines += "  航空公司：$(($airl.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 8 | ForEach-Object { "$($_.Key) $($_.Value)" }) -join '、')"
+        }
+        $lines += ""
+    }
 }
 
 # --- log：最近 7 天 ---

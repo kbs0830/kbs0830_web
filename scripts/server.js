@@ -15,6 +15,7 @@ const fs = require("fs");
 const http = require("http");
 const next = require("next");
 const { recordRawHit } = require("./lib/raw-traffic");
+const { startRadarPoller } = require("./lib/radar");
 
 const projectDir = path.join(__dirname, "..");
 // Task Scheduler 的工作沒有設「開始位置」，process.cwd() 會是 C:\Windows\System32。
@@ -50,6 +51,8 @@ process.env.CSP_REPORT_FILE = path.join(dataDir, "csp-reports.json");
 process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
 // 新功能上線 12 小時（deploy.ps1 寫，分頁圖示櫻花粉）
 process.env.FEATURE_RELEASE_FILE = path.join(dataDir, "feature-release.json");
+// 自家 FR24 雷達的彙總（lib/radar.js；下面 prepare 之後開始每 30 秒讀，.env.local 要有 RADAR_HOST）
+process.env.RADAR_FILE = process.env.RADAR_FILE || path.join(dataDir, "radar.json");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。
@@ -134,6 +137,13 @@ app
     server.listen(port, () => {
       log(`server ready on http://localhost:${port} (pid ${process.pid})`);
     });
+
+    // 自家雷達：.env.local 的 RADAR_HOST（Next 在 prepare 時才把 .env.local 載進 process.env，所以放這裡）。
+    // 沒設就不跑；RADAR_FILE 可以從外面指定（本機測試不要寫到正式的 data/radar.json）
+    if (process.env.RADAR_HOST) {
+      startRadarPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_FILE, log });
+      log(`radar poller started (${process.env.RADAR_FILE})`);
+    }
 
     // 2026-08 發現整站每隔約 3 天會完全沒回應一次（watchdog 自動重啟恢復，見
     // watchdog.log），process 沒有崩潰也沒有任何例外 log，事發前後都很安靜——

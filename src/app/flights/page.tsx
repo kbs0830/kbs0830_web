@@ -4,6 +4,7 @@ import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RouteMap from "@/components/ui/RouteMap";
+import RadarStatus from "@/components/ui/RadarStatus";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes, type Route } from "@/lib/flights";
 import { formatFlightCode } from "@/lib/aircraft";
 
@@ -119,6 +120,8 @@ export default function FlightsPage() {
           ))}
         </ul>
       </section>
+
+      <RadarStatus />
 
       <Link href="/hotels" className="inline-block mt-12 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide">
         住宿紀錄 · Hotel Log →
