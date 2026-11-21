@@ -30,6 +30,7 @@
 | Muted | `#6b6b6b` 次要文字 |
 | Accent | `#2d5a8e` 深靛藍（唯一強調色） |
 | Accent light | `#e8f0f8` hover / 背景 tint |
+| Warn | `--warn`（淺 `#b45309`／深 `#f0a54a`）：只用在「出事了」的狀態（/status 部署失敗、有中斷的日子），不是第二個強調色 |
 | Font serif | Noto Serif JP（標題、日文字） |
 | Font sans | Geist（內文） |
 | Font mono | Geist Mono（標籤、狀態文字） |
@@ -945,7 +946,7 @@ deploy.bat
 | ProfilePage JSON-LD（首頁＝這個人的個人檔案頁） | `src/app/page.tsx` |
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
-| OG 分享圖 | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
+| OG 分享圖（⚠️ 2026-11-21 部署 build 因為分享圖的中文字型壞掉失敗過一次：`og-font.ts` 現在檢查字型檔頭、重抓一次，`og-card.tsx` 先試畫，畫不出來退回英文，不讓 build 失敗） | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
 | 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁、/flights、/hotels、/stats、/radar、/now、/uses、/changelog 用 `withShare(meta, { ownImage: true })`（獨立頁的圖共用 `lib/og-card.tsx` 的 `pageCardImage`，新頁照抄三行）（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
 | RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |

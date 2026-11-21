@@ -77,7 +77,7 @@ function UptimeBars({ days }: { days: DayUptime[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`近 ${days.length} 天每天的可用率`}>
       {days.map((d, i) => {
         const ratio = d.checks ? d.up / d.checks : null;
-        const fill = ratio === null ? "var(--border)" : ratio === 1 ? "var(--accent)" : "#b45309";
+        const fill = ratio === null ? "var(--border)" : ratio === 1 ? "var(--accent)" : "var(--warn)";
         const title =
           ratio === null
             ? `${d.date} · 沒有紀錄${d.maint ? `（維修 ${d.maint} 次）` : ""}`
@@ -147,7 +147,7 @@ export default function StatusPage() {
             <span aria-hidden className="size-2.5 rounded-xs bg-(--accent)" /> 全天正常
           </li>
           <li className="flex items-center gap-1.5">
-            <span aria-hidden className="size-2.5 rounded-xs bg-[#b45309]" /> 有中斷
+            <span aria-hidden className="size-2.5 rounded-xs bg-(--warn)" /> 有中斷
           </li>
           <li className="flex items-center gap-1.5">
             <span aria-hidden className="size-2.5 rounded-xs bg-(--border)" /> 還沒有紀錄
@@ -174,7 +174,7 @@ export default function StatusPage() {
               </time>
               <span className="text-[11px] text-(--muted) font-mono">
                 {d.seconds !== undefined && `${d.seconds} 秒 · `}
-                <span className={d.result === "ok" ? "text-(--accent)" : d.result === "running" ? "" : "text-[#b45309]"}>
+                <span className={d.result === "ok" ? "text-(--accent)" : d.result === "running" ? "" : "text-(--warn)"}>
                   {DEPLOY_LABEL[d.result]}
                 </span>
               </span>

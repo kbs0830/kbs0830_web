@@ -105,10 +105,6 @@
   - 你在高雄、福岡兩地，日本的搜尋、面試官都用得到
   - 🙋 你目前是 N5，要找會日文的人審過；不然先只翻首頁跟作品頁
 
-- [ ] **A7. 首頁 3D 用 WebGPU 重寫**
-  - three.js 的 WebGPURenderer＋TSL，粒子改用 compute shader（數量可以加，但風格照舊「稀疏、慢」）；不支援的瀏覽器退回現在的 WebGL
-  - 新技術展示，但**風險最高**：60fps 目標、相容性、R3F 支援度都要先驗證。不急
-
 **B. 網站功能（🟧／🟩）**
 
 - [ ] **B2. 終端機加指令** 🟩：`neofetch`（真實硬體規格）、`uptime`、`blog`、`status`、`history`、Tab 自動補完
@@ -140,6 +136,12 @@
 - [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`（11/09 查：R3F 最新仍是 9.8.2，跟裝的一樣）
 
 ## 評估過、先不做（記下理由免得重查）
+
+- **A7 首頁 3D 改 WebGPU**（2026-11-22 實測後不做）：three 0.187 的 `three/webgpu` 可以直接換 renderer（沒有 WebGPU 會自動退回 WebGL2）。
+  實測（headless Chromium，port 3200）：現在 WebGL 版首頁 60 fps；**瀏覽器有 `navigator.gpu` 但沒有可用的 GPU 時**（被列黑名單的顯卡、部分 Linux）
+  WebGPURenderer 退回它自己的 WebGL2 後端，**掉到 12 fps**、首頁 JS 多下載約 250 KB；沒有 WebGPU 的瀏覽器則一樣（1,488 vs 1,495 KB）。
+  粒子只有 90 個，compute shader 沒有效能可省，純展示。要再試的話：先 `requestAdapter()` 拿得到才用 WebGPURenderer（避開退回路徑），
+  而且要在真的顯卡上量 60 fps（這個 session 的 headless 沒有 GPU，量不到）
 
 - **拿掉 `HeroScene.tsx` 剩下的 3 個 `useMemo`**（2026-11-09 評估）：這 3 個不是效能優化，是「整個元件生命週期只建一次」的
   three.js 物件（線條、粒子 geometry），後面有 `dispose()` 清理、`useFrame` 每幀改它們。React Compiler 的自動快取只是優化、

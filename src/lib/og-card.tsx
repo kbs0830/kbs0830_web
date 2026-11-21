@@ -20,11 +20,25 @@ export interface PageCard {
   stats?: [value: string, label: string, labelEn: string][];
 }
 
-export async function pageCardImage(card: PageCard) {
+export async function pageCardImage(card: PageCard): Promise<Response> {
   const stats = card.stats ?? [];
   const font = await loadSubsetFont(
     card.eyebrow + card.title + card.description + stats.map(([v, l]) => v + l).join(""),
   );
+  if (!font) return render(card, null);
+  // 先真的畫一次：字型檔頭正常但內容壞掉時，錯誤要到畫的時候才會出現（會讓整個 build 失敗）
+  try {
+    const res = render(card, font);
+    const png = await res.arrayBuffer();
+    return new Response(png, { headers: res.headers });
+  } catch (e) {
+    console.warn(`[og-card] 中文分享圖畫不出來，改用英文：${e instanceof Error ? e.message : e}`);
+    return render(card, null);
+  }
+}
+
+function render(card: PageCard, font: ArrayBuffer | null) {
+  const stats = card.stats ?? [];
   const serif = font ? OG_FONT_NAME : undefined;
   const zh = Boolean(font);
 
