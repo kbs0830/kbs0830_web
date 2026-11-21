@@ -46,7 +46,14 @@ export default function FlightsPage() {
     <PageShell
       eyebrow="Flight Log"
       title={<>飛行紀錄 &nbsp;·&nbsp; Flight Log</>}
-      intro="航迷小筆記：搭過的航線、機場跟航空公司。只記航班代碼跟起降機場，不記日期。"
+      intro={
+        <>
+          航迷小筆記：搭過的航線、機場跟航空公司。只記航班代碼跟起降機場，不記日期。{" "}
+          <Link href="/travel" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+            在地球上看 →
+          </Link>
+        </>
+      }
     >
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-3">
         {[

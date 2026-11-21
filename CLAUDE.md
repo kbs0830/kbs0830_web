@@ -636,6 +636,10 @@ deploy.bat
   新增/修改機型一律要使用者親口告知對應的航班代碼，不要自己猜或編造機型。「代碼 →
   代碼(機型)」的格式化邏輯是 `aircraft.ts` 裡的 `formatFlightCode()`（原本寫死在
   `AboutSection.tsx` 裡的 inline expression，抽出來純粹是為了能補單元測試，行為沒變）。
+  **旅行地球 `/travel`（2026-11-21，TODO A5）**：飛行＋住宿畫在同一顆地球（`components/canvas/TravelGlobe.tsx`，Canvas 2D 正射投影、
+  桌機手機同一套、不載 three.js；經緯線＋大圓航線弧線（越長拱越高）＋城市點，沒有底圖）。拖曳轉、「全球／東亞」切換、點城市看住過幾間／起降幾次，
+  下面的城市清單是鍵盤操作的入口。慢慢自轉；reduced-motion 不轉；捲出畫面／背景分頁停畫。資料 `lib/travel.ts`（機場 80 km 內併到住過的城市）。
+  /flights、/hotels 照舊（明細），開頭都有「在地球上看 →」
   **住宿紀錄 `/hotels`（2026-11-09）**：使用者 Google 地圖「已儲存 → 飯店」的 Takeout 匯出，78 間，使用者確認**全部住過**。
   資料在 `src/lib/hotels.ts`（名稱＋城市＋集團，**不放日期／房型／價格**；城市靠名稱＋地圖連結裡 S2 cell 解出的約略座標交叉確認，
   集團不確定就歸「其他」）。`HotelMap.tsx` 跟 RouteMap 同風格：東亞圖（台灣併成一點）＋台灣放大圖，**只標城市不標飯店位置**（使用者選的）。

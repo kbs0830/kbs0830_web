@@ -13,6 +13,7 @@ import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./fl
 import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "./hotels";
 import { groupByMonth, readChangelog } from "./changelog";
 import { API_BASE, API_ENDPOINTS } from "./public-api";
+import { travelPlaces, travelStats } from "./travel";
 import { TOOLS } from "./mcp";
 
 const SITE_DESCRIPTION =
@@ -240,6 +241,29 @@ ${months}
 ${footer("changelog")}`;
 }
 
+function travel() {
+  const s = travelStats();
+  const byCountry = new Map<string, string[]>();
+  for (const p of travelPlaces()) {
+    const note = [p.hotels ? `住過 ${p.hotels} 間` : "", p.flights ? `起降 ${p.flights} 次` : ""].filter(Boolean).join("、");
+    byCountry.set(p.country, [...(byCountry.get(p.country) ?? []), `${p.name}（${note}）`]);
+  }
+  return `# 旅行地球 · Travel
+
+飛行紀錄跟住宿紀錄放在同一顆地球上。只記機場跟城市，不記日期。
+
+- 航班：${s.flights}（總距離約 ${s.km.toLocaleString("en-US")} km）
+- 住過的飯店：${s.hotels}
+- 地點：${s.places}（${s.countries} 個國家／地區）
+
+## 去過的地方
+
+${[...byCountry].map(([c, list]) => `- **${c}**：${list.join("、")}`).join("\n")}
+
+明細：[飛行紀錄](${mdUrl("flights")})、[住宿紀錄](${mdUrl("hotels")})
+${footer("travel")}`;
+}
+
 function developers() {
   return `# 開發者 · API & MCP
 
@@ -272,6 +296,7 @@ export function markdownPaths(): string[] {
     "uses",
     "flights",
     "hotels",
+    "travel",
     "changelog",
     "developers",
     "blog",
@@ -296,6 +321,8 @@ export function renderMarkdown(path: string): string | null {
       return flights();
     case "hotels":
       return hotels();
+    case "travel":
+      return travel();
     case "changelog":
       return changelog();
     case "developers":

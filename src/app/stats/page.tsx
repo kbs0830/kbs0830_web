@@ -40,6 +40,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/uses": "開発環境",
   "/flights": "飛行紀錄",
   "/hotels": "住宿紀錄",
+  "/travel": "旅行地球",
   "/stats": "訪客分析",
   "/radar": "自家雷達",
   "/changelog": "更新紀錄",

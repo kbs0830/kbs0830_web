@@ -25,7 +25,14 @@ export default function HotelsPage() {
     <PageShell
       eyebrow="Hotel Log"
       title={<>住宿紀錄 &nbsp;·&nbsp; Hotel Log</>}
-      intro="跟飛行紀錄同一本筆記：住過的飯店、城市跟飯店集團。只記名稱跟城市，不記日期。"
+      intro={
+        <>
+          跟飛行紀錄同一本筆記：住過的飯店、城市跟飯店集團。只記名稱跟城市，不記日期。{" "}
+          <Link href="/travel" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+            在地球上看 →
+          </Link>
+        </>
+      }
     >
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-12">
         {[
