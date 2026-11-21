@@ -10,7 +10,7 @@ export const metadata: Metadata = withShare({
   title: "/uses — PINGWEI LI",
   description: "開発環境・硬體・軟體工具清單",
   alternates: { canonical: "/uses", types: { "text/markdown": "/uses.md" } },
-});
+}, { ownImage: true });
 
 export default function UsesPage() {
   return (

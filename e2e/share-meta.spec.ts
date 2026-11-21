@@ -39,6 +39,19 @@ test("作品也有自己的分享圖，而且是 PNG", async ({ request }) => {
   expect(res.headers()["content-type"]).toContain("image/png");
 });
 
+// 獨立頁面的分享圖（TODO B7，2026-11-21）：之前都是首頁那張
+for (const path of ["/flights", "/hotels", "/stats", "/radar", "/now", "/uses", "/changelog"]) {
+  test(`${path} 有自己的分享圖，而且是 PNG`, async ({ request }) => {
+    const html = await (await request.get(path)).text();
+    const img = meta(html, "og:image")!;
+    expect(img).toContain(`${path}/opengraph-image`);
+    expect(meta(html, "twitter:image")).toContain(`${path}/opengraph-image`);
+    const res = await request.get(new URL(img).pathname + new URL(img).search);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("image/png");
+  });
+}
+
 test("RSS：每篇文章都在，作者欄位沒有本名", async ({ request }) => {
   const res = await request.get("/feed.xml");
   expect(res.headers()["content-type"]).toContain("application/rss+xml");

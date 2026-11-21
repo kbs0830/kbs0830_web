@@ -4,6 +4,8 @@ export interface ProjectDetailSection {
   heading: string;
   headingEn?: string;
   body: string[];
+  /** 這段相關的站內頁面（例：課程 → 那門課的期末專題作品頁），列在條列下面 */
+  links?: { href: Route; label: string }[];
 }
 
 export interface ProjectDetail {
@@ -50,6 +52,8 @@ export const projects: Project[] = [
     status: "完成",
     isPersonal: true,
     detail: {
+      // 2026-11-21 使用者確認：repo 裡那份課程說明 PDF 就是這門課的期末專題說明
+      context: "這也是「人工智慧與深度學習應用」課程的期末專題。",
       intro:
         "FoodLens Advisor 是一套「瀏覽器端辨識 + 雲端 AI 分析」的輕量飲食助手，採用 Thin Client + Cloud Brain 混合架構：使用者上傳一張食物照片，立即獲得熱量估算、三大營養素分析與個人化飲食建議。",
       sections: [
@@ -778,6 +782,15 @@ export const projects: Project[] = [
             "Orange 期中：行動通信各業者每月通話分鐘數與用戶數的分布",
             "投資決策：用 ffn 計算台積電日報酬率、多執行緒讀取股價檔",
           ],
+        },
+        {
+          heading: "人工智慧與深度學習應用",
+          headingEn: "AI & deep learning",
+          body: [
+            "期末專題做的是 FoodLens Advisor：瀏覽器端 YOLOv8 辨識食物、影像不離裝置，只把文字標籤交給 Gemini 做營養分析",
+          ],
+          // 動態路由的字串 typedRoutes 要明確轉型（slug 拼錯的話 e2e/sitemap 會抓到 404）
+          links: [{ href: "/projects/foodlens-advisor" as Route, label: "看 FoodLens Advisor 作品頁 →" }],
         },
       ],
       context: "私有倉庫，報告裡的學號、姓名等個人資料不公開。",

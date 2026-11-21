@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
   // 只列有 Markdown 版的頁面，不要寫成 /:path*（會把 /_next、/api 也一起轉走）
   async rewrites() {
     const acceptsMarkdown = [{ type: "header" as const, key: "accept", value: ".*text/markdown.*" }];
-    const pages = ["/", "/resume", "/now", "/uses", "/flights", "/hotels", "/blog", "/blog/:slug", "/blog/tags/:tag", "/projects/:slug"];
+    const pages = ["/", "/resume", "/now", "/uses", "/flights", "/hotels", "/changelog", "/blog", "/blog/:slug", "/blog/tags/:tag", "/projects/:slug"];
     return {
       beforeFiles: [
         ...pages.map((source) => ({
@@ -85,7 +85,7 @@ const nextConfig: NextConfig = {
           destination: source === "/" ? "/md" : `/md${source}`,
         })),
         { source: "/index.md", destination: "/md" },
-        { source: "/:page(resume|now|uses|flights|hotels|blog).md", destination: "/md/:page" },
+        { source: "/:page(resume|now|uses|flights|hotels|changelog|blog).md", destination: "/md/:page" },
         { source: "/:section(blog|projects)/:slug.md", destination: "/md/:section/:slug" },
         { source: "/blog/tags/:tag.md", destination: "/md/blog/tags/:tag" },
       ],

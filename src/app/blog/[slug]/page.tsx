@@ -152,6 +152,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           author: { "@type": "Person", "@id": PERSON_ID, name: "PINGWEI LI", url: SITE_URL },
         }}
       />
+      {/* 麵包屑：作品頁原本就有，文章頁補上（TODO B5）。搜尋結果的網址列會顯示「kbs0830.com › 部落格 › 標題」 */}
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "首頁", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "部落格", item: `${SITE_URL}/blog` },
+            { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+          ],
+        }}
+      />
 
       <p className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4 font-mono">
         {post.date} · 約 {readingMinutes(post.content)} 分鐘

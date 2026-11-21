@@ -134,6 +134,15 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div key={section.heading}>
               <SectionHeading en={section.headingEn}>{section.heading}</SectionHeading>
               <BulletList items={section.body} />
+              {section.links?.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="inline-block mt-3 py-2 -my-2 text-xs text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent) transition-colors font-mono"
+                >
+                  {l.label}
+                </Link>
+              ))}
             </div>
           ))}
         </div>

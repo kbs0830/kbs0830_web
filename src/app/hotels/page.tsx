@@ -10,7 +10,7 @@ export const metadata: Metadata = withShare({
   title: "住宿紀錄 · Hotel Log — PINGWEI LI",
   description: "住過的飯店、城市與飯店集團。只記名稱跟城市，不記日期。",
   alternates: { canonical: "/hotels", types: { "text/markdown": "/hotels.md" } },
-});
+}, { ownImage: true });
 
 const nf = new Intl.NumberFormat("zh-TW");
 

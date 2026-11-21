@@ -20,7 +20,7 @@ export const metadata: Metadata = withShare({
   title: "自家雷達 · My Radar — PINGWEI LI",
   description: "家裡自己架的 ADS-B 接收器（樹莓派＋SDR），即時顯示現在收到幾架飛機、一天的節奏、航空公司，資料同時分享給 Flightradar24。",
   alternates: { canonical: "/radar" },
-});
+}, { ownImage: true });
 
 const radarFile = process.env.RADAR_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "radar.json");
 const nf = new Intl.NumberFormat("zh-TW");

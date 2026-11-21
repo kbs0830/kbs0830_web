@@ -24,7 +24,7 @@ export const metadata: Metadata = withShare({
   title: "訪客分析 · Analytics — PINGWEI LI",
   description: "這個自架網站的訪客：每天多少人、看哪些頁、從哪裡來、用什麼裝置，還有 Cloudflare 跟 AI 爬蟲的數字。",
   alternates: { canonical: "/stats" },
-});
+}, { ownImage: true });
 
 const nf = new Intl.NumberFormat("en-US");
 // 國名用瀏覽器內建的翻譯表（Intl），不用自己維護對照表；Windows 不顯示國旗 emoji 時至少看得懂
@@ -42,6 +42,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/hotels": "住宿紀錄",
   "/stats": "訪客分析",
   "/radar": "自家雷達",
+  "/changelog": "更新紀錄",
 };
 function pageName(path: string): string {
   if (PAGE_NAMES[path]) return PAGE_NAMES[path];

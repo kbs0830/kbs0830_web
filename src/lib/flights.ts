@@ -119,6 +119,10 @@ export function routes(): Route[] {
   return [...map.values()].sort((x, y) => y.count - x.count || y.km - x.km);
 }
 
+// 趣味換算用（/flights 的總距離）：赤道周長、地月平均距離
+export const EARTH_CIRCUMFERENCE_KM = 40075;
+export const MOON_DISTANCE_KM = 384400;
+
 export function flightStats() {
   const airports = new Set(FLIGHTS.flatMap(([, f, t]) => [f, t]));
   const airlines = new Map<string, number>();
@@ -130,7 +134,8 @@ export function flightStats() {
     countries: new Set([...airports].map((c) => AIRPORTS[c].country)).size,
     airlines: [...airlines.entries()].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])),
     km: Math.round(km),
-    earthLaps: km / 40075,
+    earthLaps: km / EARTH_CIRCUMFERENCE_KM,
+    moonShare: km / MOON_DISTANCE_KM,
   };
 }
 

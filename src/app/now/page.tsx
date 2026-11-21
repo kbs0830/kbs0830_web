@@ -8,7 +8,7 @@ export const metadata: Metadata = withShare({
   title: "/now — PINGWEI LI",
   description: "現在在做什麼、在學什麼",
   alternates: { canonical: "/now", types: { "text/markdown": "/now.md" } },
-});
+}, { ownImage: true });
 
 export default function NowPage() {
   return (

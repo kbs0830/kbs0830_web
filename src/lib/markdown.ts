@@ -11,6 +11,7 @@ import { certifications, education, nowItems, resumeFeaturedSlugs, resumeRole, r
 import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
 import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "./hotels";
+import { groupByMonth, readChangelog } from "./changelog";
 
 const SITE_DESCRIPTION =
   "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
@@ -86,7 +87,11 @@ function project(p: Project) {
   if (d) {
     parts.push(d.intro);
     if (d.architectureDiagram) parts.push(`## 架構圖 · Architecture\n\n\`\`\`mermaid\n${d.architectureDiagram}\n\`\`\``);
-    for (const s of d.sections) parts.push(`## ${s.heading}${s.headingEn ? ` · ${s.headingEn}` : ""}\n\n${list(s.body)}`);
+    for (const s of d.sections) {
+      // 站內連結（例：課程 → 那門課的期末專題作品頁）接在條列後面，給完整網址
+      const links = (s.links ?? []).map((l) => `- ${l.label.replace(/\s*→$/, "")}：${htmlUrl(l.href.slice(1))}`);
+      parts.push(`## ${s.heading}${s.headingEn ? ` · ${s.headingEn}` : ""}\n\n${[list(s.body), ...links].join("\n")}`);
+    }
     if (d.context) parts.push(`> ${d.context}`);
   }
   return parts.join("\n\n") + "\n" + footer(`projects/${p.slug}`);
@@ -177,7 +182,7 @@ function flights() {
 - 航班：${s.flights}
 - 機場：${s.airports}（${s.countries} 個國家／地區）
 - 航空公司：${s.airlines.length}
-- 總距離：約 ${s.km.toLocaleString("en-US")} km（約繞地球 ${s.earthLaps.toFixed(1)} 圈）
+- 總距離：約 ${s.km.toLocaleString("en-US")} km（約繞地球 ${s.earthLaps.toFixed(1)} 圈，是地球到月球距離的 ${Math.round(s.moonShare * 100)}%）
 
 ## 航線 · Routes
 
@@ -221,6 +226,18 @@ ${s.groups.map(([g, n]) => `- ${GROUP_NAMES[g]}：${n} 間`).join("\n")}
 ${footer("hotels")}`;
 }
 
+function changelog() {
+  const months = groupByMonth(readChangelog())
+    .map(([month, items]) => `## ${month}\n\n${items.map((e) => `- ${e.date}［${e.scope}］${e.text}`).join("\n")}`)
+    .join("\n\n");
+  return `# 更新紀錄 · Changelog
+
+這個網站加過哪些功能。從 git 紀錄自動產生（只列新功能），每次部署更新。
+
+${months}
+${footer("changelog")}`;
+}
+
 /** 所有有 Markdown 版的頁面路徑（不含開頭的 /；首頁是空字串） */
 export function markdownPaths(): string[] {
   return [
@@ -230,6 +247,7 @@ export function markdownPaths(): string[] {
     "uses",
     "flights",
     "hotels",
+    "changelog",
     "blog",
     ...getAllPosts().map((p) => `blog/${p.slug}`),
     ...getAllTags().map((t) => `blog/tags/${t.slug}`),
@@ -252,6 +270,8 @@ export function renderMarkdown(path: string): string | null {
       return flights();
     case "hotels":
       return hotels();
+    case "changelog":
+      return changelog();
     case "blog":
       return blogIndex();
   }

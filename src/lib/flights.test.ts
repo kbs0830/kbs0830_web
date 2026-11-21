@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AIRLINES, AIRPORTS, FLIGHTS, distanceKm, flightStats, routes } from "./flights";
+import { AIRLINES, AIRPORTS, EARTH_CIRCUMFERENCE_KM, FLIGHTS, MOON_DISTANCE_KM, distanceKm, flightStats, routes } from "./flights";
 
 describe("flights", () => {
   it("每一班的機場、航空公司都查得到（打錯代碼會在這裡抓到）", () => {
@@ -33,5 +33,11 @@ describe("flights", () => {
     expect(r.reduce((n, x) => n + x.count, 0)).toBe(FLIGHTS.length);
     expect(new Set(r.map((x) => `${x.a}-${x.b}`)).size).toBe(r.length);
     expect(flightStats().flights).toBe(FLIGHTS.length);
+  });
+
+  it("趣味換算跟總距離一致（繞地球幾圈、到月球的幾成）", () => {
+    const s = flightStats();
+    expect(s.earthLaps * EARTH_CIRCUMFERENCE_KM).toBeCloseTo(s.km, -1);
+    expect(s.moonShare * MOON_DISTANCE_KM).toBeCloseTo(s.km, -1);
   });
 });

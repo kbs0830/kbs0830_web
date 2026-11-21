@@ -5,14 +5,14 @@ import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RouteMap from "@/components/ui/RouteMap";
 import RadarStatus from "@/components/ui/RadarStatus";
-import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes, type Route } from "@/lib/flights";
+import { AIRLINES, AIRPORTS, MOON_DISTANCE_KM, airportsByCountry, flightStats, routes, type Route } from "@/lib/flights";
 import { formatFlightCode } from "@/lib/aircraft";
 
 export const metadata: Metadata = withShare({
   title: "飛行紀錄 · Flight Log — PINGWEI LI",
   description: "航迷小筆記：搭過的航線、機場與航空公司。只記航班代碼跟起降機場，不記日期。",
   alternates: { canonical: "/flights", types: { "text/markdown": "/flights.md" } },
-});
+}, { ownImage: true });
 
 const nf = new Intl.NumberFormat("zh-TW");
 const TOP_ROUTES = 10; // 預設只列最常飛的前 10 條，其餘收在 <details>
@@ -48,7 +48,7 @@ export default function FlightsPage() {
       title={<>飛行紀錄 &nbsp;·&nbsp; Flight Log</>}
       intro="航迷小筆記：搭過的航線、機場跟航空公司。只記航班代碼跟起降機場，不記日期。"
     >
-      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-12">
+      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-3">
         {[
           [nf.format(stats.flights), "航班 · Flights"],
           [nf.format(stats.airports), "機場 · Airports"],
@@ -61,6 +61,11 @@ export default function FlightsPage() {
           </div>
         ))}
       </dl>
+      {/* 趣味換算（TODO B6）：地月平均距離 384,400 km */}
+      <p className="text-xs text-(--muted) font-light mb-12">
+        加起來大約是地球到月球距離的 {Math.round(stats.moonShare * 100)}%
+        {stats.km < MOON_DISTANCE_KM ? `——再飛 ${nf.format(MOON_DISTANCE_KM - stats.km)} km 就到了。` : "，已經可以飛到月球了。"}
+      </p>
 
       {/* 自家雷達：2026-11-21 從頁面最下面搬上來（使用者：「FR24 自架站點是一個特色」） */}
       <RadarStatus className="mb-12" />
