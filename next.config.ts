@@ -13,6 +13,21 @@ function gitHead() {
 }
 const head = gitHead();
 
+// /changelog 的資料（lib/changelog.ts）：只留 feat commit 的「短 hash␟時間␟標題」。
+// 在這裡讀、用 env 傳給頁面——2026-11-21 第一次上線時頁面自己在產生靜態頁的 worker 裡跑 git log，
+// 自己 build 正常、CI runner 部署的 build 卻是空的（next.config 這裡的 git 一直正常），所以改成在這裡讀。
+function gitFeatLog() {
+  try {
+    return execSync("git log --no-merges --format=%h%x1f%cI%x1f%s", { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 })
+      .split("\n")
+      .filter((line) => /\x1ffeat[(!:]/.test(line))
+      .join("\n");
+  } catch (e) {
+    console.warn(`[changelog] git log 失敗：${e instanceof Error ? e.message : e}`);
+    return "";
+  }
+}
+
 // dev（next dev、CI 的 E2E）多給兩個：React Fast Refresh 要 eval、熱更新要 websocket。正式站沒有
 function contentSecurityPolicy(dev: boolean) {
   return [
@@ -62,7 +77,7 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   // next/image 優先給 AVIF（比 WebP 再小 20～30%），不支援的瀏覽器照舊拿 WebP
   images: { formats: ["image/avif", "image/webp"] },
-  env: { BUILD_COMMIT_SHA: head.sha, BUILD_COMMIT_TIME: head.time },
+  env: { BUILD_COMMIT_SHA: head.sha, BUILD_COMMIT_TIME: head.time, BUILD_FEAT_LOG: gitFeatLog() },
   async headers() {
     return [
       {

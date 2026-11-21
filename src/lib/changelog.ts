@@ -78,14 +78,19 @@ function taipeiDate(iso: string): string {
 }
 
 export function readChangelog(): ChangelogEntry[] {
+  // build 時 next.config.ts 先讀好（env 寫死進來）；在產生靜態頁的 worker 裡自己跑 git，
+  // CI runner 部署時會拿到空的（2026-11-21 第一次上線就這樣，原因沒查到、錯誤被吞掉）
+  const fromBuild = process.env.BUILD_FEAT_LOG;
+  if (fromBuild) return parseChangelog(fromBuild);
+  // 單元測試、沒有經過 next.config 的情況才直接讀 git
   try {
     const raw = execSync("git log --no-merges --format=%h%x1f%cI%x1f%s", {
       encoding: "utf8",
       maxBuffer: 16 * 1024 * 1024,
-      stdio: ["ignore", "pipe", "ignore"],
     });
     return parseChangelog(raw);
-  } catch {
+  } catch (e) {
+    console.warn(`[changelog] git log 失敗：${e instanceof Error ? e.message : e}`);
     return [];
   }
 }
