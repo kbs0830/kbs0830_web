@@ -38,6 +38,15 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 - [開發環境與工具](${SITE_URL}/uses)
 - [飛行紀錄](${SITE_URL}/flights)：搭過的航線、機場、航空公司（航迷小筆記）
 - [住宿紀錄](${SITE_URL}/hotels)：住過的飯店、城市、飯店集團
+- [維運狀態](${SITE_URL}/status)：可用率、部署紀錄、事故報告
+- [本站構造](${SITE_URL}/colophon)：這個自架網站的架構
+- [更新紀錄](${SITE_URL}/changelog)
+
+## API 與 MCP
+
+- 公開 JSON API：${SITE_URL}/api/v1（OpenAPI：${SITE_URL}/api/v1/openapi.json）
+- MCP 伺服器：${SITE_URL}/mcp（Streamable HTTP，唯讀，工具：作品、文章、搜尋、現況）
+- 說明：${SITE_URL}/developers
 
 ## Markdown 版
 

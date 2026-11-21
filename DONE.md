@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-11-21 A9 MCP 伺服器 ＋ A10 公開 JSON API
+- [x] `/api/v1`：簡介、作品（清單／單筆）、文章（清單／單筆含全文）、現況、飛行統計，OpenAPI 3.1 規格；build 時產生、CORS 全開
+- [x] `/mcp`：MCP Streamable HTTP 伺服器，8 個唯讀工具（作品、文章、搜尋、現況、飛行統計），Claude Code 一行就能加
+- [x] `/developers` 說明頁（有 Markdown 版）、頁尾「API」連結、`/llms.txt` 補上 API／MCP／新頁面
+- [x] 測試：單元 125 個（含 OpenAPI 跟實際回應比對）、E2E 82 個（含真的打一輪 API 跟 MCP）
+
 ### 2026-11-21 A8 本站構造 /colophon
 - [x] 架構圖 11 個節點（主線：訪客 → Cloudflare → Tunnel → server.js → Next.js 雙槽 → data/；旁邊：雷達、告警信、watchdog、部署、備份），每個方塊帶即時數字
 - [x] 點方塊跳到說明卡並高亮（零 JS）；作品「本站」詳細頁的「看架構圖」連過來、/status 開頭也連過來

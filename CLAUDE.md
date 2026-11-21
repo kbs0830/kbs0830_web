@@ -753,6 +753,14 @@ deploy.bat
 - 點方塊跳到下面的說明卡（`<a href="#id">` ＋ Tailwind `target:`，零 JS）。作品「個人網站（本站）」的 `live` 連過來
 - 說明文字照 CLAUDE.md 寫，**架構改了（加服務、換部署方式）這頁要跟著改**；不放內網 IP、雷達位置
 
+### 5.8 公開 API `/api/v1`、MCP 伺服器 `/mcp`、說明頁 `/developers`（2026-11-21，TODO A9／A10）
+- 資料共用 `lib/public-api.ts`（來源同 projects／blog／page-content／flights，**不另外維護**）；名字只用 PINGWEI LI，不放本名
+- API：`/api/v1`（入口）、`/profile`、`/projects`、`/projects/{slug}`、`/posts`、`/posts/{slug}`（含 MDX 全文）、`/now`、`/flights`、`/openapi.json`。
+  全部 `force-static`（build 時產生），CORS `*`、快取一小時。OpenAPI 在 `lib/openapi.ts`，**改 API 回傳欄位要一起改**（`public-api.test.ts` 會比對 required 欄位）
+- MCP：`lib/mcp.ts`＋`app/mcp/route.ts`，Streamable HTTP、無狀態（不發 session、GET 回 405、通知回 202）、只回 JSON。8 個唯讀工具
+  （get_profile、list_projects、get_project、list_posts、get_post、search、get_now、get_flight_stats）。新增工具加進 `TOOLS`，/developers 跟 Markdown 版自動列出
+- `/developers` 有 Markdown 版；`/llms.txt` 也列了 API 跟 MCP。E2E `e2e/api.spec.ts` 真的打一輪 API 跟 MCP
+
 ### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單

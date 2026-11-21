@@ -12,6 +12,8 @@ import { EMAIL, GITHUB_URL, SITE_URL } from "./site";
 import { AIRLINES, AIRPORTS, airportsByCountry, flightStats, routes } from "./flights";
 import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "./hotels";
 import { groupByMonth, readChangelog } from "./changelog";
+import { API_BASE, API_ENDPOINTS } from "./public-api";
+import { TOOLS } from "./mcp";
 
 const SITE_DESCRIPTION =
   "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
@@ -238,6 +240,29 @@ ${months}
 ${footer("changelog")}`;
 }
 
+function developers() {
+  return `# 開發者 · API & MCP
+
+網站上的作品、文章、現況，也可以用程式讀。全部唯讀、不用金鑰，內容就是網站上公開的那些。
+
+## 公開 JSON API
+
+基礎網址：${API_BASE}（CORS 全開、快取一小時）
+
+${API_ENDPOINTS.map(([p, d]) => `- \`${p}\`：${d}`).join("\n")}
+
+## MCP 伺服器
+
+網址：${SITE_URL}/mcp（Streamable HTTP，不用登入）
+
+Claude Code：\`claude mcp add --transport http kbs0830 ${SITE_URL}/mcp\`
+
+工具：
+
+${TOOLS.map((t) => `- \`${t.name}\`：${t.description}`).join("\n")}
+${footer("developers")}`;
+}
+
 /** 所有有 Markdown 版的頁面路徑（不含開頭的 /；首頁是空字串） */
 export function markdownPaths(): string[] {
   return [
@@ -248,6 +273,7 @@ export function markdownPaths(): string[] {
     "flights",
     "hotels",
     "changelog",
+    "developers",
     "blog",
     ...getAllPosts().map((p) => `blog/${p.slug}`),
     ...getAllTags().map((t) => `blog/tags/${t.slug}`),
@@ -272,6 +298,8 @@ export function renderMarkdown(path: string): string | null {
       return hotels();
     case "changelog":
       return changelog();
+    case "developers":
+      return developers();
     case "blog":
       return blogIndex();
   }

@@ -66,6 +66,12 @@ export default function Home() {
               Status
             </Link>
             <Link
+              href="/developers"
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
+            >
+              API
+            </Link>
+            <Link
               href="/stats"
               className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
             >

@@ -115,15 +115,6 @@
   - three.js 的 WebGPURenderer＋TSL，粒子改用 compute shader（數量可以加，但風格照舊「稀疏、慢」）；不支援的瀏覽器退回現在的 WebGL
   - 新技術展示，但**風險最高**：60fps 目標、相容性、R3F 支援度都要先驗證。不急
 
-- [ ] **A9. 給 AI 用的網站 MCP 伺服器**
-  - 已經有 `/llms.txt` 跟每頁 Markdown 版；再往前一步：`/mcp` 讓 AI 助理直接查「他做過哪些作品」「最新文章」
-  - 唯讀、只回傳網站上本來就公開的內容；跟「AI 搜得到我的名字」的目標一致
-  - 新技術，但目前真的會用 MCP 查個人網站的人不多，**展示意義大於實用**
-
-- [ ] **A10. 公開 JSON API（/api/v1）＋文件**
-  - projects、posts、now、flights 統計，附 OpenAPI 文件頁。展示後端能力，也方便自己其他專案（GitHub profile README）拿資料
-  - 跟 Markdown 版共用資料來源，不另外維護
-
 **B. 網站功能（🟧／🟩）**
 
 - [ ] **B2. 終端機加指令** 🟩：`neofetch`（真實硬體規格）、`uptime`、`blog`、`status`、`history`、Tab 自動補完
