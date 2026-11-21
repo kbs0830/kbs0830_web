@@ -6,6 +6,7 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
+import { RadarBadge } from "@/components/ui/RadarStatus";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Link from "next/link";
 import Tabs from "@/components/ui/Tabs";
@@ -218,6 +219,12 @@ function FootprintPanel() {
         >
           住宿紀錄 · Hotel Log（{hotelStats().hotels} 間 · {hotelStats().cities} 城市）→
         </Link>
+        <Link
+          href="/flights#radar"
+          className="inline-block py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide"
+        >
+          自家雷達 · My Radar（即時）→
+        </Link>
       </div>
     </>
   );
@@ -277,8 +284,10 @@ export default function AboutSection() {
                 ))}
               </ul>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
               <SpotifyNowPlaying />
+              {/* 自家 FR24 雷達即時小卡（2026-11-21） */}
+              <RadarBadge />
             </div>
           </Reveal>
         </div>

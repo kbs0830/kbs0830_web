@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { withShare } from "@/lib/share-meta";
 import Image from "next/image";
+import Link from "next/link";
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import { projects } from "@/lib/projects";
@@ -70,8 +71,17 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       </ViewTransition>
       <p className="text-sm font-light text-(--muted) mb-8">{project.title}</p>
 
-      {project.github && (
-        <div className="mb-8">
+      {(project.github || project.live) && (
+        <div className="mb-8 flex flex-wrap gap-x-6 gap-y-3">
+          {project.live && (
+            <Link
+              href={project.live.href}
+              className="inline-flex items-center gap-2 py-2 -my-2 text-xs text-(--accent) hover:underline underline-offset-4 font-mono"
+            >
+              {project.live.label} →
+            </Link>
+          )}
+          {project.github && (
           <a
             href={project.github}
             target="_blank"
@@ -81,6 +91,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <GitHubIcon />
             原始碼 · Source Code
           </a>
+          )}
         </div>
       )}
 

@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 export interface ProjectDetailSection {
   heading: string;
   headingEn?: string;
@@ -25,6 +27,8 @@ export interface Project {
   status: "完成" | "製作中" | "學習記録" | "課程専題";
   isPersonal?: boolean;
   image?: string;
+  /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
+  live?: { href: Route; label: string };
   detail?: ProjectDetail;
 }
 
@@ -328,6 +332,66 @@ export const projects: Project[] = [
   W["Watchdog<br/>每 5 分鐘"] -.異常自動重啟.-> S
   W -.外網檢查.-> CF
   W --> B["每日備份<br/>另一顆硬碟＋GitHub 加密"]`,
+    },
+  },
+  {
+    // 2026-11-20／21 實際除錯與上線的紀錄（DONE.md、CLAUDE.md「自家 FR24 雷達」）。
+    // ⚠️ 接收器在使用者家：不寫位置、雷達代碼、涵蓋範圍、離機場多近（「收得到地面滑行的飛機」也不寫，那等於說住在機場旁）
+    slug: "fr24-receiver",
+    title: "Home ADS-B Receiver",
+    titleJa: "自宅レーダー",
+    titleZh: "自架 FR24 雷達站",
+    description:
+      "A self-hosted ADS-B receiver (Raspberry Pi + SDR dongle) that decodes the 1090 MHz broadcasts aircraft send out and feeds Flightradar24. Its live status shows on this site — without revealing where the receiver is.",
+    descriptionZh:
+      "樹莓派＋SDR 電視棒，自己接收飛機在 1090 MHz 廣播的 ADS-B 訊號，解碼後分享給 Flightradar24。即時狀態（現在幾架、今天幾架、航空公司）接到本站，但不透露接收器在哪。",
+    tags: ["Raspberry Pi", "ADS-B", "SDR", "Node.js", "PowerShell"],
+    highlight: "Decoded messages: 0 → 6,663 in 41 minutes after tuning the gain",
+    highlightZh: "調整增益後，解碼從一則都沒有 → 41 分鐘 6,663 則",
+    status: "完成",
+    isPersonal: true,
+    live: { href: "/flights#radar", label: "看即時狀態 · Live Status" },
+    detail: {
+      intro:
+        "家裡自己架的航空雷達。飛機會一直用 1090 MHz 廣播自己的位置、高度和航班代碼（ADS-B），樹莓派接一支 SDR 電視棒就收得到，解碼後即時分享給 Flightradar24。飛行紀錄頁記的是我自己搭過的航班，這台收的是從頭上飛過的。",
+      sections: [
+        {
+          heading: "架設",
+          headingEn: "Setup",
+          body: [
+            "樹莓派（Flightradar24 的 Pi24 系統）＋ DVB-T 電視棒當 SDR 接收器",
+            "fr24feed 負責解碼（dump1090）並把資料送到 Flightradar24",
+            "區網內開放兩份 JSON：接收器狀態、目前收到的飛機清單——本站就是從這裡讀資料",
+          ],
+        },
+        {
+          heading: "除錯：從一則都收不到開始",
+          headingEn: "Troubleshooting",
+          body: [
+            "剛架好時：連得上 Flightradar24、接收器也在跑，但每分鐘約 100 萬個疑似訊號一則都解不出來，雜訊 -31 dBFS",
+            "原因是增益沒設、預設開到最大，雜訊把飛機訊號蓋掉；設成 --gain 40 後雜訊降到 -37 dBFS",
+            "重開後 41 分鐘解出 6,663 則訊息、21 架飛機，位置解碼 1,021 次、0 次失敗",
+            "改設定重啟時，軟體卡在「關到一半」半小時：Flightradar24 那邊照樣顯示已連線，網頁上的重啟按鈕也沒反應，只能拔電重開——後來把這種狀況加進自動監控",
+          ],
+        },
+        {
+          heading: "接到網站",
+          headingEn: "On this site",
+          body: [
+            "網站伺服器每 30 秒在區網讀一次雷達，只留彙總：現在／今天／最多同時幾架、今天的航空公司、近 7 天在線率，顯示在飛行紀錄頁",
+            "隱私：狀態資料裡有 Flightradar24 的分享金鑰跟內網 IP，這些不存也不出去；也不畫地圖、不算涵蓋範圍——把收到的飛機位置畫出來，就看得出接收器在哪",
+            "監控：離線超過 15 分鐘，或白天 2 小時一架都沒收到，就寄信通知；每週的維運週報也有一段雷達統計",
+          ],
+        },
+      ],
+      architectureDiagram: `flowchart TD
+  A["飛機<br/>ADS-B 1090 MHz"] --> R["SDR 電視棒"]
+  R --> P["樹莓派<br/>fr24feed"]
+  P --> F["Flightradar24"]
+  P -->|"區網 JSON"| S["本站伺服器<br/>每 30 秒讀一次"]
+  S --> API["彙總數字<br/>不含位置"]
+  API --> V["飛行紀錄頁"]
+  S -.離線就寄信.-> W["Watchdog"]`,
     },
   },
 

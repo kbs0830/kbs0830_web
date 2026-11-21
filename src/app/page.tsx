@@ -48,6 +48,12 @@ export default function Home() {
               Blog
             </Link>
             <Link
+              href="/flights"
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
+            >
+              Flights
+            </Link>
+            <Link
               href="/stats"
               className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
             >

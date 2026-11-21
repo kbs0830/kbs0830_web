@@ -62,6 +62,9 @@ export default function FlightsPage() {
         ))}
       </dl>
 
+      {/* 自家雷達：2026-11-21 從頁面最下面搬上來（使用者：「FR24 自架站點是一個特色」） */}
+      <RadarStatus className="mb-12" />
+
       <section className="mb-12">
         <SectionHeading>航線圖 · Route Map</SectionHeading>
         <div className="border border-(--border) rounded-sm bg-(--surface) p-3 sm:p-5">
@@ -120,8 +123,6 @@ export default function FlightsPage() {
           ))}
         </ul>
       </section>
-
-      <RadarStatus />
 
       <Link href="/hotels" className="inline-block mt-12 py-3 -my-3 text-xs text-(--muted) hover:text-(--accent) transition-colors font-mono tracking-wide">
         住宿紀錄 · Hotel Log →
