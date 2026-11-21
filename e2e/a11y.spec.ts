@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 // 2026-07 的 Lighthouse 對比度問題（部落格有一篇）就是這類，之前靠手動跑才發現。
 //
 // 開「減少動態效果」：捲動淡入、進場動畫一開始是 opacity 0，axe 會把還沒淡入的字當成對比不足。
-const PAGES = ["/", "/blog", "/blog/task-scheduler-72-hours", "/projects/foodlens-advisor", "/resume", "/stats", "/flights", "/hotels", "/radar", "/changelog"];
+const PAGES = ["/", "/blog", "/blog/task-scheduler-72-hours", "/projects/foodlens-advisor", "/resume", "/stats", "/flights", "/hotels", "/radar", "/changelog", "/status"];
 
 for (const path of PAGES) {
   for (const theme of ["light", "dark"] as const) {

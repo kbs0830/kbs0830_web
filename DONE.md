@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-11-21 A4 維運狀態頁 /status（使用者：「A4-A10 都做」）
+- [x] 近 90 天可用率長條（watchdog 每一輪寫 `data/uptime.log`，今天開始記；之前的日子灰色並說明原因）、近 30 天可用率
+- [x] 部署紀錄（deploy.log：成功／失敗／自動退回、花幾秒、成功部署的中位數）、自動重啟紀錄（watchdog.log 只轉成分類，不放原文）
+- [x] 事故報告 10 篇（7/09 node.exe 無聲停 → 11/21 /changelog 空白），照「影響 → 發現 → 原因 → 修法 → 之後」，有文章的連過去
+- [x] 分享圖、sitemap、頁尾 Status 連結；測試：單元 111 個、E2E 72 個（port 3200）
+
 ### 2026-11-21 「你要動手的」清單回查
 - [x] **Bing 收錄**：使用者 Bing Webmaster URL Inspection 截圖「Indexed successfully」、No SEO/GEO issues、抓到 JSON-LD＋OpenGraph（bingbot 累計 73 次）
 - [x] **網域自動續約**：使用者確認開著（RDAP 到期日 2027-06-16）

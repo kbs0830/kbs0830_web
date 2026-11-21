@@ -110,6 +110,22 @@ if ($exitCode -eq 0 -and -not $inMaintenance) {
     }
 }
 
+# --- 可用率紀錄（2026-11-21，/status 的 90 天長條圖）---
+# 上面的 log 只記異常，算不出「正常了多久」。這裡每一輪都記一行：時間 o=origin p=外網 m=維修模式（1／0，外網沒檢查是 -）。
+# o 用「重啟之前」那次的結果：自動重啟救回來的那 5 分鐘也算掛過。約 4 MB／年；超過 2 MB 只留最後 40000 行（約 138 天）。
+try {
+    $uptimeFile = Join-Path $repo "data\uptime.log"
+    $o = if ($inMaintenance) { "-" } elseif ($result.Success) { "1" } else { "0" }
+    $p = "-"
+    if ($public) { $p = if ($public.Success) { "1" } else { "0" } }
+    $m = if ($inMaintenance) { "1" } else { "0" }
+    Add-Content -Path $uptimeFile -Value "$(Get-Date -Format o) o=$o p=$p m=$m" -Encoding ASCII
+    if ((Get-Item $uptimeFile).Length -gt 2MB) {
+        $keep = Get-Content $uptimeFile -Tail 40000
+        Set-Content -Path $uptimeFile -Value $keep -Encoding ASCII
+    }
+} catch { Log "[WARN] 寫 uptime.log 失敗：$($_.Exception.Message)" }
+
 # --- 自家 FR24 雷達（2026-11-21，scripts/lib/radar.js）---
 # server.js 每 30 秒在區網讀雷達、寫 data\radar.json；這裡只看裡面的 status，不自己連雷達。
 #   - 離線超過 15 分鐘（讀不到／接收器斷線／卡在關機）→ 寄信（key radar）

@@ -60,6 +60,12 @@ export default function Home() {
               Radar
             </Link>
             <Link
+              href="/status"
+              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
+            >
+              Status
+            </Link>
+            <Link
               href="/stats"
               className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
             >

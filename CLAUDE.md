@@ -738,6 +738,15 @@ deploy.bat
 - commit 訊息會**原文公開**：本名、信箱、token、內網、雷達位置不要寫進 `feat` 的標題。寫到了會被 `PRIVATE_PATTERN` 整則濾掉；
   要改寫或隱藏舊的某一則，在 `OVERRIDES` 加「短 hash → 新文字／null」。`changelog.test.ts` 會拿真的 git log 檢查
 
+### 5.6 `/status` 維運狀態（2026-11-21，TODO A4）
+- 近 90 天可用率長條、部署紀錄（含自動退回）、watchdog 自動重啟紀錄、**事故報告**。`force-dynamic`，沒有 Markdown 版（跟 /stats 一樣）
+- 資料 `lib/status.ts`：`data/uptime.log`（**watchdog 每一輪寫一行** `時間 o=origin p=外網 m=維修`，1／0／-；超過 2 MB 只留最後 4 萬行；
+  有進每日備份）、`logs/deploy.log`、`logs/watchdog.log`（依修改時間快取）。路徑：server.js 設 `UPTIME_FILE`、`LOGS_DIR`
+- **只公開彙總**：log 原文（路徑、chunk 檔名、錯誤訊息）不出去，watchdog 事件只轉成「網站／外網／runner × 自動恢復與否」
+- uptime.log 2026-11-21 才開始記，之前的日子是灰的（頁面有說明）；可用率＝origin 正常而且外網沒失敗
+- 事故報告在 `lib/incidents.ts`：**真的發生過的事才寫**，照「影響 → 怎麼發現 → 原因 → 修法 → 之後」；新的加最上面，有文章就填 `post`
+- 跟 `public/status/*.svg`（狀態色分頁圖示）同路徑前綴，兩邊都正常（測過）；維修模式會擋 `/status` 頁面、照常放行 `/status/*.svg`
+
 ### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單

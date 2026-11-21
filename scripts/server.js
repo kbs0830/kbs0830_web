@@ -53,6 +53,9 @@ process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
 process.env.FEATURE_RELEASE_FILE = path.join(dataDir, "feature-release.json");
 // 自家 FR24 雷達的彙總（lib/radar.js；下面 prepare 之後開始每 30 秒讀，.env.local 要有 RADAR_HOST）
 process.env.RADAR_FILE = process.env.RADAR_FILE || path.join(dataDir, "radar.json");
+// 維運狀態頁 /status（src/lib/status.ts）：watchdog 每 5 分鐘一行的可用率、deploy.log、watchdog.log
+process.env.UPTIME_FILE = process.env.UPTIME_FILE || path.join(dataDir, "uptime.log");
+process.env.LOGS_DIR = process.env.LOGS_DIR || path.join(projectDir, "logs");
 
 // deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
 // （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。
