@@ -861,7 +861,7 @@ deploy.bat
   **不存座標、不算涵蓋範圍／最遠距離**（畫出收到的飛機位置就看得出接收器＝使用者家在哪）。今天看過的飛機識別碼只為了數不重複、
   換日就丟、不經 API。「列出頭上這幾班（航班代碼＋高度）」問過使用者還沒選，先不做。`radar.test.ts` 會擋公開資料出現識別碼／IP／座標
 - watchdog 看 `data/radar.json` 的 status：離線超過 15 分鐘寄信（key `radar`，原因分「讀不到／卡在關機／SDR 斷線」）、
-  07–23 點在線但 2 小時 0 架寄信（key `radar-quiet`，12 小時冷卻）；status 超過 5 分鐘沒更新（server 沒在讀）不判斷。週報有「自家雷達」一段
+  08–21 點在線但 2 小時 0 架寄信（小港有宵禁，晚上本來就少）（key `radar-quiet`，12 小時冷卻）；status 超過 5 分鐘沒更新（server 沒在讀）不判斷。週報有「自家雷達」一段
 - ⚠️ fr24feed 重啟可能卡在「關到一半」（`monitor.json` 的 `shutdown: yes`、`rx_connected: 0`，FR24 那邊照樣 connected）：
   網頁的 Restart 沒用（它以為自己正在關），要拔電或 `sudo systemctl restart fr24feed`。**`restart.html` 一打開（GET）就會觸發重啟**，不要為了看內容去抓它
 - 收訊：增益 `--gain 40`（settings 的 Process arguments；沒設＝最大，雜訊蓋掉訊號、一則都解不出來）

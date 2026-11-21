@@ -114,7 +114,8 @@ if ($exitCode -eq 0 -and -not $inMaintenance) {
 # server.js 每 30 秒在區網讀雷達、寫 data\radar.json；這裡只看裡面的 status，不自己連雷達。
 #   - 離線超過 15 分鐘（讀不到／接收器斷線／卡在關機）→ 寄信（key radar）
 #     11/20 fr24feed 卡在「關到一半」半小時，FR24 那邊照樣顯示 connected，網頁的 Restart 也救不回來，要拔電
-#   - 07:00–23:00 連續 2 小時一架都沒收到 → 寄信（key radar-quiet）：天線鬆了、增益跑掉時就會這樣
+#   - 08:00–21:00 連續 2 小時一架都沒收到 → 寄信（key radar-quiet）：天線鬆了、增益跑掉時就會這樣
+#     （時段收窄：小港機場有宵禁，晚上本來就很少飛機——2026-11-21 使用者說的）
 # status 超過 5 分鐘沒更新＝server.js 沒在讀（網站本身的問題，上面已經處理），這裡不判斷。雷達不是網站，不影響 $exitCode。
 $radarFile = Join-Path $repo "data\radar.json"
 if (Test-Path $radarFile) {
@@ -140,7 +141,7 @@ if (Test-Path $radarFile) {
             if ($st.lastAircraftAt) { $quietMs = $nowMs - [double]$st.lastAircraftAt }
             if ($healthy -and $st.aircraftNow -gt 0) {
                 Notify (Clear-Alert -Key "radar-quiet" -Subject "✅ 自家雷達又收得到飛機了")
-            } elseif ($healthy -and $hour -ge 7 -and $hour -lt 23 -and $quietMs -gt 2 * 3600000) {
+            } elseif ($healthy -and $hour -ge 8 -and $hour -lt 21 -and $quietMs -gt 2 * 3600000) {
                 Log "[RADAR] 雷達在線但 $([math]::Round($quietMs / 60000)) 分鐘沒收到任何飛機"
                 Notify (Send-Alert -Key "radar-quiet" -Subject "📡 自家雷達 2 小時沒收到飛機" -CooldownMinutes 720 `
                     -Body "接收器有連上，但 2 小時以上一架都沒收到。通常是天線鬆了／被移動，或增益設定跑掉（settings 的 Process arguments 應該是 --gain 40）。`n`n解碼數字：http://192.168.50.147/dump1090/data/stats.json")
