@@ -12,7 +12,10 @@
 - [x] **「人工智慧與深度學習」那門課**：使用者確認 FoodLens 就是這門課的期末專題 → 課程學習記録加一段、連到 FoodLens 作品頁，
   FoodLens 頁底註明是這門課的期末專題（作品段落現在可以帶站內連結：`ProjectDetailSection.links`）
 - [x] **FoodLens repo 的 PDF**：Claude 解出內容是期末專題說明（不是個人文件），使用者決定刪（要在 GitHub 上刪，見 TODO）
-- [x] **cloudflared**：查出上次升級沒換到服務用的那份（見 TODO），寫了 `scripts/upgrade-cloudflared.ps1` 一鍵升級
+- [x] **cloudflared 升到 2026.11.1**：查出 11/09 寫的版本看錯份、服務其實跑 2026.5.2 的免安裝版；`scripts/upgrade-cloudflared.ps1`
+  第一次跑 winget 裝成 MSI（升到 Program Files 那份、服務沒換），腳本改成「把服務指到最新那份」後第二次跑完成：
+  服務 binPath＝`C:\Program Files (x86)\cloudflared\cloudflared.exe`、外網 200、watchdog 沒有誤報
+- [x] **/changelog 上線後是空的**：CI runner 的 build 裡 git 格式字串經過 cmd.exe 被動到，改 `execFileSync` 修好（第三次部署）
 - [x] 測試：單元 103 個、E2E 68 個（port 3200）
 
 ### 2026-11-21 TODO 小項目一次做掉（使用者：「優化個人的 web」）

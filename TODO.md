@@ -10,24 +10,19 @@
 
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
-1. [ ] **cloudflared：把服務切到新版那份（再跑一次同一行）** 🔴
-   → 11/21 第一次跑：winget 這次給的是 MSI，`C:\Program Files (x86)\cloudflared\` 那份升到 **2026.11.1** ✅，
-     但服務還指著舊的免安裝版 **2026.5.2**（網站正常，只是版本舊）。腳本已經改成「升級完把服務指到最新那份」（已在本機乾跑確認會選對）
-   → 用**系統管理員** PowerShell 再跑一次（外網斷 30 秒～1 分鐘）：
-     `powershell -ExecutionPolicy Bypass -File C:\Users\user\Desktop\kbs0830_web-master\scripts\upgrade-cloudflared.ps1`
-   → 會看到「服務改用新的那份：C:\Program Files (x86)\…」跟綠字「完成：服務現在是 2026.11.1」；有紅字把整個視窗截圖給 Claude
-   → 之後 `winget upgrade` 升的就是服務在用的這份；舊的免安裝版確認沒問題後可以刪（Claude 會提醒）
-2. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
+1. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
    不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）
-3. [ ] **Search Console 5xx／404 驗證**：不用動作，等 Google 跑完。📍 **11/21 匯出**：已建立索引 **31**（11/10 從 11 跳上來）、未建立 24；
+2. [ ] **Search Console 5xx／404 驗證**：不用動作，等 Google 跑完。📍 **11/21 匯出**：已建立索引 **31**（11/10 從 11 跳上來）、未建立 24；
    5xx 7、404 2、已找到未建立 4 都是「驗證已開始」；「已檢索 - 尚未建立索引」9（11/12 是 27，tag 頁 noindex 後變少）；
    「頁面會重新導向」2＝http／www 導向，本來就該導，驗證「失敗」不用理。API 查 sitemap 31 頁有 25 頁已收錄（沒收的多是新頁）
-4. [ ] **GitHub 門面**（11/21 使用者：最後做；改的是別的 repo）
+3. [ ] **GitHub 門面**（11/21 使用者：最後做；改的是別的 repo）
    → About（描述、網站、topics）三個 repo 都空的；Claude 11/21 給了要貼的文字（FoodLens、YARTIX、kbs0830_web）
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`、`kbs0830_web`；前兩個的 README 補截圖／架構圖／安裝步驟
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
-5. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
+4. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
+5. [ ] **舊的 cloudflared 免安裝版可以刪**（不急，跟 Claude 說「刪舊 cloudflared」就好，不用管理員）：11/21 服務已經改用
+   `C:\Program Files (x86)\cloudflared\`（2026.11.1），`%LOCALAPPDATA%\Microsoft\WinGet\Packages\Cloudflare.cloudflared_…` 那份（2026.5.2）沒人用了
 
 ## 🤔 你要決定或提供素材的
 
