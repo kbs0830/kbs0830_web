@@ -21,8 +21,6 @@
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
 4. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
-5. [ ] **舊的 cloudflared 免安裝版可以刪**（不急，跟 Claude 說「刪舊 cloudflared」就好，不用管理員）：11/21 服務已經改用
-   `C:\Program Files (x86)\cloudflared\`（2026.11.1），`%LOCALAPPDATA%\Microsoft\WinGet\Packages\Cloudflare.cloudflared_…` 那份（2026.5.2）沒人用了
 
 ## 🤔 你要決定或提供素材的
 

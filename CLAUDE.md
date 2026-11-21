@@ -315,11 +315,9 @@ string），`https://www.kbs0830.com/blog?x=1` → 301 `https://kbs0830.com/blog
 | GitHub Actions Runner | 工作排程器 `GitHubActionsRunner`，位於 `C:\actions-runner` |
 | 健康監控 | 工作排程器 `kbs0830_Watchdog`，每 5 分鐘執行 `scripts\watchdog.ps1` |
 
-**⚠️ 這台有兩份 cloudflared（2026-11-21 查到）**：`Cloudflared` 服務跑的是 WinGet 免安裝版
-（`%LOCALAPPDATA%\Microsoft\WinGet\Packages\Cloudflare.cloudflared_…\cloudflared.exe`，setup-autostart.ps1 設的）；
-`C:\Program Files (x86)\cloudflared\` 是早期手動裝的、PATH 排前面——**直接打 `cloudflared --version` 看到的不是服務的版本**
-（11/09 就這樣誤報成 2026.10.0，服務其實是 2026.5.2）。看版本要看服務的 binPath（`Get-CimInstance Win32_Service -Filter "Name='Cloudflared'"`）。
-升級用 `scripts/upgrade-cloudflared.ps1`（管理員執行：停服務 → winget 升級 → 啟動 → 外網確認）。
+**cloudflared 只有一份：`C:\Program Files (x86)\cloudflared\`（winget 管、MSI）**。2026-11-21 之前服務跑的是另一份 WinGet 免安裝版
+（`cloudflared --version` 看到的是 PATH 上的這份、不是服務的，11/09 因此誤報版本），當天把服務切過來、舊的移除。
+升級用 `scripts/upgrade-cloudflared.ps1`（管理員執行：停服務 → winget 升級 → 服務指到最新那份 → 啟動 → 外網確認）。
 
 **這些服務的設定統一由 `scripts/setup-autostart.ps1` 建立（要用系統管理員 PowerShell 跑）。**
 2026-10-15 查到「開機自動啟動」其實一直沒做到：`Cloudflared` 服務 binPath 沒帶任何參數（空轉），

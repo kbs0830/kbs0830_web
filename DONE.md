@@ -15,6 +15,7 @@
 - [x] **cloudflared 升到 2026.11.1**：查出 11/09 寫的版本看錯份、服務其實跑 2026.5.2 的免安裝版；`scripts/upgrade-cloudflared.ps1`
   第一次跑 winget 裝成 MSI（升到 Program Files 那份、服務沒換），腳本改成「把服務指到最新那份」後第二次跑完成：
   服務 binPath＝`C:\Program Files (x86)\cloudflared\cloudflared.exe`、外網 200、watchdog 沒有誤報
+- [x] **舊的 cloudflared 免安裝版刪掉**：`winget uninstall --product-code`（只認那一份），現在只剩 Program Files 那份、winget 也列 2026.11.1
 - [x] **/changelog 上線後是空的**：CI runner 的 build 裡 git 格式字串經過 cmd.exe 被動到，改 `execFileSync` 修好（第三次部署）
 - [x] 測試：單元 103 個、E2E 68 個（port 3200）
 
