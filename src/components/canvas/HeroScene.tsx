@@ -283,7 +283,7 @@ function Dots({ color, reduced }: { color: string; reduced: boolean }) {
   );
 }
 
-// 流星：每 8～16 秒從畫面上方斜斜劃過一顆，不到一秒就消失。頭亮、尾巴漸淡（每個頂點自己的透明度）。
+// 流星：每 4～8 秒從畫面上方斜斜劃過一顆，不到一秒就消失。頭亮、尾巴漸淡（每個頂點自己的透明度）。
 // 不跟游標傾斜（放在 PointerRig 外面），減少動態時不出現。
 const METEOR_SEGS = 12; // 尾巴切 12 段，每段兩個頂點（LineSegments）
 // 狀態放 module 層級（理由同 sim）
@@ -311,7 +311,7 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
       return;
     }
     if (meteor.start < 0) {
-      if (!meteor.next) meteor.next = now + 3 + Math.random() * 5; // 第一顆：載入後 3～8 秒
+      if (!meteor.next) meteor.next = now + 2 + Math.random() * 2; // 第一顆：載入後 2～4 秒
       if (now < meteor.next) return;
       // 從畫面上半部偏右出發，往左下劃（角度 200°～215°）
       const a = ((200 + Math.random() * 15) * Math.PI) / 180;
@@ -320,7 +320,7 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
     const t = (now - meteor.start) / meteor.life;
     if (t >= 1) {
       meteor.start = -1;
-      meteor.next = now + 8 + Math.random() * 8;
+      meteor.next = now + 4 + Math.random() * 4;
       l.visible = false;
       return;
     }
