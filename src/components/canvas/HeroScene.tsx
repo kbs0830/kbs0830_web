@@ -29,7 +29,7 @@ import { useAccentColor, usePrefersReducedMotion } from "@/lib/hooks";
 // 裝飾用的隨機座標在 module 載入時產生一次（這個檔案只在桌機、client 端載入）。
 const rand = (spread: number, offset = 0) => (Math.random() - 0.5) * spread + offset;
 
-const LINE_SPECS = Array.from({ length: 18 }, () => ({
+const LINE_SPECS = Array.from({ length: 28 }, () => ({ // 11/23 使用者：「線條可以再多一點」（原本 18）
   x: rand(12),
   y: rand(8),
   z: rand(4, -2),
