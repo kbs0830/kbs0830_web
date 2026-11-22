@@ -6,6 +6,7 @@ import { Float } from "@react-three/drei";
 import {
   BufferAttribute,
   BufferGeometry,
+  Color,
   Group,
   Line,
   LineBasicMaterial,
@@ -23,6 +24,7 @@ import { useAccentColor, usePrefersReducedMotion } from "@/lib/hooks";
 //   - 點一下 Hero 空白處，從點擊位置擴散一圈衝擊波把粒子推開
 //   - 往下捲時相機慢慢後退，場景整個捲出畫面後 frameloop 停掉（不再每秒畫 60 張看不到的圖）
 // 全部在 useFrame 裡直接改 BufferAttribute，不經過 React state。
+// 2026-11-22 晚：WebGPU 粒子版使用者試了覺得「有點複雜（煩），線條就不錯，有時加個流星」→ 桌機預設改回這版，加上 Meteor。
 
 // 裝飾用的隨機座標在 module 載入時產生一次（這個檔案只在桌機、client 端載入）。
 const rand = (spread: number, offset = 0) => (Math.random() - 0.5) * spread + offset;
@@ -281,6 +283,70 @@ function Dots({ color, reduced }: { color: string; reduced: boolean }) {
   );
 }
 
+// 流星：每 8～16 秒從畫面上方斜斜劃過一顆，不到一秒就消失。頭亮、尾巴漸淡（每個頂點自己的透明度）。
+// 不跟游標傾斜（放在 PointerRig 外面），減少動態時不出現。
+const METEOR_SEGS = 12; // 尾巴切 12 段，每段兩個頂點（LineSegments）
+// 狀態放 module 層級（理由同 sim）
+const meteor = { start: -1, next: 0, x: 0, y: 0, dx: 0, dy: 0, life: 0.9, speed: 9, len: 1.8, rgb: new Color("#2d5a8e") };
+
+function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
+  const ref = useRef<LineSegments>(null);
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(new Float32Array(METEOR_SEGS * 2 * 3), 3));
+    g.setAttribute("color", new BufferAttribute(new Float32Array(METEOR_SEGS * 2 * 4), 4)); // rgba：尾巴漸淡
+    return g;
+  }, []);
+  useEffect(() => {
+    meteor.rgb.set(color);
+  }, [color]);
+  useEffect(() => () => geo.dispose(), [geo]);
+
+  useFrame(() => {
+    const l = ref.current;
+    if (!l) return;
+    const now = performance.now() / 1000;
+    if (reduced) {
+      l.visible = false;
+      return;
+    }
+    if (meteor.start < 0) {
+      if (!meteor.next) meteor.next = now + 3 + Math.random() * 5; // 第一顆：載入後 3～8 秒
+      if (now < meteor.next) return;
+      // 從畫面上半部偏右出發，往左下劃（角度 200°～215°）
+      const a = ((200 + Math.random() * 15) * Math.PI) / 180;
+      Object.assign(meteor, { start: now, x: rand(8, 2), y: 2.2 + Math.random() * 1.6, dx: Math.cos(a), dy: Math.sin(a) });
+    }
+    const t = (now - meteor.start) / meteor.life;
+    if (t >= 1) {
+      meteor.start = -1;
+      meteor.next = now + 8 + Math.random() * 8;
+      l.visible = false;
+      return;
+    }
+    const env = Math.sin(Math.PI * t); // 淡入淡出
+    const travel = meteor.speed * meteor.life * t;
+    const tail = meteor.len * (0.4 + 0.6 * env);
+    const pos = l.geometry.attributes.position.array as Float32Array;
+    const col = l.geometry.attributes.color.array as Float32Array;
+    const { r, g, b } = meteor.rgb;
+    for (let i = 0; i < METEOR_SEGS * 2; i++) {
+      const f = (Math.floor(i / 2) + (i % 2)) / METEOR_SEGS; // 0＝頭、1＝尾
+      pos.set([meteor.x + meteor.dx * (travel - tail * f), meteor.y + meteor.dy * (travel - tail * f), -1], i * 3);
+      col.set([r, g, b, (1 - f) ** 1.6 * env * 0.85], i * 4);
+    }
+    l.geometry.attributes.position.needsUpdate = true;
+    l.geometry.attributes.color.needsUpdate = true;
+    l.visible = true;
+  });
+
+  return (
+    <lineSegments ref={ref} geometry={geo} frustumCulled={false} visible={false}>
+      <lineBasicMaterial vertexColors transparent depthWrite={false} />
+    </lineSegments>
+  );
+}
+
 // <Canvas> 會在自己的外層 div 加 inline style `position:relative; height:100%`，
 // className="absolute inset-0" 直接給 Canvas 會被蓋掉；外面多包一層真正 absolute 的 div，Canvas 填滿它。
 export default function HeroScene() {
@@ -309,6 +375,7 @@ export default function HeroScene() {
       >
         <ambientLight intensity={0.5} />
         <ScrollRig reduced={reduced} />
+        <Meteor color={color} reduced={reduced} />
         <PointerRig reduced={reduced}>
           <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
             <Lines color={color} />

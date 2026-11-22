@@ -68,8 +68,8 @@ test("首頁 WebGPU 版：真的跑在 GPU 上，四個玩法都有動到粒子"
     if (m.text().includes("[hero] WebGPU 版改回")) errors.push(m.text());
   });
 
-  // 不帶 ?hero=：走正式的自動判斷（拿得到真的 adapter 才用 WebGPU 版）
-  await page.goto("/");
+  // 2026-11-22 晚起桌機預設是 WebGL 線條版（HeroBackground 的 AUTO_WEBGPU），WebGPU 版只有 ?hero=webgpu 叫得出來
+  await page.goto("/?hero=webgpu");
   const hasAdapter = await page.evaluate(async () => {
     const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu;
     return !!(gpu && (await gpu.requestAdapter()));

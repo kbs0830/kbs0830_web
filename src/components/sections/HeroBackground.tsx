@@ -48,6 +48,9 @@ const HeroSceneSkeleton = () => (
 );
 
 type Tier = "probe" | "gpu" | "gl";
+// 2026-11-22 晚：使用者試了 WebGPU 粒子版：「有點複雜（煩），線條就不錯，有時加個流星」→ 預設不自動用 WebGPU 版，
+// 桌機一律 WebGL 線條版（加了流星）。WebGPU 版的程式跟測試都留著，網址加 ?hero=webgpu 還看得到；要恢復自動判斷把這個改成 true
+const AUTO_WEBGPU = false;
 const TIER_KEY = "hero-tier"; // 這個分頁試過 WebGPU 太慢／失敗就記住，換頁不要每次重試（重試前會閃一下骨架）
 
 /**
@@ -67,7 +70,7 @@ function useHeroTier(enabled: boolean, reduced: boolean): [Tier, boolean, (reaso
       if (param === "webgpu" && "gpu" in navigator) {
         next = "gpu";
         if (!cancelled) setForced(true);
-      } else if (param !== "webgl" && !reduced && sessionStorage.getItem(TIER_KEY) !== "gl" && "gpu" in navigator) {
+      } else if (AUTO_WEBGPU && param !== "webgl" && !reduced && sessionStorage.getItem(TIER_KEY) !== "gl" && "gpu" in navigator) {
         try {
           const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
           // isFallbackAdapter：新版在 info 上、舊版在 adapter 上（TS 內建型別都還沒有）
