@@ -38,14 +38,14 @@ const LINE_SPECS = Array.from({ length: 18 }, () => ({
   opacity: 0.25 + Math.random() * 0.2,
 }));
 
-const DOT_COUNT = 90;
+const DOT_COUNT = 50; // 11/23 使用者：「粒子效果少一點」（原本 90）
 const DOT_REST = Float32Array.from({ length: DOT_COUNT * 3 }, (_, i) =>
   i % 3 === 0 ? rand(14) : i % 3 === 1 ? rand(10) : rand(6, -2),
 );
 
 const REPEL_RADIUS = 0.32; // 螢幕座標（NDC，x 已乘上長寬比）
 const LINK_RADIUS = 0.42;
-const MAX_LINKS = 48;
+const MAX_LINKS = 28;
 const WAVE_SPEED = 1.6; // NDC / 秒
 const WAVE_WIDTH = 0.12;
 const WAVE_LIFE = 1.4; // 秒
