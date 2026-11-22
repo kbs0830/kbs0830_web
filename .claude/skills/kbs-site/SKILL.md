@@ -17,6 +17,14 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   ＋ `PresenceCount`（「● いま N 人」，2026-11-23 TODO B4：layout 的 `Presence` 每頁前景時 30 秒 POST `/api/presence`，背景／關分頁 sendBeacon 離開；
   `lib/presence.ts` 只在記憶體記 sessionStorage 分頁代碼 → 最後時間，70 秒過期，不寫檔、重啟歸零；只收有 `cf-ipcountry` 的，所以本機測試要自己帶這個 header）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
+- **頁面瀏覽（2026-11-23，使用者：「繼續改頁面瀏覽方便程度」）**：
+  - 全站頁面清單只有一份 `lib/site-map.ts`（`HOME_SECTIONS`＋`SITE_GROUPS` 三組：文章／旅／本站）。**新增獨立頁面要加進去**（sitemap.ts 另外加）
+  - `SiteFooter`：頁面索引＋版權＋最後更新，首頁跟每個 `PageShell` 頁都有（之前子頁面只有「← 返回首頁」，/now、/uses、/travel 等沒有站內入口）。
+    首頁多傳 `extra`（時鐘、人數、訪客國家）；子頁不放，少打 API。PageShell 外框改 `flex-1`（body 是 flex-col）讓短頁面頁尾也貼底；內容包 `<main>`
+  - `QuickJump`（掛在 layout，每頁都有）：Ctrl+K／⌘K，或 NavBar 的放大鏡、PageShell 右上「搜尋」（`QuickJumpButton` 送 `quickjump:open` 事件）。
+    頁面清單編在 client；作品＋文章第一次打開才抓 `/jump-index.json`（force-static，約 5 KB；不放 layout props，免得每頁 HTML 都多帶一份）。
+    結果是一般 `<Link>`，↑↓ 只移動高亮、Enter＝點那個連結。別的彈窗（終端機）開著時不疊。全站 `:focus-visible` 沒包 layer，輸入框外框用 inline style 關掉、改底線變色。
+    E2E `e2e/quick-jump.spec.ts`
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
   `1/2/3` → section 快速跳轉，`?` 呼出快捷鍵提示浮窗
