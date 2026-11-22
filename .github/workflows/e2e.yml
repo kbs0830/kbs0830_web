@@ -33,5 +33,9 @@ jobs:
       - name: Install Playwright Chromium
         run: node node_modules/playwright/cli.js install chromium
 
+      # HERO_WEBGPU_REQUIRED：e2e/hero-webgpu.spec.ts 用系統 Chrome＋這台桌機的顯卡測首頁 WebGPU 版。
+      # 別台機器拿不到 GPU 會跳過；CI 這台一定拿得到，拿不到就算失敗（不要悄悄跳過、以為有測）
       - name: Run Playwright E2E tests
+        env:
+          HERO_WEBGPU_REQUIRED: "1"
         run: node node_modules/@playwright/test/cli.js test

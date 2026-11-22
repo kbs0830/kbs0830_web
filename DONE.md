@@ -5,6 +5,17 @@
 
 ---
 
+### 2026-11-22 C11 用真顯卡測首頁 WebGPU 版
+- [x] `e2e/hero-webgpu.spec.ts`：系統 Chrome＋D3D11＋RTX 3070，走正式的自動判斷（不帶 `?hero=`）。確認：renderer 是 webgpu、粒子數有在調、
+  按住 2 秒游標附近的粒子變多、拖曳畫出星點、雙擊後 4 秒粒子到名字的位置（從 GPU 讀回位置比對）、雙擊三次繞回星空、全程沒有退回也沒有錯誤
+- [x] `HeroSceneGPU` 加 `window.__heroProbe`（給測試讀 GPU 上的粒子位置，只有呼叫時才讀）
+- [x] 過程中一度誤判「vec3 buffer 寫錯位」並改壞形狀，截圖才發現；查 three 原始碼確認原本的寫法是對的，改回去並在檔案開頭寫清楚（CLAUDE.md 坑 ④）
+- [x] 本機連跑 3 次都過、全部 E2E 90 個通過；CI（`e2e.yml`）設 `HERO_WEBGPU_REQUIRED=1`，拿不到 GPU 算失敗、不會悄悄跳過
+
+### 2026-11-22 TODO 整理
+- [x] **首頁 LCP 決策點結案**：真實訪客 p75 LCP **1.63s**（n=46，11/09 是 1.88s／25 筆）、INP 48ms、CLS 0，全部 good → Hero 進場動畫不改
+- [x] 回查：FoodLens repo 的 PDF 還在、三個 repo 的 About 還是空的、profile README 還是舊版（都還留在 TODO 🙋）；CSP 回報 0 筆
+
 ### 2026-11-22 首頁 WebGPU 版（使用者：「電腦版用 WebGPU、手機用 WebGL，電腦版更多可玩性」）
 - [x] 依「拿不拿得到 GPU」分版本（不是依電腦／手機）：WebGPU 版／WebGL 版（照舊）／手機 Canvas 2D 版（照舊）；減少動態一律 WebGL 版
 - [x] 四個玩法：流場、按住聚集／放開散開、拖曳畫星座、雙擊換形狀（名字、航線圖、網站圖示）；粒子數依 fps 自動調整（實測 RTX 3070 跑到上限 8,000 顆、100+ fps）

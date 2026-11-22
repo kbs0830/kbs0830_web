@@ -28,6 +28,11 @@ const MIN = 600;
 const MAX_STARS = 24;
 const SHAPES: ShapeName[] = ["stars", "name", "routes", "icon"];
 
+// ⚠️ vec3 的 storage buffer 要更新時，一律照「每顆 3 個 float」寫進 attr.array（不是 4 個）。
+// three（0.187）第一次上傳時會把 CPU 這邊的陣列換成每顆 4 個（補位），但之後每次 needsUpdate 又會把陣列
+// 當成每顆 3 個重新補位一次。所以照 4 個寫反而整個錯位（2026-11-22 寫 E2E 時誤判成 bug、改成 4 個，形狀就全亂了）。
+// 讀的時候反過來：上傳後的陣列是每顆 4 個，所以 E2E 的 probe 從原始的 shapes 拿「家」的位置，不讀這個陣列。
+
 export default function HeroSceneGPU({ onFallback, noFallback = false }: { onFallback: (reason: string) => void; noFallback?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -388,6 +393,26 @@ export default function HeroSceneGPU({ onFallback, noFallback = false }: { onFal
         starGeo.dispose();
         renderer.dispose();
       });
+      // 給 E2E（e2e/hero-webgpu.spec.ts）看的：GPU 上的粒子真的有照玩法動。sample 會從 GPU 讀回前 n 顆的位置，
+      // 只有測試呼叫時才讀，平常零成本
+      (window as unknown as { __heroProbe?: unknown }).__heroProbe = {
+        shape: () => SHAPES[shapeIndex],
+        stars: () => starCount,
+        gather: () => uGather.value,
+        pointer: () => [uPointer.value.x, uPointer.value.y],
+        sample: async (n = 300) => {
+          const buf = new Float32Array((await renderer.getArrayBufferAsync(pos.value)) as ArrayBuffer);
+          const stride = Math.round(buf.length / MAX); // GPU 上的 vec3 是每顆 4 個 float
+          const h = shapes[SHAPES[shapeIndex]]; // 原始資料（每顆 3 個），見檔案開頭的 ⚠️
+          const hs = 3;
+          const k = Math.min(n, count);
+          return {
+            pos: Array.from({ length: k }, (_, i) => [buf[i * stride], buf[i * stride + 1], buf[i * stride + 2]]),
+            home: Array.from({ length: k }, (_, i) => [h[i * hs], h[i * hs + 1], h[i * hs + 2]]),
+          };
+        },
+      };
+      cleanups.push(() => delete (window as unknown as { __heroProbe?: unknown }).__heroProbe);
       start();
       const hintTimer = setTimeout(() => !interacted && setHint(true), 1500);
       cleanups.push(() => clearTimeout(hintTimer));

@@ -232,7 +232,7 @@ worker 開到預設的 CPU 核心數會讓計時類測試隨機失敗（producti
 目前測：作品卡片 → 詳細頁換頁（View Transition 後標題可見）、NavBar 捲動變色、NavBar 錨點連結、Email 複製 toast、暗色模式切換＋重新整理
 後記住選擇、終端機模式（`` ` `` 呼出、指令輸出、clear/exit）、鍵盤快捷鍵（`?` 提示浮窗、
 `1/2/3` 跳轉、isTyping 防呆）、Konami Code 彩蛋、About 分頁（點擊／方向鍵切換、收起來的內容仍在 HTML）、
-Hero 名字滑鼠解碼（reduced-motion 時不播）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）、
+Hero 名字滑鼠解碼（reduced-motion 時不播）、首頁 WebGPU 版的玩法（`hero-webgpu.spec.ts`，真顯卡，見 Hero 章節）、本名不在畫面上（`privacy.spec.ts`）、分享卡片跟著頁面走＋文章分享圖＋RSS（`share-meta.spec.ts`）、
 sitemap 每個網址都 200（`sitemap.spec.ts`）、**無障礙（`a11y.spec.ts`，2026-11-09）**：axe-core 掃 8 頁 × 淺色／深色，
 WCAG A／AA 只擋 serious／critical；首頁 About 每個分頁都切過去掃（沒選到的面板是 hidden，axe 看不到）。
 ⚠️ 第一次跑就抓到全站「灰字 `text-(--muted)` 再疊 `opacity-50/60/70`」對比不足（約 20 處）——**灰字不要再加 opacity**（包括灰字裡面的子元素 `<span className="opacity-60">`，第一輪只搜同一行漏掉了 `/stats` 的百分比，CI 用真實資料才抓到），
@@ -604,7 +604,10 @@ deploy.bat
   ⚠️ 坑：① 只看 `navigator.gpu` 不夠，要拿得到 adapter——不然 WebGPURenderer 退回 WebGL2 後端掉到 12 fps；
   ② Playwright 內建的 Chromium 少 `dxcompiler.dll`，拿得到 adapter 但 requestDevice 失敗（剛好驗證了退回路徑）。
   要在這台桌機用真顯卡測：`chromium.launch({ channel: "chrome", args: ["--enable-unsafe-webgpu","--enable-gpu","--use-angle=d3d11","--ignore-gpu-blocklist"] })`，
-  `window.__heroRenderer`／`__heroParticles`／`__heroFps` 看狀態；③ `uniformArray` 只在 render 時同步，只有 compute 用的資料要用 `instancedArray`（storage buffer）
+  `window.__heroRenderer`／`__heroParticles`／`__heroFps` 看狀態；③ `uniformArray` 只在 render 時同步，只有 compute 用的資料要用 `instancedArray`（storage buffer）；
+  ④ vec3 storage buffer 更新時**照每顆 3 個 float 寫**：three 第一次上傳把陣列換成每顆 4 個，但之後每次 needsUpdate 又當成 3 個重新補位（照 4 個寫形狀會全亂，11/22 寫測試時差點改壞）。
+  **E2E `e2e/hero-webgpu.spec.ts`（TODO C11）**：用系統 Chrome＋真顯卡，`window.__heroProbe` 從 GPU 讀回粒子位置，確認按住聚集、拖曳星點、雙擊後粒子真的就位。
+  拿不到 GPU 的機器跳過；`e2e.yml` 設 `HERO_WEBGPU_REQUIRED=1`，CI 拿不到就失敗。其他測試用內建 Chromium，全部走 WebGL 版
 - 全螢幕 R3F 3D 背景：稀疏細線 + 靛藍粒子，慢速旋轉，隨游標位置微微傾斜（lerp 平滑，
   尊重 `prefers-reduced-motion`）。**`<Canvas>` 外面一定要包一層 `absolute inset-0` 的 div**：
   直接把 className 給 Canvas 會被它自己的 inline `position:relative; height:100%` 蓋掉，

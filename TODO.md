@@ -3,7 +3,7 @@
 這裡**只放還沒做的**；做完的搬到 [DONE.md](DONE.md)（2026-11-09 拆開）。
 做完任何一項跟 Claude 說，它會回查、從這裡刪掉、記進 DONE.md。
 
-📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：11/12 匯出檢索統計、11/18 Web Vitals、12/09 CSP 回查、
+📬 有日期的項目會自動寄提醒信到 otemon（`reminders.json`）：12/09 CSP 回查、
 2026 年底 GHA 鈦金、2027/05/16 網域續約、2027/08/31 年級更新、2027 年底 IHG 酒廊、2028 年底華航金卡。
 
 ---
@@ -11,7 +11,8 @@
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
 1. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
-   不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）
+   不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）。
+   📍 11/22 回查：還在
 2. [ ] **Search Console 5xx／404 驗證**：不用動作，等 Google 跑完。📍 **11/21 匯出**：已建立索引 **31**（11/10 從 11 跳上來）、未建立 24；
    5xx 7、404 2、已找到未建立 4 都是「驗證已開始」；「已檢索 - 尚未建立索引」9（11/12 是 27，tag 頁 noindex 後變少）；
    「頁面會重新導向」2＝http／www 導向，本來就該導，驗證「失敗」不用理。API 查 sitemap 31 頁有 25 頁已收錄（沒收的多是新頁）
@@ -20,6 +21,8 @@
    → pin `FoodLens-Advisor`、`YARTIX-TICKETING-TEST`、`kbs0830_web`；前兩個的 README 補截圖／架構圖／安裝步驟
    → profile README（`kbs0830/kbs0830`）：11/09 Claude 寫好「跟網站同風格」的草稿（Claude 沒有那個 repo 的推送權限），
      要換的話說一聲：你推、或照網站 repo 的做法給一把 deploy key 讓 Claude 推。現在的版本作品名還是舊的（Food Vision Analyzer）
+   → 📍 11/22 新素材：首頁 WebGPU 版很適合錄一段 GIF 放 kbs0830_web 的 README／profile README（Claude 可以用真顯卡錄）；
+     做了 ⚙️ B15 狀態徽章的話，README 可以放「近 90 天可用率 99.x%」
 4. [ ] **IG 簡介放網站連結**（11/21 使用者：先不放）
 5. [ ] **文章留言要不要開**（giscus，11/21 Claude 做好了、預設關著）：要的話
    ① GitHub 的 kbs0830_web repo → Settings → Features 勾 **Discussions**
@@ -29,7 +32,11 @@
 ## 🤔 你要決定或提供素材的
 
 **內容**
-- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期
+- [ ] **`/now` 更新**：內容從 7 月沒動過，告訴 Claude 現在在忙什麼；順便加「最後更新」日期。
+  現在寫的「學習 React Three Fiber 進階、WebGL Shader」可能要改成 WebGPU／TSL（首頁剛做了 compute shader 版）——你說了才改
+- [ ] **試玩首頁 WebGPU 版給回饋**（11/22 上線）：桌機 Chrome 開首頁按住／拖曳／雙擊。想調的跟 Claude 說：
+  粒子太多／太少、聚集太快／太慢、形狀要換（例如換成高雄↔福岡、某個作品的圖示）、左下角提示字要不要留
+- [ ] **雷達要不要列出頭上這幾班**（航班代碼＋高度，不放位置）：CLAUDE.md 記著「問過還沒選」。選了 Claude 才做；不要就劃掉
 - [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、
   真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
 - [ ] **均線回測程式的 bug 要不要修**（改的是 school repo，網站目前不放報酬數字）：沒持股時跌破 MA60 也記一筆 0 張賣出、
@@ -49,10 +56,12 @@
   **11/09 新的**：中文 tag 網址 build 跟單元測試都過、上線才 404（後來加了「sitemap 每個網址都要 200」的測試）、
   PowerShell `-like` 把 `[ROLLBACK]` 的方括號當萬用字元（週報算出「自動退回 5946 次」）
   **11/12 之後新的**：一分鐘的 Tunnel 抖動寄了兩封信（逾時跟 404 被當成同一種錯誤）、網站圖示狀態色＋新功能指示燈（部署 → JSON → API → favicon）、Cloudflare 快取一開「未過濾流量」就變少（命中的請求不會到桌機）、Vitest 在 Git Bash 全部報錯但 PowerShell 全過（原因查到再寫）、架站成本（要你給真的電費數字）
+  **11/21～22 新的**：`/changelog` 自己 build 正常、CI 部署卻整頁空白（runner 經過 cmd.exe 把 `%h` 格式字串吃掉，第三次部署才修對）、
+  Google Fonts 回了壞字型讓整個 build 失敗（雙槽擋住、線上沒事）、cloudflared 裝了兩份（`--version` 看的跟服務跑的不是同一份，升級了等於沒升）、
+  WebGPU 的坑（有 `navigator.gpu` 沒顯卡掉到 12 fps、Playwright 內建 Chromium 少 dxcompiler.dll、`uniformArray` 不會同步給 compute shader）——
+  這一篇題材最完整，可以當「首頁做成 WebGPU」的開發紀錄
 
 **設計／取捨**
-- [ ] **首頁 LCP**：11/09 先看了：真實訪客 p75 **1.88s**（25 筆）已經 good，INP 72ms、CLS 0 也都 good →
-  Hero 動畫**不用縮短**。11/18 提醒信樣本多一點再看一次，還是 ≤2.5s 就結案
 - [ ] **時間軸互動**：現在是滑鼠移上去／點一下展開、移開收起；想要回到「點一下固定展開、再點收起」跟 Claude 說
 - [ ] **先隱藏的東西**，想恢復哪個跟 Claude 說：
   → **下載履歷按鈕**（`/resume` 頁跟 PDF 照舊在，只是沒入口；恢復方法在 `ContactSection.tsx` 註解）
@@ -79,6 +88,9 @@
 1. **FoodLens 線上試玩**（A1）：作品集最強的證明是「直接能玩」，而且剛好證明 FoodLens 的賣點「影像不離開裝置」
 2. **停電也不斷線**（A2）：10/29 斷 4 天、11/06 停電，都會變成訪客沒感覺
 3. **每月自動故障演練**（C1）：故意把網站停掉，確認 watchdog 真的救得回來，跟每季的備份還原演練同一個思路
+4. **首頁版本統計**（B13 🟩）：C11 補上了 CI 的測試，但上線後還是不知道訪客實際拿到哪一版、別人電腦上會不會亂退回
+
+（11/22 補了 B13～B16、C11、C12；C11 當天做完）
 
 **A. 大更新（🟥 好幾天）**
 
@@ -107,7 +119,8 @@
 
 **B. 網站功能（🟧／🟩）**
 
-- [ ] **B2. 終端機加指令** 🟩：`neofetch`（真實硬體規格）、`uptime`、`blog`、`status`、`history`、Tab 自動補完
+- [ ] **B2. 終端機加指令** 🟩：`neofetch`（真實硬體規格）、`uptime`、`blog`、`status`、`history`、Tab 自動補完；
+  11/22 加：`hero name`／`hero routes`／`hero icon` 直接叫 WebGPU 版排形狀、`hero gl` 換 WebGL 版比較
 - [ ] **B3. 頁尾二十四節氣** 🟩：時鐘旁邊加小字「立冬」，瀏覽器端算
 - [ ] **B4. 「いま N 人」** 🟧：頁尾顯示現在正在看網站的人數（每頁每 30 秒報一次、只記數字），分頁在背景時不報
 - [ ] **B8. `/.well-known/security.txt`** 🟩：現在是 404。RFC 9116 標準檔，寫聯絡方式（用 otemon 還是 1394kbs 要你決定）
@@ -115,6 +128,13 @@
   只用 repo 裡真的有的資訊，沒有的段落就不寫
 - [ ] **B10. 文章離線閱讀** 🟧：Service Worker 快取讀過的文章，沒網路也打得開（PWA manifest 已經有了）
 - [ ] **B11. 列印版文章** 🟩：履歷已經有列印樣式，文章也排一份（程式碼不截斷、連結印出網址）
+- [ ] **B13. 首頁版本統計** 🟩（11/22 新）：訪客實際拿到哪一版（WebGPU／WebGL／手機版）、WebGPU 版最後穩定在幾顆粒子、
+  退回 WebGL 的原因（太慢／沒顯卡／丟錯）→ 只存分類次數，放 /stats。現在不知道真的有多少人玩到 WebGPU 版，也不知道退回機制在別人電腦上有沒有亂退
+- [ ] **B14. WebGPU 版的雙擊形狀加一個「高雄 ⇄ 福岡」** 🟩：兩個城市點＋中間一條航線，呼應首頁的兩地時鐘（目前形狀：名字、航線圖、網站圖示）
+- [ ] **B15. 可用率徽章** 🟩（11/22 新）：`/status` 已經有 90 天可用率，輸出一個 shields 風格的 SVG（例「uptime 99.8%」），
+  給 GitHub README／profile README 用，正好接「GitHub 門面」那項。只給數字、不給 log
+- [ ] **B16. `/uses` 補上這陣子新增的** 🟩：ADS-B 接收器（樹莓派＋SDR，**不寫位置跟雷達代碼**）、WebGPU／TSL、Playwright、Vitest、Renovate——
+  都是已經在用的，/uses 從 7 月沒更新
 
 **C. 維運／品質**
 
@@ -127,13 +147,16 @@
 - [ ] **C7. 效能預算** 🟧：CI 跑 Lighthouse，JS 大小／LCP 退步超過門檻就報警
 - [ ] **C8. 每月外部連結檢查** 🟩：作品的 GitHub 連結、文章引用的網址壞掉就寄信
 - [ ] **C9. Renovate PR 自動試跑** 🟧 🙋：PR 開出來就 build 到第三個槽＋跑 E2E，結果留言在 PR 上（要 fine-grained PAT，跟 TODO 那項同一組）
+- [ ] **C12. MCP 伺服器登記到公開目錄** 🟩 🙋（11/22 新）：`/mcp` 做好了但沒人知道。可以登記到官方 MCP Registry 之類的目錄，
+  要用你的 GitHub 帳號驗證、會公開出現在別人的網站上，所以要你決定要不要
 - [ ] **C10. 筆電當第二台主機** 🟥：Cloudflare Tunnel 可以同時接兩個來源。筆電開著時自動分擔、桌機掛了接手。
   但筆電不是一直開著，**A2 比較實際**，這個當備案
 
 ## ⏳ 等別人更新
 
-- [ ] **TypeScript 7**：typescript-eslint 還不支援（11/09 查：TS 已出 7.0.2，typescript-eslint 8.72.1 peer 仍是 `<6.1.0`），支援了再升
-- [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`（11/09 查：R3F 最新仍是 9.8.2，跟裝的一樣）
+- [ ] **TypeScript 7**：typescript-eslint 還不支援（11/22 查：最新 8.73.0，peer 仍是 `<6.1.0`），支援了再升
+- [ ] **`THREE.Clock` deprecation warning**：來自 R3F 內部，等 R3F 改用 `THREE.Timer`（11/22 查：R3F 最新仍是 9.8.2，跟裝的一樣；
+  WebGPU 版是直接用 three，沒有這個 warning）
 
 ## 評估過、先不做（記下理由免得重查）
 
