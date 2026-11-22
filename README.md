@@ -144,6 +144,11 @@ Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`script
 |---|---|---|---|
 | 頁尾高雄／福岡天氣 | [Open-Meteo](https://open-meteo.com/) | 不用 | 30 分鐘 |
 | `/radar` 機型統計 | [adsbdb](https://www.adsbdb.com/)（用飛機識別碼查機型，存 `data/aircraft-types.json`） | 不用 | 新收到的飛機才查，每 30 秒最多 4 架 |
+| 日圓匯率作品頁：即時牌價 | 台灣銀行牌價 CSV、玉山銀行外匯頁（JSON-LD） | 不用 | 10 分鐘 |
+| 日圓匯率作品頁：近 90 天走勢 | Yahoo Finance `JPYTWD=X` | 不用 | 6 小時 |
+| 空氣品質作品頁：高雄 AQI | [Open-Meteo Air Quality](https://open-meteo.com/en/docs/air-quality-api)（CAMS 模型），用環境部公式算 | 不用 | 30 分鐘 |
+| `/airports` 小港 | 高雄國際航空站即時航班（政府開放資料） | 不用 | 3 分鐘 |
+| `/airports` 福岡 | 福岡空港官網航班資料（非正式 API，改版可能會壞） | 不用 | 3 分鐘 |
 
 ---
 

@@ -792,7 +792,21 @@ deploy.bat
   （get_profile、list_projects、get_project、list_posts、get_post、search、get_now、get_flight_stats）。新增工具加進 `TOOLS`，/developers 跟 Markdown 版自動列出
 - `/developers` 有 Markdown 版；`/llms.txt` 也列了 API 跟 MCP。E2E `e2e/api.spec.ts` 真的打一輪 API 跟 MCP
 
-### 6. `/now`、`/uses`（獨立頁面，非首頁 section）
+### 5.9 `/airports` 機場時刻表＋課程作品的「線上版」（2026-11-22，TODO D2／D5／D6）
+- **`/airports`**（使用者：「順便做一個即時時刻表（小港機場／福岡機場）」）：最上面「高雄 ⇄ 福岡」今天的直飛班機，下面小港、福岡各一組出發／抵達分頁（`<Tabs>`），
+  只列「接下來」的（還沒結束的＋30 分鐘內剛起飛／抵達／取消的，最多 30 班）。`force-dynamic`、沒有 Markdown 版，`AutoRefresh` 每 3 分鐘 `router.refresh()`（背景分頁不刷）
+- 資料 `lib/airport-board.ts`（伺服器 3 分鐘抓一次）：小港＝高雄國際航空站政府開放資料 `kia.gov.tw/Announce/NewsArea/InstantSchedule_{INT,DOM}{DEP,ARR}.json`；
+  福岡＝福岡空港官網自己的 `/api/flight_schedule/flight_schedule.json`（**不是正式開放資料，官網改版就會壞**，抓不到那塊不顯示）。
+  福岡的聯營另外列一行（`remarks2: "Code Share"`）→ 併進主航班；國際線城市只有片假名 → `FUK_PLACES` 換中文；狀態用英文那欄對應（`FUK_STATUS`，新的狀態字樣要補）
+- 延誤／取消用 `--warn`（「出事了」）。頁面不拿雷達資料比對（雷達不公開位置）
+- **作品頁 `liveWidget`**：`projects.ts` 的 `liveWidget: "jpy-rate" | "air-quality"` → 作品頁放 `JpyRateLive`／`AirQualityLive`（client，讀 `/api/jpy-rate`、`/api/air-quality`）
+  - 匯率（`lib/jpy-rate.ts`）：台銀 `rate.bot.com.tw/xrt/flcsv/0/day`（**沒帶瀏覽器 UA 會被擋成驗證頁**）＋玉山外匯頁的 JSON-LD；Yahoo `JPYTWD=X` 走勢（`range=90d` 實際回 4 個月，自己切 90 天）。
+    決策照作品原本：預算 ÷ 日圓價格＝目標匯率，現金賣出 ≤ 目標 →「現在就買」。作品的 6 家銀行只剩 2 家抓得到，不硬爬
+  - 空氣品質（`lib/air-quality.ts`）：Open-Meteo（CAMS 模型，不是測站）六項污染物，**環境部 114 年版即時 AQI 公式**（PM2.5 良好上限 12.4、PM 用 0.5×12h＋0.5×4h），
+    對照表 2026-11-22 從環境部官網抄的。環境部開放資料要 api_key，有了可以改抓測站
+- 外部 API 一覽在 README「外部資料」
+
+
 - `/now`：當下在做什麼、在學什麼（nownownow.com 傳統）
 - `/uses`：開發環境、硬體（RTX 3070 / Zenbook A14）、軟體、工具清單
 - 兩者都要記得設定 `alternates.canonical`，見下方 SEO 章節
