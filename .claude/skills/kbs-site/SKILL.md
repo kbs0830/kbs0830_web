@@ -29,7 +29,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
   Hero 捲出畫面 `frameloop="never"` 完全停畫。名字滑鼠移上去會解碼一次；底部「SCROLL」光點沿細線往下滑
 - **⚠️ 2026-11-22 晚改回線條版**：使用者試了 WebGPU 粒子版：「有點複雜（煩），線條就不錯，有時加個流星」→ `HeroBackground` 的 `AUTO_WEBGPU = false`，桌機一律 WebGL 版，
-  WebGL 版加了**流星**（`HeroScene.tsx` 的 `Meteor`：每 4～8 秒從右上往左下劃過一顆（11/23 使用者要快一點，原本 8～16 秒；約四次有一次兩顆，`PAIR_CHANCE`）、不到 1 秒、頭亮尾淡，減少動態不出現）。WebGPU 版程式、`hero-webgpu.spec.ts` 都留著（測 `?hero=webgpu`），
+  WebGL 版加了**流星**（`HeroScene.tsx` 的 `Meteor`：每 4～8 秒從右上往左下劃過一顆（11/23 使用者要快一點，原本 8～16 秒；約四次有一次兩顆，`PAIR_CHANCE`）、不到 1 秒、頭亮尾淡，減少動態不出現）。11/23 又調了：粒子 90→50、線條改 44 條 3D 方向＋依鏡頭距離調透明度（遠淡近濃）、背景加兩個很淡的線框（測地球面、八面體，`Structures`，反向慢轉出視差）。WebGPU 版程式、`hero-webgpu.spec.ts` 都留著（測 `?hero=webgpu`），
   **不要自己把自動判斷改回來**。下面是當初 WebGPU 版的紀錄
 - **三種版本（2026-11-22）**：`HeroBackground` 先 `navigator.gpu.requestAdapter()`——拿得到真的 GPU（不是 fallback adapter）、沒開減少動態
   → **WebGPU 版 `HeroSceneGPU.tsx`**；不然 → WebGL 版 `HeroScene.tsx`（下面這段）；手機 → `HeroSceneLite.tsx`。
