@@ -35,6 +35,7 @@ export const PRIVATE_PATTERN =
   /李秉威|本名|real name|alternateName|otemon|@[a-z0-9-]+\.[a-z]|192\.168\.|token|金鑰|secret|password|小港|雷達代碼/i;
 
 const SCOPE_NAMES: Record<string, string> = {
+  airports: "機場時刻表",
   api: "API",
   blog: "部落格",
   colophon: "本站構造",

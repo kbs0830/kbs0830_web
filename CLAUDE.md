@@ -581,7 +581,7 @@ deploy.bat
 - **手機閱讀（2026-11-05）**：作品篩選列在手機是一列橫向滑動（`.filter-scroll`，邊緣淡出）；作品卡片手機只顯示
   中文說明（英文 `hidden sm:block`，詳細頁仍完整）；文章／作品詳細頁／清單內文手機 15px、行距 1.8～1.9；
   文章程式碼區塊手機貼齊螢幕邊；獨立頁面（PageShell）有閱讀進度條；文章顯示估計閱讀時間（`blog.ts` 的 `readingMinutes`）
-- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新）
+- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新；2026-11-22 加天氣「晴 23°」：`/api/weather` → `lib/weather.ts`，Open-Meteo 30 分鐘抓一次，讀不到只顯示時間）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
@@ -594,6 +594,9 @@ deploy.bat
 ### 1. Hero
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
   Hero 捲出畫面 `frameloop="never"` 完全停畫。名字滑鼠移上去會解碼一次；底部「SCROLL」光點沿細線往下滑
+- **⚠️ 2026-11-22 晚改回線條版**：使用者試了 WebGPU 粒子版：「有點複雜（煩），線條就不錯，有時加個流星」→ `HeroBackground` 的 `AUTO_WEBGPU = false`，桌機一律 WebGL 版，
+  WebGL 版加了**流星**（`HeroScene.tsx` 的 `Meteor`：每 8～16 秒從右上往左下劃過一顆、不到 1 秒、頭亮尾淡，減少動態不出現）。WebGPU 版程式、`hero-webgpu.spec.ts` 都留著（測 `?hero=webgpu`），
+  **不要自己把自動判斷改回來**。下面是當初 WebGPU 版的紀錄
 - **三種版本（2026-11-22）**：`HeroBackground` 先 `navigator.gpu.requestAdapter()`——拿得到真的 GPU（不是 fallback adapter）、沒開減少動態
   → **WebGPU 版 `HeroSceneGPU.tsx`**；不然 → WebGL 版 `HeroScene.tsx`（下面這段）；手機 → `HeroSceneLite.tsx`。
   WebGPU 版（使用者：「電腦版要更多可玩性」，四個玩法都要、密度依效能）：粒子全在 GPU compute shader（three/webgpu＋TSL），
@@ -935,6 +938,9 @@ deploy.bat
   08–21 點在線但 2 小時 0 架寄信（小港有宵禁，晚上本來就少）（key `radar-quiet`，12 小時冷卻）；status 超過 5 分鐘沒更新（server 沒在讀）不判斷。週報有「自家雷達」一段
 - ⚠️ fr24feed 重啟可能卡在「關到一半」（`monitor.json` 的 `shutdown: yes`、`rx_connected: 0`，FR24 那邊照樣 connected）：
   網頁的 Restart 沒用（它以為自己正在關），要拔電或 `sudo systemctl restart fr24feed`。**`restart.html` 一打開（GET）就會觸發重啟**，不要為了看內容去抓它
+- **機型統計（2026-11-22，TODO D4）**：新收到的飛機拿識別碼問 adsbdb.com（免費、不用金鑰），快取 `data/aircraft-types.json`（跟 radar.json 同資料夾；識別碼 → ICAO 機型，不公開）。
+  每 30 秒最多查 4 架、查不到的 30 天後再試、網路錯誤這輪就停。`day.types` 只存「機型 → 架數」，/radar「機型（近 7 天）」顯示。**不做航線統計**（航線交會處＝接收器位置）
+- **外部 API 共用快取 `lib/live-cache.ts`**（天氣、之後的匯率／空氣品質／機場）：伺服器抓、記憶體快取、失敗給上一次成功的（LKG）、失敗後 1 分鐘內不重試
 - 收訊：增益 `--gain 40`（settings 的 Process arguments；沒設＝最大，雜訊蓋掉訊號、一則都解不出來）
 
 ### Spotify「正在聽」

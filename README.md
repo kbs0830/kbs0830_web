@@ -93,7 +93,7 @@ Workflow 設定：`.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript 6 |
 | UI | React 19.3（Server Components、React Compiler、`<ViewTransition>`） |
-| 3D / WebGL | Three.js + React Three Fiber + Drei |
+| 3D / WebGL | Three.js + React Three Fiber + Drei（首頁：桌機細線＋偶爾一顆流星；WebGPU 粒子版用 `?hero=webgpu` 看，手機 Canvas 2D 輕量版） |
 | Animation | 純 CSS（scroll-driven animation、`@starting-style`、原生 `<dialog>`／`<details>`），沒有動畫函式庫 |
 | Styling | Tailwind CSS v4 |
 | Package manager | pnpm 11 |
@@ -132,6 +132,18 @@ Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`script
 本來就帶著的 `cf-ipcountry` header，只聚合「國家代碼＋次數」寫進 `data/visitor-stats.json`
 （不進版控，只留在桌機本地，不存 IP、不存任何個人可識別資訊）。`/api/visitor-stats` 吐彙總
 資料給 `VisitorStats.tsx` 顯示。細節見 `CLAUDE.md`。
+
+---
+
+## 外部資料（伺服器端抓、存記憶體快取）
+
+訪客的瀏覽器不直接連第三方：伺服器去抓、快取在記憶體（`src/lib/live-cache.ts`），抓不到就繼續給上一次成功的資料，
+完全沒有就那一塊不顯示。不用改 CSP，也不會把訪客 IP 給別人。
+
+| 用在哪 | 來源 | 金鑰 | 多久抓一次 |
+|---|---|---|---|
+| 頁尾高雄／福岡天氣 | [Open-Meteo](https://open-meteo.com/) | 不用 | 30 分鐘 |
+| `/radar` 機型統計 | [adsbdb](https://www.adsbdb.com/)（用飛機識別碼查機型，存 `data/aircraft-types.json`） | 不用 | 新收到的飛機才查，每 30 秒最多 4 架 |
 
 ---
 
