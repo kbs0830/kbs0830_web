@@ -31,6 +31,8 @@ export interface Project {
   image?: string;
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
+  /** 作品頁上的即時資料區塊（TODO D2／D5：課程作品的「線上版」，資料由伺服器抓外部 API） */
+  liveWidget?: "jpy-rate" | "air-quality";
   detail?: ProjectDetail;
 }
 
@@ -416,6 +418,7 @@ export const projects: Project[] = [
     highlightZh: "LKG 容錯回退 ＋ 可執行購買建議（非僅資料展示）",
     status: "課程専題",
     image: "/image/projects/yen-rate-analyzer.jpg",
+    liveWidget: "jpy-rate",
     detail: {
       intro:
         "基於 Python 的即時日圓匯率監控與分析平台，採用配置驅動架構整合多家銀行匯率資訊，透過並行爬蟲抓取最新匯率、SQLite 落盤保存，Flask 提供介面與 REST API，並附商品換算與歷史趨勢圖。「大數據倉儲」課程期末専題。",
@@ -569,6 +572,7 @@ export const projects: Project[] = [
     highlightZh: "決策樹、隨機森林在測試集 17 筆全對",
     status: "課程専題",
     image: "/image/projects/aqi-classification.jpg",
+    liveWidget: "air-quality",
     detail: {
       intro:
         "資料來自環境部空氣品質指標（AQI）開放資料，全台 85 個測站的即時快照，用 PM2.5、PM10、O3、CO、SO2、NO2 六項污染物預測空氣品質等級。整個流程在 Orange 裡用拉方塊的方式建好，左邊是非監督式分群、右邊是五種分類器比較。",

@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { projects } from "@/lib/projects";
 import { SITE_URL } from "@/lib/site";
 import ArchitectureDiagram from "@/components/ui/ArchitectureDiagram";
+import JpyRateLive from "@/components/ui/JpyRateLive";
+import AirQualityLive from "@/components/ui/AirQualityLive";
 import { GitHubIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
@@ -120,6 +122,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {project.description}
         </p>
       )}
+
+      {/* 課程作品的「線上版」：client 元件自己跟 /api 要資料（作品頁是預先產生的靜態頁） */}
+      {project.liveWidget === "jpy-rate" && <JpyRateLive />}
+      {project.liveWidget === "air-quality" && <AirQualityLive />}
 
       {project.detail?.architectureDiagram && (
         <div className="mt-12">
