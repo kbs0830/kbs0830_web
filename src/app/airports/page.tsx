@@ -1,0 +1,186 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { withShare } from "@/lib/share-meta";
+import PageShell from "@/components/ui/PageShell";
+import SectionHeading from "@/components/ui/SectionHeading";
+import Tabs from "@/components/ui/Tabs";
+import AutoRefresh from "@/components/ui/AutoRefresh";
+import { getBoards, khhFuk, upcoming, type Flight } from "@/lib/airport-board";
+
+// 機場即時時刻表（TODO D6，2026-11-22）：小港（KHH）跟福岡（FUK），最上面是高雄 ⇄ 福岡的直飛班機。
+// 資料由伺服器 3 分鐘抓一次（lib/airport-board.ts），每次請求現讀 → force-dynamic，跟 /stats、/radar 一樣沒有 Markdown 版。
+// 只放機場公開的航班表，跟自家雷達無關（雷達不公開位置，這頁也不拿雷達資料來比對）。
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = withShare(
+  {
+    title: "機場時刻表 · Airport Boards — PINGWEI LI",
+    description: "高雄小港、福岡兩個機場的即時航班：出發、抵達、延誤，還有今天高雄 ⇄ 福岡的直飛班機。每 3 分鐘更新。",
+    alternates: { canonical: "/airports" },
+  },
+  { ownImage: true },
+);
+
+const hm = (tz: string, ms: number) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(ms);
+
+// 讀資料＋算「現在」放元件外面（元件裡呼叫 Date.now() 會被 React 的 purity 規則擋）
+async function load() {
+  const { khh, fuk } = await getBoards();
+  const now = Date.now();
+  return { khh, fuk, nowKhh: hm("Asia/Taipei", now), nowFuk: hm("Asia/Tokyo", now) };
+}
+
+const tone = (f: Flight) =>
+  f.kind === "cancelled" || f.kind === "delayed" ? "text-(--warn)" : f.kind === "active" ? "text-(--accent)" : f.kind === "done" ? "text-(--muted)" : "text-(--text)";
+
+function Time({ f }: { f: Flight }) {
+  return (
+    <span className="font-mono">
+      <span className={f.changed ? "text-(--muted) line-through decoration-(--border)" : "text-(--text)"}>{f.sched}</span>
+      {f.changed && <span className={`ml-1.5 ${f.kind === "delayed" ? "text-(--warn)" : "text-(--text)"}`}>{f.changed}</span>}
+    </span>
+  );
+}
+
+function BoardTable({ flights, dir, empty }: { flights: Flight[]; dir: "dep" | "arr"; empty: string }) {
+  if (!flights.length) return <p className="text-sm text-(--muted) font-light py-4">{empty}</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm font-light">
+        <thead>
+          <tr className="text-[11px] text-(--muted) font-mono tracking-wide text-left border-b border-(--border)">
+            <th className="py-2 pr-3 font-normal">時間</th>
+            <th className="py-2 pr-3 font-normal">航班</th>
+            <th className="py-2 pr-3 font-normal">{dir === "dep" ? "目的地" : "出發地"}</th>
+            <th className="py-2 pr-3 font-normal">狀態</th>
+            <th className="py-2 font-normal hidden sm:table-cell">登機門</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-(--border)">
+          {flights.map((f) => (
+            <tr key={`${f.code}-${f.sched}-${f.dir}`}>
+              <td className="py-2.5 pr-3 whitespace-nowrap">
+                <Time f={f} />
+              </td>
+              <td className="py-2.5 pr-3 whitespace-nowrap" title={[f.airline, f.aircraft].filter(Boolean).join(" · ")}>
+                <span className="font-mono text-(--text)">{f.code}</span>
+                {f.codeshares.length > 0 && <span className="hidden sm:block text-[11px] text-(--muted) font-mono">{f.codeshares.slice(0, 3).join(" ")}</span>}
+              </td>
+              <td className="py-2.5 pr-3 text-(--text) whitespace-nowrap">
+                {f.place}
+                {!f.intl && <span className="hidden sm:inline ml-1.5 text-[11px] text-(--muted)">國內</span>}
+              </td>
+              <td className={`py-2.5 pr-3 whitespace-nowrap ${tone(f)}`}>
+                {f.status}
+                {f.note && <span className="block text-[11px] text-(--muted)">{f.note}</span>}
+              </td>
+              <td className="py-2.5 font-mono text-(--muted) hidden sm:table-cell">{f.gate ?? "–"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Direct({ title, from, flights }: { title: string; from: string; flights: Flight[] }) {
+  return (
+    <div className="border border-(--border) rounded-sm p-5">
+      <p className="text-[11px] text-(--muted) font-mono tracking-wide mb-3">{title}</p>
+      {flights.length === 0 ? (
+        <p className="text-sm text-(--muted) font-light">今天沒有直飛班機</p>
+      ) : (
+        <ul className="space-y-2">
+          {flights.map((f) => (
+            <li key={f.code + f.sched} className="flex items-baseline gap-3 text-sm font-light flex-wrap">
+              <Time f={f} />
+              <span className="font-mono text-(--text)" title={f.airline}>
+                {f.code}
+              </span>
+              <span className={tone(f)}>{f.status}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-[11px] text-(--muted) font-mono mt-3">{from}當地時間起飛</p>
+    </div>
+  );
+}
+
+export default async function AirportsPage() {
+  const { khh, fuk, nowKhh, nowFuk } = await load();
+  const direct = khhFuk(khh?.value ?? null, fuk?.value ?? null);
+  const board = (list: Flight[] | undefined, dir: "dep" | "arr", now: string) => upcoming((list ?? []).filter((f) => f.dir === dir), now);
+
+  return (
+    <PageShell
+      backHref="/flights"
+      backLabel="返回飛行紀錄"
+      eyebrow="Airport Boards"
+      title={<>機場時刻表 &nbsp;·&nbsp; Airport Boards</>}
+      intro="高雄小港跟福岡兩個機場的即時航班——我在兩地之間跑，這兩個機場的看板最常看。資料每 3 分鐘更新，開著這頁也會自己刷新。"
+    >
+      <AutoRefresh everyMs={3 * 60_000} />
+
+      <section className="mb-14">
+        <SectionHeading en="KHH ⇄ FUK">高雄 ⇄ 福岡</SectionHeading>
+        {khh || fuk ? (
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Direct title="小港 → 福岡" from="高雄" flights={direct.toFuk} />
+            <Direct title="福岡 → 小港" from="福岡" flights={direct.toKhh} />
+          </div>
+        ) : (
+          <p className="text-sm text-(--muted) font-light">航班資料暫時讀不到，晚點再來看看。</p>
+        )}
+      </section>
+
+      {khh && (
+        <section className="mb-14">
+          <SectionHeading en="Kaohsiung KHH">小港機場</SectionHeading>
+          <p className="text-xs text-(--muted) font-mono mb-4">
+            現在 {nowKhh}（台灣時間）· 接下來的班機 · 資料 {hm("Asia/Taipei", khh.at)}
+            {khh.stale && "（暫時讀不到最新的）"}
+          </p>
+          <Tabs
+            label="小港機場出發／抵達"
+            items={[
+              { key: "khh-dep", label: "出發", labelEn: "Departures", panel: <BoardTable dir="dep" flights={board(khh.value, "dep", nowKhh)} empty="今天的出發班機都飛走了" /> },
+              { key: "khh-arr", label: "抵達", labelEn: "Arrivals", panel: <BoardTable dir="arr" flights={board(khh.value, "arr", nowKhh)} empty="今天的抵達班機都到了" /> },
+            ]}
+          />
+        </section>
+      )}
+
+      {fuk && (
+        <section className="mb-14">
+          <SectionHeading en="Fukuoka FUK">福岡空港</SectionHeading>
+          <p className="text-xs text-(--muted) font-mono mb-4">
+            現在 {nowFuk}（日本時間）· 接下來的班機 · 資料 {hm("Asia/Tokyo", fuk.at)}
+            {fuk.stale && "（暫時讀不到最新的）"}
+          </p>
+          <Tabs
+            label="福岡空港出發／抵達"
+            items={[
+              { key: "fuk-dep", label: "出発", labelEn: "Departures", panel: <BoardTable dir="dep" flights={board(fuk.value, "dep", nowFuk)} empty="今天的出發班機都飛走了" /> },
+              { key: "fuk-arr", label: "到着", labelEn: "Arrivals", panel: <BoardTable dir="arr" flights={board(fuk.value, "arr", nowFuk)} empty="今天的抵達班機都到了" /> },
+            ]}
+          />
+        </section>
+      )}
+
+      <section>
+        <SectionHeading en="Data">資料來源</SectionHeading>
+        <ul className="text-xs text-(--muted) font-light leading-relaxed space-y-1.5">
+          <li>小港：高雄國際航空站的政府開放資料（國際線、國內線即時航班）</li>
+          <li>福岡：福岡空港官網航班頁的資料；國內線城市名照官網的日文漢字</li>
+          <li>每個分頁最多 30 班；表定時間被劃掉、旁邊的是預計／實際時間</li>
+        </ul>
+        <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
+          <Link href="/flights" className="inline-block py-3 -my-3 text-xs text-(--accent) font-mono tracking-wide underline underline-offset-4">
+            我自己搭過的航班 · Flight Log →
+          </Link>
+        </div>
+      </section>
+    </PageShell>
+  );
+}

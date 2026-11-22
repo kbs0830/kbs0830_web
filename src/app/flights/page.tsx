@@ -51,6 +51,9 @@ export default function FlightsPage() {
           航迷小筆記：搭過的航線、機場跟航空公司。只記航班代碼跟起降機場，不記日期。{" "}
           <Link href="/travel" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
             在地球上看 →
+          </Link>{" "}
+          <Link href="/airports" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+            小港・福岡機場時刻表 →
           </Link>
         </>
       }

@@ -43,6 +43,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/travel": "旅行地球",
   "/stats": "訪客分析",
   "/radar": "自家雷達",
+  "/airports": "機場時刻表",
   "/changelog": "更新紀錄",
   "/status": "維運狀態",
   "/colophon": "本站構造",
