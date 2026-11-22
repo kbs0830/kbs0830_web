@@ -284,21 +284,36 @@ function Dots({ color, reduced }: { color: string; reduced: boolean }) {
 }
 
 // 流星：每 4～8 秒從畫面上方斜斜劃過一顆，不到一秒就消失。頭亮、尾巴漸淡（每個頂點自己的透明度）。
+// 大約四次有一次是兩顆（11/23 使用者：「偶爾一次來兩顆」）：第二顆晚 0.15～0.45 秒、從旁邊出發、角度差不多、稍微淡一點。
 // 不跟游標傾斜（放在 PointerRig 外面），減少動態時不出現。
 const METEOR_SEGS = 12; // 尾巴切 12 段，每段兩個頂點（LineSegments）
+const METEOR_SLOTS = 2; // 同時最多兩顆，共用一個 geometry
+const PAIR_CHANCE = 0.25;
+type MeteorState = { start: number; x: number; y: number; dx: number; dy: number; life: number; bright: number };
 // 狀態放 module 層級（理由同 sim）
-const meteor = { start: -1, next: 0, x: 0, y: 0, dx: 0, dy: 0, life: 0.9, speed: 9, len: 1.8, rgb: new Color("#2d5a8e") };
+const meteors = {
+  next: 0,
+  rgb: new Color("#2d5a8e"),
+  speed: 9,
+  len: 1.8,
+  slots: Array.from({ length: METEOR_SLOTS }, (): MeteorState => ({ start: -1, x: 0, y: 0, dx: 0, dy: 0, life: 0.9, bright: 1 })),
+};
+
+function launch(m: MeteorState, start: number, x: number, y: number, deg: number, bright: number) {
+  const a = (deg * Math.PI) / 180;
+  Object.assign(m, { start, x, y, dx: Math.cos(a), dy: Math.sin(a), life: 0.8 + Math.random() * 0.2, bright });
+}
 
 function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
   const ref = useRef<LineSegments>(null);
   const geo = useMemo(() => {
     const g = new BufferGeometry();
-    g.setAttribute("position", new BufferAttribute(new Float32Array(METEOR_SEGS * 2 * 3), 3));
-    g.setAttribute("color", new BufferAttribute(new Float32Array(METEOR_SEGS * 2 * 4), 4)); // rgba：尾巴漸淡
+    g.setAttribute("position", new BufferAttribute(new Float32Array(METEOR_SLOTS * METEOR_SEGS * 2 * 3), 3));
+    g.setAttribute("color", new BufferAttribute(new Float32Array(METEOR_SLOTS * METEOR_SEGS * 2 * 4), 4)); // rgba：尾巴漸淡
     return g;
   }, []);
   useEffect(() => {
-    meteor.rgb.set(color);
+    meteors.rgb.set(color);
   }, [color]);
   useEffect(() => () => geo.dispose(), [geo]);
 
@@ -310,34 +325,49 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
       l.visible = false;
       return;
     }
-    if (meteor.start < 0) {
-      if (!meteor.next) meteor.next = now + 2 + Math.random() * 2; // 第一顆：載入後 2～4 秒
-      if (now < meteor.next) return;
+    const [first, second] = meteors.slots;
+    const idle = meteors.slots.every((m) => m.start < 0);
+    if (idle) {
+      if (!meteors.next) meteors.next = now + 2 + Math.random() * 2; // 第一顆：載入後 2～4 秒
+      if (now < meteors.next) {
+        l.visible = false;
+        return;
+      }
       // 從畫面上半部偏右出發，往左下劃（角度 200°～215°）
-      const a = ((200 + Math.random() * 15) * Math.PI) / 180;
-      Object.assign(meteor, { start: now, x: rand(8, 2), y: 2.2 + Math.random() * 1.6, dx: Math.cos(a), dy: Math.sin(a) });
+      const deg = 200 + Math.random() * 15;
+      const x = rand(8, 2);
+      const y = 2.2 + Math.random() * 1.6;
+      launch(first, now, x, y, deg, 1);
+      if (Math.random() < PAIR_CHANCE) {
+        // 第二顆：晚一點、從旁邊（上方或右邊一點）出發、角度差 ±3°
+        launch(second, now + 0.15 + Math.random() * 0.3, x + 0.6 + Math.random() * 1.2, y + (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.4), deg + (Math.random() * 6 - 3), 0.7);
+      }
     }
-    const t = (now - meteor.start) / meteor.life;
-    if (t >= 1) {
-      meteor.start = -1;
-      meteor.next = now + 4 + Math.random() * 4;
-      l.visible = false;
-      return;
-    }
-    const env = Math.sin(Math.PI * t); // 淡入淡出
-    const travel = meteor.speed * meteor.life * t;
-    const tail = meteor.len * (0.4 + 0.6 * env);
+
     const pos = l.geometry.attributes.position.array as Float32Array;
     const col = l.geometry.attributes.color.array as Float32Array;
-    const { r, g, b } = meteor.rgb;
-    for (let i = 0; i < METEOR_SEGS * 2; i++) {
-      const f = (Math.floor(i / 2) + (i % 2)) / METEOR_SEGS; // 0＝頭、1＝尾
-      pos.set([meteor.x + meteor.dx * (travel - tail * f), meteor.y + meteor.dy * (travel - tail * f), -1], i * 3);
-      col.set([r, g, b, (1 - f) ** 1.6 * env * 0.85], i * 4);
-    }
+    const { r, g, b } = meteors.rgb;
+    const n = METEOR_SEGS * 2;
+    let any = false;
+    meteors.slots.forEach((m, s) => {
+      const t = m.start < 0 ? -1 : (now - m.start) / m.life;
+      if (t >= 1) m.start = -1;
+      const live = t >= 0 && t < 1;
+      const env = live ? Math.sin(Math.PI * t) : 0; // 淡入淡出
+      const travel = meteors.speed * m.life * Math.max(t, 0);
+      const tail = meteors.len * (0.4 + 0.6 * env);
+      for (let i = 0; i < n; i++) {
+        const f = (Math.floor(i / 2) + (i % 2)) / METEOR_SEGS; // 0＝頭、1＝尾
+        const k = s * n + i;
+        pos.set([m.x + m.dx * (travel - tail * f), m.y + m.dy * (travel - tail * f), -1], k * 3);
+        col.set([r, g, b, live ? (1 - f) ** 1.6 * env * 0.85 * m.bright : 0], k * 4);
+      }
+      if (live) any = true;
+    });
+    if (meteors.slots.every((m) => m.start < 0)) meteors.next = now + 4 + Math.random() * 4;
     l.geometry.attributes.position.needsUpdate = true;
     l.geometry.attributes.color.needsUpdate = true;
-    l.visible = true;
+    l.visible = any;
   });
 
   return (
