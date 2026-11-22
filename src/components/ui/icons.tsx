@@ -52,3 +52,10 @@ export const DownloadIcon = ({ size = 15, className }: IconProps) => (
     <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
   </Stroke>
 );
+
+export const SearchIcon = ({ size = 14, className }: IconProps) => (
+  <Stroke size={size} className={className}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="M20 20l-4.2-4.2" />
+  </Stroke>
+);

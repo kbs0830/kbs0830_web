@@ -1,4 +1,3 @@
-import Link from "next/link";
 import NavBar from "@/components/ui/NavBar";
 import BackToTop from "@/components/ui/BackToTop";
 import LocalClock from "@/components/ui/LocalClock";
@@ -15,7 +14,7 @@ import LatestPosts from "@/components/sections/LatestPosts";
 import { projects } from "@/lib/projects";
 import { PERSON_ID, SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/ui/JsonLd";
-import BuildInfo from "@/components/ui/BuildInfo";
+import SiteFooter from "@/components/ui/SiteFooter";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
@@ -33,60 +32,16 @@ export default function Home() {
         <LatestPosts />
         <ContactSection />
       </main>
-      <footer className="py-8 border-t border-(--border)">
-        {/* 右下角固定的 BackToTop 按鈕會壓到內容（寬螢幕時在欄位外面，xl 以下才需要）——右側多留按鈕的寬度，不然頁底最後一行會被它蓋住 */}
-        <div className="max-w-5xl mx-auto pl-6 pr-20 xl:pr-6 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <p
-              className="text-xs text-(--muted) font-light tracking-[0.2em] font-mono"
-            >
-              © 2026 PINGWEI LI
-            </p>
-            <Link
-              href="/blog"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/flights"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              Flights
-            </Link>
-            <Link
-              href="/radar"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              Radar
-            </Link>
-            <Link
-              href="/status"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              Status
-            </Link>
-            <Link
-              href="/developers"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              API
-            </Link>
-            <Link
-              href="/stats"
-              className="text-xs text-(--muted) font-light tracking-[0.2em] hover:text-(--accent) transition-colors font-mono"
-            >
-              Stats
-            </Link>
-            <BuildInfo className="text-xs text-(--muted) font-light tracking-[0.1em] hover:text-(--accent) transition-colors font-mono" />
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <SiteFooter
+        width="max-w-5xl"
+        extra={
+          <>
             <LocalClock />
             <PresenceCount />
             <VisitorStats />
-          </div>
-        </div>
-      </footer>
+          </>
+        }
+      />
       <BackToTop />
       <KeyboardShortcuts />
       <KonamiEgg />

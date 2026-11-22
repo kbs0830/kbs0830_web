@@ -12,6 +12,7 @@ const sectionKeys: Record<string, string> = {
 };
 
 const shortcuts = [
+  { key: "Ctrl K", desc: "快速跳轉：搜尋頁面、作品、文章（每一頁都能用）" },
   { key: "1 / 2 / 3", desc: "跳轉至 自己紹介 / 製作物 / 連絡先" },
   { key: "G", desc: "開啟 GitHub" },
   { key: "E", desc: "寄一封信" },

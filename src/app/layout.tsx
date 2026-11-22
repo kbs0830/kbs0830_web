@@ -5,6 +5,7 @@ import JsonLd from "@/components/ui/JsonLd";
 import WebVitals from "@/components/ui/WebVitals";
 import VisitBeacon from "@/components/ui/VisitBeacon";
 import Presence from "@/components/ui/Presence";
+import QuickJump from "@/components/ui/QuickJump";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -102,6 +103,7 @@ export default function RootLayout({
         <VisitBeacon />
         <Presence />
         {children}
+        <QuickJump />
       </body>
     </html>
   );

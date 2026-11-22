@@ -2,11 +2,15 @@ import type { ReactNode } from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import Eyebrow from "@/components/ui/Eyebrow";
+import QuickJumpButton from "@/components/ui/QuickJumpButton";
+import SiteFooter from "@/components/ui/SiteFooter";
 
 // 首頁以外的獨立頁面（/now、/uses、/blog、/resume、作品詳細頁、404）共用的外框：
 // 置中的窄欄 + 左上角「← 返回」小連結。原本 7 個頁面逐字複製同一段。
 // eyebrow / title / intro：/now、/uses、/blog、404 共用的「小標 + 大標 + 一段說明」開頭。
 // printable：/resume 列印成 A4 時拿掉留白跟返回連結。
+// 2026-11-23：右上角「搜尋」打開快速跳轉（QuickJump），最下面接全站頁尾（頁面索引），子頁面不再是死路。
+// 外框用 flex-1（body 是 flex-col）把頁尾推到底，短頁面（404）頁尾也在畫面裡，不用 min-h-svh 把它擠出去。
 export default function PageShell({
   backHref = "/",
   backLabel = "返回首頁",
@@ -25,20 +29,26 @@ export default function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className={`min-h-svh bg-(--bg) px-6 py-20 ${printable ? "print:py-0 print:px-0" : ""}`}>
-      <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
-      <div className={`max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
-        <Link
-          href={backHref}
-          className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors font-mono print:hidden"
-        >
-          ← {backLabel}
-        </Link>
-        {eyebrow && <Eyebrow className="mt-10 mb-4">{eyebrow}</Eyebrow>}
-        {title && <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">{title}</h1>}
-        {intro && <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">{intro}</p>}
-        {children}
+    <>
+      <div className={`flex-1 bg-(--bg) px-6 py-20 ${printable ? "print:py-0 print:px-0" : ""}`}>
+        <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
+        <main className={`max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
+          <div className="flex items-center justify-between gap-4 print:hidden">
+            <Link
+              href={backHref}
+              className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors font-mono"
+            >
+              ← {backLabel}
+            </Link>
+            <QuickJumpButton className="py-3 -my-3" />
+          </div>
+          {eyebrow && <Eyebrow className="mt-10 mb-4">{eyebrow}</Eyebrow>}
+          {title && <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">{title}</h1>}
+          {intro && <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">{intro}</p>}
+          {children}
+        </main>
       </div>
-    </div>
+      <SiteFooter />
+    </>
   );
 }

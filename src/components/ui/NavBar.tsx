@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MoonIcon, SunIcon } from "@/components/ui/icons";
 import Collapse from "@/components/ui/Collapse";
+import QuickJumpButton from "@/components/ui/QuickJumpButton";
 import { useMediaQuery, useScrolledPast } from "@/lib/hooks";
 
 const links = [
@@ -24,12 +25,13 @@ function toggleTheme() {
 // 圖示按鈕：版面上佔 32×32（負 margin 抵銷），實際可點範圍 40×44，手機比較好按準。
 // 手機版兩顆按鈕間距 8px，寬 40 剛好互相貼齊不重疊
 const hitArea = "w-10 h-11 -mx-1 -my-1.5";
+const iconButton = `${hitArea} flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors`;
 
 function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className={`${hitArea} flex items-center justify-center text-(--muted) hover:text-(--accent) transition-colors`}
+      className={iconButton}
       aria-label="切換亮色／暗色模式"
     >
       <MoonIcon className="theme-icon-moon" />
@@ -92,13 +94,15 @@ export default function NavBar() {
               </a>
             </li>
           ))}
-          <li>
+          <li className="flex items-center gap-2">
+            <QuickJumpButton icon className={iconButton} />
             <ThemeToggle />
           </li>
         </ul>
 
         {/* Mobile controls */}
         <div className="flex sm:hidden items-center gap-2">
+          <QuickJumpButton icon className={iconButton} />
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen((v) => !v)}
