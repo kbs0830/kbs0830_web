@@ -10,8 +10,13 @@
 //   - 不存飛機座標、不算涵蓋範圍／最遠距離——把收得到的飛機位置畫出來就看得出接收器（＝家）在哪
 //   - 公開的只有：現在幾架、今天幾架、最多同時幾架、航空公司統計、在線率
 //   - 今天看過的飛機識別碼（ICAO hex，是飛機的、不是人的）只為了算「今天幾架不重複」，換日就丟掉，不經 API 出去
+//
+// 機型（TODO D4，2026-11-22）：新收到的飛機拿識別碼問 adsbdb.com（免費、不用金鑰）查機型，存在 data/aircraft-types.json
+// （識別碼 → 機型的快取，跟位置無關、不公開）。公開的只有「每種機型幾架」的彙總。
+// ⚠️ 不做航線統計：航線的交會處就是接收器的位置
 
 const fs = require("fs");
+const path = require("path");
 
 const POLL_MS = 30_000;
 const KEEP_DAYS = 120;
@@ -31,6 +36,16 @@ const AIRLINE_NAMES = {
   QTR: "卡達航空", UAE: "阿聯酋航空", THY: "土耳其航空", KLM: "荷蘭皇家航空",
 };
 
+// ICAO 機型代碼 → 常見叫法（只放確定的；不在表上的直接顯示代碼）
+const TYPE_NAMES = {
+  A319: "A319", A320: "A320", A20N: "A320neo", A321: "A321", A21N: "A321neo",
+  A332: "A330-200", A333: "A330-300", A339: "A330-900neo", A359: "A350-900", A35K: "A350-1000", A388: "A380",
+  B737: "737-700", B738: "737-800", B739: "737-900", B38M: "737 MAX 8", B39M: "737 MAX 9",
+  B744: "747-400", B748: "747-8", B763: "767-300", B772: "777-200", B77L: "777-200LR／777F", B773: "777-300", B77W: "777-300ER",
+  B788: "787-8", B789: "787-9", B78X: "787-10",
+  AT75: "ATR 72-500", AT76: "ATR 72-600", DH8D: "Dash 8-400", E190: "E190", E195: "E195",
+};
+
 /** 呼號 → 航空公司 ICAO 三碼（CAL123、EVA2195A）；註冊號、空白、軍機等其他格式回 null */
 function airlineOf(callsign) {
   const m = String(callsign || "").trim().toUpperCase().match(/^([A-Z]{3})\d{1,4}[A-Z]{0,2}$/);
@@ -48,12 +63,14 @@ function emptyState(now) {
 
 /**
  * 一次讀取結果併進統計。sample：{ reachable, rxConnected, shutdown, aircraft: [{ hex, flight, seen }] }
- * （reachable＝兩個網址都讀得到）。回傳新的 state，不改傳進來的那份。
+ * （reachable＝兩個網址都讀得到）。types：機型快取（識別碼 → { t } 或 { miss }，見 lookupTypes），沒有就不算機型。
+ * 回傳新的 state，不改傳進來的那份。
  */
-function applySample(prev, sample, now) {
+function applySample(prev, sample, now, types) {
   const state = prev && prev.days ? JSON.parse(JSON.stringify(prev)) : emptyState(now);
   const date = twDate(now);
   if (!state.today || state.today.date !== date) state.today = { date, seen: {} };
+  if (!state.today.typed) state.today.typed = {}; // 今天已經算過機型的識別碼（換日跟 seen 一起丟）
 
   const ok = Boolean(sample.reachable && sample.rxConnected && !sample.shutdown);
   const current = ok ? (sample.aircraft || []).filter((a) => a && a.hex && (a.seen ?? 0) <= RECENT_SECONDS) : [];
@@ -80,6 +97,18 @@ function applySample(prev, sample, now) {
       // 第一次收到時還沒有呼號（呼號是另一種訊息，常常晚幾秒才到）：補記
       state.today.seen[hex] = airline;
       day.airlines[airline] = (day.airlines[airline] || 0) + 1;
+    }
+  }
+
+  // 機型：今天看過、快取裡查到了、還沒算過的才算（查不到的也記成算過，不再重試）
+  if (types) {
+    if (!day.types) day.types = {};
+    for (const hex of Object.keys(state.today.seen)) {
+      if (state.today.typed[hex]) continue;
+      const hit = types[hex];
+      if (!hit) continue;
+      state.today.typed[hex] = 1;
+      if (hit.t) day.types[hit.t] = (day.types[hit.t] || 0) + 1;
     }
   }
 
@@ -125,6 +154,12 @@ function summarize(state, now) {
   };
 }
 
+const topTypes = (counts, n) =>
+  Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, n)
+    .map(([code, count]) => ({ code, name: TYPE_NAMES[code] || code, n: count }));
+
 const topAirlines = (counts, n) =>
   Object.entries(counts)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -137,7 +172,8 @@ const topAirlines = (counts, n) =>
  *   hours：近 7 天（含今天）每小時「最多同時幾架」的平均
  *   weekAirlines：近 7 天航空公司前 10
  *   total：開始記錄以來累計架次、最多同時、記錄天數
- * 一樣只有數字跟航空公司，沒有識別碼、座標
+ *   weekTypes：近 7 天機型前 10
+ * 一樣只有數字、航空公司、機型，沒有識別碼、座標
  */
 function detail(state, now) {
   const base = summarize(state, now);
@@ -154,12 +190,15 @@ function detail(state, now) {
   });
   const weekCounts = {};
   for (const v of last7) for (const [k, n] of Object.entries(v.airlines || {})) weekCounts[k] = (weekCounts[k] || 0) + n;
+  const weekTypeCounts = {};
+  for (const v of last7) for (const [k, n] of Object.entries(v.types || {})) weekTypeCounts[k] = (weekTypeCounts[k] || 0) + n;
   const all = Object.values(state.days);
   return {
     ...base,
     daily,
     hours,
     weekAirlines: topAirlines(weekCounts, 10),
+    weekTypes: topTypes(weekTypeCounts, 10),
     total: { unique: all.reduce((n, v) => n + v.unique, 0), peak: all.reduce((m, v) => Math.max(m, v.peak), 0), days: all.length },
   };
 }
@@ -192,15 +231,60 @@ async function pollRadar(host) {
   }
 }
 
+const TYPE_LOOKUPS_PER_TICK = 4; // 每 30 秒最多問 adsbdb 4 次（新收到的飛機才問，問過的存快取）
+const TYPE_MISS_RETRY_MS = 30 * 86400_000; // 查不到的 30 天後再試一次
+const TYPE_CACHE_MAX = 30_000;
+
+/** adsbdb 查一架的機型：{ t } 查到、{ miss } 資料庫沒有這架、null 這次沒查成（網路錯誤之類，下次再試） */
+async function fetchType(hex, now) {
+  try {
+    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(hex)}`, { signal: AbortSignal.timeout(5000) });
+    if (res.status === 404) return { miss: 1, at: now };
+    if (!res.ok) return null;
+    const j = await res.json();
+    const t = j && j.response && j.response.aircraft && j.response.aircraft.icao_type;
+    return typeof t === "string" && /^[A-Z0-9]{2,4}$/.test(t) ? { t, at: now } : { miss: 1, at: now };
+  } catch {
+    return null;
+  }
+}
+
+/** 今天看過、快取裡還沒有（或很久以前查不到）的識別碼，挑幾個去查。回傳有沒有改到快取 */
+async function lookupTypes(state, types, now, fetcher = fetchType) {
+  const todo = Object.keys((state && state.today && state.today.seen) || {}).filter((hex) => {
+    const c = types[hex];
+    return !c || (c.miss && now - (c.at || 0) > TYPE_MISS_RETRY_MS);
+  });
+  let changed = false;
+  for (const hex of todo.slice(0, TYPE_LOOKUPS_PER_TICK)) {
+    const r = await fetcher(hex, now);
+    if (!r) break; // 網路有問題：這輪先停
+    types[hex] = r;
+    changed = true;
+  }
+  const keys = Object.keys(types);
+  if (keys.length > TYPE_CACHE_MAX) {
+    keys.sort((a, b) => (types[a].at || 0) - (types[b].at || 0));
+    for (const k of keys.slice(0, keys.length - TYPE_CACHE_MAX)) delete types[k];
+    changed = true;
+  }
+  return changed;
+}
+
 /** server.js 呼叫：每 30 秒讀一次、寫檔。寫檔是同步的（同一個 process 只有這裡寫，API 只讀） */
-function startRadarPoller({ host, file, log }) {
+function startRadarPoller({ host, file, typesFile, log }) {
   let running = false;
+  const typesPath = typesFile || path.join(path.dirname(file), "aircraft-types.json");
+  const types = readState(typesPath) || {};
   const tick = async () => {
     if (running) return;
     running = true;
     try {
       const sample = await pollRadar(host);
-      const next = applySample(readState(file), sample, Date.now());
+      const now = Date.now();
+      const prev = readState(file);
+      if (await lookupTypes(prev, types, now)) fs.writeFileSync(typesPath, JSON.stringify(types));
+      const next = applySample(prev, sample, now, types);
       fs.writeFileSync(file, JSON.stringify(next));
     } catch (e) {
       if (log) log(`RADAR poll error: ${e && e.message ? e.message : e}`);
@@ -212,4 +296,4 @@ function startRadarPoller({ host, file, log }) {
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { AIRLINE_NAMES, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller };
+module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller };

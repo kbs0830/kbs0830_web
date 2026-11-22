@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { airlineOf, applySample, detail, summarize, twDate } from "./radar.js";
+import { airlineOf, applySample, detail, lookupTypes, summarize, twDate } from "./radar.js";
 
 type Plane = { hex: string; flight?: string; seen?: number };
 const T0 = Date.parse("2026-11-21T02:00:00Z"); // 台灣 10:00
@@ -117,5 +117,38 @@ describe("detail（/radar 頁）", () => {
     const d = detail(s, T0);
     if (!("hours" in d)) throw new Error("detail 沒有 hours");
     expect(d.hours.every((h: number | null) => h === null)).toBe(true);
+  });
+});
+
+describe("機型（TODO D4）", () => {
+  it("快取查到才算、每架只算一次；查不到的不算也不重算；公開資料沒有識別碼", () => {
+    const types: Record<string, { t?: string; miss?: number; at: number }> = { a: { t: "A21N", at: T0 }, b: { miss: 1, at: T0 } };
+    let s = applySample(null, ok([{ hex: "a", seen: 0 }, { hex: "b", seen: 0 }, { hex: "c", seen: 0 }]), T0, types);
+    s = applySample(s, ok([{ hex: "a", seen: 0 }]), T0 + 30_000, types);
+    expect(s.days["2026-11-21"].types).toEqual({ A21N: 1 });
+    types.c = { t: "B738", at: T0 }; // c 晚一點才查到
+    s = applySample(s, ok([]), T0 + 60_000, types);
+    expect(s.days["2026-11-21"].types).toEqual({ A21N: 1, B738: 1 });
+    const d = detail(s, T0 + 90_000);
+    if (!("weekTypes" in d)) throw new Error("detail 沒有 weekTypes");
+    expect(d.weekTypes).toEqual([
+      { code: "A21N", name: "A321neo", n: 1 },
+      { code: "B738", name: "737-800", n: 1 },
+    ]);
+    expect(JSON.stringify(d)).not.toMatch(/"a"|"b"|"c"/);
+  });
+
+  it("lookupTypes：只查沒查過的、每輪最多 4 架、網路錯誤就停、查不到的 30 天後再試", async () => {
+    let s = applySample(null, ok("abcdefg".split("").map((hex) => ({ hex, seen: 0 }))), T0);
+    const types: Record<string, { t?: string; miss?: number; at: number }> = { a: { t: "A333", at: T0 }, b: { miss: 1, at: T0 - 31 * 86400_000 } };
+    const asked: string[] = [];
+    await lookupTypes(s, types, T0, async (hex: string, now: number) => (asked.push(hex), hex === "d" ? { miss: 1, at: now } : { t: "A20N", at: now }));
+    expect(asked).toEqual(["b", "c", "d", "e"]);
+    expect(types.d).toMatchObject({ miss: 1 });
+    asked.length = 0;
+    await lookupTypes(s, types, T0, async (hex: string) => (asked.push(hex), null));
+    expect(asked).toEqual(["f"]); // 第一個就失敗 → 這輪停
+    s = applySample(s, ok([]), T0 + 1000, types);
+    expect(s.days["2026-11-21"].types).toEqual({ A333: 1, A20N: 3 });
   });
 });

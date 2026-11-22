@@ -108,12 +108,25 @@ export default function RadarPage() {
             </section>
           )}
 
+          {d.weekTypes.length > 0 && (
+            <section className="mb-12">
+              <SectionHeading en="Aircraft">機型（近 7 天）</SectionHeading>
+              <ShareList
+                entries={d.weekTypes.map((t) => [t.name === t.code ? t.code : `${t.name}（${t.code}）`, t.n] as [string, number])}
+                total={d.weekTypes.reduce((n, t) => n + t.n, 0)}
+              />
+              <p className="text-xs text-(--muted) font-light mt-3">
+                用飛機廣播的識別碼查 <a href="https://www.adsbdb.com/" className="underline underline-offset-4" target="_blank" rel="noopener noreferrer">adsbdb</a> 的機型資料；只算前 10 名，查不到的不算。
+              </p>
+            </section>
+          )}
+
           <section>
             <SectionHeading en="About">關於這台雷達</SectionHeading>
             <BulletList
               items={[
                 "樹莓派（Flightradar24 的 Pi24 系統）＋ DVB-T 電視棒當 SDR 接收器，fr24feed 解碼後即時送到 Flightradar24",
-                "這個網站的伺服器每 30 秒在家裡的區網讀一次，只留數字：現在、今天、每小時幾架，跟航空公司",
+                "這個網站的伺服器每 30 秒在家裡的區網讀一次，只留數字：現在、今天、每小時幾架，跟航空公司、機型",
                 "不公開位置：不畫地圖、不算涵蓋範圍——把收到的飛機位置畫出來，就看得出接收器在哪",
                 "離線超過 15 分鐘，或白天 2 小時一架都沒收到，會自動寄信給我",
               ]}
