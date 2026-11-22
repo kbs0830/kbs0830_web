@@ -17,6 +17,7 @@ export const usesGroups = [
     items: [
       { name: "Desktop", detail: "i7-12700 + RTX 3070（部署主機，跑 Next.js / YOLOv8 推論）" },
       { name: "Laptop", detail: "Zenbook A14 ARM（日常開發）" },
+      { name: "Raspberry Pi + SDR 接收棒", detail: "自架 ADS-B 接收器（FR24 Pi24），收附近飛機的訊號，即時數字在 /radar" },
     ],
   },
   {
@@ -34,6 +35,9 @@ export const usesGroups = [
       { name: "Windows 11", detail: "作業系統" },
       { name: "Cloudflare Tunnel", detail: "本機部署對外服務" },
       { name: "GitHub Actions (self-hosted)", detail: "CI/CD，push 到 main 自動部署" },
+      { name: "Playwright", detail: "E2E 測試（無障礙、隱私、CSP…），WebGPU 那支用桌機的真顯卡跑" },
+      { name: "Vitest", detail: "單元測試（資料解析、API route、AQI 公式這類純函式）" },
+      { name: "Renovate", detail: "每週一自動開依賴更新 PR，self-hosted runner 跑、不自動合併" },
     ],
   },
   {
@@ -43,6 +47,8 @@ export const usesGroups = [
       { name: "FastAPI / Flask", detail: "後端 API" },
       { name: "YOLOv8 / ONNX Runtime / Gemini API", detail: "AI 推論" },
       { name: "Tailwind CSS v4 + 原生 CSS 動畫 / View Transitions", detail: "樣式與動畫" },
+      { name: "Three.js / React Three Fiber", detail: "首頁 3D 背景（細線、粒子、流星）" },
+      { name: "WebGPU / TSL", detail: "首頁的 GPU 粒子實驗版（compute shader），加 ?hero=webgpu 看得到" },
     ],
   },
 ];
