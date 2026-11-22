@@ -7,11 +7,12 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  EdgesGeometry,
   Group,
-  Line,
-  LineBasicMaterial,
+  IcosahedronGeometry,
   LineSegments,
   Matrix4,
+  OctahedronGeometry,
   Points,
   Quaternion,
   Vector3,
@@ -29,14 +30,29 @@ import { useAccentColor, usePrefersReducedMotion } from "@/lib/hooks";
 // 裝飾用的隨機座標在 module 載入時產生一次（這個檔案只在桌機、client 端載入）。
 const rand = (spread: number, offset = 0) => (Math.random() - 0.5) * spread + offset;
 
-const LINE_SPECS = Array.from({ length: 28 }, () => ({ // 11/23 使用者：「線條可以再多一點」（原本 18）
-  x: rand(12),
-  y: rand(8),
-  z: rand(4, -2),
-  len: 0.8 + Math.random() * 2,
-  angle: Math.random() * Math.PI * 2,
-  opacity: 0.25 + Math.random() * 0.2,
-}));
+// 背景線條（11/23 使用者：「線條可以再多一點」→「更豐富、更有深度（立體）一點」）：
+//   - 每條線是真的 3D 方向（不再全部平貼在同一個平面），前後拉開 11 個單位
+//   - 透明度依「跟鏡頭的距離」每幀重算：近的濃、遠的淡（空氣透視），整組慢慢轉的時候會看到線條一前一後地浮現
+//   - 約三分之一的線一端有個小節點
+const LINE_COUNT = 44;
+const LINE_SPECS = Array.from({ length: LINE_COUNT }, () => {
+  const x = rand(16);
+  const y = rand(10);
+  const z = rand(11, -3.5);
+  const th = Math.random() * Math.PI * 2;
+  const dz = rand(1.4); // 不要正對鏡頭（那樣看起來只是一個點）
+  const r = Math.sqrt(1 - dz * dz);
+  const len = 0.8 + Math.random() * 1.8;
+  return {
+    a: [x, y, z] as const,
+    b: [x + r * Math.cos(th) * len, y + r * Math.sin(th) * len, z + dz * len] as const,
+    base: 0.3 + Math.random() * 0.2,
+    node: Math.random() < 0.35,
+  };
+});
+const NODE_SPECS = LINE_SPECS.filter((l) => l.node);
+// 距離鏡頭 4 → 1（最濃）、17 → 0.08（最淡）
+const depthFade = (d: number) => Math.max(0.08, Math.min(1, 1 - (d - 4) / 13)) ** 1.3;
 
 const DOT_COUNT = 50; // 11/23 使用者：「粒子效果少一點」（原本 90）
 const DOT_REST = Float32Array.from({ length: DOT_COUNT * 3 }, (_, i) =>
@@ -124,49 +140,109 @@ function ScrollRig({ reduced }: { reduced: boolean }) {
   return null;
 }
 
-function Lines({ color }: { color: string }) {
-  const ref = useRef<Group>(null);
+// 狀態放 module 層級（理由同 sim）
+const lineState = { rgb: new Color("#2d5a8e"), v: new Vector3() };
 
-  // <primitive> 掛載的物件 R3F 不會自動 dispose，下面 useEffect cleanup 手動處理
-  const lineObjects = useMemo(
-    () =>
-      LINE_SPECS.map(({ x, y, z, len, angle, opacity }) => {
-        const geometry = new BufferGeometry().setFromPoints([
-          new Vector3(x, y, z),
-          new Vector3(x + Math.cos(angle) * len, y + Math.sin(angle) * len, z),
-        ]);
-        const material = new LineBasicMaterial({ color: "#2d5a8e", transparent: true, opacity });
-        return new Line(geometry, material);
-      }),
-    [],
+function Lines({ color, reduced }: { color: string; reduced: boolean }) {
+  const ref = useRef<Group>(null);
+  const seg = useRef<LineSegments>(null);
+  const nodes = useRef<Points>(null);
+
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(Float32Array.from(LINE_SPECS.flatMap((l) => [...l.a, ...l.b])), 3));
+    g.setAttribute("color", new BufferAttribute(new Float32Array(LINE_COUNT * 2 * 4), 4)); // rgba：透明度跟著深度
+    return g;
+  }, []);
+  const nodeGeo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(Float32Array.from(NODE_SPECS.flatMap((l) => [...l.b])), 3));
+    g.setAttribute("color", new BufferAttribute(new Float32Array(NODE_SPECS.length * 4), 4));
+    return g;
+  }, []);
+
+  useEffect(() => {
+    lineState.rgb.set(color);
+  }, [color]);
+  useEffect(
+    () => () => {
+      geo.dispose();
+      nodeGeo.dispose();
+    },
+    [geo, nodeGeo],
   );
 
-  useEffect(() => {
-    lineObjects.forEach((line) => (line.material as LineBasicMaterial).color.set(color));
-  }, [lineObjects, color]);
-
-  useEffect(() => {
-    return () => {
-      lineObjects.forEach((line) => {
-        line.geometry.dispose();
-        (line.material as LineBasicMaterial).dispose();
-      });
-    };
-  }, [lineObjects]);
-
-  useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * 0.02;
-      ref.current.rotation.x += delta * 0.008;
+  useFrame(({ camera }, delta) => {
+    const g = ref.current;
+    const l = seg.current;
+    const n = nodes.current;
+    if (!g || !l || !n) return;
+    if (!reduced) {
+      g.rotation.y += delta * 0.02;
+      g.rotation.x += delta * 0.008;
     }
+    // 每幀依深度重算透明度（88 個頂點，很便宜）
+    const { rgb, v } = lineState;
+    const fade = (obj: LineSegments | Points, count: number, base: (i: number) => number) => {
+      obj.updateMatrixWorld();
+      const pos = obj.geometry.attributes.position.array as Float32Array;
+      const col = obj.geometry.attributes.color.array as Float32Array;
+      for (let i = 0; i < count; i++) {
+        v.fromArray(pos, i * 3).applyMatrix4(obj.matrixWorld);
+        col.set([rgb.r, rgb.g, rgb.b, base(i) * depthFade(v.distanceTo(camera.position))], i * 4);
+      }
+      obj.geometry.attributes.color.needsUpdate = true;
+    };
+    fade(l, LINE_COUNT * 2, (i) => LINE_SPECS[i >> 1].base);
+    fade(n, NODE_SPECS.length, (i) => NODE_SPECS[i].base + 0.25);
   });
 
   return (
     <group ref={ref}>
-      {lineObjects.map((lineObj, i) => (
-        <primitive key={i} object={lineObj} />
-      ))}
+      <lineSegments ref={seg} geometry={geo} frustumCulled={false}>
+        <lineBasicMaterial vertexColors transparent depthWrite={false} />
+      </lineSegments>
+      <points ref={nodes} geometry={nodeGeo} frustumCulled={false}>
+        <pointsMaterial vertexColors transparent depthWrite={false} size={0.05} />
+      </points>
     </group>
+  );
+}
+
+// 背景深處兩個很淡的線框幾何體（測地球面、八面體），跟線條反方向慢慢轉 → 前後兩層轉速不同，立體感從視差出來。
+// 放在標題旁邊的空白處（右後方、左下），不壓標題。
+function Structures({ color, reduced }: { color: string; reduced: boolean }) {
+  const a = useRef<Group>(null);
+  const b = useRef<Group>(null);
+  const geos = useMemo(() => {
+    const ico = new IcosahedronGeometry(2.6, 1);
+    const oct = new OctahedronGeometry(0.9);
+    const out = [new EdgesGeometry(ico), new EdgesGeometry(oct)];
+    ico.dispose();
+    oct.dispose();
+    return out;
+  }, []);
+  useEffect(() => () => geos.forEach((g) => g.dispose()), [geos]);
+  useFrame((_, delta) => {
+    if (reduced || !a.current || !b.current) return;
+    a.current.rotation.y -= delta * 0.035;
+    a.current.rotation.x += delta * 0.012;
+    b.current.rotation.y += delta * 0.09;
+    b.current.rotation.z += delta * 0.04;
+  });
+  return (
+    <>
+      <group ref={a} position={[4.8, 0.6, -4.5]}>
+        <lineSegments geometry={geos[0]}>
+          <lineBasicMaterial color={color} transparent opacity={0.09} depthWrite={false} />
+        </lineSegments>
+      </group>
+      <group ref={b} position={[-5.2, -2.2, -2]}>
+        <lineSegments geometry={geos[1]}>
+          <lineBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
+        </lineSegments>
+      </group>
+    </>
   );
 }
 
@@ -408,9 +484,10 @@ export default function HeroScene() {
         <Meteor color={color} reduced={reduced} />
         <PointerRig reduced={reduced}>
           <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
-            <Lines color={color} />
+            <Lines color={color} reduced={reduced} />
           </Float>
           <Dots color={color} reduced={reduced} />
+          <Structures color={color} reduced={reduced} />
         </PointerRig>
       </Canvas>
     </div>
