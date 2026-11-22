@@ -4,6 +4,7 @@ import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/sit
 import JsonLd from "@/components/ui/JsonLd";
 import WebVitals from "@/components/ui/WebVitals";
 import VisitBeacon from "@/components/ui/VisitBeacon";
+import Presence from "@/components/ui/Presence";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -99,6 +100,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <WebVitals />
         <VisitBeacon />
+        <Presence />
         {children}
       </body>
     </html>

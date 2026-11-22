@@ -582,6 +582,8 @@ deploy.bat
   中文說明（英文 `hidden sm:block`，詳細頁仍完整）；文章／作品詳細頁／清單內文手機 15px、行距 1.8～1.9；
   文章程式碼區塊手機貼齊螢幕邊；獨立頁面（PageShell）有閱讀進度條；文章顯示估計閱讀時間（`blog.ts` 的 `readingMinutes`）
 - **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新；2026-11-22 加天氣「晴 23°」：`/api/weather` → `lib/weather.ts`，Open-Meteo 30 分鐘抓一次，讀不到只顯示時間）
+  ＋ `PresenceCount`（「● いま N 人」，2026-11-23 TODO B4：layout 的 `Presence` 每頁前景時 30 秒 POST `/api/presence`，背景／關分頁 sendBeacon 離開；
+  `lib/presence.ts` 只在記憶體記 sessionStorage 分頁代碼 → 最後時間，70 秒過期，不寫檔、重啟歸零；只收有 `cf-ipcountry` 的，所以本機測試要自己帶這個 header）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **BackToTop**：返回頂端按鈕
 - **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
@@ -983,6 +985,7 @@ deploy.bat
 | OG 分享圖（⚠️ 2026-11-21 部署 build 因為分享圖的中文字型壞掉失敗過一次：`og-font.ts` 現在檢查字型檔頭、重抓一次，`og-card.tsx` 先試畫，畫不出來退回英文，不讓 build 失敗） | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
 | 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁、/flights、/hotels、/stats、/radar、/now、/uses、/changelog 用 `withShare(meta, { ownImage: true })`（獨立頁的圖共用 `lib/og-card.tsx` 的 `pageCardImage`，新頁照抄三行）（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
 | RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
+| `/.well-known/security.txt`（RFC 9116，2026-11-23 TODO B8；聯絡 `SECURITY_EMAIL`＝otemon，使用者指定；Expires＝build＋180 天） | `src/app/.well-known/security.txt/route.ts` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |
 | Markdown for Agents（每頁的 Markdown 版：`Accept: text/markdown` 或網址加 `.md`，首頁 `/index.md`） | `src/lib/markdown.ts` → `src/app/md/[[...path]]/route.ts`，轉址在 `next.config.ts` 的 `rewrites` |

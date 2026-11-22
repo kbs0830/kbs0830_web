@@ -1,6 +1,8 @@
 // 全站共用的網址與聯絡方式。原本網址 16 處、email 5 處、GitHub 4 處散在各檔案逐字重複。
 export const SITE_URL = "https://kbs0830.com";
 export const EMAIL = "1394kbs@gmail.com";
+// 系統用信箱（告警信也寄這裡）：/.well-known/security.txt 的聯絡方式（TODO B8，2026-11-23 使用者指定用這個，不用上面的真人信箱）
+export const SECURITY_EMAIL = "otemon.pcwork@gmail.com";
 export const GITHUB_URL = "https://github.com/kbs0830";
 // 這個網站自己的 repo（公開）：/changelog 每一項連到對應的 commit
 export const REPO_URL = `${GITHUB_URL}/kbs0830_web`;

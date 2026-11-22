@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-23 B4「いま N 人」、B8 security.txt
+- [x] 首頁頁尾「● いま N 人」：每一頁在前景時 30 秒回報一次，切背景／關分頁送「離開」；伺服器只在記憶體記分頁代碼（sessionStorage 隨機字串）→ 最後回報時間，70 秒沒報就不算，不寫檔、不存 IP；只收經過 Cloudflare 的請求
+- [x] `/.well-known/security.txt`（RFC 9116）：聯絡 otemon 信箱，Expires＝build 時＋180 天、每次部署自動延
+- [x] 單元測試 `presence.test.ts`；3200 實測兩個分頁＋關分頁馬上扣掉；E2E 98 個全過
+
 ### 2026-11-23 B16 /uses 補上新工具
 - [x] 硬體加 Raspberry Pi＋SDR 接收棒（自架 ADS-B，不寫位置跟雷達代碼）；開發工具加 Playwright、Vitest、Renovate；技術棧加 Three.js／R3F、WebGPU／TSL
 - [x] 同一天首頁微調：流星每 4～8 秒、偶爾兩顆；粒子 90 → 50；線條 18 → 28

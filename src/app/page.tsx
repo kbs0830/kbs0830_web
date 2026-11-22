@@ -3,6 +3,7 @@ import NavBar from "@/components/ui/NavBar";
 import BackToTop from "@/components/ui/BackToTop";
 import LocalClock from "@/components/ui/LocalClock";
 import VisitorStats from "@/components/ui/VisitorStats";
+import { PresenceCount } from "@/components/ui/Presence";
 import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
 import KonamiEgg from "@/components/ui/KonamiEgg";
 import TerminalMode from "@/components/ui/TerminalMode";
@@ -81,6 +82,7 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <LocalClock />
+            <PresenceCount />
             <VisitorStats />
           </div>
         </div>
