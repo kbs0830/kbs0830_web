@@ -69,6 +69,25 @@ describe("visitor-stats API route", () => {
     expect(detail.referrers).toEqual({ "google.com": 1 });
   });
 
+  it("POST 帶 notMe（站長的瀏覽器）國家、明細都不記，但照樣回 newFeature", async () => {
+    const until = new Date(Date.now() + 3600_000).toISOString();
+    fs.writeFileSync(featureFile, JSON.stringify({ until }));
+    const { POST } = await import("./route");
+    const body = await (
+      await POST(
+        new NextRequest("http://localhost/api/visitor-stats", {
+          method: "POST",
+          headers: { "cf-ipcountry": "TW", "user-agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/142.0.0.0 Safari/537.36" },
+          body: JSON.stringify({ notMe: true }),
+        }),
+      )
+    ).json();
+    expect(body.total).toBe(0);
+    expect(body.newFeature).toEqual({ until });
+    expect(fs.existsSync(statsFile)).toBe(false);
+    expect(fs.existsSync(detailFile)).toBe(false);
+  });
+
   it("新功能上線 12 小時內回傳 newFeature（只有到期時間），過期就是 null", async () => {
     const until = new Date(Date.now() + 3600_000).toISOString();
     fs.writeFileSync(featureFile, JSON.stringify({ until, title: "feat: 祕密的 commit 訊息", commit: "abc1234" }));

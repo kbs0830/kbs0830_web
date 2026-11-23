@@ -3,6 +3,7 @@ import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
+import NotMeToggle from "@/components/ui/NotMeToggle";
 import { BarChart, Share, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
 import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/site-stats";
@@ -285,6 +286,11 @@ export default function StatsPage() {
             "幾種數字對不起來是正常的：算的東西本來就不一樣",
           ]}
         />
+      </section>
+
+      <section className="mt-12 mb-4">
+        <SectionHeading en="Exclude this browser">不計入自己</SectionHeading>
+        <NotMeToggle />
       </section>
     </PageShell>
   );

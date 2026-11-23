@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { setFavicon } from "@/components/ui/StatusFavicon";
+import { isNotMe } from "@/lib/not-me";
 
 // 真人造訪計數（TODO「造訪數改成每一頁都算」，2026-11-09）。掛在 layout，每換一頁（含站內 client 換頁）回報一次。
 // 只有真的執行 JS 的瀏覽器才會送；伺服器端再擋沒 cf-ipcountry（測試、本機）跟機器人 UA（見 /api/visitor-stats）。
@@ -28,9 +29,14 @@ function flag(storage: () => Storage, key: string): boolean {
 export default function VisitBeacon() {
   const pathname = usePathname();
   useEffect(() => {
-    const newSession = flag(() => sessionStorage, "kbs-session");
-    const newVisitor = newSession ? flag(() => localStorage, "kbs-visited") : false;
-    const body = JSON.stringify({ path: location.pathname, ref: newSession ? document.referrer : "", newSession, newVisitor });
+    // 站長在 /stats 打開「不計入」：照樣送（要拿 newFeature），但只帶 notMe，伺服器不計（lib/not-me.ts）
+    const body = isNotMe()
+      ? JSON.stringify({ notMe: true })
+      : (() => {
+          const newSession = flag(() => sessionStorage, "kbs-session");
+          const newVisitor = newSession ? flag(() => localStorage, "kbs-visited") : false;
+          return JSON.stringify({ path: location.pathname, ref: newSession ? document.referrer : "", newSession, newVisitor });
+        })();
     // 不 abort：keepalive 就是要換頁後也送得出去
     (async () => {
       try {

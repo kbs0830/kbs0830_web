@@ -56,11 +56,13 @@ export async function POST(req: NextRequest) {
 
   // 訪客分析的明細（VisitBeacon 送來的頁面、來源、新訪客）。body 要在下面同步區段「之前」讀完（await）；
   // 沒有 body（舊版頁面、keepalive 失敗）就當空的，國家照算
-  let input: VisitInput = {};
+  let input: VisitInput & { notMe?: unknown } = {};
   try {
     const text = await req.text();
     if (text && text.length < 2000) input = JSON.parse(text);
   } catch {}
+  // 站長自己的瀏覽器（/stats 的「不計入」開關，lib/not-me.ts）：國家、明細都不記，只回彙總（新功能指示燈要用）
+  if (input.notMe === true) return NextResponse.json(summarize(readStats()));
 
   // 這段 read-modify-write 中間刻意不夾雜任何 await，靠 fs.*Sync 的同步阻塞特性
   // 讓 Node.js 事件迴圈不會在兩次 request 的 handler 之間交錯執行，藉此避免

@@ -71,6 +71,10 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
   `VisitBeacon` 每頁 POST `{path, ref, newSession, newVisitor}` 到 `/api/visitor-stats`；新訪客／工作階段是瀏覽器自己的
   localStorage／sessionStorage 旗標，**不是 cookie、不送 ID**。只存分類次數：路徑只收本站路由格式、來源只留網域、UA 粗分後不存。
   每日數字留 120 天。單元測試 `visit-detail.test.ts`（含「存下來的沒有完整 UA／query」）
+- **不計入自己（2026-11-23，使用者要的）**：/stats 最下面的開關（`NotMeToggle`）→ localStorage `kbs-not-me`（`lib/not-me.ts`）。
+  開了之後 `VisitBeacon` 照樣 POST（要拿 newFeature 指示燈）但只送 `{notMe: true}`，route 直接回彙總、國家跟明細都不記。
+  只影響那個瀏覽器；「いま N 人」、Web Vitals 照算。起因：11/21～23 的真人造訪幾乎都是站長自己。E2E `not-me.spec.ts` 攔截 API 只看送出內容
+  （3200 的 server.js 寫的是正式 `data/`，**本機測試不要帶 `cf-ipcountry` 打 /api/visitor-stats**，會寫進正式統計）
 - 頁尾「未過濾 N 次…」那行 2026-11-12 依使用者要求拿掉（快取之後它只數得到沒命中的請求），細節留在 /stats
 
 ### 公開流量頁 `/stats`（2026-11-09 第一版，以下是當時的紀錄）
