@@ -186,7 +186,7 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 
 **每季備份還原演練（2026-11-09，`scripts/restore-drill.ps1`）**：watchdog 帶 `-IfOlderThanDays 90` 呼叫。從 GitHub **重新 clone**
 備份 repo（不用 D: 那份 clone）→ 解密 → 解壓 → 跟 D: 最新一份逐檔比 SHA256，成功失敗都寄信；失敗隔天重試（信 1 天冷卻）。
-第一次 11/09 手動跑過：17 個檔案全部相同。上次演練時間在 `D:\Backups\kbs0830\last-restore-drill.txt`。
+第一次 11/09 手動跑過：17 個檔案全部相同。上次演練時間在 `D:\02_備份封存\專案\kbs0830\last-restore-drill.txt`。
 
 **外網檢查（2026-11-03）**：localhost 健康時，watchdog 再從外網打一次 `https://kbs0830.com/`
 （30 秒內重試）。2026-10-29 那次是 origin 正常、Tunnel 斷 4 天，localhost 檢查完全看不出來。
@@ -210,13 +210,15 @@ deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設�
 
 | | 位置 | 格式 | 保留 |
 |---|---|---|---|
-| 本機 | `D:\Backups\kbs0830\<yyyy-MM-dd_HHmm>\` | 原檔 | 30 份 |
-| GitHub | 私有 repo `kbs0830/kbs0830_backup`，clone 在 `D:\Backups\kbs0830\github` | AES-256 加密的 `kbs0830-backup.tar.gz.enc` | git 歷史 |
+| 本機 | `D:\02_備份封存\專案\kbs0830\<yyyy-MM-dd_HHmm>\` | 原檔 | 30 份 |
+| GitHub | 私有 repo `kbs0830/kbs0830_backup`，clone 在 `D:\02_備份封存\專案\kbs0830\github` | AES-256 加密的 `kbs0830-backup.tar.gz.enc` | git 歷史 |
 
 - D: 是另一顆實體硬碟（C: NVMe、D: Seagate HDD），C: 壞掉時本機備份還在
-- 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\Backups\kbs0830\BACKUP-KEY.txt`。
+- **2026-11-23 本機備份從 `D:\Backups\kbs0830` 搬到 `D:\02_備份封存\專案\kbs0830`**（使用者整理 D: 槽：專案備份都放這層，跟 FRC 同一層）。路徑寫在 `backup.ps1`、`restore-drill.ps1` 的 `$backupRoot`，兩支要一起改；路徑有中文，兩支都要維持 UTF-8 BOM（PowerShell 5.1 跑）。
+  搬完兩支都實際跑過（備份＋GitHub push、還原演練 21 檔相同）。搬的時候注意：只要 `last-success.txt` 先不見，watchdog 下一輪（5 分鐘）就會多跑一次備份
+- 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\02_備份封存\專案\kbs0830\BACKUP-KEY.txt`。
   **整台機器壞掉時兩份都會不見，使用者要另外存在密碼管理器**，不然 GitHub 那份解不開
-- GitHub 那份 2026-11-05 啟用：`D:\Backups\kbs0830\github` 是 clone，`core.sshCommand` 指定 Deploy key
+- GitHub 那份 2026-11-05 啟用：`D:\02_備份封存\專案\kbs0830\github` 是 clone，`core.sshCommand` 指定 Deploy key
   `C:/Users/user/.ssh/kbs0830_backup_deploy`（只限這個 repo、有寫入權限）。不是 clone 時只做本機（log 會寫）。
   啟用當天實測過 GitHub 下載 → 解密 → 解壓，跟 D: 那份逐檔相同
 - 本機那份完成就算「今天備份過」，GitHub 失敗只寄信、隔天再試（避免 watchdog 每 5 分鐘重跑、

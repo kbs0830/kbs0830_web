@@ -1,5 +1,5 @@
 ﻿# 每日備份：把「不在 git 裡、壞了會真的不見」的東西存兩份。
-#   1. 本機 D:\Backups\kbs0830\<日期>\：原檔直接放（跟來源同一台機器、同等信任），保留 30 份。
+#   1. 本機 D:\02_備份封存\專案\kbs0830\<日期>\（2026-11-23 從 D:\Backups 搬來，跟其他專案備份放一起）：原檔直接放（跟來源同一台機器、同等信任），保留 30 份。
 #      D: 是另一顆實體硬碟（C: 是 NVMe、D: 是 HDD），C: 壞掉時還在
 #   2. GitHub 私有 repo kbs0830/kbs0830_backup：整包 tar.gz 用 AES-256 加密後 commit，
 #      git 歷史就是版本紀錄。整台桌機壞掉／失竊時靠這份——解密金鑰要另外存在密碼管理器
@@ -14,7 +14,7 @@ param([int]$IfOlderThanHours = 0)
 
 $repo = Split-Path -Parent $PSScriptRoot
 $userHome = if ($env:USERPROFILE) { $env:USERPROFILE } else { "C:\Users\$env:USERNAME" }
-$backupRoot = "D:\Backups\kbs0830"
+$backupRoot = "D:\02_備份封存\專案\kbs0830"
 $githubDir = Join-Path $backupRoot "github"
 $stampFile = Join-Path $backupRoot "last-success.txt"
 $keyFile = Join-Path $userHome ".kbs0830-backup-key"
