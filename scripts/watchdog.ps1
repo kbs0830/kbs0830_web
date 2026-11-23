@@ -142,15 +142,35 @@ if (Test-Path $radarFile) {
         $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
         if ($nowMs - [double]$st.checkedAt -lt 5 * 60000) {
             $healthy = $st.reachable -and $st.rxConnected -and -not $st.shutdown
+            # 2026-11-23 改安靜（使用者：「雷達離線會太吵」）：原本 60 分鐘冷卻，11/23 斷 11 小時寄了 11 封。
+            # 現在只寄「離線」第一封＋「恢復」一封；一直沒好才每 24 小時提醒一次。watchdog.log 也只在真的寄信時記一行。
+            # radar.since 記離線開始時間（最後一次正常），恢復信寫斷了多久
+            $radarSince = Join-Path $repo "data\alerts\radar.since"
             if ($healthy) {
-                Notify (Clear-Alert -Key "radar" -Subject "✅ 自家雷達恢復收訊")
+                $body = "雷達又收得到訊號了。"
+                if (Test-Path $radarSince) {
+                    $sinceMs = [double](Get-Content $radarSince -Raw)
+                    $body = "雷達又收得到訊號了，這次離線約 $([math]::Round(($nowMs - $sinceMs) / 3600000, 1)) 小時。"
+                }
+                $result = Clear-Alert -Key "radar" -Subject "✅ 自家雷達恢復收訊" -Body $body
+                if ($result) { Log "[RADAR] 恢復收訊"; Notify $result }
+                if ($result -like "sent*") { Remove-Item $radarSince -Force -ErrorAction SilentlyContinue }
             } elseif ($nowMs - [double]$st.lastOkAt -gt 15 * 60000) {
                 $why = "接收器（SDR 棒）斷線"
-                if (-not $st.reachable) { $why = "讀不到雷達（樹莓派關機、網路斷了，或 IP 換了）" }
+                if (-not $st.reachable) { $why = "讀不到雷達（樹莓派關機、網路斷了，或 IP 換了）→ 看樹莓派燈號，拔電重開" }
                 elseif ($st.shutdown) { $why = "fr24feed 卡在關機中（網頁的 Restart 沒用：拔電重開，或 SSH 跑 sudo systemctl restart fr24feed）" }
                 $mins = [math]::Round(($nowMs - [double]$st.lastOkAt) / 60000)
-                Log "[RADAR] 雷達離線 $mins 分鐘：$why"
-                Notify (Send-Alert -Key "radar" -Subject "📡 自家雷達離線 $mins 分鐘" -Body "$why`n`n狀態頁：http://192.168.50.147:8754/")
+                $subject = "📡 自家雷達離線 $mins 分鐘"
+                if ($mins -ge 120) { $subject = "📡 自家雷達仍然離線（$([math]::Round($mins / 60)) 小時）" }
+                $result = Send-Alert -Key "radar" -CooldownMinutes 1440 -Subject $subject `
+                    -Body "$why`n`n恢復時會再寄一封；一直沒好的話每 24 小時提醒一次。`n狀態頁：http://192.168.50.147:8754/"
+                if ($result -notlike "cooldown*") {
+                    Log "[RADAR] 雷達離線 $mins 分鐘：$why"
+                    Notify $result
+                    if ($result -like "sent*" -and -not (Test-Path $radarSince)) {
+                        Set-Content -Path $radarSince -Value ([double]$st.lastOkAt) -NoNewline
+                    }
+                }
             }
             $hour = (Get-Date).Hour
             $quietMs = $nowMs - [double]$st.lastOkAt
@@ -158,9 +178,12 @@ if (Test-Path $radarFile) {
             if ($healthy -and $st.aircraftNow -gt 0) {
                 Notify (Clear-Alert -Key "radar-quiet" -Subject "✅ 自家雷達又收得到飛機了")
             } elseif ($healthy -and $hour -ge 8 -and $hour -lt 21 -and $quietMs -gt 2 * 3600000) {
-                Log "[RADAR] 雷達在線但 $([math]::Round($quietMs / 60000)) 分鐘沒收到任何飛機"
-                Notify (Send-Alert -Key "radar-quiet" -Subject "📡 自家雷達 2 小時沒收到飛機" -CooldownMinutes 720 `
-                    -Body "接收器有連上，但 2 小時以上一架都沒收到。通常是天線鬆了／被移動，或增益設定跑掉（settings 的 Process arguments 應該是 --gain 40）。`n`n解碼數字：http://192.168.50.147/dump1090/data/stats.json")
+                $result = Send-Alert -Key "radar-quiet" -Subject "📡 自家雷達 2 小時沒收到飛機" -CooldownMinutes 720 `
+                    -Body "接收器有連上，但 2 小時以上一架都沒收到。通常是天線鬆了／被移動，或增益設定跑掉（settings 的 Process arguments 應該是 --gain 40）。`n`n解碼數字：http://192.168.50.147/dump1090/data/stats.json"
+                if ($result -notlike "cooldown*") {
+                    Log "[RADAR] 雷達在線但 $([math]::Round($quietMs / 60000)) 分鐘沒收到任何飛機"
+                    Notify $result
+                }
             }
         }
     }
