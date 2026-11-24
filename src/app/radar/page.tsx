@@ -26,6 +26,8 @@ const radarFile = process.env.RADAR_FILE || path.join(/* turbopackIgnore: true *
 const nf = new Intl.NumberFormat("zh-TW");
 // 讀檔＋算現在的數字放在元件外面：元件裡直接呼叫 Date.now() 會被 React 的 purity 規則擋（每次請求重算本來就是這頁要的）
 const loadRadar = () => detail(readState(radarFile), Date.now());
+/** detail().flightsNow 的一筆（radar.js 是 JS，型別在這裡補） */
+type NowFlight = { flight: string; alt: number | null; airlineName: string | null; typeName: string | null };
 const md = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
 
 export default function RadarPage() {
@@ -53,6 +55,29 @@ export default function RadarPage() {
               [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime"],
             ]}
           />
+
+          {/* 現在收到的航班（決策表 Q1，2026-11-25）：航班代碼、機型、高度（四捨五入到 1,000 ft），不放位置、識別碼 */}
+          {d.flightsNow.length > 0 && (
+            <section className="mb-12">
+              <SectionHeading en="Now">現在收到的航班</SectionHeading>
+              <ul className="divide-y divide-(--border) border-y border-(--border)">
+                {(d.flightsNow as NowFlight[]).map((f) => (
+                  <li key={f.flight} className="flex items-baseline gap-3 py-2.5 text-sm font-light">
+                    <span className="font-mono text-(--text) w-20 shrink-0">{f.flight}</span>
+                    <span className="text-(--muted) truncate min-w-0 flex-1">
+                      {[f.airlineName, f.typeName].filter(Boolean).join(" · ") || "–"}
+                    </span>
+                    <span className="font-mono text-(--muted) shrink-0">
+                      {f.alt === null ? "–" : f.alt === 0 ? "地面" : `${nf.format(f.alt)} ft`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-(--muted) font-light">
+                高度四捨五入到 1,000 英尺；不顯示位置、距離跟飛機識別碼。頁面每次打開時更新。
+              </p>
+            </section>
+          )}
 
           <section className="mb-12">
             <SectionHeading en="Hourly">一天的節奏</SectionHeading>

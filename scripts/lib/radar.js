@@ -62,6 +62,25 @@ function emptyState(now) {
 }
 
 /**
+ * 「現在收到的航班」（決策表 Q1，2026-11-25，/radar 頁用）：只留航班代碼、機型、高度——
+ * 沒有識別碼（hex）、座標、距離。高度四捨五入到 1,000 ft，降低拿去跟公開航跡比對、推回接收器位置的可能。
+ * 只收有正常呼號的（沒呼號的私人機、軍機不列），高的排前面，最多 12 架
+ */
+function flightsNow(current, types) {
+  return current
+    .map((a) => {
+      const flight = String(a.flight || "").trim().toUpperCase();
+      if (!/^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/.test(flight)) return null;
+      const alt = a.alt === "ground" ? 0 : typeof a.alt === "number" ? Math.round(a.alt / 1000) * 1000 : null;
+      const t = types && types[String(a.hex).toLowerCase()];
+      return { flight, airline: airlineOf(flight), alt, type: t && t.t ? t.t : null };
+    })
+    .filter(Boolean)
+    .sort((x, y) => (y.alt ?? -1) - (x.alt ?? -1) || x.flight.localeCompare(y.flight))
+    .slice(0, 12);
+}
+
+/**
  * 一次讀取結果併進統計。sample：{ reachable, rxConnected, shutdown, aircraft: [{ hex, flight, seen }] }
  * （reachable＝兩個網址都讀得到）。types：機型快取（識別碼 → { t } 或 { miss }，見 lookupTypes），沒有就不算機型。
  * 回傳新的 state，不改傳進來的那份。
@@ -119,6 +138,7 @@ function applySample(prev, sample, now, types) {
     rxConnected: Boolean(sample.rxConnected),
     shutdown: Boolean(sample.shutdown),
     aircraftNow: current.length,
+    flightsNow: flightsNow(current, types),
     lastOkAt: ok ? now : prevStatus.lastOkAt || null,
     lastAircraftAt: current.length > 0 ? now : prevStatus.lastAircraftAt || null,
   };
@@ -193,8 +213,13 @@ function detail(state, now) {
   const weekTypeCounts = {};
   for (const v of last7) for (const [k, n] of Object.entries(v.types || {})) weekTypeCounts[k] = (weekTypeCounts[k] || 0) + n;
   const all = Object.values(state.days);
+  const s = state.status || {};
   return {
     ...base,
+    // 現在收到的航班（Q1）：只在 /radar 頁（detail），不進 /api/radar（summarize）
+    flightsNow: base.online && Array.isArray(s.flightsNow)
+      ? s.flightsNow.map((f) => ({ ...f, airlineName: f.airline ? AIRLINE_NAMES[f.airline] || null : null, typeName: f.type ? TYPE_NAMES[f.type] || f.type : null }))
+      : [],
     daily,
     hours,
     weekAirlines: topAirlines(weekCounts, 10),
@@ -224,7 +249,8 @@ async function pollRadar(host) {
       reachable: true,
       rxConnected: m.rx_connected === "1",
       shutdown: m.shutdown === "yes",
-      aircraft: (Array.isArray(a.aircraft) ? a.aircraft : []).map((x) => ({ hex: x.hex, flight: x.flight, seen: x.seen })),
+      // 高度：這版 dump1090-mutability 叫 altitude（地面是 "ground"），新版 readsb 叫 alt_baro
+      aircraft: (Array.isArray(a.aircraft) ? a.aircraft : []).map((x) => ({ hex: x.hex, flight: x.flight, seen: x.seen, alt: x.altitude ?? x.alt_baro })),
     };
   } catch {
     return { reachable: false, rxConnected: false, shutdown: false, aircraft: [] };
@@ -296,4 +322,4 @@ function startRadarPoller({ host, file, typesFile, log }) {
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller };
+module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller, flightsNow };

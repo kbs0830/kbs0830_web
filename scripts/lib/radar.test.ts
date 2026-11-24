@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { airlineOf, applySample, detail, lookupTypes, summarize, twDate } from "./radar.js";
 
-type Plane = { hex: string; flight?: string; seen?: number };
+type Plane = { hex: string; flight?: string; seen?: number; alt?: number | string };
 const T0 = Date.parse("2026-11-21T02:00:00Z"); // 台灣 10:00
 const ok = (aircraft: Plane[]) => ({ reachable: true, rxConnected: true, shutdown: false, aircraft });
 
@@ -150,5 +150,34 @@ describe("機型（TODO D4）", () => {
     expect(asked).toEqual(["f"]); // 第一個就失敗 → 這輪停
     s = applySample(s, ok([]), T0 + 1000, types);
     expect(s.days["2026-11-21"].types).toEqual({ A333: 1, A20N: 3 });
+  });
+});
+
+describe("flightsNow（Q1：現在收到的航班）", () => {
+  it("只留航班代碼、機型、四捨五入的高度；沒有識別碼；沒呼號的不列；高的排前面", () => {
+    const s = applySample(
+      null,
+      ok([
+        { hex: "8990f2", flight: "CAL31  ", seen: 0, alt: 34975 },
+        { hex: "abc123", flight: "EVA12", seen: 1, alt: 3480 },
+        { hex: "nocall", seen: 0, alt: 12000 },
+        { hex: "gnd001", flight: "TTW705", seen: 0, alt: "ground" },
+      ]),
+      T0,
+      { "8990f2": { t: "A359" } },
+    );
+    expect(s.status.flightsNow).toEqual([
+      { flight: "CAL31", airline: "CAL", alt: 35000, type: "A359" },
+      { flight: "EVA12", airline: "EVA", alt: 3000, type: null },
+      { flight: "TTW705", airline: "TTW", alt: 0, type: null },
+    ]);
+    expect(JSON.stringify(s.status.flightsNow)).not.toMatch(/8990f2|abc123|lat|lon/);
+  });
+  it("公開 API（summarize）不含現在的航班，只有 /radar 頁的 detail 有", () => {
+    const s = applySample(null, ok([{ hex: "8990f2", flight: "CAL31", seen: 0, alt: 35000 }]), T0);
+    expect(JSON.stringify(summarize(s, T0))).not.toContain("CAL31");
+    const d = detail(s, T0);
+    if (!("flightsNow" in d)) throw new Error("detail 沒有 flightsNow");
+    expect(d.flightsNow[0]).toMatchObject({ flight: "CAL31", airlineName: expect.any(String) });
   });
 });
