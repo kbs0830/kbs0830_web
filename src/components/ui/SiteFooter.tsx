@@ -33,8 +33,8 @@ export default function SiteFooter({ width = "max-w-2xl", extra, className = "" 
           </div>
         ))}
       </nav>
-      {/* 右下角固定的 BackToTop 按鈕（只有首頁有，跟 extra 一起）會壓到最後一行——寬螢幕時在欄位外面，xl 以下右側多留按鈕的寬度 */}
-      <div className={`${width} mx-auto pl-6 ${extra ? "pr-20 xl:pr-6" : "pr-6"} pb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2`}>
+      {/* 右下角固定的 ↑／↓ 按鈕（首頁跟子頁面都有）會壓到最後一行——寬螢幕時在欄位外面，xl 以下右側多留按鈕的寬度 */}
+      <div className={`${width} mx-auto pl-6 pr-20 xl:pr-6 pb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2`}>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <p className={`${small} tracking-[0.2em]`}>© {years} PINGWEI LI</p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />

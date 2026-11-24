@@ -44,3 +44,21 @@ test.describe("手機選單（TODO F4）", () => {
     await expect(menuButton).toHaveAttribute("aria-expanded", "false");
   });
 });
+
+test.describe("手機版長度（2026-11-24：使用者「每次要滑到最底下都很久」）", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("作品卡片是精簡版、右下角 ↓ 直接到頁尾", async ({ page }) => {
+    await gotoReady(page, "/");
+    // 精簡卡片：一張不超過 220px（原本整張寬的 16:9 截圖＋全文，一張約 500px）
+    const card = page.locator("#portfolio a[aria-label^='查看']").first().locator("..");
+    expect((await card.boundingBox())!.height).toBeLessThan(220);
+
+    const down = page.getByRole("button", { name: "捲到頁尾（頁面索引）" });
+    await expect(down).toBeVisible();
+    await down.click();
+    await expect(page.getByRole("navigation", { name: "網站頁面" })).toBeInViewport();
+    await expect(down).toBeHidden();
+    await expect(page.getByRole("button", { name: "返回頂端" })).toBeVisible();
+  });
+});

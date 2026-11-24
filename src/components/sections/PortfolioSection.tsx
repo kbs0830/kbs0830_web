@@ -33,9 +33,12 @@ function ProjectCard({
   index: number;
 }) {
   // 淡入（Reveal 的 translate）跟 hover 上浮（卡片本身的 translate）分在兩層，互不覆蓋
+  // 2026-11-24 手機精簡版（使用者：「手機每次要滑到最底下都很久」，首頁 14.6 個螢幕、作品集一區就 9 個）：
+  // 640px 以下改成「左邊小縮圖＋右邊標題、兩行說明、前 3 個 tag」，英文說明、成果、「查看詳情」只在 sm 以上顯示。
+  // 整張卡片本來就是連結，點了進詳細頁看完整內容
   return (
     <Reveal distance={28} delay={index * 0.1} margin={60} className="flex">
-      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-5 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-4 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
         <Link
           href={`/projects/${project.slug}`}
           className="absolute inset-0 z-0 rounded-sm"
@@ -43,22 +46,23 @@ function ProjectCard({
         />
         <div className="absolute top-0 left-0 h-[2px] w-0 bg-(--accent) group-hover:w-full transition-all duration-500 rounded-t-sm" />
 
-        <div className="relative z-10 flex flex-col flex-1 pointer-events-none">
+        <div className="relative z-10 flex flex-row items-start gap-4 sm:flex-col sm:items-stretch sm:gap-0 flex-1 pointer-events-none">
           {project.image && (
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
-              <div className="relative -mx-5 -mt-5 sm:-mx-7 sm:-mt-7 mb-5 aspect-video overflow-hidden rounded-t-sm bg-(--surface)">
+              <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-sm bg-(--surface) sm:w-auto sm:h-auto sm:-mx-7 sm:-mt-7 sm:mb-5 sm:aspect-video sm:rounded-b-none">
                 <Image
                   src={project.image}
                   alt={`${project.titleZh} 截圖`}
                   fill
                   className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 639px) 80px, (max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </ViewTransition>
           )}
+          <div className="flex flex-col flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-2 sm:mb-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <p className="text-xs tracking-[0.25em] text-(--muted) font-mono">
@@ -72,7 +76,7 @@ function ProjectCard({
                   {project.titleZh}
                 </h3>
               </ViewTransition>
-              <p className="text-xs text-(--muted) font-light mt-0.5">{project.title}</p>
+              <p className="hidden sm:block text-xs text-(--muted) font-light mt-0.5">{project.title}</p>
             </div>
             {project.github && (
               <a
@@ -88,25 +92,28 @@ function ProjectCard({
           </div>
 
           {/* 中文說明（主） */}
-          <p className="text-sm sm:text-[13px] font-light text-(--text) leading-relaxed mb-2">
+          <p className="text-sm sm:text-[13px] font-light text-(--text) leading-relaxed mb-2 line-clamp-2 sm:line-clamp-none">
             {project.descriptionZh}
           </p>
           <p className="hidden sm:block text-[12px] font-light text-(--muted) leading-relaxed mb-4">
             {project.description}
           </p>
 
-          <ProjectHighlight project={project} className="text-[11px] mb-4" />
+          <ProjectHighlight project={project} className="hidden sm:block text-[11px] mb-4" />
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1.5 mt-auto mb-3">
-            {project.tags.map((tag) => (
-              <TagBadge key={tag}>{tag}</TagBadge>
+          <div className="flex flex-wrap gap-1.5 mt-auto sm:mb-3">
+            {project.tags.map((tag, i) => (
+              <TagBadge key={tag} className={i >= 3 ? "hidden sm:inline" : ""}>
+                {tag}
+              </TagBadge>
             ))}
           </div>
 
-          <p className="text-[11px] text-(--muted) group-hover:text-(--accent) transition-colors font-mono">
+          <p className="hidden sm:block text-[11px] text-(--muted) group-hover:text-(--accent) transition-colors font-mono">
             查看詳情 · View Details →
           </p>
+          </div>
         </div>
       </div>
     </Reveal>
@@ -132,14 +139,14 @@ const groups: FilterGroup[] = [
   {
     key: "personal",
     className: "mb-10 md:mb-16",
-    gridClassName: "grid md:grid-cols-2 gap-5",
+    gridClassName: "grid md:grid-cols-2 gap-3 sm:gap-5",
     label: <SectionLabel label="Personal Projects" labelZh="個人専案" />,
     items: toItems(personalProjects),
   },
   {
     key: "course",
     className: "",
-    gridClassName: "grid md:grid-cols-2 lg:grid-cols-3 gap-5",
+    gridClassName: "grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5",
     label: <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />,
     items: toItems(courseProjects),
   },

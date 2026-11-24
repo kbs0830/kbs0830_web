@@ -5,6 +5,7 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import QuickJumpButton from "@/components/ui/QuickJumpButton";
 import SiteFooter from "@/components/ui/SiteFooter";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import BackToTop from "@/components/ui/BackToTop";
 
 // 首頁以外的獨立頁面（/now、/uses、/blog、/resume、作品詳細頁、404）共用的外框：
 // 置中的窄欄 + 左上角「← 返回」小連結。原本 7 個頁面逐字複製同一段。
@@ -55,6 +56,10 @@ export default function PageShell({
         </main>
       </div>
       <SiteFooter />
+      {/* 2026-11-24：子頁面也有右下角 ↑／↓（文章在手機上 6 個螢幕以上） */}
+      <div className="print:hidden">
+        <BackToTop />
+      </div>
     </>
   );
 }
