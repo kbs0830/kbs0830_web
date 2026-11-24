@@ -212,6 +212,8 @@
   - **做法 ⭐ Cloudflare Access（Zero Trust）擋在最前面**：登入方式選 Google，規則只放行你的 Gmail。
     網站本來就走 Cloudflare Tunnel，沒登入的請求在 Cloudflare 就被擋下，**根本到不了桌機**；
     也不用在 Next 裡自己寫 OAuth、session、CSRF。免費方案 50 人以內不用錢 (?)
+  - **要搬進來的（11/25 使用者）**：日報／週報／月報目前在公開的 `/reports`（noindex、不進 sitemap、導覽沒有連結），後台做好就整頁搬過來、
+    `/reports` 改成 404；搬完網頁上也可以放 Search Console 的搜尋字詞（現在只進信）
   - **第二道防線**：Next 這邊也驗 Cloudflare 帶進來的 `Cf-Access-Jwt-Assertion`（簽章、aud、email），驗不過就回 404。
     萬一有人從區網直接連 port，或 Access 規則被誤刪，後台也不會沒人顧
   - 備案：Auth.js＋Google provider 寫在 app 裡。要自己管 client secret、session cookie、CSRF，維護比較麻煩，Access 不能用再考慮

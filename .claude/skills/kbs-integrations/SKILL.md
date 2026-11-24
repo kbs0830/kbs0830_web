@@ -76,6 +76,9 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
   只影響那個瀏覽器；「いま N 人」、Web Vitals 照算。起因：11/21～23 的真人造訪幾乎都是站長自己。E2E `not-me.spec.ts` 攔截 API 只看送出內容
   （3200 的 server.js 寫的是正式 `data/`，**本機測試不要帶 `cf-ipcountry` 打 /api/visitor-stats**，會寫進正式統計）
 - 頁尾「未過濾 N 次…」那行 2026-11-12 依使用者要求拿掉（快取之後它只數得到沒命中的請求），細節留在 /stats
+- **報表 `/reports`（2026-11-25）**：日報／週報／月報，`src/lib/reports.ts` 的 `resolveRange`＋`buildReport`（網頁）＋`reportText`（寄信）。
+  逐日分類來源：`visits-detail.json` 的 `daily[日期]`（頁面、來源、裝置、國家、時段）、`raw-traffic.json` 的 `daily`、`hero-stats.json` 的 `days`，都是 11/25 起才有、留 120 天。
+  Cloudflare 是 UTC 日期，當天常常還沒抓到（顯示「還沒有數字」而不是 0）。noindex＋不進 sitemap；**搜尋字詞不放網頁**（只進信），等後台 G1 再整頁搬過去
 - **首頁 3D 版本（B13，2026-11-25）**：`/stats` 國家下面一塊，資料 `data/hero-stats.json`，細節在 kbs-site 的 Hero 段
 - ⚠️ 3200 測試時帶 `cf-ipcountry` 打**任何頁面**都會記進正式的 `data/raw-traffic.json`（server.js 寫死路徑、沒有 env 可以改）；
   404 統計（`NOT_FOUND_FILE`）、版本統計（`HERO_STATS_FILE`）可以指到暫存檔

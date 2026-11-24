@@ -175,7 +175,15 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 關機錯過會補寄；寄不出去不記已寄、下一輪再試。`check` 欄位在信裡附即時檢查：`web-vitals`（p75）、`http-redirect`
 （已生效就寫「不用做了」）。**TODO 新增有日期的使用者待辦時，順手在 `reminders.json` 加一筆**。實測過 S4U 身分寄得出去。
 
-**每週週報（2026-11-09，`scripts/weekly-report.ps1`）**：watchdog 每輪呼叫，週一 09:00 後寄一封（這週寄過就跳過，關機錯過開機補寄）。
+**週報／月報（2026-11-25 起，`scripts/report-mail.ps1`，取代 weekly-report.ps1）**：watchdog 每輪呼叫 `-Period week`、`-Period month`。
+週報週一 09:00 後寄上一週（週一～週日）、月報 1 號 09:00 後寄上個月；寄過的期別記在 `data/report-mail-state.json`（`week`＝那週週一、`month`＝`yyyy-MM`）。
+內容**不在 PowerShell 算**：打本機 `http://localhost:3000/api/reports?period=…&anchor=…&format=text`（`src/lib/reports.ts`，跟網頁 `/reports` 同一份），
+再補 Search Console（`search-console.js --days 7|30`）。網站沒回應就這輪不寄、5 分鐘後再試。`/api/reports` 帶 `cf-ipcountry`／`cf-connecting-ip` 的請求回 404（只給本機）。
+手動：`-DryRun`、`-Force`、`-Anchor 2026-11-16`、`-BaseUrl http://localhost:3200`（對測試 server 試跑）。日報不寄信（使用者要的），只在網頁看。
+11/25 第一次部署時先把 state 設成 `month: 2026-10`，免得補寄一封幾乎沒資料的 10 月月報。
+下面是 weekly-report.ps1 時代的紀錄（內容大致搬進 reports.ts 了）：
+
+**每週週報（2026-11-09，`scripts/weekly-report.ps1`，2026-11-25 已刪）**：watchdog 每輪呼叫，週一 09:00 後寄一封（這週寄過就跳過，關機錯過開機補寄）。
 內容：Cloudflare 7 天（跟前一週比）、真人造訪／未過濾流量增加多少（這兩份只存累計，跟上次寄信的快照 `data/weekly-report-state.json` 相減）、
 首頁 Web Vitals p75、部署成功／失敗／退回次數、watchdog 重啟次數。`-DryRun` 只印不寄。
 **Google 搜尋（2026-11-17，TODO C4）**：`scripts/lib/search-console.js`（Node，PS 5.1 讀不了 PEM 私鑰沒辦法簽 JWT）抓點擊／曝光／排名＋前 5 字詞／頁面，
