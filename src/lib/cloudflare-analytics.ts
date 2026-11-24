@@ -17,7 +17,8 @@ export const CLOUDFLARE_ZONE_ID = "bedff9fea6cd187647a5f2dbd02ae833"; // kbs0830
 const REFRESH_MS = 60 * 60 * 1000;
 const DAY_MS = 864e5;
 
-export type DailyRow = { date: string; uniques: number; pageViews: number; requests: number };
+// cachedRequests：Cloudflare 直接從快取回的請求數（決策表 C5，2026-11-25 起才有；週報算快取命中率用）
+export type DailyRow = { date: string; uniques: number; pageViews: number; requests: number; cachedRequests?: number };
 type StoredStats = { updatedAt: string; days: Record<string, Omit<DailyRow, "date">> };
 type Totals = { uniques: number; pageViews: number; requests: number };
 export type CloudflareSummary = { since: string; last30: Totals; total: Totals };
@@ -79,9 +80,9 @@ export function readCloudflareDays(n = 30): DailyRow[] {
 
 const QUERY = `query($z:String!,$s:Date!,$u:Date!){viewer{zones(filter:{zoneTag:$z}){
   httpRequests1dGroups(limit:400,filter:{date_geq:$s,date_leq:$u},orderBy:[date_ASC]){
-    dimensions{date} sum{requests pageViews} uniq{uniques}}}}}`;
+    dimensions{date} sum{requests pageViews cachedRequests} uniq{uniques}}}}}`;
 
-type GqlRow = { dimensions: { date: string }; sum: { requests: number; pageViews: number }; uniq: { uniques: number } };
+type GqlRow = { dimensions: { date: string }; sum: { requests: number; pageViews: number; cachedRequests: number }; uniq: { uniques: number } };
 
 async function fetchDays(token: string, since: string, until: string): Promise<DailyRow[]> {
   const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
@@ -98,6 +99,7 @@ async function fetchDays(token: string, since: string, until: string): Promise<D
     uniques: r.uniq.uniques,
     pageViews: r.sum.pageViews,
     requests: r.sum.requests,
+    cachedRequests: r.sum.cachedRequests,
   }));
 }
 

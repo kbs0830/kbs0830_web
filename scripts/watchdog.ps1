@@ -221,6 +221,9 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
 # --- 每日備份（超過 24 小時沒成功備份才真的跑，失敗由 backup.ps1 自己寄信，不影響監控結果）---
 & (Join-Path $PSScriptRoot "backup.ps1") -IfOlderThanHours 24 | Out-Null
 
+# --- 開機通知（決策表 C2：重開機後寄一封「停了多久、怎麼停的」，同一次開機只寄一次）---
+try { & (Join-Path $PSScriptRoot "boot-notice.ps1") | Out-Null } catch { Log "[WARN] boot-notice.ps1 失敗：$($_.Exception.Message)" }
+
 # --- 每週流量週報（週一 09:00 後寄一封，這週寄過就跳過）---
 try { & (Join-Path $PSScriptRoot "weekly-report.ps1") | Out-Null } catch { Log "[WARN] weekly-report.ps1 失敗：$($_.Exception.Message)" }
 

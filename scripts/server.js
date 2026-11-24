@@ -15,6 +15,7 @@ const fs = require("fs");
 const http = require("http");
 const next = require("next");
 const { recordRawHit } = require("./lib/raw-traffic");
+const { recordNotFound } = require("./lib/not-found");
 const { startRadarPoller } = require("./lib/radar");
 
 const projectDir = path.join(__dirname, "..");
@@ -43,6 +44,8 @@ process.env.WEB_VITALS_FILE = path.join(dataDir, "web-vitals.json");
 // 未過濾流量（含 AI 爬蟲／搜尋引擎／掃描器）：跟上面的「造訪」相反，這份就是要在 server 端對每個
 // request 計數，才數得到不執行 JS 的爬蟲。細節見 lib/raw-traffic.js
 process.env.RAW_TRAFFIC_FILE = path.join(dataDir, "raw-traffic.json");
+// 404 統計（決策表 C3，lib/not-found.js）：週報用。測試時可以從外面指到暫存檔
+const notFoundFile = process.env.NOT_FOUND_FILE || path.join(dataDir, "not-found.json");
 // Cloudflare 每天的流量數字（src/lib/cloudflare-analytics.ts 一小時抓一次、合併存在這裡）
 process.env.CLOUDFLARE_STATS_FILE = path.join(dataDir, "cloudflare-daily.json");
 // CSP report-only 的違規回報（src/app/api/csp-report/route.ts）
@@ -126,6 +129,7 @@ app
       res.on("finish", () => {
         log(`${req.method} ${req.url} ${res.statusCode} ${Date.now() - start}ms`);
         recordRawHit(process.env.RAW_TRAFFIC_FILE, req);
+        recordNotFound(notFoundFile, req, res.statusCode);
       });
       if (serveMaintenance(req, res)) return;
       try {
