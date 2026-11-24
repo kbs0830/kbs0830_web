@@ -38,3 +38,21 @@ test("AI 爬蟲檢查：不收內網名稱（防 SSRF）", async ({ request }) =
     expect(res.status(), domain).toBe(400);
   }
 });
+
+test("可用率徽章（B15）是 SVG", async ({ request }) => {
+  const res = await request.get("/api/badge/uptime");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("image/svg+xml");
+  expect(await res.text()).toMatch(/uptime 90d/);
+});
+
+test("發文標記 ?ref=（I9）：記錄後從網址拿掉，其他參數保留", async ({ page }) => {
+  const sent: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith("/api/visitor-stats") && r.method() === "POST") sent.push(r.postData() ?? "");
+  });
+  await page.goto("/tools/japan-tax?yen=500&ref=reddit-selfhosted");
+  await expect(page).toHaveURL(/\/tools\/japan-tax\?yen=500/);
+  await expect(page).not.toHaveURL(/ref=/);
+  await expect.poll(() => sent.some((b) => b.includes('"ref":"ref:reddit-selfhosted"'))).toBe(true);
+});

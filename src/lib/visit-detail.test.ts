@@ -30,6 +30,10 @@ describe("visit-detail", () => {
     expect(referrerHost("https://kbs0830.com/blog")).toBeNull();
     expect(referrerHost("")).toBeNull();
     expect(referrerHost("not a url")).toBeNull();
+    // 發文標記（?ref=）
+    expect(referrerHost("ref:reddit-selfhosted")).toBe("ref:reddit-selfhosted");
+    expect(referrerHost("ref:Bad Tag!")).toBeNull();
+    expect(referrerHost("ref:" + "a".repeat(41))).toBeNull();
   });
 
   it("台灣時間：UTC 16:30 已經是隔天 00:30", () => {

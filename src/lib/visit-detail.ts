@@ -46,9 +46,12 @@ export function normalizePath(p: unknown): string {
   return clean.length > 1 ? clean.replace(/\/+$/, "") : clean;
 }
 
-/** 來源只留網域；自己的網域、空的、怪的都回 null */
+/** 來源只留網域；自己的網域、空的、怪的都回 null。
+ *  發文標記（TODO I9，2026-11-24）：網址帶 ?ref=reddit-selfhosted 進站時 VisitBeacon 送 "ref:reddit-selfhosted"，
+ *  原樣留下（只收小寫英數跟 -，最多 40 字），在 /stats 的來源裡就分得出是哪一篇文帶來的 */
 export function referrerHost(ref: unknown): string | null {
   if (typeof ref !== "string" || !ref) return null;
+  if (ref.startsWith("ref:")) return /^ref:[a-z0-9-]{1,40}$/.test(ref) ? ref : null;
   try {
     const host = new URL(ref).hostname.toLowerCase().replace(/^www\./, "");
     if (!/^[a-z0-9.-]{1,80}$/.test(host) || host === "kbs0830.com") return null;

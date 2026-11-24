@@ -26,6 +26,18 @@ function flag(storage: () => Storage, key: string): boolean {
   }
 }
 
+/** 發文標記（TODO I9）：網址的 ?ref=reddit-selfhosted → "ref:reddit-selfhosted"。
+ *  很多 App 內建瀏覽器不送 Referer，沒有這個就分不出是哪個管道帶來的。讀完就從網址拿掉，
+ *  訪客再分享出去的連結不會一直帶著同一個標記。不用 cookie、不存任何東西 */
+function campaignRef(): string | null {
+  const url = new URL(location.href);
+  const tag = url.searchParams.get("ref")?.toLowerCase() ?? "";
+  if (!url.searchParams.has("ref")) return null;
+  url.searchParams.delete("ref");
+  history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+  return /^[a-z0-9-]{1,40}$/.test(tag) ? `ref:${tag}` : null;
+}
+
 export default function VisitBeacon() {
   const pathname = usePathname();
   useEffect(() => {
@@ -35,7 +47,7 @@ export default function VisitBeacon() {
       : (() => {
           const newSession = flag(() => sessionStorage, "kbs-session");
           const newVisitor = newSession ? flag(() => localStorage, "kbs-visited") : false;
-          return JSON.stringify({ path: location.pathname, ref: newSession ? document.referrer : "", newSession, newVisitor });
+          return JSON.stringify({ path: location.pathname, ref: newSession ? (campaignRef() ?? document.referrer) : "", newSession, newVisitor });
         })();
     // 不 abort：keepalive 就是要換頁後也送得出去
     (async () => {

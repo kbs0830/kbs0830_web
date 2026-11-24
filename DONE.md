@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-24 B15 可用率徽章、I9 發文標記 ?ref=
+- [x] **B15** `/api/badge/uptime`：shields 風格 SVG「uptime 90d 99.xx%」，資料跟 /status 同一份；低於 99% 換 --warn 色。README 用 `![uptime](https://kbs0830.com/api/badge/uptime)`
+- [x] **I9** 網址帶 `?ref=reddit-selfhosted` 進站 → 訪客統計的來源記成 `ref:reddit-selfhosted`（只收小寫英數跟 -），記完從網址拿掉（其他參數保留），不用 cookie
+- [x] 單元 `badge.test.ts`、`visit-detail.test.ts` 補案例；E2E 113 個全過
+
 ### 2026-11-24 手機版：首頁從 14.6 個螢幕縮到 9.2 個（使用者：「手機每次要滑到最底下都很久，要考量使用者」）
 - [x] 量了手機（390px）各頁長度：首頁 12,298px＝14.6 個螢幕，其中作品集一區 7,557px（15 張卡片、每張整張寬的截圖＋全文＋全部 tag）
 - [x] 作品卡片手機精簡版：左邊 80px 縮圖＋標題、兩行說明、前 3 個 tag；英文說明、英文副標、成果、「查看詳情」只在 640px 以上顯示（整張卡片本來就是連結）。作品集 7,557 → 3,097px，**桌機完全沒變**
