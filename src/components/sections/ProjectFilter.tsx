@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 // 網址只在載入時讀一次（篩選改變不回寫網址），所以不用真的訂閱
 const noopSubscribe = () => () => {};
@@ -11,6 +11,8 @@ export type FilterGroup = {
   gridClassName: string;
   label: ReactNode;
   items: { slug: string; tags: string[]; card: ReactNode }[];
+  /** 手機（640px 以下）先顯示前幾張，其他按「顯示全部」才展開；有選 tag 篩選時全部顯示（2026-11-24 手機「重點顯示，剩下收起來」） */
+  mobileLimit?: number;
 };
 
 // 作品集的 tag 篩選。卡片本身是 server 產生好的 HTML（PortfolioSection 傳進來的 ReactNode），
@@ -39,6 +41,7 @@ export default function ProjectFilter({
   const fromUrl = urlTag && allTags.includes(urlTag) ? urlTag : null;
   const activeTag = choice === undefined ? fromUrl : choice;
   const [showMore, setShowMore] = useState(false);
+  const [expanded, setExpanded] = useState<string[]>([]);
   // 再點一次目前選中的 tag = 取消篩選
   const select = (tag: string | null) => setChoice(activeTag === tag ? null : tag);
 
@@ -89,16 +92,32 @@ export default function ProjectFilter({
         )}
       </div>
 
-      {visible.map((g) => (
-        <div key={g.key} className={g.className}>
-          {g.label}
-          <div className={g.gridClassName}>
-            {g.items.map((i) => (
-              <Fragment key={i.slug}>{i.card}</Fragment>
-            ))}
+      {visible.map((g) => {
+        // 收起來的卡片還在 HTML 裡（只是手機上 display:none），搜尋引擎、Ctrl+F 照樣看得到；桌機用 contents 不影響格線
+        const limit = !activeTag && g.mobileLimit && !expanded.includes(g.key) ? g.mobileLimit : Infinity;
+        const hiddenCount = Math.max(0, g.items.length - limit);
+        return (
+          <div key={g.key} className={g.className}>
+            {g.label}
+            <div className={g.gridClassName}>
+              {g.items.map((i, n) => (
+                <div key={i.slug} className={n >= limit ? "hidden sm:contents" : "contents"}>
+                  {i.card}
+                </div>
+              ))}
+            </div>
+            {hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded((e) => [...e, g.key])}
+                className="sm:hidden mt-3 w-full py-3 border border-dashed border-(--border) rounded-sm text-sm font-light text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors"
+              >
+                顯示全部 {g.items.length} 個 · 還有 {hiddenCount} 個 ▾
+              </button>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {visible.length === 0 && (
         <p className="text-sm font-light text-(--muted) text-center py-12">沒有符合「{activeTag}」的作品。</p>

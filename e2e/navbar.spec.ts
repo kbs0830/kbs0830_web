@@ -45,20 +45,39 @@ test.describe("手機選單（TODO F4）", () => {
   });
 });
 
-test.describe("手機版長度（2026-11-24：使用者「每次要滑到最底下都很久」）", () => {
+test.describe("手機版：重點顯示、其他收進右上角選單（2026-11-24）", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("作品卡片是精簡版、右下角 ↓ 直接到頁尾", async ({ page }) => {
+  test("作品卡片是精簡版；課程專題先顯示 2 個，按了才展開", async ({ page }) => {
     await gotoReady(page, "/");
-    // 精簡卡片：一張不超過 220px（原本整張寬的 16:9 截圖＋全文，一張約 500px）
     const card = page.locator("#portfolio a[aria-label^='查看']").first().locator("..");
     expect((await card.boundingBox())!.height).toBeLessThan(220);
 
-    const down = page.getByRole("button", { name: "捲到頁尾（頁面索引）" });
-    await expect(down).toBeVisible();
-    await down.click();
-    await expect(page.getByRole("navigation", { name: "網站頁面" })).toBeInViewport();
-    await expect(down).toBeHidden();
-    await expect(page.getByRole("button", { name: "返回頂端" })).toBeVisible();
+    const visibleCards = () => page.locator("#portfolio a[aria-label^='查看']:visible").count();
+    const before = await visibleCards();
+    const more = page.getByRole("button", { name: /顯示全部 \d+ 個/ });
+    await more.click();
+    await expect(more).toBeHidden();
+    expect(await visibleCards()).toBeGreaterThan(before);
+  });
+
+  test("手機頁尾不列頁面；首頁選單裡有全站目錄", async ({ page }) => {
+    await gotoReady(page, "/");
+    await expect(page.getByRole("navigation", { name: "網站頁面" })).toBeHidden();
+    await page.getByRole("button", { name: "選單" }).click();
+    await expect(page.locator("header").getByRole("link", { name: "機場時刻表" })).toBeVisible();
+    await expect(page.locator("header").getByRole("link", { name: "小工具" })).toBeVisible();
+  });
+
+  test("子頁面右上角也有選單，點連結會換頁", async ({ page }) => {
+    // 子頁面沒有 data-hydrated：點到選單真的打開為止
+    await page.goto("/blog");
+    const menu = page.getByRole("button", { name: "選單" });
+    await expect(async () => {
+      if ((await menu.getAttribute("aria-expanded")) !== "true") await menu.click();
+      await expect(menu).toHaveAttribute("aria-expanded", "true", { timeout: 500 });
+    }).toPass();
+    await page.getByRole("link", { name: "飛行紀錄" }).click();
+    await expect(page).toHaveURL(/\/flights$/);
   });
 });

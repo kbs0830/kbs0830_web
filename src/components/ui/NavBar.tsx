@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { Route } from "next";
 import Collapse from "@/components/ui/Collapse";
+import SiteIndex from "@/components/ui/SiteIndex";
+import { useMenuDismiss } from "@/components/ui/useMenuDismiss";
 import QuickJumpButton from "@/components/ui/QuickJumpButton";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useMediaQuery, useScrolledPast } from "@/lib/hooks";
@@ -12,13 +13,6 @@ const links = [
   { href: "#about",     label: "自己紹介", id: "about" },
   { href: "#portfolio", label: "製作物",   id: "portfolio" },
   { href: "#contact",   label: "連絡先",   id: "contact" },
-];
-
-// 手機選單第二組：常用的獨立頁面（2026-11-24 TODO F4，之前選單只有三個錨點、下面一大片空白）
-const pages: { href: Route; label: string; en: string }[] = [
-  { href: "/blog", label: "技術部落格", en: "Blog" },
-  { href: "/resume", label: "履歷", en: "Resume" },
-  { href: "/travel", label: "旅行地球", en: "Travel" },
 ];
 
 // 圖示按鈕：版面上佔 32×32（負 margin 抵銷），實際可點範圍 40×44，手機比較好按準。
@@ -49,34 +43,12 @@ export default function NavBar() {
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
-  // 手機選單打開時：焦點移進選單；Esc、點選單外面、捲動超過 40px 都收起（TODO F4）
+  // 手機選單：焦點、Esc、點外面、捲動收起（useMenuDismiss，子頁面的 PageMenu 共用）
   const headerRef = useRef<HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!drawerOpen) return;
-    drawerRef.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
-    const startY = window.scrollY;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setMenuOpen(false);
-      buttonRef.current?.focus();
-    };
-    const onPointer = (e: PointerEvent) => {
-      if (!headerRef.current?.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onScroll = () => {
-      if (Math.abs(window.scrollY - startY) > 40) setMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onPointer);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onPointer);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [drawerOpen]);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  useMenuDismiss(drawerOpen, closeMenu, { container: headerRef, button: buttonRef, panel: drawerRef });
 
   return (
     <header
@@ -136,14 +108,14 @@ export default function NavBar() {
 
       {/* Mobile drawer（視窗拉寬到桌機版時自動收起） */}
       <Collapse open={drawerOpen} className={`sm:hidden bg-(--bg) ${drawerOpen ? "border-t border-(--border)" : ""}`}>
-        <div ref={drawerRef} className="px-6 py-5">
-          <ul className="space-y-5">
+        <div ref={drawerRef} className="px-6 py-4">
+          <ul className="flex gap-x-6">
             {links.map(({ href, label, id }) => (
               <li key={href}>
                 <a
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className={`block text-sm font-light tracking-wide transition-colors ${
+                  className={`block py-2 text-[15px] font-light tracking-wide transition-colors ${
                     activeSection === id ? "text-(--accent)" : "text-(--muted)"
                   }`}
                 >
@@ -152,20 +124,10 @@ export default function NavBar() {
               </li>
             ))}
           </ul>
-          <ul className="mt-6 pt-5 border-t border-(--border) space-y-5">
-            {pages.map(({ href, label, en }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-baseline gap-2 text-sm font-light tracking-wide text-(--muted) hover:text-(--accent) transition-colors"
-                >
-                  {label}
-                  <span className="text-[10px] tracking-wider font-mono">{en}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* 全站頁面（2026-11-24：手機上頁尾不再列頁面，全部收在這裡） */}
+          <div className="mt-3 pt-4 border-t border-(--border) max-h-[60svh] overflow-y-auto overscroll-contain">
+            <SiteIndex onNavigate={closeMenu} />
+          </div>
         </div>
       </Collapse>
     </header>

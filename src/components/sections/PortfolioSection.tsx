@@ -155,6 +155,7 @@ const groups: FilterGroup[] = [
     gridClassName: "grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5",
     label: <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />,
     items: toItems(courseProjects),
+    mobileLimit: 2,
   },
 ];
 

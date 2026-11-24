@@ -42,9 +42,12 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 
 - **2026-11-24 手機版規則（使用者很在意手機）**：
   - 作品標題一律「中文大字 → 英文 → 日文」（使用者：「一行中文一行日文有點浪費」），英日併一行小字、不換行；卡片手機版是「80px 縮圖＋標題＋兩行說明＋前 3 個 tag」
-  - 頁尾手機是「每組小標＋連結橫排換行」；`SiteFooter inset`：首頁 `inner`（區塊是 max-w 裡面 px-6）、PageShell 預設 `outer`——對齊靠這個，不要再改回同一種
-  - 右下角 `BackToTop` 有 ↑ 跟手機才有的 ↓（到頁尾），首頁跟 PageShell 都掛
-  - 改手機版要實際量高度（390×844，`scrollHeight / innerHeight`）跟截圖；首頁 2026-11-24 從 14.6 → 9.2 個螢幕
+  - **手機的全站目錄收在右上角選單**（使用者：「多利用右上角選單做收納，重點顯示，剩下收起來」）：目錄是 `SiteIndex`，
+    首頁 NavBar 抽屜、子頁面 `PageMenu`（PageShell 右上，手機才有）共用；收起規則 `useMenuDismiss`（Esc／點外面／捲動 40px）。
+    手機頁尾不列頁面，只剩即時資訊（首頁）跟版權。`SiteFooter inset`：首頁 `inner`、PageShell 預設 `outer`——對齊靠這個
+  - 手機「重點顯示」：課程專題 `mobileLimit: 2`（ProjectFilter，有選 tag 就全部顯示；收起來的卡片還在 HTML 裡）、最新文章手機 2 篇
+  - 右下角只剩 `BackToTop`（↑）。同一天加過手機的「↓ 到頁尾」，目錄收進選單後就拿掉了，不要加回來
+  - 改手機版要實際量高度（390×844，`scrollHeight / innerHeight`）跟截圖；首頁 2026-11-24 從 14.6 → 7.3 個螢幕
 
 ### /tools 小工具（2026-11-24，決策表 J 系列）
 - 清單在 `lib/site-map.ts` 的 `TOOL_PAGES`（`/tools` 總覽、Ctrl+K 都讀這份）；頁尾只放一個「小工具」入口（7 個放進頁尾會擠成兩行，試過）

@@ -27,9 +27,10 @@ export default function LatestPosts() {
           </Link>
         </Reveal>
 
+        {/* 手機只放 2 篇（2026-11-24「重點顯示，剩下收起來」），第 3 篇在 md 以上才出現；「全部 N 篇 →」照樣在 */}
         <div className="grid md:grid-cols-3 gap-5">
           {posts.map((post, i) => (
-            <Reveal key={post.slug} delay={i * 0.08} distance={20} className="flex">
+            <Reveal key={post.slug} delay={i * 0.08} distance={20} className={i >= 2 ? "hidden md:flex" : "flex"}>
               <div className="flex-1 flex">
                 <Link
                   href={`/blog/${post.slug}`}
