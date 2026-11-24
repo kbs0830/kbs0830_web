@@ -128,7 +128,7 @@ test("首頁 WebGPU 版：真的跑在 GPU 上，四個玩法都有動到粒子"
   expect(near, `4 秒後到新形狀的平均距離 ${far.toFixed(2)} → ${near.toFixed(2)}，應該已經就位`).toBeLessThan(far * 0.25);
 
   // ④ 再雙擊三次繞回星空
-  for (const shape of ["routes", "icon", "stars"]) {
+  for (const shape of ["routes", "icon", "cities", "stars"]) {
     await page.mouse.dblclick(pt.x, pt.y);
     expect(await page.evaluate(() => window.__heroProbe!.shape())).toBe(shape);
   }

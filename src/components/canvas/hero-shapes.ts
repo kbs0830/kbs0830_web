@@ -2,7 +2,7 @@
 // 每顆粒子在每個形狀上的位置是隨機抽的：數量依效能只用前面 N 顆時，形狀還是完整的（只是比較稀）。
 import { AIRPORTS, routes } from "@/lib/flights";
 
-export type ShapeName = "stars" | "name" | "routes" | "icon";
+export type ShapeName = "stars" | "name" | "routes" | "icon" | "cities";
 
 const jitter = (s: number) => (Math.random() - 0.5) * s;
 
@@ -102,5 +102,33 @@ export function heroShapes(n: number, serifFont: string): Record<ShapeName, Floa
     return [-w / 2, -h / 2 + d, -1];
   });
 
-  return { stars, name, routes: routesShape, icon };
+  // 高雄 ⇄ 福岡（決策表 B14，2026-11-25）：兩個城市的光點＋中間一條拱起來的航線＋城市名，呼應首頁的兩地時鐘
+  const KHH: [number, number] = [-2.7, -0.75];
+  const FUK: [number, number] = [2.7, 0.75];
+  const khhLabel = textPoints("高雄", serifFont);
+  const fukLabel = textPoints("福岡", serifFont);
+  const label = (pts: [number, number][], [cx, cy]: [number, number], dy: number): [number, number, number] => {
+    const [x, y] = pts.length ? pts[Math.floor(Math.random() * pts.length)] : [jitter(0.3), jitter(0.1)];
+    return [cx + x * 5.2, cy + dy + y * 1.15, -1 + jitter(0.08)];
+  };
+  const cities = make(() => {
+    const k = Math.random();
+    if (k < 0.4) {
+      // 航線：拱起來的弧，中間最高
+      const t = Math.random();
+      const lift = Math.sin(Math.PI * t) * 1.1;
+      return [KHH[0] + (FUK[0] - KHH[0]) * t + jitter(0.03), KHH[1] + (FUK[1] - KHH[1]) * t + lift + jitter(0.03), -1 + jitter(0.06)];
+    }
+    if (k < 0.62) {
+      // 兩個城市：中心一團＋外面一圈細環
+      const [cx, cy] = Math.random() < 0.5 ? KHH : FUK;
+      const a = Math.random() * Math.PI * 2;
+      const rr = Math.random() < 0.55 ? Math.sqrt(Math.random()) * 0.12 : 0.32 + jitter(0.03);
+      return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, -1 + jitter(0.06)];
+    }
+    // 城市名：高雄在點的下面、福岡在點的上面（不壓到弧線）
+    return Math.random() < 0.5 ? label(khhLabel, KHH, -0.75) : label(fukLabel, FUK, 0.75);
+  });
+
+  return { stars, name, routes: routesShape, icon, cities };
 }
