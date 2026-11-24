@@ -11,6 +11,11 @@ const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProper
 
 const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
 
+// 2026-11-24 手機版封面（使用者：「封面專門為手機版改良，畢竟第一印象」）——640px 以下才套用，桌機不動：
+//   - 名字放大成兩行（PINGWEI / LI）：h1 必須維持單一 text node（HeroNameScramble），所以不插 <br>，
+//     用 w-min（寬度＝最長的字）讓它在空格自然換行
+//   - 文字區塊在導覽列跟按鈕之間垂直置中；按鈕移到螢幕下方（拇指好按），兩顆並排的實心按鈕
+//   - 手機不放「SCROLL」提示：底部的按鈕就是下一步
 export default function HeroSection() {
   return (
     <section id="top" className="relative min-h-svh flex flex-col justify-center overflow-hidden">
@@ -18,7 +23,8 @@ export default function HeroSection() {
       <HeroNameScramble />
 
       {/* hero-parallax：往下捲時文字往上飄、慢慢淡出（globals.css，CSS scroll-driven，只有桌機） */}
-      <div className="hero-parallax relative z-10 max-w-5xl mx-auto px-6 py-32">
+      <div className="hero-parallax relative z-10 w-full max-w-5xl mx-auto px-6 flex-1 flex flex-col pt-24 pb-8 sm:flex-none sm:block sm:py-32">
+        <div className="flex-1 flex flex-col justify-center sm:block">
         <p className="enter-up text-xs tracking-[0.2em] sm:tracking-[0.35em] text-(--muted) mb-6 uppercase font-mono" style={enter(0.1)}>
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
         </p>
@@ -26,14 +32,14 @@ export default function HeroSection() {
         {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次（HeroNameScramble）。不在載入時播——這是 LCP 元素 */}
         <h1
           data-scramble="hover"
-          className="enter-up text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.1] tracking-[0.04em] text-(--text) mb-4"
+          className="enter-up w-min sm:w-auto text-[64px] leading-[1] sm:text-6xl sm:leading-[1.1] lg:text-7xl font-light tracking-[0.04em] text-(--text) mb-5 sm:mb-4"
           style={enter(0.25)}
         >
           PINGWEI LI
         </h1>
 
         <p
-          className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-8 min-h-[1.5em] font-mono"
+          className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-6 sm:mb-8 min-h-[1.5em] font-mono"
           style={enter(0.35)}
         >
           {/* 螢幕閱讀器讀完整文字、不逐字念。<p> 不能放 aria-label（axe：aria-prohibited-attr），改用隱藏文字 */}
@@ -43,15 +49,29 @@ export default function HeroSection() {
           </span>
         </p>
 
-        <p className="enter-up text-lg sm:text-xl font-light text-(--muted) max-w-lg leading-relaxed mb-3" style={enter(0.45)}>
+        {/* 手機：一條短的強調色細線隔開名字跟標語（日式的「間」） */}
+        <span aria-hidden className="enter-up sm:hidden block w-8 h-px bg-(--accent) mb-6" style={enter(0.4)} />
+
+        <p className="enter-up text-lg sm:text-xl font-light text-(--text) sm:text-(--muted) max-w-lg leading-relaxed text-balance mb-2 sm:mb-3" style={enter(0.45)}>
           在瀏覽器與模型層之間，構建有意義的系統。
         </p>
 
-        <p className="enter-up text-base font-light text-(--muted) max-w-lg leading-relaxed mb-12" style={enter(0.5)}>
+        <p className="enter-up text-sm sm:text-base font-light text-(--muted) max-w-lg leading-relaxed text-balance sm:mb-12" style={enter(0.5)}>
           Building thoughtful systems — from the browser to the model layer.
         </p>
+        </div>
 
-        <div className="enter-up flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center" style={enter(0.6)}>
+        {/* 手機：螢幕下方兩顆並排的按鈕（拇指範圍、高 48px） */}
+        <div className="enter-up sm:hidden grid grid-cols-2 gap-3 mt-10" style={enter(0.6)}>
+          <a href="#portfolio" className="flex items-center justify-center h-12 rounded-sm bg-(--accent) text-(--bg) text-[15px] font-light tracking-wide">
+            查看作品
+          </a>
+          <a href="#contact" className="flex items-center justify-center h-12 rounded-sm border border-(--border) bg-(--bg) text-(--text) text-[15px] font-light tracking-wide">
+            聯絡我
+          </a>
+        </div>
+
+        <div className="enter-up hidden sm:flex flex-row gap-10 items-center" style={enter(0.6)}>
           <Magnetic>
             <a href="#portfolio" className={`${underlineLinkClass} text-(--text)`}>
               查看作品 · View Work
@@ -68,7 +88,7 @@ export default function HeroSection() {
       </div>
 
       <div
-        className="enter-fade absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-(--muted)"
+        className="enter-fade absolute bottom-10 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 text-(--muted)"
         style={enter(1.2)}
         aria-hidden
       >

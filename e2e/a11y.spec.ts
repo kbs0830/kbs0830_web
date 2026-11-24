@@ -46,3 +46,27 @@ for (const path of PAGES) {
     });
   }
 }
+
+// 手機尺寸（2026-11-24）：手機才出現的東西（封面底部兩顆按鈕、精簡作品卡片、選單裡的全站目錄）桌機掃描看不到
+test.describe("a11y 手機", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  for (const theme of ["light", "dark"] as const) {
+    test(`a11y 手機 ${theme}：/`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
+      await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+      await page.goto("/");
+      await expect(page.locator("html")).toHaveAttribute("data-hydrated", "");
+      await page.waitForLoadState("networkidle");
+      await page.getByRole("button", { name: "選單" }).click();
+      const result = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .exclude("canvas")
+        .exclude('img[src*="ghchart.rshah.org"]')
+        .analyze();
+      const problems = result.violations
+        .filter((v) => v.impact === "serious" || v.impact === "critical")
+        .map((v) => `${v.id}（${v.impact}）× ${v.nodes.length}：${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
+      expect(problems).toEqual([]);
+    });
+  }
+});

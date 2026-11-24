@@ -47,6 +47,8 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
     手機頁尾不列頁面，只剩即時資訊（首頁）跟版權。`SiteFooter inset`：首頁 `inner`、PageShell 預設 `outer`——對齊靠這個
   - 手機「重點顯示」：課程專題 `mobileLimit: 2`（ProjectFilter，有選 tag 就全部顯示；收起來的卡片還在 HTML 裡）、最新文章手機 2 篇
   - 右下角只剩 `BackToTop`（↑）。同一天加過手機的「↓ 到頁尾」，目錄收進選單後就拿掉了，不要加回來
+  - 封面手機版：名字 64px 兩行（h1 用 w-min，不能插 <br>，HeroNameScramble 要單一 text node）、按鈕在底部兩顆並排；`a11y.spec.ts` 有「a11y 手機」掃描
+  - ⚠️ globals.css 裡沒包 `@layer` 的規則會壓過所有 Tailwind utility：全站 text-wrap 規則已移進 `@layer base`，新增全域規則也要包
   - 改手機版要實際量高度（390×844，`scrollHeight / innerHeight`）跟截圖；首頁 2026-11-24 從 14.6 → 7.3 個螢幕
 
 ### /tools 小工具（2026-11-24，決策表 J 系列）

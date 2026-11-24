@@ -102,9 +102,13 @@ body {
   border-radius: 2px;
 }
 
-/* 標題換行平均（不會剩一個字掛在第二行）；內文避免最後一行只剩一兩個字 */
-h1, h2, h3 { text-wrap: balance; }
-p, li, figcaption { text-wrap: pretty; }
+/* 標題換行平均（不會剩一個字掛在第二行）；內文避免最後一行只剩一兩個字。
+   放在 @layer base：沒包 layer 的規則會壓過所有 Tailwind utility，
+   2026-11-24 首頁標語加 text-balance 沒作用就是被這條 p { pretty } 蓋掉 */
+@layer base {
+  h1, h2, h3 { text-wrap: balance; }
+  p, li, figcaption { text-wrap: pretty; }
+}
 
 :focus-visible {
   outline: 2px solid var(--accent);
