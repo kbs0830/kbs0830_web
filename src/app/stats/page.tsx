@@ -10,6 +10,7 @@ import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotK
 import { lastDays, readDetail } from "@/lib/visit-detail";
 import { projects } from "@/lib/projects";
 import { getAllPosts } from "@/lib/blog";
+import { HERO_VARIANTS, VARIANT_NAMES, readHeroStats } from "@/lib/hero-stats";
 
 // 訪客分析頁（2026-11-09 公開流量頁 → 同天使用者要「訪客分析的頁面」，升級成這頁）。
 // 這個網站是自己桌機架的，流量本身就是作品的一部分。只有彙總數字：不記 IP、完整 UA、完整網址、cookie。
@@ -71,6 +72,11 @@ export default function StatsPage() {
   const countries = readCountryCounts();
   const visits = countries.reduce((n, [, c]) => n + c, 0);
   const hasCloudflare = cf && cfDays.some((d) => d.pageViews > 0);
+
+  const hero = readHeroStats();
+  const heroTotal = hero ? HERO_VARIANTS.reduce((n, v) => n + (hero.variants[v] ?? 0), 0) : 0;
+  const heroFallbacks = hero ? Object.entries(hero.fallbacks).sort((a, b) => b[1] - a[1]) : [];
+  const FALLBACK_NAMES: Record<string, string> = { slow: "太慢（低於門檻 fps）", init: "初始化失敗", "no-webgpu-backend": "沒有真的 WebGPU 後端", other: "其他" };
 
   const detail = readDetail();
   const days30 = detail ? lastDays(detail, 30) : [];
@@ -206,6 +212,22 @@ export default function StatsPage() {
           </ul>
           <p className="text-xs text-(--muted) font-light mt-3 leading-relaxed">
             共 {nf.format(visits)} 次瀏覽。國家是 Cloudflare 依連線判斷的，只存國碼跟次數。
+          </p>
+        </section>
+      )}
+
+      {hero && heroTotal > 0 && (
+        <section className="mb-12">
+          <SectionHeading en="Hero background">首頁 3D 背景拿到哪一版</SectionHeading>
+          <ShareList entries={HERO_VARIANTS.map((v) => [VARIANT_NAMES[v], hero.variants[v] ?? 0] as [string, number])} total={heroTotal} />
+          {heroFallbacks.length > 0 && (
+            <>
+              <p className="text-[11px] text-(--muted) font-mono tracking-wide mt-6 mb-1">WebGPU 版退回 WebGL 的原因</p>
+              <ShareList entries={heroFallbacks.map(([k, n]) => [FALLBACK_NAMES[k] ?? k, n] as [string, number])} total={heroFallbacks.reduce((n, [, c]) => n + c, 0)} />
+            </>
+          )}
+          <p className="text-xs text-(--muted) font-light mt-3 leading-relaxed">
+            {hero.since} 起共 {nf.format(heroTotal)} 個分頁。每個分頁只記一次，只存版本跟次數；WebGPU 版目前要網址加 ?hero=webgpu 才會用。
           </p>
         </section>
       )}

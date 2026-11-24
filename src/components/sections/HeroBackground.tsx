@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
 import { useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks";
+import { isNotMe } from "@/lib/not-me";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
@@ -48,6 +49,20 @@ const HeroSceneSkeleton = () => (
 );
 
 type Tier = "probe" | "gpu" | "gl";
+
+// 版本統計（決策表 B13）：每個分頁只回報一次實際拿到哪一版、WebGPU 退回時再報一次原因。只存次數（/stats 看）。
+// 本人（NotMeToggle）不記；伺服器端另外擋機器人跟沒經過 Cloudflare 的請求
+const REPORT_KEY = "hero-reported";
+function reportHero(body: { variant?: "lite" | "gl" | "gpu"; fallback?: string }) {
+  try {
+    if (isNotMe()) return;
+    if (body.variant) {
+      if (sessionStorage.getItem(REPORT_KEY)) return;
+      sessionStorage.setItem(REPORT_KEY, "1");
+    }
+    void fetch("/api/hero-stats", { method: "POST", keepalive: true, body: JSON.stringify(body) }).catch(() => {});
+  } catch {}
+}
 // 2026-11-22 晚：使用者試了 WebGPU 粒子版：「有點複雜（煩），線條就不錯，有時加個流星」→ 預設不自動用 WebGPU 版，
 // 桌機一律 WebGL 線條版（加了流星）。WebGPU 版的程式跟測試都留著，網址加 ?hero=webgpu 還看得到；要恢復自動判斷把這個改成 true
 const AUTO_WEBGPU = false;
@@ -86,6 +101,7 @@ function useHeroTier(enabled: boolean, reduced: boolean): [Tier, boolean, (reaso
   }, [enabled, reduced]);
   const fallback = useCallback((reason: string) => {
     console.info(`[hero] WebGPU 版改回 WebGL 版：${reason}`);
+    reportHero({ fallback: reason.slice(0, 60) });
     try {
       sessionStorage.setItem(TIER_KEY, "gl");
     } catch {}
@@ -100,6 +116,10 @@ export default function HeroBackground() {
   const isDesktop = useMediaQuery("(width >= 768px)");
   const reduced = usePrefersReducedMotion();
   const [tier, forced, fallback] = useHeroTier(isDesktop === true, reduced);
+  const variant = isDesktop === null ? null : !isDesktop ? "lite" : tier === "probe" ? null : tier;
+  useEffect(() => {
+    if (variant) reportHero({ variant });
+  }, [variant]);
 
   if (isDesktop === null) return <HeroSceneSkeleton />;
   if (!isDesktop) return (
