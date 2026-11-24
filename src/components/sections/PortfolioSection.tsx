@@ -73,9 +73,12 @@ function ProjectCard({
                     {project.titleZh}
                   </h3>
                 </ViewTransition>
-                <span className="shrink-0 mt-0.5 sm:mt-1">
-                  <StatusBadge status={project.status} />
-                </span>
+                {/* 課程專題那一區的標題已經寫了，卡片上不再重複「課程専題」標籤（手機上會把標題擠成兩行） */}
+                {project.status !== "課程専題" && (
+                  <span className="shrink-0 mt-0.5 sm:mt-1">
+                    <StatusBadge status={project.status} />
+                  </span>
+                )}
               </div>
               {/* 英文 · 日文固定一行：太長就截掉日文的尾巴（日文本來就排最後），不會再多換一行 */}
               <p className="mt-1 flex items-baseline gap-x-2 text-xs text-(--muted) font-light whitespace-nowrap overflow-hidden">
@@ -89,7 +92,7 @@ function ProjectCard({
                 href={project.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="pointer-events-auto relative z-20 text-(--border) hover:text-(--accent) transition-colors ml-3 mt-1 shrink-0"
+                className="hidden sm:block pointer-events-auto relative z-20 text-(--border) hover:text-(--accent) transition-colors ml-3 mt-1 shrink-0"
                 aria-label="GitHub"
               >
                 <GitHubIcon />
@@ -130,9 +133,10 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
-        {/* 手機寬度不夠時，中文那段整塊換行，不要把「学習記録」拆成兩半 */}
-        {label} &nbsp;·&nbsp; <span className="whitespace-nowrap">{labelZh}</span>
+      {/* 中文在前（2026-11-24）；手機只放中文，英文太長會把「· 課程専題」擠到第二行 */}
+      <p className="text-xs tracking-[0.18em] text-(--accent) font-mono">
+        <span className="whitespace-nowrap">{labelZh}</span>
+        <span className="hidden sm:inline uppercase tracking-[0.3em]"> &nbsp;·&nbsp; {label}</span>
       </p>
     </Reveal>
   );
@@ -161,7 +165,8 @@ const groups: FilterGroup[] = [
 
 export default function PortfolioSection() {
   return (
-    <section id="portfolio" className="py-20 md:py-32">
+    <section id="portfolio" className="pt-20 pb-12 md:py-32">
+      {/* 手機底部留白縮小：下面「最新文章」自己有一條分隔線＋上方留白，兩個加起來之前快 130px */}
       <div className="max-w-5xl mx-auto px-6">
 
         {/* Title */}

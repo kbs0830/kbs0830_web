@@ -15,7 +15,7 @@ export default function LatestPosts() {
         <Reveal className="flex items-baseline justify-between gap-4 mb-8 border-t border-(--border) pt-12">
           <div>
             <Eyebrow className="mb-3">Blog</Eyebrow>
-            <h2 id="latest-posts" className="text-2xl font-light text-(--text) font-serif">
+            <h2 id="latest-posts" className="text-xl sm:text-2xl font-light text-(--text) font-serif whitespace-nowrap">
               最新文章 · Latest Posts
             </h2>
           </div>

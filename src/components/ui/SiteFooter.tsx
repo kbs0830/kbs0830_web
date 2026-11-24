@@ -53,13 +53,13 @@ export default function SiteFooter({
         ))}
       </nav>
       {/* 右下角固定的 ↑ 按鈕會壓到最後幾行——xl 以下右側多留按鈕的寬度，寬螢幕時按鈕在欄位外面 */}
-      <div className={`${box} ${inset === "inner" ? "pr-20 xl:pr-6" : "pr-14 xl:pr-0"} pt-8 sm:pt-0 pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
+      <div className={`${box} ${inset === "inner" ? "sm:pr-20 xl:pr-6" : "sm:pr-14 xl:pr-0"} pt-8 sm:pt-0 pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
         {extra && (
-          <div className="flex flex-col gap-1.5 pb-4 mb-2 border-b border-(--border) sm:order-last sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
+          <div className="flex flex-col gap-2 pb-5 mb-3 border-b border-(--border) sm:order-last sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
             {extra}
           </div>
         )}
-        <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+        <div className="pr-12 sm:pr-0 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
           <p className={`${small} tracking-[0.2em]`}>© {years} PINGWEI LI</p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
         </div>

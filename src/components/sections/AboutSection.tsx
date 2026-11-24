@@ -236,7 +236,7 @@ export default function AboutSection() {
       <div className="max-w-5xl mx-auto px-6">
         <Reveal>
           <Eyebrow className="mb-4">01 — About</Eyebrow>
-          <RevealHeading text="自己紹介　·　關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
+          <RevealHeading text="自己紹介 · 關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
         </Reveal>
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-14 md:mb-20">

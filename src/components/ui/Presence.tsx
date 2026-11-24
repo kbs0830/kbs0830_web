@@ -75,7 +75,7 @@ export function PresenceCount() {
     () => null,
   );
   return (
-    <p className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono whitespace-nowrap" title="現在正在看這個網站的人數（含你），每 30 秒更新">
+    <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap" title="現在正在看這個網站的人數（含你），每 30 秒更新">
       <span aria-hidden className="inline-block size-1.5 rounded-full bg-(--accent) mr-2 align-middle -translate-y-px" />
       いま {n ?? "–"} 人
     </p>

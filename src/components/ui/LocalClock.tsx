@@ -49,15 +49,10 @@ export default function LocalClock() {
   const w = (id: string) => (weather[id] ? ` ${weather[id].label} ${weather[id].temp}°` : "");
 
   return (
-    <p className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono">
-      {/* 每個城市整組不拆行，窄螢幕只在兩個城市之間換行（之前「多雲 10°」會被拆成兩行） */}
-      {times ? (
-        <>
-          <span className="whitespace-nowrap">高雄 {times.kh}{w("kh")}</span> ・ <span className="whitespace-nowrap">福岡 {times.fk}{w("fk")}</span>
-        </>
-      ) : (
-        "高雄 · 福岡"
-      )}
-    </p>
+    // 兩個城市各自一列（頁尾外框在手機直排、桌機橫排），不再用「・」接在同一行——窄螢幕會懸在行尾
+    <>
+      <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap">高雄 {times ? `${times.kh}${w("kh")}` : ""}</p>
+      <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap">福岡 {times ? `${times.fk}${w("fk")}` : ""}</p>
+    </>
   );
 }

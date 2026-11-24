@@ -231,7 +231,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </Link>
       )}
 
-      <nav aria-label="上一篇／下一篇" className="grid sm:grid-cols-2 gap-4 mt-16 pt-8 border-t border-(--border)">
+      <nav aria-label="上一篇／下一篇" className={`grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10" : "mt-16"} pt-8 border-t border-(--border)`}>
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
