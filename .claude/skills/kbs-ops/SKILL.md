@@ -183,10 +183,22 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 金鑰＝服務帳號 JSON，放 `C:\Users\user\.kbs0830-gsc-key.json`（不進 repo、有進每日備份），`.env.local` 的 `GSC_KEY_FILE` 指過去；
 沒設就 skipped、這段不顯示。token scope 只有 `webmasters.readonly`。搜尋字詞只進信、不存檔。單元測試 `search-console.test.ts`
 ⚠️ PowerShell 地雷（寫的時候踩到）：`$home` 是內建唯讀變數不能拿來用；`-like "*[ROLLBACK]*"` 的方括號是萬用字元，要用 `.Contains()`。
+**2026-11-25 週報加四段**：
+- **外部來源（I10）**：`visits-detail.json` 的 referrers（累計）跟上週快照 `state.referrers` 相減 → 搜尋／社群／AI／信件／GitHub／活動連結（`ref:`）／其他；
+  直接進入＝7 天工作階段 − 有來源的。第一封沒快照只列累計。分類在 `Ref-Kind`：**信件要比搜尋先判斷**（Gmail App 的來源是 `com.google.android.gm`，會被 `google\.` 吃掉）
+- **404（C3）**：`scripts/lib/not-found.js`，server.js 每個回應 finish 時記（同 raw-traffic 的過濾：要 cf-ipcountry、排除自己的工具）。
+  `data/not-found.json`＝`{days: {台灣日期: {路徑: 次數}}, scanners: {日期: 次數}}`，留 35 天、每天最多 100 個路徑；掃描器路徑（`SCANNER` regex）只算次數。單元測試 `not-found.test.ts`
+- **快取命中率（C5）**：`cloudflare-analytics.ts` 的 GraphQL 多抓 `cachedRequests`（11/25 起才有，只拿有這欄的日子算）。11/20 實際約 70%
+- **抖動＋磁碟（C5）**：數 watchdog.log 的「外網檢查失敗一次」「網站健康檢查失敗」；`Get-PSDrive C/D` 剩餘，不到 10% 標 ⚠️
+
+**開機通知信（C2，2026-11-25，`scripts/boot-notice.ps1`）**：watchdog 每輪呼叫。`Win32_OperatingSystem.LastBootUpTime` 跟 `data/alerts/last-boot.txt` 不同就寄一封
+（第一次跑只記不寄；寄失敗不記、下一輪再試）。停多久＝`data/uptime.log` 開機前最後一行；原因看 System 事件記錄（一般權限讀得到）：
+1074（誰要求的，用 `Properties[0]`／`[4]`，訊息文字是本地語系不要 parse；`[0]` 後面帶「 (電腦名稱)」要切掉）、6006 正常關完、41／6008 非正常。
+有 1074 又有 41＝關機卡住被斷電。`-DryRun` 只印；`-TestBoot "2026-11-23 22:46"` 拿過去某次開機試判斷（⚠️ 不能叫 `-Boot`：PS 變數不分大小寫，會跟 `$boot` 撞名）
 
 **每季備份還原演練（2026-11-09，`scripts/restore-drill.ps1`）**：watchdog 帶 `-IfOlderThanDays 90` 呼叫。從 GitHub **重新 clone**
 備份 repo（不用 D: 那份 clone）→ 解密 → 解壓 → 跟 D: 最新一份逐檔比 SHA256，成功失敗都寄信；失敗隔天重試（信 1 天冷卻）。
-第一次 11/09 手動跑過：17 個檔案全部相同。上次演練時間在 `D:\02_備份封存\專案\kbs0830\last-restore-drill.txt`。
+第一次 11/09 手動跑過：17 個檔案全部相同。上次演練時間在 `D:\04_專案與工作\02_kbs0830\last-restore-drill.txt`。
 
 **外網檢查（2026-11-03）**：localhost 健康時，watchdog 再從外網打一次 `https://kbs0830.com/`
 （30 秒內重試）。2026-10-29 那次是 origin 正常、Tunnel 斷 4 天，localhost 檢查完全看不出來。
@@ -210,15 +222,16 @@ deploy/watchdog/backup log、三個排程工作的 XML、Cloudflared 服務設�
 
 | | 位置 | 格式 | 保留 |
 |---|---|---|---|
-| 本機 | `D:\02_備份封存\專案\kbs0830\<yyyy-MM-dd_HHmm>\` | 原檔 | 30 份 |
-| GitHub | 私有 repo `kbs0830/kbs0830_backup`，clone 在 `D:\02_備份封存\專案\kbs0830\github` | AES-256 加密的 `kbs0830-backup.tar.gz.enc` | git 歷史 |
+| 本機 | `D:\04_專案與工作\02_kbs0830\<yyyy-MM-dd_HHmm>\` | 原檔 | 30 份 |
+| GitHub | 私有 repo `kbs0830/kbs0830_backup`，clone 在 `D:\04_專案與工作\02_kbs0830\github` | AES-256 加密的 `kbs0830-backup.tar.gz.enc` | git 歷史 |
 
 - D: 是另一顆實體硬碟（C: NVMe、D: Seagate HDD），C: 壞掉時本機備份還在
 - **2026-11-23 本機備份從 `D:\Backups\kbs0830` 搬到 `D:\02_備份封存\專案\kbs0830`**（使用者整理 D: 槽：專案備份都放這層，跟 FRC 同一層）。路徑寫在 `backup.ps1`、`restore-drill.ps1` 的 `$backupRoot`，兩支要一起改；路徑有中文，兩支都要維持 UTF-8 BOM（PowerShell 5.1 跑）。
+- **2026-11-25 再搬到 `D:\04_專案與工作\02_kbs0830`**（使用者把雲端／D／E 改成同一套編號：04_專案與工作）。`backup.ps1`、`restore-drill.ps1` 的 `$backupRoot` 已一起改，UTF-8 BOM 維持不變。
   搬完兩支都實際跑過（備份＋GitHub push、還原演練 21 檔相同）。搬的時候注意：只要 `last-success.txt` 先不見，watchdog 下一輪（5 分鐘）就會多跑一次備份
-- 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\02_備份封存\專案\kbs0830\BACKUP-KEY.txt`。
+- 加密金鑰：`C:\Users\user\.kbs0830-backup-key`，同一份複製在 `D:\04_專案與工作\02_kbs0830\BACKUP-KEY.txt`。
   **整台機器壞掉時兩份都會不見，使用者要另外存在密碼管理器**，不然 GitHub 那份解不開
-- GitHub 那份 2026-11-05 啟用：`D:\02_備份封存\專案\kbs0830\github` 是 clone，`core.sshCommand` 指定 Deploy key
+- GitHub 那份 2026-11-05 啟用：`D:\04_專案與工作\02_kbs0830\github` 是 clone，`core.sshCommand` 指定 Deploy key
   `C:/Users/user/.ssh/kbs0830_backup_deploy`（只限這個 repo、有寫入權限）。不是 clone 時只做本機（log 會寫）。
   啟用當天實測過 GitHub 下載 → 解密 → 解壓，跟 D: 那份逐檔相同
 - 本機那份完成就算「今天備份過」，GitHub 失敗只寄信、隔天再試（避免 watchdog 每 5 分鐘重跑、

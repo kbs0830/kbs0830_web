@@ -73,6 +73,13 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - `/tools/user-agent`：分類規則在 `scripts/lib/bot-patterns.js`（不碰 fs，client 可以 import；`raw-traffic.js` 也用它）
 
 ### 1. Hero
+- **手機封面（2026-11-25，只在 640px 以下）**：名字一行（`text-[min(14vw,4rem)]`、`whitespace-nowrap`）；片假名「リー ビンウェイ」**直書**貼右側
+  （`[writing-mode:vertical-rl]`、`sm:hidden`）；按鈕上方 `HeroTwoCities`＝高雄 ⇄ 福岡兩地時鐘（`useSyncExternalStore`＋15 秒，伺服器 `--:--`；
+  `<p>` 不能加 `aria-label`，axe 會擋）。桌機一個 class 都沒動，改之前截 1280 確認
+- **版本統計（B13，2026-11-25）**：`HeroBackground` 每個分頁 POST 一次 `/api/hero-stats` `{variant: lite|gl|gpu}`（sessionStorage `hero-reported`），
+  WebGPU 退回再送 `{fallback}`（route 歸成 slow／init／no-webgpu-backend／other）。`lib/hero-stats.ts` → `data/hero-stats.json`（`HERO_STATS_FILE`），
+  `/stats`「首頁 3D 背景拿到哪一版」。過濾：沒 `cf-ipcountry`、`classify(ua).kind !== "browser"`、`isNotMe()` 都不記
+- **WebGPU 版第五個形狀「cities」（B14）**：`hero-shapes.ts`，高雄（左下）⇄ 福岡（右上）兩點＋光圈＋弧線＋地名；雙擊順序 stars→name→routes→icon→cities
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
   Hero 捲出畫面 `frameloop="never"` 完全停畫。名字滑鼠移上去會解碼一次；底部「SCROLL」光點沿細線往下滑
 - **⚠️ 2026-11-22 晚改回線條版**：使用者試了 WebGPU 粒子版：「有點複雜（煩），線條就不錯，有時加個流星」→ `HeroBackground` 的 `AUTO_WEBGPU = false`，桌機一律 WebGL 版，
@@ -280,6 +287,10 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   福岡＝福岡空港官網自己的 `/api/flight_schedule/flight_schedule.json`（**不是正式開放資料，官網改版就會壞**，抓不到那塊不顯示）。
   福岡的聯營另外列一行（`remarks2: "Code Share"`）→ 併進主航班；國際線城市只有片假名 → `FUK_PLACES` 換中文；狀態用英文那欄對應（`FUK_STATUS`，新的狀態字樣要補）
 - 延誤／取消用 `--warn`（「出事了」）。頁面不拿雷達資料比對（雷達不公開位置）
+- **小港延誤統計（J3，2026-11-25）**：`src/instrumentation.ts` 的 `register()` 開 `lib/airport-delay-recorder.ts`，每 20 分鐘（第一次 60 秒後）
+  拿 `getBoards().khh` 記進 `data/airport-delays.json`（`AIRPORT_DELAYS_FILE`；key `代號|dep/arr|表定`，同一班同一天只留最後狀態，留 120 天）。
+  `summarizeDelays` 只算已結束的班次：準點＝15 分鐘內、取消數、最常延誤（≥5 次、平均晚 >0）。**滿 7 天才顯示**在 `/airports`。
+  build 時不開；`AIRPORT_DELAY_RECORDER=0` 關掉（3200 測試建議帶，或把檔案指到暫存）
 - **作品頁 `liveWidget`**：`projects.ts` 的 `liveWidget: "jpy-rate" | "air-quality"` → 作品頁放 `JpyRateLive`／`AirQualityLive`（client，讀 `/api/jpy-rate`、`/api/air-quality`）
   - 匯率（`lib/jpy-rate.ts`）：台銀 `rate.bot.com.tw/xrt/flcsv/0/day`（**沒帶瀏覽器 UA 會被擋成驗證頁**）＋玉山外匯頁的 JSON-LD；Yahoo `JPYTWD=X` 走勢（`range=90d` 實際回 4 個月，自己切 90 天）。
     決策照作品原本：預算 ÷ 日圓價格＝目標匯率，現金賣出 ≤ 目標 →「現在就買」。作品的 6 家銀行只剩 2 家抓得到，不硬爬

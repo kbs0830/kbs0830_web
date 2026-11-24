@@ -76,6 +76,9 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
   只影響那個瀏覽器；「いま N 人」、Web Vitals 照算。起因：11/21～23 的真人造訪幾乎都是站長自己。E2E `not-me.spec.ts` 攔截 API 只看送出內容
   （3200 的 server.js 寫的是正式 `data/`，**本機測試不要帶 `cf-ipcountry` 打 /api/visitor-stats**，會寫進正式統計）
 - 頁尾「未過濾 N 次…」那行 2026-11-12 依使用者要求拿掉（快取之後它只數得到沒命中的請求），細節留在 /stats
+- **首頁 3D 版本（B13，2026-11-25）**：`/stats` 國家下面一塊，資料 `data/hero-stats.json`，細節在 kbs-site 的 Hero 段
+- ⚠️ 3200 測試時帶 `cf-ipcountry` 打**任何頁面**都會記進正式的 `data/raw-traffic.json`（server.js 寫死路徑、沒有 env 可以改）；
+  404 統計（`NOT_FOUND_FILE`）、版本統計（`HERO_STATS_FILE`）可以指到暫存檔
 
 ### 公開流量頁 `/stats`（2026-11-09 第一版，以下是當時的紀錄）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家
@@ -113,6 +116,8 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 - 檔案路徑、同步 read-modify-write 的理由跟訪客統計一樣（`server.js` 設 `WEB_VITALS_FILE`）
 
 ### 自家 FR24 雷達（2026-11-21）
+- **現在收到的航班（2026-11-25，使用者選了做）**：`radar.js` 的 `flightsNow()`：只收正常航班代碼（`/^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/`）、
+  高度四捨五入到千呎、機型從快取補、依高度排最多 12 班，**不存 hex、不存位置**。只進 `detail()`（/radar 頁面），公開 `/api/radar`（`summarize()`）不含
 - **獨立頁 `/radar`**（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）：大數字「現在幾架」＋裝飾雷達圓盤（`RadarLive.tsx`，
   每 30 秒更新；圓盤**不畫光點**——沒有座標也不放假位置；掃描線 `globals.css .radar-sweep`，reduced-motion 不轉、離線不畫）、
   今天／最多同時／近 7 天／在線率、「一天的節奏」（每小時最多同時幾架，近 7 天平均＝`day.hourPeak`）、近 30 天、近 7 天航空公司、關於。
