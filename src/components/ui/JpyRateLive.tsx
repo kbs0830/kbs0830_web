@@ -121,7 +121,7 @@ export default function JpyRateLive() {
   );
 }
 
-function Trend({ points }: { points: { date: string; rate: number }[] }) {
+export function Trend({ points }: { points: { date: string; rate: number }[] }) {
   const W = 600;
   const H = 120;
   const rates = points.map((p) => p.rate);

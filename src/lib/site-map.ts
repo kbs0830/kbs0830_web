@@ -40,6 +40,7 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
   {
     label: "本站 · Site",
     pages: [
+      { href: "/tools", zh: "小工具", en: "Tools", desc: "日幣換匯、台灣⇄福岡直飛、福岡穿搭、機場距離、日本消費稅、AI 爬蟲檢查" },
       { href: "/colophon", zh: "本站構造", en: "Colophon", desc: "網站架構、部署方式" },
       { href: "/status", zh: "維運狀態", en: "Status", desc: "可用率、部署紀錄、事故報告" },
       { href: "/stats", zh: "訪客分析", en: "Stats", desc: "流量、來源、裝置" },
@@ -47,6 +48,18 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
       { href: "/developers", zh: "開發者", en: "API & MCP", desc: "公開 JSON API、MCP 伺服器" },
     ],
   },
+];
+
+// 小工具（2026-11-24 決策表 J 系列）：頁尾只放一個「小工具」入口（7 個塞進頁尾會擠成兩行），
+// 完整清單在 /tools 總覽跟 Ctrl+K 快速跳轉
+export const TOOL_PAGES: SitePage[] = [
+  { href: "/tools/jpy", zh: "日幣換匯比價", en: "JPY", desc: "台銀、玉山日幣牌價，換一筆台幣各家差多少、現在算便宜還是貴" },
+  { href: "/tools/taiwan-fukuoka", zh: "台灣⇄福岡直飛", en: "TW⇄FUK", desc: "今天台灣各機場跟福岡之間的直飛班機、時間、狀態" },
+  { href: "/tools/fukuoka-weather", zh: "福岡穿搭", en: "Weather", desc: "福岡跟高雄現在差幾度、這幾天要帶什麼衣服" },
+  { href: "/tools/airport-distance", zh: "機場距離", en: "Distance", desc: "兩個機場代碼算大圓距離、大概飛多久" },
+  { href: "/tools/japan-tax", zh: "日本消費稅", en: "Tax", desc: "含稅未稅、8%／10% 換算，順便換成台幣" },
+  { href: "/tools/ai-crawlers", zh: "AI 爬蟲檢查", en: "robots.txt", desc: "輸入網域，看 GPTBot、ClaudeBot 等 AI 爬蟲有沒有被擋" },
+  { href: "/tools/user-agent", zh: "UA 是爬蟲嗎", en: "User-Agent", desc: "貼一串 User-Agent，判斷是瀏覽器、搜尋引擎、AI 爬蟲還是機器人" },
 ];
 
 /** 快速跳轉的一筆結果（頁面、作品、文章共用） */
@@ -62,7 +75,7 @@ export const OPEN_QUICK_JUMP = "quickjump:open";
 
 const pageItem = (p: SitePage): JumpItem => ({ href: p.href, title: p.zh, sub: p.en, keywords: `${p.desc} ${p.href}` });
 
-export const PAGE_ITEMS: JumpItem[] = [...HOME_SECTIONS, ...SITE_GROUPS.flatMap((g) => g.pages)].map(pageItem);
+export const PAGE_ITEMS: JumpItem[] = [...HOME_SECTIONS, ...SITE_GROUPS.flatMap((g) => g.pages), ...TOOL_PAGES].map(pageItem);
 
 /** 多個詞 AND、不分大小寫的「包含」比對；標題開頭符合的排前面 */
 export function matchItems(items: JumpItem[], query: string): JumpItem[] {

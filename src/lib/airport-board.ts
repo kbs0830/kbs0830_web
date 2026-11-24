@@ -109,7 +109,7 @@ type FukRow = {
 // 福岡國際線的城市官網只有日文（片假名），換成中文；國內線是漢字，直接用
 const FUK_PLACES: Record<string, string> = {
   ICN: "首爾/仁川", GMP: "首爾/金浦", PUS: "釜山", TAE: "大邱", CJJ: "清州", CJU: "濟州",
-  TPE: "台北/桃園", KHH: "高雄", HKG: "香港", PVG: "上海/浦東", PEK: "北京/首都",
+  TPE: "台北/桃園", TSA: "台北/松山", KHH: "高雄", RMQ: "台中", TNN: "台南", HKG: "香港", PVG: "上海/浦東", PEK: "北京/首都",
   MNL: "馬尼拉", BKK: "曼谷/素萬那普", DMK: "曼谷/廊曼", SGN: "胡志明市", HAN: "河內",
   KUL: "吉隆坡", BKI: "亞庇", SIN: "新加坡", HND: "東京/羽田", NRT: "東京/成田", ITM: "大阪/伊丹", KIX: "大阪/關西",
 };
@@ -181,6 +181,24 @@ export function khhFuk(khh: Flight[] | null, fuk: Flight[] | null) {
     toFuk: sort((khh ?? []).filter((f) => f.dir === "dep" && f.placeCode === "FUK")),
     toKhh: sort((fuk ?? []).filter((f) => f.dir === "dep" && f.placeCode === "KHH")),
   };
+}
+
+/** 台灣的機場（福岡看板上 tofrom_cd 會出現的），順序＝頁面上的順序 */
+export const TW_AIRPORTS = ["TPE", "KHH", "RMQ", "TSA", "TNN"] as const;
+
+/** 台灣 ⇄ 福岡（TODO J2，2026-11-24）：從福岡看板篩出跟台灣各機場之間的國際線，依台灣機場分組。
+ *  時間都是福岡當地時間（往福岡＝抵達福岡的時間、從福岡＝起飛時間）；今天沒有班機的機場不列 */
+export function taiwanFuk(fuk: Flight[] | null) {
+  const sort = (xs: Flight[]) => xs.sort((a, b) => minutes(a.sched) - minutes(b.sched) || a.code.localeCompare(b.code));
+  return TW_AIRPORTS.map((code) => {
+    const mine = (fuk ?? []).filter((f) => f.intl && f.placeCode === code);
+    return {
+      code,
+      name: FUK_PLACES[code] ?? code,
+      toFuk: sort(mine.filter((f) => f.dir === "arr")),
+      fromFuk: sort(mine.filter((f) => f.dir === "dep")),
+    };
+  }).filter((g) => g.toFuk.length + g.fromFuk.length > 0);
 }
 
 const KHH_BASE = "https://www.kia.gov.tw/Announce/NewsArea/InstantSchedule_";

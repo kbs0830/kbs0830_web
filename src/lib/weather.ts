@@ -51,3 +51,49 @@ export function getWeather() {
     return cities;
   });
 }
+
+// ── 福岡這幾天（TODO J4「現在去福岡要穿什麼」，2026-11-24）────────────────
+export interface DayForecast {
+  date: string; // YYYY-MM-DD（日本日期）
+  max: number;
+  min: number;
+  label: string;
+}
+
+type OpenMeteoDaily = { daily?: { time?: string[]; temperature_2m_max?: number[]; temperature_2m_min?: number[]; weather_code?: number[] } };
+
+export function parseDaily(raw: OpenMeteoDaily): DayForecast[] {
+  const d = raw.daily;
+  return (d?.time ?? []).flatMap((date, i) => {
+    const max = d?.temperature_2m_max?.[i];
+    const min = d?.temperature_2m_min?.[i];
+    const code = d?.weather_code?.[i];
+    if (typeof max !== "number" || typeof min !== "number" || typeof code !== "number") return [];
+    return [{ date, max: Math.round(max), min: Math.round(min), label: weatherLabel(code) }];
+  });
+}
+
+/** 福岡今天起 4 天的最高／最低溫，3 小時抓一次 */
+export function getFukuokaForecast() {
+  const fk = WEATHER_CITIES.find((c) => c.id === "fk")!;
+  return cached("weather:fuk-daily", 3 * 3600_000, async () => {
+    const days = parseDaily(
+      await fetchJson<OpenMeteoDaily>(
+        `https://api.open-meteo.com/v1/forecast?latitude=${fk.lat}&longitude=${fk.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=Asia%2FTokyo&forecast_days=4`,
+      ),
+    );
+    if (!days.length) throw new Error("Open-Meteo 沒有福岡的每日預報");
+    return days;
+  });
+}
+
+/** 依氣溫給穿著建議（以台灣人的體感寫的，偏怕冷） */
+export function clothingAdvice(temp: number): string {
+  if (temp >= 28) return "短袖、透氣的衣服，注意防曬";
+  if (temp >= 23) return "短袖或薄長袖";
+  if (temp >= 18) return "長袖，帶一件薄外套";
+  if (temp >= 13) return "薄外套或針織衫";
+  if (temp >= 8) return "外套＋長褲，可以帶圍巾";
+  if (temp >= 3) return "厚外套（大衣或羽絨）";
+  return "羽絨衣＋保暖內衣、手套";
+}

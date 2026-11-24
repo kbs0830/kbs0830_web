@@ -20,3 +20,27 @@ test("NavBar 桌機版連結可以錨點跳轉到對應 section", async ({ page 
   await expect(page).toHaveURL(/#contact$/);
   await expect(page.locator("#contact")).toBeInViewport();
 });
+
+test.describe("手機選單（TODO F4）", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("有常用頁面；Esc、點外面、捲動都會收起", async ({ page }) => {
+    await gotoReady(page, "/");
+    const menuButton = page.getByRole("button", { name: "選單" });
+
+    await menuButton.click();
+    await expect(menuButton).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("header").getByRole("link", { name: /技術部落格/ })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    await expect(menuButton).toBeFocused();
+
+    await menuButton.click();
+    await page.mouse.click(200, 700);
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+
+    await menuButton.click();
+    await page.evaluate(() => window.scrollBy(0, 300));
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  });
+});

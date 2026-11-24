@@ -1,10 +1,11 @@
 // 頁尾的「最後更新」時間：build 時 HEAD 的 commit 時間（next.config.ts 的 env 寫死），台灣時間到分鐘。
-// Server Component、零 JS。2026-11-05 依使用者要求先拿掉版本號（commit hash），只留時間；
-// 要加回來：next.config.ts 的 env 還有 BUILD_COMMIT_SHA
+// Server Component、零 JS。2026-11-05 依使用者要求先拿掉版本號（commit hash），
+// 2026-11-24 使用者決定加回來（決策表 Q5）：時間後面接 7 碼 commit hash
 // 2026-11-21 起整段連到 /changelog（TODO B1）
 import Link from "next/link";
 
 const time = process.env.BUILD_COMMIT_TIME || "";
+const sha = (process.env.BUILD_COMMIT_SHA || "").slice(0, 7);
 
 function formatTaipei(iso: string) {
   const parts = Object.fromEntries(
@@ -28,6 +29,7 @@ export default function BuildInfo({ className = "" }: { className?: string }) {
   return (
     <Link href="/changelog" className={className} title="更新紀錄 · Changelog">
       最後更新 <time dateTime={time}>{formatTaipei(time)}</time>
+      {sha && <span className="ml-2">· {sha}</span>}
     </Link>
   );
 }

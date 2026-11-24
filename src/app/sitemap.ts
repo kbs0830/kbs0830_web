@@ -31,6 +31,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/status", "daily", 0.4),
     page("/colophon", "weekly", 0.5),
     page("/developers", "monthly", 0.4),
+    page("/tools", "monthly", 0.6),
+    ...["jpy", "taiwan-fukuoka", "fukuoka-weather", "airport-distance", "japan-tax", "ai-crawlers", "user-agent"].map((t) =>
+      page(`/tools/${t}`, "weekly", 0.6),
+    ),
     ...projects.map((p) => page(`/projects/${p.slug}`, "monthly", 0.7)),
     ...getAllPosts().map((post) => page(`/blog/${post.slug}`, "monthly", 0.6, new Date(post.date))),
     // tag 頁 noindex（2026-11-12，見 app/blog/tags/[tag]/page.tsx），不列

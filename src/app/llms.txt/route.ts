@@ -41,6 +41,7 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 - [維運狀態](${SITE_URL}/status)：可用率、部署紀錄、事故報告
 - [本站構造](${SITE_URL}/colophon)：這個自架網站的架構
 - [更新紀錄](${SITE_URL}/changelog)
+- [小工具](${SITE_URL}/tools)：日幣換匯比價、台灣⇄福岡直飛、福岡穿搭、機場距離、日本消費稅、AI 爬蟲檢查、User-Agent 判斷
 
 ## API 與 MCP
 

@@ -5,6 +5,11 @@ import { SITE_GROUPS } from "@/lib/site-map";
 
 const small = "text-xs text-(--muted) font-light font-mono";
 
+// 版權年份（TODO F10）：網站 2026 年開站；之後用 build 時那個 commit 的年份，明年自動變「2026–2027」
+const FIRST_YEAR = 2026;
+const buildYear = new Date(process.env.BUILD_COMMIT_TIME || Date.now()).getFullYear();
+const years = buildYear > FIRST_YEAR ? `${FIRST_YEAR}–${buildYear}` : String(FIRST_YEAR);
+
 // 全站頁尾（2026-11-23）：上面是頁面索引（lib/site-map.ts），下面一行版權＋最後更新。
 // 首頁跟每個 PageShell 頁都有——之前子頁面只有「← 返回首頁」，/now、/uses、/travel 這些頁沒有站內入口。
 // width：首頁對齊 max-w-5xl，子頁對齊 PageShell 的 max-w-2xl。extra：首頁的時鐘／人數／訪客國家（子頁不放，少打幾支 API）。
@@ -31,7 +36,7 @@ export default function SiteFooter({ width = "max-w-2xl", extra, className = "" 
       {/* 右下角固定的 BackToTop 按鈕（只有首頁有，跟 extra 一起）會壓到最後一行——寬螢幕時在欄位外面，xl 以下右側多留按鈕的寬度 */}
       <div className={`${width} mx-auto pl-6 ${extra ? "pr-20 xl:pr-6" : "pr-6"} pb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2`}>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p className={`${small} tracking-[0.2em]`}>© 2026 PINGWEI LI</p>
+          <p className={`${small} tracking-[0.2em]`}>© {years} PINGWEI LI</p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
         </div>
         {extra && <div className="flex flex-wrap items-center gap-x-4 gap-y-1">{extra}</div>}

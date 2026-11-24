@@ -5,6 +5,24 @@
 
 ---
 
+### 2026-11-24 決策表「先做」第一批：頁首頁尾小修＋7 個小工具（/tools）
+- [x] **F1** 子頁面（PageShell）右上加深色模式切換（`ThemeToggle` 從 NavBar 抽成共用元件）
+- [x] **F4** 手機選單：多一組常用頁（部落格、履歷、旅行）；Esc、點外面、捲動超過 40px 自動收起，打開時焦點移進選單
+- [x] **F10** 版權年份用 build 那個 commit 的年份算，明年自動變「2026–2027」
+- [x] **Q5** 頁尾「最後更新」後面加回 7 碼 commit hash（第一版加了 `opacity-70`，a11y 對比不足 34 頁全掛，拿掉）
+- [x] **I8** 系列文最後接「系列下一篇」卡片；每篇文章最後一行 RSS 訂閱（上一篇／下一篇、相關文章本來就有）
+- [x] **J 系列 7 個工具**＋`/tools` 總覽（頁尾「本站」多一個「小工具」入口，完整清單在 Ctrl+K）：
+  → J1 `/tools/jpy` 日幣換匯比價（台銀、玉山；換一筆台幣各家差多少；現在的市場價比近 90 天幾 % 的日子便宜）
+  → J2 `/tools/taiwan-fukuoka` 台灣 ⇄ 福岡直飛（使用者改成台灣各機場）：從福岡空港看板篩出 TPE／KHH／RMQ／TSA／TNN，不用另外接桃園機場；上線當天 13 班
+  → J4 `/tools/fukuoka-weather` 福岡穿搭：福岡 vs 高雄溫差＋4 天預報＋穿著建議（Open-Meteo daily，3 小時快取）
+  → J5 `/tools/airport-distance` 機場距離：OurAirports 公共領域資料精簡成 3,245 個有定期航班的機場（`public/data/airports.json`，92 KB gzip，只有這頁載入）
+  → J6 `/tools/japan-tax` 日本消費稅：税抜／税込、10%／8%，順便用今天的匯率換台幣
+  → J12 `/tools/ai-crawlers` AI 爬蟲檢查：伺服器去讀對方 robots.txt（RFC 9309 解析）＋看有沒有 llms.txt。防 SSRF：`lib/safe-fetch.ts`
+    只收一般網域、連線那一刻檢查 DNS 解出來的 IP（擋內網、保留位址，rebinding 也繞不過）、轉址每一跳重查、逾時／大小上限；每 IP 10 分鐘 15 次、全站每小時 300 次
+  → J13 `/tools/user-agent`：UA 分類規則從 `raw-traffic.js` 拆成不碰檔案的 `scripts/lib/bot-patterns.js`，瀏覽器直接用同一套
+  → 輸入一律放網址參數（可以分享結果），能在瀏覽器算的都在瀏覽器算；每頁最下面連回對應的作品／頁面
+- [x] 測試：單元 `robots.test.ts`（robots 解析、私有 IP、網域正規化）；E2E `tools.spec.ts`、手機選單、子頁面切主題。3200 實測 E2E 110 個、單元 167 個全過；截圖看過淺色／深色、桌機／手機
+
 ### 2026-11-23 頁面瀏覽方便程度：全站頁尾索引、Ctrl+K 快速跳轉
 - [x] 每一頁（首頁＋18 個子頁、404）最下面都有頁面索引（文章／旅／本站三組 14 頁）；之前子頁面只有「← 返回首頁」，/now、/uses、/travel、/hotels、/airports、/colophon 沒有站內入口
 - [x] Ctrl+K／⌘K 快速跳轉：搜尋頁面、首頁區塊、作品、文章（標題、英文名、tag），↑↓＋Enter；手機點 NavBar 放大鏡，子頁面右上「搜尋」

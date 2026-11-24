@@ -32,6 +32,28 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - **TerminalMode**：按 `` ` `` 叫出偽終端機，支援 `help` / `ls projects` / `cat about.txt` /
   `ssh kbs0830@kbs0830.com` 等指令
 - **Print 樣式**：`@media print` 隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
+- **2026-11-24 頁首頁尾小修（決策表 F1／F4／F10／Q5／I8）**：
+  - `ThemeToggle`（`components/ui/ThemeToggle.tsx`）從 NavBar 抽出來，PageShell 右上「搜尋」旁也有一顆——之前子頁面沒辦法切主題
+  - 手機選單（NavBar 抽屜）：錨點下面多一組常用頁（`pages`：部落格、履歷、旅行）；打開時焦點移到第一個連結；Esc（焦點回漢堡鈕）、
+    點 header 以外、捲動超過 40px 都會收起。E2E `navbar.spec.ts`「手機選單」
+  - 頁尾 `© 2026–{年}`：年份用 `BUILD_COMMIT_TIME`（不是 build 當下的時鐘）；`BuildInfo` 時間後面加回 7 碼 hash（**不要加 opacity**，a11y 對比會掛）
+  - 系列文最後有「系列下一篇」卡片＋每篇最後一行 RSS 訂閱
+  - ⚠️ E2E：子頁面沒有 `data-hydrated`，互動測試不能用 `gotoReady`，要 `toPass` 重試（見 `theme.spec.ts`、`tools.spec.ts`）
+
+### /tools 小工具（2026-11-24，決策表 J 系列）
+- 清單在 `lib/site-map.ts` 的 `TOOL_PAGES`（`/tools` 總覽、Ctrl+K 都讀這份）；頁尾只放一個「小工具」入口（7 個放進頁尾會擠成兩行，試過）
+- 共同規則：能在瀏覽器算的在瀏覽器算；輸入放網址參數（`useSearchParams`，頁面要包 `<Suspense>`）可以分享結果；不存訪客輸入；
+  每頁最下面 `ToolNote`（資料來源＋連回對應作品／頁面）。新增工具：加進 `TOOL_PAGES`＋`sitemap.ts`＋`llms.txt` 那行
+- `/tools/jpy`：`JpyExchange` 讀既有的 `/api/jpy-rate`，走勢圖共用 `JpyRateLive` 匯出的 `Trend`
+- `/tools/taiwan-fukuoka`：`taiwanFuk()`（`lib/airport-board.ts`）從福岡看板篩台灣機場（`TW_AIRPORTS`），時間都是福岡時間；force-dynamic＋AutoRefresh
+- `/tools/fukuoka-weather`：`getFukuokaForecast()`／`clothingAdvice()`（`lib/weather.ts`），force-dynamic
+- `/tools/airport-distance`：`public/data/airports.json`＝OurAirports（公共領域）精簡版，大中型＋有定期航班＋有 IATA，3,245 個，
+  只有這頁會下載；我飛過的機場用 `lib/flights.ts` 的中文名。要更新資料：重抓 ourairports-data 的 airports.csv／countries.csv 照同樣條件篩
+- `/tools/japan-tax`：`splitTax()`，稅額小數捨去
+- `/tools/ai-crawlers`：`/api/tools/robots?domain=`。robots 解析在 `lib/robots.ts`（RFC 9309），**抓外部網址一律用 `lib/safe-fetch.ts`**
+  （只收網域、連線時檢查解析出來的 IP、轉址每跳重查、逾時／大小上限）；每 IP 10 分鐘 15 次、全站每小時 300 次、同網域快取 10 分鐘。
+  單元測試 `lib/robots.test.ts` 有私有 IP／網域正規化的案例，改 safe-fetch 要一起跑
+- `/tools/user-agent`：分類規則在 `scripts/lib/bot-patterns.js`（不碰 fs，client 可以 import；`raw-traffic.js` 也用它）
 
 ### 1. Hero
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；

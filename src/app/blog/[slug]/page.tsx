@@ -142,6 +142,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { older, newer } = getAdjacentPosts(post.slug);
   const related = getRelatedPosts(post);
   const series = post.series ? getSeriesPosts(post.series) : [];
+  const seriesNext = series[series.findIndex((p) => p.slug === post.slug) + 1];
   const headings = getHeadings(post.content);
 
   return (
@@ -215,10 +216,32 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </p>
       )}
 
+      {/* 讀完的下一步（TODO I8）：系列文直接接下一篇；最後一行 RSS 訂閱 */}
+      {seriesNext && (
+        <Link
+          href={`/blog/${seriesNext.slug}`}
+          className="group mt-14 block border border-(--border) rounded-sm bg-(--surface) px-5 py-4 hover:border-(--accent) transition-colors"
+        >
+          <span className="block text-xs text-(--accent) font-mono tracking-wide mb-1">
+            系列「{post.series}」下一篇 →
+          </span>
+          <span className="text-[15px] sm:text-sm font-light text-(--text) group-hover:text-(--accent) transition-colors leading-relaxed">
+            {seriesNext.title}
+          </span>
+        </Link>
+      )}
+
       <nav aria-label="上一篇／下一篇" className="grid sm:grid-cols-2 gap-4 mt-16 pt-8 border-t border-(--border)">
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
+
+      <p className="mt-10 text-xs text-(--muted) font-mono tracking-wide">
+        想收到新文章？{" "}
+        <a href="/feed.xml" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+          RSS 訂閱 · Feed
+        </a>
+      </p>
 
       <Comments slug={post.slug} />
 

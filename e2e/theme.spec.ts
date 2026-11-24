@@ -20,3 +20,17 @@ test("暗色模式切換：切換 html[data-theme] 並寫入 localStorage", asyn
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", nextTheme);
 });
+
+test("子頁面（PageShell）右上也能切換主題（TODO F1）", async ({ page }) => {
+  // 子頁面沒有 data-hydrated 標記（只有首頁的 KeyboardShortcuts 會加），不能用 gotoReady：
+  // 點到 hydration 完成、主題真的換掉為止
+  await page.goto("/blog");
+  const initialTheme = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+  const expected = initialTheme === "dark" ? "light" : "dark";
+  await expect(async () => {
+    if ((await page.locator("html").getAttribute("data-theme")) !== expected) {
+      await page.getByRole("button", { name: "切換亮色／暗色模式" }).click();
+    }
+    await expect(page.locator("html")).toHaveAttribute("data-theme", expected, { timeout: 500 });
+  }).toPass();
+});
