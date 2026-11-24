@@ -15,7 +15,7 @@ param([int]$IfOlderThanDays = 0)
 
 $repo = Split-Path -Parent $PSScriptRoot
 $userHome = if ($env:USERPROFILE) { $env:USERPROFILE } else { "C:\Users\$env:USERNAME" }
-$backupRoot = "D:\02_備份封存\專案\kbs0830"
+$backupRoot = "D:\04_專案與工作\02_kbs0830"
 $githubDir = Join-Path $backupRoot "github"
 $stampFile = Join-Path $backupRoot "last-restore-drill.txt"
 $keyFile = Join-Path $userHome ".kbs0830-backup-key"
