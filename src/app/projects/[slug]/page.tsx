@@ -10,7 +10,6 @@ import ArchitectureDiagram from "@/components/ui/ArchitectureDiagram";
 import JpyRateLive from "@/components/ui/JpyRateLive";
 import AirQualityLive from "@/components/ui/AirQualityLive";
 import { GitHubIcon } from "@/components/ui/icons";
-import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -60,18 +59,19 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         }}
       />
 
-      <div className="flex items-center gap-2 mt-10 mb-4 flex-wrap">
-        <Eyebrow>{project.titleJa}</Eyebrow>
-        <StatusBadge status={project.status} />
-      </div>
-
-      {/* 跟 PortfolioSection 作品卡片的 <h3> 同名，從卡片點進來時標題會 morph 過來 */}
+      {/* 跟 PortfolioSection 作品卡片的 <h3> 同名，從卡片點進來時標題會 morph 過來。
+          順序：中文大字 → 英文 → 日文（2026-11-24，跟作品卡片一致） */}
       <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
-        <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-2 font-serif">
+        <h1 className="mt-10 text-3xl sm:text-4xl font-light text-(--text) mb-3 font-serif">
           {project.titleZh}
         </h1>
       </ViewTransition>
-      <p className="text-sm font-light text-(--muted) mb-8">{project.title}</p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-8 text-sm font-light text-(--muted)">
+        <span>{project.title}</span>
+        <span aria-hidden>·</span>
+        <span className="text-xs tracking-[0.2em] font-mono">{project.titleJa}</span>
+        <StatusBadge status={project.status} />
+      </div>
 
       {(project.github || project.live) && (
         <div className="mb-8 flex flex-wrap gap-x-6 gap-y-3">

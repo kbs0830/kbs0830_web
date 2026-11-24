@@ -64,19 +64,25 @@ function ProjectCard({
           {/* Header */}
           <div className="flex items-start justify-between mb-2 sm:mb-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <p className="text-xs tracking-[0.25em] text-(--muted) font-mono">
-                  {project.titleJa}
-                </p>
-                <StatusBadge status={project.status} />
-              </div>
+              {/* 標題順序（2026-11-24 使用者：「一行中文一行日文有點浪費，應該中文大字、英文備註、最後才是日文」）：
+                  中文大字一行，英文跟日文併成下面一行小字＋狀態 */}
               {/* 跟 /projects/[slug] 的 <h1> 同名，點進詳細頁時標題會 morph 過去 */}
-              <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
-                <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
-                  {project.titleZh}
-                </h3>
-              </ViewTransition>
-              <p className="hidden sm:block text-xs text-(--muted) font-light mt-0.5">{project.title}</p>
+              <div className="flex items-start gap-2">
+                <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
+                  <h3 className="text-base sm:text-lg font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
+                    {project.titleZh}
+                  </h3>
+                </ViewTransition>
+                <span className="shrink-0 mt-0.5 sm:mt-1">
+                  <StatusBadge status={project.status} />
+                </span>
+              </div>
+              {/* 英文 · 日文固定一行：太長就截掉日文的尾巴（日文本來就排最後），不會再多換一行 */}
+              <p className="mt-1 flex items-baseline gap-x-2 text-xs text-(--muted) font-light whitespace-nowrap overflow-hidden">
+                <span className="shrink-0">{project.title}</span>
+                <span aria-hidden className="shrink-0">·</span>
+                <span className="tracking-[0.15em] font-mono truncate min-w-0">{project.titleJa}</span>
+              </p>
             </div>
             {project.github && (
               <a

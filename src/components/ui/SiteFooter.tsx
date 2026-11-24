@@ -10,20 +10,40 @@ const FIRST_YEAR = 2026;
 const buildYear = new Date(process.env.BUILD_COMMIT_TIME || Date.now()).getFullYear();
 const years = buildYear > FIRST_YEAR ? `${FIRST_YEAR}–${buildYear}` : String(FIRST_YEAR);
 
-// 全站頁尾（2026-11-23）：上面是頁面索引（lib/site-map.ts），下面一行版權＋最後更新。
-// 首頁跟每個 PageShell 頁都有——之前子頁面只有「← 返回首頁」，/now、/uses、/travel 這些頁沒有站內入口。
-// width：首頁對齊 max-w-5xl，子頁對齊 PageShell 的 max-w-2xl。extra：首頁的時鐘／人數／訪客國家（子頁不放，少打幾支 API）。
-export default function SiteFooter({ width = "max-w-2xl", extra, className = "" }: { width?: string; extra?: ReactNode; className?: string }) {
+// 全站頁尾（2026-11-23）：上面是頁面索引（lib/site-map.ts），下面是版權＋最後更新（首頁多一塊即時資訊 extra）。
+//
+// 2026-11-24 手機重新設計（使用者：「頁尾排版要再想想，手機版 UI 設計很重要」）：
+//   - 頁面索引：手機每組「小標＋連結橫排自動換行」，不再一個連結一行（之前本站一組 6 行、整個索引快 500px）；
+//     連結上下留白讓點擊高度約 40px。640px 以上維持三欄直排
+//   - 首頁即時資訊（時鐘／人數／造訪／Cloudflare）在手機自成一塊、放在版權上面，每一項各自一行，不擠成一團
+//   - 版權＋最後更新永遠在最底下
+// inset：首頁的區塊是「max-w-5xl 裡面 px-6」，子頁面（PageShell）是「外層 px-6、裡面 max-w-2xl」——
+//   頁尾照各自的頁面走，左緣才會跟內文對齊（之前子頁面一律用首頁那種，頁尾比內文多縮 24px，TODO F3）
+export default function SiteFooter({
+  width = "max-w-2xl",
+  inset = "outer",
+  extra,
+  className = "",
+}: {
+  width?: string;
+  inset?: "inner" | "outer";
+  extra?: ReactNode;
+  className?: string;
+}) {
+  const box = inset === "inner" ? `${width} mx-auto px-6` : `${width} mx-auto`;
   return (
-    <footer className={`border-t border-(--border) print:hidden ${className}`}>
-      <nav aria-label="網站頁面" className={`${width} mx-auto px-6 pt-12 pb-8 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-10`}>
+    <footer className={`border-t border-(--border) print:hidden ${inset === "outer" ? "px-6" : ""} ${className}`}>
+      <nav aria-label="網站頁面" className={`${box} pt-10 pb-6 sm:pt-12 sm:pb-8 grid gap-y-6 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10`}>
         {SITE_GROUPS.map((g) => (
           <div key={g.label}>
-            <p className="mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">{g.label}</p>
-            <ul className="space-y-1">
+            <p className="mb-1 sm:mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">{g.label}</p>
+            <ul className="flex flex-wrap gap-x-5 sm:block sm:space-y-1">
               {g.pages.map((p) => (
                 <li key={p.href}>
-                  <Link href={p.href} className="group inline-flex items-baseline gap-2 py-1 text-sm font-light text-(--text) hover:text-(--accent) transition-colors">
+                  <Link
+                    href={p.href}
+                    className="group inline-flex items-baseline gap-2 py-2.5 sm:py-1 text-[15px] sm:text-sm font-light text-(--text) hover:text-(--accent) transition-colors"
+                  >
                     {p.zh}
                     <span className="hidden sm:inline text-[10px] tracking-wider text-(--muted) group-hover:text-(--accent) font-mono transition-colors">{p.en}</span>
                   </Link>
@@ -33,13 +53,17 @@ export default function SiteFooter({ width = "max-w-2xl", extra, className = "" 
           </div>
         ))}
       </nav>
-      {/* 右下角固定的 ↑／↓ 按鈕（首頁跟子頁面都有）會壓到最後一行——寬螢幕時在欄位外面，xl 以下右側多留按鈕的寬度 */}
-      <div className={`${width} mx-auto pl-6 pr-20 xl:pr-6 pb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2`}>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {/* 右下角固定的 ↑／↓ 按鈕會壓到最後幾行——xl 以下右側多留按鈕的寬度，寬螢幕時按鈕在欄位外面 */}
+      <div className={`${box} ${inset === "inner" ? "pr-20 xl:pr-6" : "pr-14 xl:pr-0"} pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
+        {extra && (
+          <div className="flex flex-col gap-1.5 pb-4 mb-2 border-b border-(--border) sm:order-last sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
+            {extra}
+          </div>
+        )}
+        <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
           <p className={`${small} tracking-[0.2em]`}>© {years} PINGWEI LI</p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
         </div>
-        {extra && <div className="flex flex-wrap items-center gap-x-4 gap-y-1">{extra}</div>}
       </div>
     </footer>
   );

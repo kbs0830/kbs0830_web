@@ -50,7 +50,14 @@ export default function LocalClock() {
 
   return (
     <p className="text-xs text-(--muted) font-light tracking-[0.15em] font-mono">
-      {times ? `高雄 ${times.kh}${w("kh")} ・ 福岡 ${times.fk}${w("fk")}` : "高雄 · 福岡"}
+      {/* 每個城市整組不拆行，窄螢幕只在兩個城市之間換行（之前「多雲 10°」會被拆成兩行） */}
+      {times ? (
+        <>
+          <span className="whitespace-nowrap">高雄 {times.kh}{w("kh")}</span> ・ <span className="whitespace-nowrap">福岡 {times.fk}{w("fk")}</span>
+        </>
+      ) : (
+        "高雄 · 福岡"
+      )}
     </p>
   );
 }

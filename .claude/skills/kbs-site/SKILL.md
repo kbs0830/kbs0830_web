@@ -40,6 +40,12 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   - 系列文最後有「系列下一篇」卡片＋每篇最後一行 RSS 訂閱
   - ⚠️ E2E：子頁面沒有 `data-hydrated`，互動測試不能用 `gotoReady`，要 `toPass` 重試（見 `theme.spec.ts`、`tools.spec.ts`）
 
+- **2026-11-24 手機版規則（使用者很在意手機）**：
+  - 作品標題一律「中文大字 → 英文 → 日文」（使用者：「一行中文一行日文有點浪費」），英日併一行小字、不換行；卡片手機版是「80px 縮圖＋標題＋兩行說明＋前 3 個 tag」
+  - 頁尾手機是「每組小標＋連結橫排換行」；`SiteFooter inset`：首頁 `inner`（區塊是 max-w 裡面 px-6）、PageShell 預設 `outer`——對齊靠這個，不要再改回同一種
+  - 右下角 `BackToTop` 有 ↑ 跟手機才有的 ↓（到頁尾），首頁跟 PageShell 都掛
+  - 改手機版要實際量高度（390×844，`scrollHeight / innerHeight`）跟截圖；首頁 2026-11-24 從 14.6 → 9.2 個螢幕
+
 ### /tools 小工具（2026-11-24，決策表 J 系列）
 - 清單在 `lib/site-map.ts` 的 `TOOL_PAGES`（`/tools` 總覽、Ctrl+K 都讀這份）；頁尾只放一個「小工具」入口（7 個放進頁尾會擠成兩行，試過）
 - 共同規則：能在瀏覽器算的在瀏覽器算；輸入放網址參數（`useSearchParams`，頁面要包 `<Suspense>`）可以分享結果；不存訪客輸入；

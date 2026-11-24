@@ -34,6 +34,7 @@ export default function Home() {
       </main>
       <SiteFooter
         width="max-w-5xl"
+        inset="inner"
         extra={
           <>
             <LocalClock />
