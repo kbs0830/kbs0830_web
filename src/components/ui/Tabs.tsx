@@ -96,14 +96,19 @@ export default function Tabs({ items, label }: { items: TabItem[]; label: string
                 selected ? "text-(--accent)" : "text-(--muted) hover:text-(--text)"
               }`}
             >
-              {/* 中文大字、英文小字（2026-11-24 使用者的語言順序）；手機只顯示中文，四個分頁一次放得下
-                  （之前英文在上、手機會超出畫面切掉「FOOTPRINT」）。英文用 sr-only 留在可及名稱裡 */}
+              {/* 手機（2026-11-24）：只顯示中文，四個分頁一次放得下（英文在上的版本會超出畫面、切掉「FOOTPRINT」），
+                  英文用 sr-only 留在可及名稱裡。桌機維持原本「英文大寫在上、中文在下」（使用者：桌機不用改） */}
               <span data-tab-label className="inline-block">
-                <span className="flex items-start gap-1 text-sm font-light">
+                <span className="sm:hidden flex items-start gap-1 text-sm font-light">
                   {t.label}
                   {t.count !== undefined && <span className="text-[9px] font-mono">{t.count}</span>}
                 </span>
-                <span className="sr-only sm:not-sr-only sm:block text-[10px] tracking-[0.2em] uppercase font-mono mt-0.5">{t.labelEn}</span>
+                <span className="sm:hidden sr-only">{t.labelEn}</span>
+                <span className="hidden sm:flex items-start gap-1 text-xs tracking-[0.2em] uppercase font-mono">
+                  {t.labelEn}
+                  {t.count !== undefined && <span className="text-[9px] tracking-normal">{t.count}</span>}
+                </span>
+                <span className="hidden sm:block text-[11px] font-light mt-0.5">{t.label}</span>
               </span>
             </button>
           );

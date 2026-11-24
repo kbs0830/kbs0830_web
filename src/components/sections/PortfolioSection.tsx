@@ -33,12 +33,14 @@ function ProjectCard({
   index: number;
 }) {
   // 淡入（Reveal 的 translate）跟 hover 上浮（卡片本身的 translate）分在兩層，互不覆蓋
+  // min-w-0（Reveal、卡片兩層都要）：讓卡片能縮到螢幕寬，裡面不換行的「英文 · 日文」才會截斷，
+  // 不然整頁被撐得比手機螢幕寬（2026-11-24 在 360px 實測 401px，頂端導覽列跟著變寬、選單按鈕被擠出畫面）
   // 2026-11-24 手機精簡版（使用者：「手機每次要滑到最底下都很久」，首頁 14.6 個螢幕、作品集一區就 9 個）：
   // 640px 以下改成「左邊小縮圖＋右邊標題、兩行說明、前 3 個 tag」，英文說明、成果、「查看詳情」只在 sm 以上顯示。
   // 整張卡片本來就是連結，點了進詳細頁看完整內容
   return (
-    <Reveal distance={28} delay={index * 0.1} margin={60} className="flex">
-      <div className="group relative flex-1 border border-(--border) bg-(--bg) rounded-sm p-4 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <Reveal distance={28} delay={index * 0.1} margin={60} className="flex min-w-0">
+      <div className="group relative flex-1 min-w-0 border border-(--border) bg-(--bg) rounded-sm p-4 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
         <Link
           href={`/projects/${project.slug}`}
           className="absolute inset-0 z-0 rounded-sm"
@@ -64,27 +66,31 @@ function ProjectCard({
           {/* Header */}
           <div className="flex items-start justify-between mb-2 sm:mb-4">
             <div className="flex-1 min-w-0">
-              {/* 標題順序（2026-11-24 使用者：「一行中文一行日文有點浪費，應該中文大字、英文備註、最後才是日文」）：
-                  中文大字一行，英文跟日文併成下面一行小字＋狀態 */}
+              {/* 桌機：原本的「日文小字＋狀態 → 中文標題 → 英文」（使用者：桌機不用改） */}
+              <div className="hidden sm:flex items-center gap-2 mb-1 flex-wrap">
+                <p className="text-xs tracking-[0.25em] text-(--muted) font-mono">{project.titleJa}</p>
+                <StatusBadge status={project.status} />
+              </div>
               {/* 跟 /projects/[slug] 的 <h1> 同名，點進詳細頁時標題會 morph 過去 */}
               <div className="flex items-start gap-2">
                 <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
-                  <h3 className="text-base sm:text-lg font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
+                  <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
                     {project.titleZh}
                   </h3>
                 </ViewTransition>
-                {/* 課程專題那一區的標題已經寫了，卡片上不再重複「課程専題」標籤（手機上會把標題擠成兩行） */}
+                {/* 手機：狀態跟中文標題同一行；課程專題那一區的標題已經寫了，不再重複「課程専題」（會把標題擠成兩行） */}
                 {project.status !== "課程専題" && (
-                  <span className="shrink-0 mt-0.5 sm:mt-1">
+                  <span className="sm:hidden shrink-0 mt-0.5">
                     <StatusBadge status={project.status} />
                   </span>
                 )}
               </div>
-              {/* 英文 · 日文固定一行：太長就截掉日文的尾巴（日文本來就排最後），不會再多換一行 */}
-              <p className="mt-1 flex items-baseline gap-x-2 text-xs text-(--muted) font-light whitespace-nowrap overflow-hidden">
-                <span className="shrink-0">{project.title}</span>
+              <p className="hidden sm:block text-xs text-(--muted) font-light mt-0.5">{project.title}</p>
+              {/* 手機（使用者：「中文大字、英文備註、最後才是日文」）：英文 · 日文併一行、不換行，放不下就截斷（日文先截） */}
+              <p className="sm:hidden mt-1 flex items-baseline gap-x-2 text-xs text-(--muted) font-light whitespace-nowrap overflow-hidden">
+                <span className="truncate min-w-0">{project.title}</span>
                 <span aria-hidden className="shrink-0">·</span>
-                <span className="tracking-[0.15em] font-mono truncate min-w-0">{project.titleJa}</span>
+                <span className="tracking-[0.15em] font-mono truncate min-w-0 shrink-[2]">{project.titleJa}</span>
               </p>
             </div>
             {project.github && (
@@ -133,10 +139,10 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      {/* 中文在前（2026-11-24）；手機只放中文，英文太長會把「· 課程専題」擠到第二行 */}
-      <p className="text-xs tracking-[0.18em] text-(--accent) font-mono">
+      {/* 手機只放中文（英文太長會把「· 課程専題」擠到第二行）；桌機維持原本「英文 · 中文」 */}
+      <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
+        <span className="hidden sm:inline">{label} &nbsp;·&nbsp; </span>
         <span className="whitespace-nowrap">{labelZh}</span>
-        <span className="hidden sm:inline uppercase tracking-[0.3em]"> &nbsp;·&nbsp; {label}</span>
       </p>
     </Reveal>
   );
@@ -145,18 +151,20 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
 const toItems = (list: typeof projects) =>
   list.map((p, i) => ({ slug: p.slug, tags: p.tags, card: <ProjectCard project={p} index={i} /> }));
 
+// grid-cols-1 要明確寫：沒寫的話手機那一欄是 auto，會被卡片裡不換行的「英文 · 日文」撐寬，
+// 整頁變得比螢幕寬（2026-11-24 在 360px 實測 401px，固定在頂端的導覽列跟著變寬、選單按鈕被擠出畫面）
 const groups: FilterGroup[] = [
   {
     key: "personal",
     className: "mb-10 md:mb-16",
-    gridClassName: "grid md:grid-cols-2 gap-3 sm:gap-5",
+    gridClassName: "grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5",
     label: <SectionLabel label="Personal Projects" labelZh="個人専案" />,
     items: toItems(personalProjects),
   },
   {
     key: "course",
     className: "",
-    gridClassName: "grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5",
+    gridClassName: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5",
     label: <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />,
     items: toItems(courseProjects),
     mobileLimit: 2,
@@ -165,7 +173,7 @@ const groups: FilterGroup[] = [
 
 export default function PortfolioSection() {
   return (
-    <section id="portfolio" className="pt-20 pb-12 md:py-32">
+    <section id="portfolio" className="pt-20 pb-12 sm:pb-20 md:py-32">
       {/* 手機底部留白縮小：下面「最新文章」自己有一條分隔線＋上方留白，兩個加起來之前快 130px */}
       <div className="max-w-5xl mx-auto px-6">
 

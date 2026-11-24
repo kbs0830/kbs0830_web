@@ -12,8 +12,10 @@ const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProper
 const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
 
 // 2026-11-24 手機版封面（使用者：「封面專門為手機版改良，畢竟第一印象」）——640px 以下才套用，桌機不動：
-//   - 名字放大成兩行（PINGWEI / LI）：h1 必須維持單一 text node（HeroNameScramble），所以不插 <br>，
-//     用 w-min（寬度＝最長的字）讓它在空格自然換行
+//   - 名字一行、字級跟著螢幕寬度（14vw，最大 4rem）：剛好撐滿版面寬度又不換行
+//     （同一天先做過「PINGWEI / LI」兩行，使用者不喜歡斷行）
+//   - 名字下面一行片假名讀音「リー ビンウェイ」（使用者要的；不是漢字本名，不違反「頁面不顯示中文本名」）
+//   ⚠️ 使用者：「桌機版不用改，只要手機版特調」——這裡的改動全部只在 640px 以下，sm: 以上維持原樣
 //   - 文字區塊在導覽列跟按鈕之間垂直置中；按鈕移到螢幕下方（拇指好按），兩顆並排的實心按鈕
 //   - 手機不放「SCROLL」提示：底部的按鈕就是下一步
 export default function HeroSection() {
@@ -32,11 +34,16 @@ export default function HeroSection() {
         {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次（HeroNameScramble）。不在載入時播——這是 LCP 元素 */}
         <h1
           data-scramble="hover"
-          className="enter-up w-min sm:w-auto text-[64px] leading-[1] sm:text-6xl sm:leading-[1.1] lg:text-7xl font-light tracking-[0.04em] text-(--text) mb-5 sm:mb-4"
+          className="enter-up whitespace-nowrap text-[min(14vw,4rem)] leading-[1.05] sm:text-6xl sm:leading-[1.1] lg:text-7xl font-light tracking-[0.04em] text-(--text) mb-3 sm:mb-4"
           style={enter(0.25)}
         >
           PINGWEI LI
         </h1>
+
+        {/* 片假名讀音：裝飾性的小字（2026-11-24 使用者要的）。lang="ja" 讓日文字型、讀音正確 */}
+        <p lang="ja" className="enter-up sm:hidden text-xs tracking-[0.5em] text-(--muted) font-mono mb-6" style={enter(0.3)}>
+          リー ビンウェイ
+        </p>
 
         <p
           className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-6 sm:mb-8 min-h-[1.5em] font-mono"

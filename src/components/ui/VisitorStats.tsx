@@ -52,7 +52,7 @@ export default function VisitorStats() {
         // 每一段 whitespace-nowrap：窄螢幕只在「·」之間換行，不會把「2,940 訪客」拆開（2026-11-09：
         // 曾經為了這個在手機整行隱藏，使用者以為 Cloudflare 資料不見了——改成手機顯示精簡版）
         <p
-          className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap"
+          className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.1em] font-mono whitespace-nowrap"
           title={
             `${cf.since} 起累計：訪客 ${n(cf.total.uniques)} · 頁面瀏覽 ${n(cf.total.pageViews)} · 請求 ${n(cf.total.requests)}` +
             "\n訪客＝每天不重複 IP 加總（含機器人），每小時更新"

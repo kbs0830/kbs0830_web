@@ -52,6 +52,7 @@ export default function LocalClock() {
     // 兩個城市各自一列（頁尾外框在手機直排、桌機橫排），不再用「・」接在同一行——窄螢幕會懸在行尾
     <>
       <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap">高雄 {times ? `${times.kh}${w("kh")}` : ""}</p>
+      <p aria-hidden className="hidden sm:block text-xs text-(--muted) font-light tracking-[0.15em] font-mono">・</p>
       <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap">福岡 {times ? `${times.fk}${w("fk")}` : ""}</p>
     </>
   );

@@ -61,8 +61,8 @@ export default function PageShell({
         </main>
       </div>
       <SiteFooter />
-      {/* 2026-11-24：子頁面也有右下角 ↑／↓（文章在手機上 6 個螢幕以上） */}
-      <div className="print:hidden">
+      {/* 2026-11-24：子頁面在手機上也有右下角 ↑（桌機維持原樣，不加） */}
+      <div className="print:hidden sm:hidden">
         <BackToTop />
       </div>
     </>

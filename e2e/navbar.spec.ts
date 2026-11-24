@@ -81,3 +81,14 @@ test.describe("手機版：重點顯示、其他收進右上角選單（2026-11-
     await expect(page).toHaveURL(/\/flights$/);
   });
 });
+
+test.describe("手機版不能比螢幕寬（2026-11-24：360px 實測被撐到 401px，選單按鈕被擠出畫面）", () => {
+  test.use({ viewport: { width: 360, height: 640 } });
+  for (const path of ["/", "/blog/task-scheduler-72-hours", "/projects/foodlens-advisor", "/tools/ai-crawlers", "/flights"]) {
+    test(`${path} 沒有左右捲動`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+    });
+  }
+});

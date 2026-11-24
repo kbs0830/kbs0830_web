@@ -93,7 +93,7 @@ const mdxComponents = {
   ),
   code: (props: React.ComponentPropsWithoutRef<"code">) => (
     <code
-      className="text-[13px] px-1.5 py-0.5 rounded-sm bg-(--surface) border border-(--border) font-mono"
+      className="text-[13px] px-1.5 py-0.5 rounded-sm bg-(--surface) border border-(--border) font-mono [overflow-wrap:anywhere]"
       {...props}
     />
   ),
@@ -231,7 +231,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </Link>
       )}
 
-      <nav aria-label="上一篇／下一篇" className={`grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10" : "mt-16"} pt-8 border-t border-(--border)`}>
+      <nav aria-label="上一篇／下一篇" className={`grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10 sm:mt-16" : "mt-16"} pt-8 border-t border-(--border)`}>
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
