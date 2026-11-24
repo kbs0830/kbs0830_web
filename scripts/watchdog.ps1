@@ -224,8 +224,10 @@ if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
 # --- 開機通知（決策表 C2：重開機後寄一封「停了多久、怎麼停的」，同一次開機只寄一次）---
 try { & (Join-Path $PSScriptRoot "boot-notice.ps1") | Out-Null } catch { Log "[WARN] boot-notice.ps1 失敗：$($_.Exception.Message)" }
 
-# --- 每週流量週報（週一 09:00 後寄一封，這週寄過就跳過）---
-try { & (Join-Path $PSScriptRoot "weekly-report.ps1") | Out-Null } catch { Log "[WARN] weekly-report.ps1 失敗：$($_.Exception.Message)" }
+# --- 週報（週一 09:00 後寄上一週）、月報（1 號 09:00 後寄上個月）；這一期寄過就跳過。內容同網站 /reports ---
+foreach ($rp in "week", "month") {
+    try { & (Join-Path $PSScriptRoot "report-mail.ps1") -Period $rp | Out-Null } catch { Log "[WARN] report-mail.ps1 -Period $rp 失敗：$($_.Exception.Message)" }
+}
 
 # --- 每季備份還原演練（超過 90 天沒演練才真的跑：從 GitHub 下載、解密、跟 D: 逐檔比，結果寄信）---
 try { & (Join-Path $PSScriptRoot "restore-drill.ps1") -IfOlderThanDays 90 | Out-Null } catch { Log "[WARN] restore-drill.ps1 失敗：$($_.Exception.Message)" }

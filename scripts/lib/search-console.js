@@ -71,12 +71,13 @@ function pickSite(entries) {
 }
 
 /** YYYY-MM-DD（UTC）。Search Console 資料晚 2～3 天：本週＝3 天前往回 7 天，前一週再往前 7 天 */
-function weekRanges(today = new Date()) {
+/** 最近 n 天（Search Console 晚 2～3 天，所以到 3 天前）跟再前 n 天；週報 n=7、月報 n=30（`node search-console.js --days 30`） */
+function weekRanges(today = new Date(), n = 7) {
   const day = (offset) => {
     const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - offset));
     return d.toISOString().slice(0, 10);
   };
-  return { cur: { startDate: day(9), endDate: day(3) }, prev: { startDate: day(16), endDate: day(10) } };
+  return { cur: { startDate: day(n + 2), endDate: day(3) }, prev: { startDate: day(2 * n + 2), endDate: day(n + 3) } };
 }
 
 function totals(resp) {
@@ -144,7 +145,9 @@ async function run() {
       dataState: "all",
       ...extra,
     });
-  const w = weekRanges();
+  const di = process.argv.indexOf("--days");
+  const n = di > 0 ? Math.min(90, Math.max(1, Number(process.argv[di + 1]) || 7)) : 7;
+  const w = weekRanges(new Date(), n);
   const [cur, prev, queries, pages] = await Promise.all([
     q(w.cur),
     q(w.prev),
