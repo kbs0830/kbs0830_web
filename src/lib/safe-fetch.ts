@@ -9,30 +9,28 @@ import type { LookupFunction } from "node:net";
 //   - 轉址自己跟（最多 3 次），每一跳都重新檢查；逾時、回應大小都有上限
 // 只給 /api/tools/* 用；網站自己抓固定網址的（天氣、匯率）照舊用 live-cache 的 fetchText。
 
+// 不能連的位址：內網、本機、保留、文件範例、多播，加上「IPv6 裡面包 IPv4」的轉換範圍
+// （IPv4-compatible、IPv4-mapped、NAT64、6to4、Teredo）——不然 64:ff9b::7f00:1 這種寫法就能繞到 127.0.0.1。
+// 2026-11-24 安全檢查抓到第一版用字串比對漏了這些，改用 net.BlockList 照網段判斷
+// IPv4、IPv6 各一份：同一份 BlockList 查 IPv4 時也會比 IPv6 規則（拿 ::ffff:a.b.c.d 去比），
+// ::ffff:0:0/96 會把所有 IPv4 都擋掉
+const BLOCKED_V4 = new net.BlockList();
+const BLOCKED_V6 = new net.BlockList();
+for (const [addr, prefix] of [
+  ["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8], ["169.254.0.0", 16], ["172.16.0.0", 12],
+  ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24],
+  ["224.0.0.0", 4], ["240.0.0.0", 4],
+] as const) BLOCKED_V4.addSubnet(addr, prefix, "ipv4");
+for (const [addr, prefix] of [
+  ["::", 96], ["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["100::", 64], ["2001::", 32], ["2001:db8::", 32],
+  ["2002::", 16], ["fc00::", 7], ["fe80::", 10], ["fec0::", 10], ["ff00::", 8],
+] as const) BLOCKED_V6.addSubnet(addr, prefix, "ipv6");
+
 export function isPrivateIp(ip: string): boolean {
-  if (net.isIPv4(ip)) {
-    const [a, b] = ip.split(".").map(Number);
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      a >= 224 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 192 && b === 0) ||
-      (a === 198 && (b === 18 || b === 19))
-    );
-  }
-  if (net.isIPv6(ip)) {
-    const v = ip.toLowerCase();
-    if (v === "::" || v === "::1") return true;
-    const mapped = v.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped) return isPrivateIp(mapped[1]);
-    return /^(fc|fd|fe8|fe9|fea|feb|ff)/.test(v);
-  }
-  return true;
+  const family = net.isIP(ip);
+  if (family === 4) return BLOCKED_V4.check(ip, "ipv4");
+  if (family === 6) return BLOCKED_V6.check(ip, "ipv6");
+  return true; // 看不懂的一律當不安全
 }
 
 const HOST_RE = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
@@ -72,13 +70,15 @@ export interface PublicFetchResult {
   url: string;
 }
 
+// 逾時是「從發出請求開始的總時間」，不是「多久沒收到資料」：
+// 對方每幾秒滴一點資料就能把連線一直拖著（2026-11-24 安全檢查抓到，第一版用的是 socket 閒置逾時）
 function getOnce(url: URL, timeoutMs: number, maxBytes: number): Promise<{ status: number; location?: string; text: string }> {
   return new Promise((resolve, reject) => {
     const req = https.get(
       url,
       {
         lookup: safeLookup,
-        timeout: timeoutMs,
+        signal: AbortSignal.timeout(timeoutMs),
         headers: { "User-Agent": "kbs0830-tools/1.0 (+https://kbs0830.com/tools/ai-crawlers)", Accept: "text/plain,*/*" },
       },
       (res) => {
@@ -99,11 +99,10 @@ function getOnce(url: URL, timeoutMs: number, maxBytes: number): Promise<{ statu
           chunks.push(c);
         });
         res.on("end", () => resolve({ status, text: Buffer.concat(chunks).toString("utf8") }));
-        res.on("error", reject);
+        res.on("error", (e) => reject(e.name === "AbortError" || e.name === "TimeoutError" ? new Error("逾時") : e));
       },
     );
-    req.on("timeout", () => req.destroy(new Error("逾時")));
-    req.on("error", reject);
+    req.on("error", (e) => reject(e.name === "AbortError" || e.name === "TimeoutError" ? new Error("逾時") : e));
   });
 }
 
