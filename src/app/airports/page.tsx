@@ -6,6 +6,8 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Tabs from "@/components/ui/Tabs";
 import AutoRefresh from "@/components/ui/AutoRefresh";
 import { getBoards, khhFuk, upcoming, type Flight } from "@/lib/airport-board";
+import { summarizeDelays } from "@/lib/airport-delays";
+import { readDelays } from "@/lib/airport-delay-recorder";
 
 // 機場即時時刻表（TODO D6，2026-11-22）：小港（KHH）跟福岡（FUK），最上面是高雄 ⇄ 福岡的直飛班機。
 // 資料由伺服器 3 分鐘抓一次（lib/airport-board.ts），每次請求現讀 → force-dynamic，跟 /stats、/radar 一樣沒有 Markdown 版。
@@ -21,13 +23,14 @@ export const metadata: Metadata = withShare(
   { ownImage: true },
 );
 
+const nf = new Intl.NumberFormat("en-US");
 const hm = (tz: string, ms: number) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(ms);
 
 // 讀資料＋算「現在」放元件外面（元件裡呼叫 Date.now() 會被 React 的 purity 規則擋）
 async function load() {
   const { khh, fuk } = await getBoards();
   const now = Date.now();
-  return { khh, fuk, nowKhh: hm("Asia/Taipei", now), nowFuk: hm("Asia/Tokyo", now) };
+  return { khh, fuk, nowKhh: hm("Asia/Taipei", now), nowFuk: hm("Asia/Tokyo", now), delays: summarizeDelays(readDelays(), now) };
 }
 
 const tone = (f: Flight) =>
@@ -108,7 +111,7 @@ function Direct({ title, from, flights }: { title: string; from: string; flights
 }
 
 export default async function AirportsPage() {
-  const { khh, fuk, nowKhh, nowFuk } = await load();
+  const { khh, fuk, nowKhh, nowFuk, delays } = await load();
   const direct = khhFuk(khh?.value ?? null, fuk?.value ?? null);
   const board = (list: Flight[] | undefined, dir: "dep" | "arr", now: string) => upcoming((list ?? []).filter((f) => f.dir === dir), now);
 
@@ -165,6 +168,47 @@ export default async function AirportsPage() {
               { key: "fuk-arr", label: "到着", labelEn: "Arrivals", panel: <BoardTable dir="arr" flights={board(fuk.value, "arr", nowFuk)} empty="今天的抵達班機都到了" /> },
             ]}
           />
+        </section>
+      )}
+
+      {/* 小港延誤統計（決策表 J3，2026-11-25 開始記）：累積滿 7 天才顯示，資料太少的排名沒有意義 */}
+      {delays.days >= 7 && delays.flights > 0 && (
+        <section className="mb-14">
+          <SectionHeading en="Delays">小港延誤統計（近 30 天）</SectionHeading>
+          <p className="text-sm font-light text-(--text) mb-6">
+            {delays.days} 天、{nf.format(delays.flights)} 班：準點率{" "}
+            <span className="font-mono text-(--accent)">{delays.onTimePct ?? "–"}%</span>
+            （晚 15 分鐘以內算準點）{delays.cancelled > 0 && `，取消 ${delays.cancelled} 班`}
+          </p>
+          {delays.worst.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm font-light">
+                <thead>
+                  <tr className="text-[11px] text-(--muted) font-mono tracking-wide text-left border-b border-(--border)">
+                    <th className="py-2 pr-3 font-normal">航班</th>
+                    <th className="py-2 pr-3 font-normal">出發／抵達</th>
+                    <th className="py-2 pr-3 font-normal text-right">平均晚</th>
+                    <th className="py-2 font-normal text-right">延誤次數</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-(--border)">
+                  {delays.worst.map((w) => (
+                    <tr key={`${w.code}-${w.dir}`}>
+                      <td className="py-2.5 pr-3 font-mono text-(--text)">{w.code}</td>
+                      <td className="py-2.5 pr-3 text-(--text)">
+                        {w.dir === "dep" ? "往" : "從"} {w.place}
+                      </td>
+                      <td className="py-2.5 pr-3 text-right font-mono text-(--warn)">{w.avgDelay} 分</td>
+                      <td className="py-2.5 text-right font-mono text-(--muted)">
+                        {w.lateCount}／{w.n}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="mt-3 text-xs text-(--muted) font-light">機場網站只給今天的看板，這是這個網站每 20 分鐘自己記下來的，官方沒有這份資料。至少飛過 5 次的航班才排。</p>
         </section>
       )}
 
