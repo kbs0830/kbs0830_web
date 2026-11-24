@@ -14,6 +14,11 @@ describe("hero-stats", () => {
     let s = addHeroReport(null, { variant: "lite" }, "2026-11-25");
     s = addHeroReport(s, { variant: "lite" }, "2026-11-26");
     s = addHeroReport(s, { fallback: "slow" }, "2026-11-26");
-    expect(s).toEqual({ since: "2026-11-25", variants: { lite: 2 }, fallbacks: { slow: 1 } });
+    expect(s).toEqual({
+      since: "2026-11-25",
+      variants: { lite: 2 },
+      fallbacks: { slow: 1 },
+      days: { "2026-11-25": { lite: 1 }, "2026-11-26": { lite: 1, "退回:slow": 1 } },
+    });
   });
 });

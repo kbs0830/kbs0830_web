@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   } catch {
     // 寫檔失敗不影響回應，下次還有機會
   }
-  recordVisit(input, ua);
+  recordVisit(input, ua, new Date(), country);
 
   return NextResponse.json(summarize(stats));
 }

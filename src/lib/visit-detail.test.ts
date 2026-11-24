@@ -54,6 +54,17 @@ describe("visit-detail", () => {
     expect(d.browsers).toEqual({ Safari: 1, Chrome: 1 });
   });
 
+  it("逐日分類（報表用）：當天的頁面、來源、國家、時段分開存", () => {
+    const now = new Date("2026-11-12T04:00:00Z");
+    let d = emptyDetail(now);
+    d = addVisit(d, { path: "/", ref: "https://www.google.com/", newSession: true, newVisitor: true }, IPHONE, now, "TW");
+    d = addVisit(d, { path: "/blog", newSession: false }, IPHONE, now, "TW");
+    d = addVisit(d, { path: "/", newSession: true }, WIN_CHROME, new Date("2026-11-13T04:00:00Z"), "jp-bad");
+    expect(d.daily?.["2026-11-12"]).toMatchObject({ pages: { "/": 1, "/blog": 1 }, referrers: { "google.com": 1 }, countries: { TW: 2 }, devices: { 手機: 1 } });
+    expect(d.daily?.["2026-11-12"].hours[12]).toBe(2);
+    expect(d.daily?.["2026-11-13"].countries).toEqual({}); // 國碼格式不對不記
+  });
+
   it("隱私：存下來的東西沒有完整 UA、query string", () => {
     const now = new Date("2026-11-12T04:00:00Z");
     const d = addVisit(emptyDetail(now), { path: "/?token=abc", ref: "https://x.com/a?b=c", newSession: true, newVisitor: true }, IPHONE, now);

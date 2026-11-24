@@ -14,6 +14,17 @@ export type VisitInput = { path?: unknown; ref?: unknown; newSession?: unknown; 
 
 export type DayCounts = { views: number; sessions: number; newVisitors: number };
 
+/** 某一天的分類（日報／週報／月報用，2026-11-25 起才有）。跟下面累計的那幾個一樣只存次數 */
+export type DayDetail = {
+  hours: number[];
+  pages: Record<string, number>;
+  referrers: Record<string, number>;
+  devices: Record<string, number>;
+  browsers: Record<string, number>;
+  os: Record<string, number>;
+  countries: Record<string, number>; // 以瀏覽計（跟 visitor-stats.json 同一種算法）
+};
+
 export type VisitDetail = {
   since: string;
   days: Record<string, DayCounts>;
@@ -23,6 +34,7 @@ export type VisitDetail = {
   devices: Record<string, number>; // 以工作階段計
   browsers: Record<string, number>;
   os: Record<string, number>;
+  daily?: Record<string, DayDetail>; // 台灣日期 → 那天的分類；留 KEEP_DAYS 天
 };
 
 const KEEP_DAYS = 120;
@@ -115,36 +127,51 @@ const bump = (map: Record<string, number>, key: string, max: number) => {
   map[key] = (map[key] ?? 0) + 1;
 };
 
-/** 把一次造訪加進彙總（純函式，方便測試） */
-export function addVisit(detail: VisitDetail, input: VisitInput, ua: string, now: Date): VisitDetail {
+const emptyDay = (): DayDetail => ({ hours: Array(24).fill(0), pages: {}, referrers: {}, devices: {}, browsers: {}, os: {}, countries: {} });
+
+/** 把一次造訪加進彙總（純函式，方便測試）。country：Cloudflare 的國碼（有才記進當天的分類） */
+export function addVisit(detail: VisitDetail, input: VisitInput, ua: string, now: Date, country?: string): VisitDetail {
   const d = structuredClone(detail);
   const { date, hour } = taipeiTime(now);
   const day = (d.days[date] ??= { views: 0, sessions: 0, newVisitors: 0 });
+  const dd = ((d.daily ??= {})[date] ??= emptyDay());
   day.views++;
   d.hours[hour] = (d.hours[hour] ?? 0) + 1;
-  bump(d.pages, normalizePath(input.path), MAX_PAGES);
+  dd.hours[hour] = (dd.hours[hour] ?? 0) + 1;
+  const page = normalizePath(input.path);
+  bump(d.pages, page, MAX_PAGES);
+  bump(dd.pages, page, 60);
+  if (country && /^[A-Z]{2}$/.test(country)) bump(dd.countries, country, 40);
 
   // 工作階段層級的東西只在每個工作階段的第一頁記一次
   if (input.newSession === true) {
     day.sessions++;
     if (input.newVisitor === true) day.newVisitors++;
     const host = referrerHost(input.ref);
-    if (host) bump(d.referrers, host, MAX_REFERRERS);
+    if (host) {
+      bump(d.referrers, host, MAX_REFERRERS);
+      bump(dd.referrers, host, 40);
+    }
     const c = classifyUA(ua);
     bump(d.devices, c.device, 10);
     bump(d.browsers, c.browser, 20);
     bump(d.os, c.os, 20);
+    bump(dd.devices, c.device, 10);
+    bump(dd.browsers, c.browser, 20);
+    bump(dd.os, c.os, 20);
   }
 
   // 只留最近 KEEP_DAYS 天的每日數字（其他分類是累計）
   const dates = Object.keys(d.days).sort();
   for (const old of dates.slice(0, Math.max(0, dates.length - KEEP_DAYS))) delete d.days[old];
+  const ddates = Object.keys(d.daily).sort();
+  for (const old of ddates.slice(0, Math.max(0, ddates.length - KEEP_DAYS))) delete d.daily[old];
   return d;
 }
 
 /** 寫檔（同步：理由見 /api/visitor-stats 的 POST 註解） */
-export function recordVisit(input: VisitInput, ua: string, now = new Date()): void {
-  const next = addVisit(readDetail() ?? emptyDetail(now), input, ua, now);
+export function recordVisit(input: VisitInput, ua: string, now = new Date(), country?: string): void {
+  const next = addVisit(readDetail() ?? emptyDetail(now), input, ua, now, country);
   try {
     fs.mkdirSync(path.dirname(detailFile()), { recursive: true });
     fs.writeFileSync(detailFile(), JSON.stringify(next));

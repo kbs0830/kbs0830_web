@@ -16,6 +16,7 @@ export interface HeroStats {
   since: string;
   variants: Partial<Record<HeroVariant, number>>;
   fallbacks: Record<string, number>; // WebGPU → WebGL 的原因：slow／init／no-webgpu-backend／other
+  days?: Record<string, Record<string, number>>; // 台灣日期 → { lite, gl, gpu, "退回:slow"… }（報表用，留 120 天）
 }
 
 export const heroStatsFile = () =>
@@ -46,5 +47,10 @@ export function addHeroReport(prev: HeroStats | null, report: { variant?: HeroVa
   const s: HeroStats = prev ?? { since: today, variants: {}, fallbacks: {} };
   if (report.variant) s.variants[report.variant] = (s.variants[report.variant] ?? 0) + 1;
   if (report.fallback) s.fallbacks[report.fallback] = (s.fallbacks[report.fallback] ?? 0) + 1;
+  const day = ((s.days ??= {})[today] ??= {});
+  if (report.variant) day[report.variant] = (day[report.variant] ?? 0) + 1;
+  if (report.fallback) day[`退回:${report.fallback}`] = (day[`退回:${report.fallback}`] ?? 0) + 1;
+  const dates = Object.keys(s.days).sort();
+  for (const old of dates.slice(0, Math.max(0, dates.length - 120))) delete s.days[old];
   return s;
 }

@@ -56,8 +56,12 @@ export interface DelaySummary {
 
 /** 近 30 天：整體準點率＋平均延誤最多的航班（至少飛過 5 次才排） */
 export function summarizeDelays(store: DelayStore | null, now: number, top = 8): DelaySummary {
-  const since = twDate(now - 30 * 86400_000);
-  const days = Object.entries(store?.days ?? {}).filter(([d]) => d > since);
+  return summarizeDelaysRange(store, twDate(now - 29 * 86400_000), twDate(now), top);
+}
+
+/** 指定日期區間（台灣日期、含頭尾）；日報／週報／月報用。minFlights：幾次以上才排進「最常延誤」 */
+export function summarizeDelaysRange(store: DelayStore | null, from: string, to: string, top = 8, minFlights = 5): DelaySummary {
+  const days = Object.entries(store?.days ?? {}).filter(([d]) => d >= from && d <= to);
   let flights = 0;
   let onTime = 0;
   let cancelled = 0;
@@ -82,7 +86,7 @@ export function summarizeDelays(store: DelayStore | null, now: number, top = 8):
     }
   }
   const worst = [...per.values()]
-    .filter((p) => p.n >= 5)
+    .filter((p) => p.n >= minFlights)
     .map((p) => ({ code: p.code, dir: p.dir, place: p.place, n: p.n, avgDelay: Math.round(p.sum / p.n), lateCount: p.late }))
     .filter((p) => p.avgDelay > 0)
     .sort((a, b) => b.avgDelay - a.avgDelay || a.code.localeCompare(b.code))

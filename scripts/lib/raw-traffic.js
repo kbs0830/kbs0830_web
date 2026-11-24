@@ -48,6 +48,20 @@ function readRawTraffic(file) {
   }
 }
 
+// 逐日（日報／週報／月報用，2026-11-25 起）：daily[台灣日期] = { total, browser, ai, search, bot, names }，留 120 天、每天最多 40 個名字
+const KEEP_DAYS = 120;
+function addDaily(stats, kind, name, now) {
+  const date = new Date(now.getTime() + 8 * 3600_000).toISOString().slice(0, 10);
+  const daily = (stats.daily = stats.daily || {});
+  const d = (daily[date] = daily[date] || { total: 0, browser: 0, ai: 0, search: 0, bot: 0, names: {} });
+  d.total += 1;
+  d[kind] += 1;
+  if (name && (d.names[name] !== undefined || Object.keys(d.names).length < 40)) d.names[name] = (d.names[name] || 0) + 1;
+  const dates = Object.keys(daily).sort();
+  for (const old of dates.slice(0, Math.max(0, dates.length - KEEP_DAYS))) delete daily[old];
+  return stats;
+}
+
 // 同步 read-modify-write：理由跟 /api/visitor-stats 一樣（單一 process、中間沒有 await，不會交錯）
 function recordRawHit(file, req) {
   if (!shouldCount(req)) return false;
@@ -56,6 +70,7 @@ function recordRawHit(file, req) {
   stats.total += 1;
   stats[kind] += 1;
   if (name) stats.names[name] = (stats.names[name] || 0) + 1;
+  addDaily(stats, kind, name, new Date());
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(stats));
@@ -65,4 +80,4 @@ function recordRawHit(file, req) {
   return true;
 }
 
-module.exports = { classify, shouldCount, readRawTraffic, recordRawHit };
+module.exports = { classify, shouldCount, readRawTraffic, recordRawHit, addDaily };
