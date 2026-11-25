@@ -82,8 +82,22 @@ export async function verifyAccessJwt(token: string, cfg: AccessConfig, now = Da
   }
 }
 
+/**
+ * 家裡 IP 白名單（2026-11-26 使用者：「目前後台就鎖家裡的 IP，筆電用 VPN 進來」）：
+ * .env.local 的 ADMIN_ALLOW_IPS（逗號分隔，完全相同才算），比對 Cloudflare 帶的 cf-connecting-ip（外面偽造不了，Cloudflare 會蓋掉）。
+ * 家用寬頻的 IP 會變：變了就外網進不去，筆電改走 Tailscale 直連桌機（沒經過 Cloudflare＝本機請求）或更新 env 後重啟。
+ * Cloudflare Access 設好之後這個可以留著當第二條路，或清空。
+ */
+function isAllowedIp(h: HeaderLike): boolean {
+  const ip = h.get("cf-connecting-ip")?.trim();
+  if (!ip) return false;
+  const list = (process.env.ADMIN_ALLOW_IPS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return list.includes(ip);
+}
+
 export async function isAdmin(h: HeaderLike): Promise<boolean> {
   if (isLocalRequest(h)) return true;
+  if (isAllowedIp(h)) return true;
   const cfg = envConfig();
   const token = h.get("cf-access-jwt-assertion");
   return !!cfg && !!token && verifyAccessJwt(token, cfg);

@@ -91,6 +91,16 @@ describe("isAdmin", () => {
     expect(await isAdmin(ext({ "cf-access-jwt-assertion": await sign({ ...good(), exp: Date.now() / 1000 + 600 }) }))).toBe(false);
   });
 
+  it("ADMIN_ALLOW_IPS 白名單：完全相同的 IP 放行，其他擋", async () => {
+    vi.stubEnv("ADMIN_ALLOW_IPS", " 198.51.100.7 , 2001:db8::1");
+    expect(await isAdmin(new Headers({ "cf-connecting-ip": "198.51.100.7" }))).toBe(true);
+    expect(await isAdmin(new Headers({ "cf-connecting-ip": "2001:db8::1" }))).toBe(true);
+    expect(await isAdmin(new Headers({ "cf-connecting-ip": "198.51.100.70" }))).toBe(false);
+    expect(await isAdmin(new Headers({ "cf-ipcountry": "TW" }))).toBe(false);
+    vi.stubEnv("ADMIN_ALLOW_IPS", "");
+    expect(await isAdmin(new Headers({ "cf-connecting-ip": "198.51.100.7" }))).toBe(false);
+  });
+
   it("外部帶有效 JWT 且 env 有設 → 放行", async () => {
     vi.stubEnv("CF_ACCESS_TEAM", cfg.team);
     vi.stubEnv("CF_ACCESS_AUD", cfg.aud);

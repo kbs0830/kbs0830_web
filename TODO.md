@@ -96,7 +96,7 @@
 ### 🟥 A1 站長後台 /admin（2026-11-25 設計好，下一個 session 實作；使用者：「把站長後台架構及前端入口先想好，等等實作」）
 
 **進度**：✅ 骨架上線（2026-11-25，commit 9f7881a）：`src/proxy.ts`、`lib/admin/auth.ts`（目前只放行本機）、五頁空殼、`/api/admin/me`、`e2e/admin.spec.ts`。
-✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。✅ `auth.ts` 的 JWT 驗證（11/26，WebCrypto、單元測試 `auth.test.ts`；env 沒設＝外部一律 404）。✅ `/admin/todo` 決策表＋SQLite 資料庫 `data/admin.db`（11/26，見 G1「決策表」）。⬜ 下一步：使用者設 Cloudflare Access＋填 env → 各頁填資料 → 隱藏入口 → /reports 搬進來
+✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。✅ `auth.ts` 的 JWT 驗證（11/26，WebCrypto、單元測試 `auth.test.ts`；env 沒設＝外部一律 404）。✅ `/admin/todo` 決策表＋SQLite 資料庫 `data/admin.db`（11/26，見 G1「決策表」）。✅ 先鎖家裡 IP（11/26，`.env.local` 的 `ADMIN_ALLOW_IPS`；筆電走 VPN 進來）。⬜ 下一步：使用者設 Cloudflare Access＋填 env → 各頁填資料 → 隱藏入口 → /reports 搬進來
 
 **目標**：把現在散在各處、只能在桌機看的東西（/reports、/stats 的細節、部署／watchdog／雷達狀態、寄信紀錄）集中到一個只有站長能進的地方，外出用手機也能看。
 
