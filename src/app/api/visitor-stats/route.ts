@@ -4,6 +4,10 @@ import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/stats/cloudflare-analytics";
 import { readFeatureRelease, readRawTraffic } from "@/lib/stats/site-stats";
 import { recordVisit, type VisitInput } from "@/lib/stats/visit-detail";
+import { clientIp, RateLimiter, readLimitedText } from "@/lib/api/request-guard";
+
+// 灌數字的防線（2026-11-25 安全檢查）：一個 IP 10 分鐘最多記 20 次造訪（正常人換 20 頁的量），超過照樣回彙總、不記
+const recordLimit = new RateLimiter(600_000, 20);
 
 // production 由 scripts/server.js 透過 VISITOR_STATS_FILE 傳絕對路徑進來，
 // 因為 Task Scheduler 啟動時的 process.cwd() 不保證是專案根目錄。
@@ -49,11 +53,11 @@ export async function POST(req: NextRequest) {
   // 沒有 body（舊版頁面、keepalive 失敗）就當空的，國家照算
   let input: VisitInput & { notMe?: unknown } = {};
   try {
-    const text = await req.text();
-    if (text && text.length < 2000) input = JSON.parse(text);
+    const text = await readLimitedText(req, 2000);
+    if (text) input = JSON.parse(text);
   } catch {}
   // 站長自己的瀏覽器（/stats 的「不計入」開關，lib/client/not-me.ts）：國家、明細都不記，只回彙總（新功能指示燈要用）
-  if (input.notMe === true) return NextResponse.json(summarize(readStats()));
+  if (input.notMe === true || recordLimit.limited(clientIp(req))) return NextResponse.json(summarize(readStats()));
 
   // 這段 read-modify-write 中間刻意不夾雜任何 await，靠 fs.*Sync 的同步阻塞特性
   // 讓 Node.js 事件迴圈不會在兩次 request 的 handler 之間交錯執行，藉此避免

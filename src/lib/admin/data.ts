@@ -7,7 +7,7 @@ import { dataFile, logFile, readJsonFile } from "@/lib/data-file";
 
 export const DEPLOY_RESULT = { ok: "成功", failed: "失敗", rollback: "退回", running: "進行中" } as const;
 
-export interface LogLine {
+interface LogLine {
   time: string; // ISO
   tag: string; // RADAR / WARN / RECOVERED / FAILED / REPORT / WEEKLY / BOOT …
   text: string;
@@ -37,7 +37,7 @@ export const ALERT_TAGS = new Set(["WARN", "FAILED", "RECOVERED", "BOOT", "ALERT
 /** 寄信紀錄（WEEKLY 是 2026-11-25 前的舊格式） */
 export const MAIL_TAGS = new Set(["REPORT", "WEEKLY"]);
 
-export interface MailState {
+interface MailState {
   at?: string;
   week?: string; // 最後寄出的週（週一日期）
   month?: string; // 最後寄出的月（YYYY-MM）

@@ -3,7 +3,7 @@
 // UTF-8 的中文被拆散、機率性地出現「字串沒有結束字元」這類 parse error——這個網站的 watchdog.ps1 實際踩過（CLAUDE.md）。
 // PowerShell 7（pwsh）預設就是 UTF-8，沒有這個問題。純函式，瀏覽器裡跑，檔案不上傳。
 
-export type Ps1Encoding = "utf8-bom" | "utf16le-bom" | "utf16be-bom" | "utf8" | "not-utf8";
+type Ps1Encoding = "utf8-bom" | "utf16le-bom" | "utf16be-bom" | "utf8" | "not-utf8";
 
 export interface Ps1Report {
   encoding: Ps1Encoding;
@@ -15,7 +15,7 @@ export interface Ps1Report {
   fixable: boolean;
 }
 
-export const UTF8_BOM = new Uint8Array([0xef, 0xbb, 0xbf]);
+const UTF8_BOM = new Uint8Array([0xef, 0xbb, 0xbf]);
 
 export function inspectPs1(bytes: Uint8Array): Ps1Report {
   const starts = (...b: number[]) => b.every((v, i) => bytes[i] === v);

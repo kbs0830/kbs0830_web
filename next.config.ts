@@ -84,6 +84,8 @@ const nextConfig: NextConfig = {
   typescript: distDir === ".next" ? undefined : { tsconfigPath: "tsconfig.deploy.json" },
   // React Compiler：自動 memoization，取代手寫 useMemo/useCallback（2026-10 升級加入）
   reactCompiler: true,
+  // 不送 x-powered-by: Next.js（2026-11-25 安全檢查：不必告訴別人用什麼框架、哪一版）
+  poweredByHeader: false,
   // <Link href> 寫錯路徑（打錯字、頁面改名刪掉）在 tsc／build 就會報錯，不會上線才發現 404
   typedRoutes: true,
   // Cache Components（2026-11-25，TODO C13）：頁面＝build 時畫好的靜態外殼＋<Suspense> 串流補進來的即時資料；

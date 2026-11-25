@@ -17,7 +17,7 @@ export const EXAMPLE = [
   `</button>`,
 ].join("\n");
 
-export type Hit = { line: number; before: string; after: string };
+type Hit = { line: number; before: string; after: string };
 
 export function checkTailwindVars(src: string): { hits: Hit[]; fixed: string } {
   const hits: Hit[] = [];

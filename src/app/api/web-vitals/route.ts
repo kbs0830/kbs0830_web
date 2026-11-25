@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse, connection } from "next/server";
 import { writeJsonFile } from "@/lib/data-file";
+import { readLimitedJson } from "@/lib/api/request-guard";
 import { p75, readVitals, vitalsFile } from "@/lib/stats/web-vitals";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 
@@ -35,12 +36,8 @@ export async function POST(req: NextRequest) {
     return new NextResponse(null, { status: 204 });
   }
 
-  let body: unknown;
-  try {
-    body = JSON.parse(await req.text());
-  } catch {
-    return new NextResponse(null, { status: 400 });
-  }
+  const body = await readLimitedJson(req, 1000);
+  if (body === undefined) return new NextResponse(null, { status: 400 });
   const { name, value, page } = (body ?? {}) as Record<string, unknown>;
   if (
     typeof name !== "string" || !METRICS.has(name) ||

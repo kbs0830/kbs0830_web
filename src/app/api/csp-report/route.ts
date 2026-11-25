@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse, connection } from "next/server";
 import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
+import { readLimitedText } from "@/lib/api/request-guard";
 
 // Content-Security-Policy 先 report-only（TODO 點子，2026-11-09）：瀏覽器照常載入，只是把「如果正式開會被擋的東西」
 // 回報到這裡。累積一陣子確認沒有誤擋，再把 next.config.ts 的 header 從 -Report-Only 改成正式的。
@@ -44,8 +45,8 @@ export function parseReports(json: unknown): { directive: string; blocked: strin
 
 export async function POST(req: NextRequest) {
   if (!req.headers.get("cf-ipcountry")) return new NextResponse(null, { status: 204 });
-  const text = await req.text();
-  if (text.length > 20_000) return new NextResponse(null, { status: 413 });
+  const text = await readLimitedText(req, 20_000);
+  if (text === null) return new NextResponse(null, { status: 413 });
 
   let reports: ReturnType<typeof parseReports> = [];
   try {

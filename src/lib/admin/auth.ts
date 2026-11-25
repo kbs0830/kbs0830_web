@@ -9,7 +9,7 @@ import type { NextRequest } from "next/server";
 
 type HeaderLike = Pick<Headers, "get">;
 
-export function isLocalRequest(h: HeaderLike): boolean {
+function isLocalRequest(h: HeaderLike): boolean {
   return !h.get("cf-connecting-ip") && !h.get("cf-ipcountry");
 }
 

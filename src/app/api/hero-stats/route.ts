@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { readLimitedJson } from "@/lib/api/request-guard";
 import { addHeroReport, heroStatsFile, parseHeroReport, readHeroStats } from "@/lib/stats/hero-stats";
 import { writeJsonFile } from "@/lib/data-file";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
@@ -11,12 +12,7 @@ import { twDate } from "../../../../scripts/lib/tw-time.js";
 export async function POST(req: NextRequest) {
   const ua = req.headers.get("user-agent") || "";
   if (!req.headers.get("cf-ipcountry") || !isBrowserUA(ua)) return new NextResponse(null, { status: 204 });
-  let body: unknown = null;
-  try {
-    const text = await req.text();
-    if (text.length < 300) body = JSON.parse(text);
-  } catch {}
-  const report = parseHeroReport(body);
+  const report = parseHeroReport(await readLimitedJson(req, 300));
   if (!report) return new NextResponse(null, { status: 204 });
 
   writeJsonFile(heroStatsFile(), addHeroReport(readHeroStats(), report, twDate()));
