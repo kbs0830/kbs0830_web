@@ -1,31 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useJson } from "@/lib/hooks";
+import type { JpyRate } from "@/lib/jpy-rate";
 
 // 日圓匯率作品頁的「線上版」（TODO D2，2026-11-22）：/api/jpy-rate 的即時牌價、作品的購買決策、近 90 天走勢。
 // 決策照作品原本的邏輯：目標匯率＝台幣預算 ÷ 商品日圓價格，銀行現金賣出 ≤ 目標 → 現在就買（lib/jpy-rate.ts 有一樣的函式跟測試）。
 // 沒輸入時跟作品一樣只標「最佳／較高」。讀不到資料整塊不顯示。
 
-type Bank = { id: string; name: string; cashSell: number | null; spotSell: number | null; at: number; stale: boolean };
-type Data = { banks: Bank[]; trend: { date: string; rate: number }[] };
 
 const fmt = (n: number | null) => (n == null ? "–" : n.toFixed(4));
 const hm = (ms: number) => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(ms);
+/** 牌價、走勢都沒有＝這次沒抓到，整塊不顯示（JpyExchange 也用） */
+export const usableJpyRate = (r: JpyRate | null | "error"): JpyRate | null | "error" =>
+  r && r !== "error" && !r.banks.length && !r.trend.length ? "error" : r;
+
 const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
 
 export default function JpyRateLive() {
-  const [data, setData] = useState<Data | null | "error">(null);
+  const data = usableJpyRate(useJson<JpyRate>("/api/jpy-rate"));
   const [price, setPrice] = useState("");
   const [budget, setBudget] = useState("");
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch("/api/jpy-rate", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: Data) => setData(d.banks.length || d.trend.length ? d : "error"))
-      .catch((e) => e.name !== "AbortError" && setData("error"));
-    return () => ctrl.abort();
-  }, []);
 
   if (data === "error") return null;
 

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Trend } from "@/components/ui/JpyRateLive";
+import { Trend, usableJpyRate } from "@/components/ui/JpyRateLive";
+import { useJson } from "@/lib/hooks";
+import type { JpyRate } from "@/lib/jpy-rate";
 
 // 日幣換匯比價（TODO J1，2026-11-24）：/api/jpy-rate 的台銀、玉山牌價（10 分鐘更新）＋Yahoo 近 90 天市場價。
 // 算的都在瀏覽器：輸入的台幣金額只放在網址（?twd=），可以直接分享，不會送到伺服器。
 
-type Bank = { id: string; name: string; cashSell: number | null; spotSell: number | null; at: number; stale: boolean };
-type Data = { banks: Bank[]; trend: { date: string; rate: number }[] };
 
 const yen = (n: number) => `¥${Math.floor(n).toLocaleString("en-US")}`;
 const rate4 = (n: number | null) => (n == null ? "–" : n.toFixed(4));
@@ -25,16 +25,7 @@ export function cheaperThanPct(trend: { rate: number }[]): number | null {
 export default function JpyExchange() {
   const params = useSearchParams();
   const [twd, setTwd] = useState(() => params.get("twd")?.replace(/[^\d]/g, "") || DEFAULT_TWD);
-  const [data, setData] = useState<Data | null | "error">(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch("/api/jpy-rate", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: Data) => setData(d.banks.length || d.trend.length ? d : "error"))
-      .catch((e) => e.name !== "AbortError" && setData("error"));
-    return () => ctrl.abort();
-  }, []);
+  const data = usableJpyRate(useJson<JpyRate>("/api/jpy-rate"));
 
   const onChange = (v: string) => {
     const clean = v.replace(/[^\d]/g, "").slice(0, 9);

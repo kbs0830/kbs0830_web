@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useJson } from "@/lib/hooks";
 
 // 空氣品質作品頁的「高雄現在」（TODO D5，2026-11-22）：/api/air-quality，用環境部 114 年版公式從六項污染物算出的即時 AQI。
 // 資料是 Open-Meteo（歐洲 CAMS 模型推估），不是測站實測——下面的說明照實寫。讀不到整塊不顯示。
@@ -9,16 +9,8 @@ type Pollutant = { key: string; name: string; value: number; unit: string; basis
 type Data = { place: string; time: string; aqi: number | null; status: string; main: string | null; pollutants: Pollutant[] };
 
 export default function AirQualityLive() {
-  const [data, setData] = useState<Data | null | "error">(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch("/api/air-quality", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: Data) => setData(d.aqi == null ? "error" : d))
-      .catch((e) => e.name !== "AbortError" && setData("error"));
-    return () => ctrl.abort();
-  }, []);
+  const raw = useJson<Data>("/api/air-quality");
+  const data = raw && raw !== "error" && raw.aqi == null ? "error" : raw;
 
   if (data === "error") return null;
   const max = data ? Math.max(100, ...data.pollutants.map((p) => p.index ?? 0)) : 100;

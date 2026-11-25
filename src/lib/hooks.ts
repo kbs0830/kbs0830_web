@@ -1,11 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 // 讀瀏覽器狀態（matchMedia、scrollY）一律走 useSyncExternalStore：
 // server 用 getServerSnapshot 的值完成首次 render、hydration 後自動切到真實值，
 // 不會 hydration mismatch，也不用再寫「useEffect 裡同步 setState」那種要壓
 // eslint-disable 的 pattern（原本 Hero/HeroScene/Magnetic/NavBar 各寫了一份）。
+
+/**
+ * 抓一次 JSON（2026-11-25 從 5 個元件各自抄的 fetch().then() 合併）：async/await＋元件卸載就 abort，HTTP 不是 2xx 也算失敗。
+ * 回傳 null＝載入中、"error"＝失敗、其他＝資料。資料「合不合用」（例如 banks 是空的）由呼叫的元件自己判斷。
+ */
+export function useJson<T>(url: string): T | null | "error" {
+  const [data, setData] = useState<{ url: string; value: T | "error" } | null>(null);
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setData({ url, value: (await res.json()) as T });
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") setData({ url, value: "error" });
+      }
+    })();
+    return () => ctrl.abort();
+  }, [url]);
+  // 換網址時舊的資料不算數（還沒抓到新的就是載入中）
+  return data && data.url === url ? data.value : null;
+}
 
 /** CSS media query 是否成立；server 端回傳 `null`（還不知道）。 */
 export function useMediaQuery(query: string): boolean | null {

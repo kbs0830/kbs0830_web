@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useJson } from "@/lib/hooks";
 
 // 機場距離／航程（TODO J5，2026-11-24）。機場座標是 OurAirports 的公開資料（公共領域），
 // 精簡成有定期航班的大中型機場、約 3,200 個（public/data/airports.json，~90 KB gzip），打開這頁才下載。全部在瀏覽器算。
@@ -31,18 +32,11 @@ export default function AirportDistance({ zh }: { zh: Record<string, string> }) 
   const params = useSearchParams();
   const [from, setFrom] = useState(() => clean(params.get("from") ?? "") || "KHH");
   const [to, setTo] = useState(() => clean(params.get("to") ?? "") || "FUK");
-  const [db, setDb] = useState<Map<string, Airport> | null | "error">(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch("/data/airports.json", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: { airports: Row[] }) =>
-        setDb(new Map(d.airports.map(([iata, name, city, country, lat, lon]) => [iata, { iata, name, city, country, lat, lon }]))),
-      )
-      .catch((e) => e.name !== "AbortError" && setDb("error"));
-    return () => ctrl.abort();
-  }, []);
+  const raw = useJson<{ airports: Row[] }>("/data/airports.json");
+  const db = useMemo<Map<string, Airport> | null | "error">(
+    () => (raw && raw !== "error" ? new Map(raw.airports.map(([iata, name, city, country, lat, lon]) => [iata, { iata, name, city, country, lat, lon }])) : raw),
+    [raw],
+  );
 
   const update = (f: string, t: string) => {
     setFrom(f);

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useJson } from "@/lib/hooks";
+import type { JpyRate } from "@/lib/jpy-rate";
 
 // 日本消費稅換算（TODO J6，2026-11-24）。全部在瀏覽器算；台幣換算用 /api/jpy-rate 最低的現金賣出（讀不到就不顯示台幣）。
 // 稅額的小數一律無條件捨去（日本店家最常見的做法，實際看店家）。
@@ -27,19 +29,10 @@ export default function JapanTax() {
   const [price, setPrice] = useState(() => params.get("yen")?.replace(/[^\d]/g, "") || "1000");
   const [mode, setMode] = useState<TaxMode>(() => pick(params.get("mode"), ["excl", "incl"] as const, "excl"));
   const [rate, setRate] = useState<TaxRate>(() => pick(params.get("rate"), [10, 8] as const, 10));
-  const [twdPerYen, setTwdPerYen] = useState<number | null>(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch("/api/jpy-rate", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: { banks: { cashSell: number | null }[] }) => {
-        const sells = d.banks.map((b) => b.cashSell).filter((x): x is number => x != null);
-        if (sells.length) setTwdPerYen(Math.min(...sells));
-      })
-      .catch(() => {});
-    return () => ctrl.abort();
-  }, []);
+  // 台幣換算：各銀行最低的現金賣出；讀不到就不顯示台幣
+  const jpy = useJson<JpyRate>("/api/jpy-rate");
+  const sells = jpy && jpy !== "error" ? jpy.banks.map((b) => b.cashSell).filter((x): x is number => x != null) : [];
+  const twdPerYen = sells.length ? Math.min(...sells) : null;
 
   const sync = (p: string, m: TaxMode, r: TaxRate) => {
     setPrice(p);
