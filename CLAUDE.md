@@ -175,6 +175,9 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 - 主題色靠 `color-scheme`（`:root` light／`[data-theme="dark"]` dark）讓原生捲軸、`<dialog>`、Ctrl+F 高亮跟著變
 - 標題 `text-wrap: balance`、內文 `text-wrap: pretty`（globals.css 全域設好了）
 - 彈窗只用 `<Modal>`（原生 `<dialog>`），不要自己寫 div 遮罩＋Esc 監聽
+- **共用模組先用，不要再抄一份**（2026-11-25 整理過一輪：台灣日期原本寫了 10 份、資料檔讀寫 16 份、抓 JSON 5 份）：
+  `data/`／`logs/` 讀寫用 `lib/data-file.ts`、台灣日期用 `scripts/lib/tw-time.js`、真人／爬蟲判斷用 `bot-patterns.js` 的 `isBrowserUA`、
+  client 抓 JSON 用 `hooks.ts` 的 `useJson`（完整對照表在 README「程式結構」）
 
 ### pnpm 注意事項
 

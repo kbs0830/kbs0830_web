@@ -126,12 +126,31 @@ node scripts/spotify-get-refresh-token.js <code>   # 用導回網址裡的 code 
 
 ---
 
-## 訪客來源統計
+## 訪客統計與報表
 
-Footer 的訪客統計不用第三方服務（不需要註冊帳號）：`scripts/server.js` 讀 Cloudflare Tunnel
-本來就帶著的 `cf-ipcountry` header，只聚合「國家代碼＋次數」寫進 `data/visitor-stats.json`
-（不進版控，只留在桌機本地，不存 IP、不存任何個人可識別資訊）。`/api/visitor-stats` 吐彙總
-資料給 `VisitorStats.tsx` 顯示。細節見 `CLAUDE.md`。
+不用第三方統計服務：每頁的 `VisitBeacon` 把「路徑、來源網域、是不是新訪客」POST 到 `/api/visitor-stats`，
+伺服器用 Cloudflare 帶的 `cf-ipcountry` 記國家，只存分類次數（不存 IP、完整 UA、完整網址、cookie），
+檔案在 `data/`（不進版控）。看結果：
+
+- `/stats`：公開的訪客分析
+- `/reports`：日報／週報／月報（noindex；週報、月報另外寄信，`scripts/report-mail.ps1`）
+
+細節見 `.claude/skills/kbs-integrations/SKILL.md`。
+
+---
+
+## 程式結構（共用的東西先找再寫）
+
+| 要做的事 | 用這個 |
+|---|---|
+| 讀寫 `data/`、`logs/` 的檔案 | `src/lib/data-file.ts`（`dataFile`、`readJsonFile`、`writeJsonFile`） |
+| 台灣日期／小時 | `scripts/lib/tw-time.js`（`twDate`、`twHour`；`src/` 跟 `scripts/` 共用） |
+| 判斷 User-Agent 是真人還是爬蟲 | `scripts/lib/bot-patterns.js`（`classify`、`isBrowserUA`） |
+| client 元件抓 JSON | `src/lib/hooks.ts` 的 `useJson`（async/await＋卸載就中斷） |
+| 抓外部 API 並快取 | `src/lib/live-cache.ts`（`cached`、`fetchJson`） |
+| 頁面外框、小節標題、圖表 | `PageShell`、`SectionHeading`、`StatCharts` |
+
+各頁面、元件的完整位置見 `.claude/skills/kbs-site/SKILL.md`。
 
 ---
 
@@ -173,5 +192,6 @@ node scripts/generate-resume-pdf.js <url>    # 或指定其他 URL（例如本�
 - pnpm v11：`dev` / `build` / `start` 直接呼叫 `node node_modules/next/dist/bin/next`
 - ISP 封鎖 inbound port 80/443，故改用 Cloudflare Tunnel
 - 區網內裝置需將 DNS 改為 `8.8.8.8` 才能解析 `kbs0830.com`
-- 監控、Email 通知、每日自動備份：見 `CLAUDE.md`「健康監控」「自動備份」
-- 待辦事項見 `TODO.md`、已完成紀錄見 `DONE.md`；架構細節、設計規範、踩過的坑見 `CLAUDE.md`
+- 監控、Email 通知、每日自動備份、部署：見 `.claude/skills/kbs-ops/SKILL.md`
+- 待辦事項見 `TODO.md`、已完成紀錄見 `DONE.md`；每次都要遵守的規則見 `CLAUDE.md`，各主題的完整紀錄在 `.claude/skills/`
+- 舊的一次性報告放 `docs/archive/`
