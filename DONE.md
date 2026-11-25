@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-25 拿掉訂閱入口、手機作品集精選、「完成」對齊（使用者：「我沒有要做訂閱功能」「FR24 雷達站跟個人網站精選，剩下的照課程專題」「藍底的完成飄掉了」）
+- [x] 文章底部「想收到新文章？RSS 訂閱」、/blog 的「RSS 訂閱 · Feed」拿掉；/feed.xml 只留在 <head> 給搜尋引擎／AI
+- [x] 手機版個人専案只露出 FR24 雷達站、個人網站兩個，其他 4 個收進「顯示全部 6 個」（跟課程専題同格式）；作品集手機高度 1953 → 1303px，桌機不變
+- [x] 手機卡片的狀態標籤改成跟標題文字基線對齊（原本 items-start＋mt-0.5 偏下）
+
 ### 2026-11-25 Cache Components（TODO C13，使用者：「開始手搓 C13」）
 - [x] `next.config.ts` 開 `cacheComponents`＋`partialPrefetching`；35 個路由的 `dynamic`／`dynamicParams` 拿掉
 - [x] 8 個即時頁（/radar、/airports、/stats、/status、/colophon、/reports、/tools/fukuoka-weather、/tools/taiwan-fukuoka）改成

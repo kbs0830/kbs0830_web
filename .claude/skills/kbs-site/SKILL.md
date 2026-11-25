@@ -37,7 +37,10 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   - 手機選單（NavBar 抽屜）：錨點下面多一組常用頁（`pages`：部落格、履歷、旅行）；打開時焦點移到第一個連結；Esc（焦點回漢堡鈕）、
     點 header 以外、捲動超過 40px 都會收起。E2E `navbar.spec.ts`「手機選單」
   - 頁尾 `© 2026–{年}`：年份用 `BUILD_COMMIT_TIME`（不是 build 當下的時鐘）；`BuildInfo` 時間後面加回 7 碼 hash（**不要加 opacity**，a11y 對比會掛）
-  - 系列文最後有「系列下一篇」卡片＋每篇最後一行 RSS 訂閱
+  - 系列文最後有「系列下一篇」卡片。**2026-11-25 拿掉所有看得到的 RSS 訂閱入口**（文章底部「想收到新文章？」、/blog 的「RSS 訂閱 · Feed」）——
+    使用者：「我沒有要做訂閱功能」。/feed.xml 還在，只寫在 <head> 的 alternate 給搜尋引擎、AI 抓；不要再加回看得到的訂閱按鈕／頁面
+    （試過 XSLT 美化 feed：Chrome 156 會跳紅色「XSLT 即將移除」警告，不能用）
+  - 手機版作品集（640px 以下）：個人専案只先露出「FR24 雷達站」「個人網站」兩個精選（PortfolioSection 的 MOBILE_FEATURED），其他跟課程専題一樣收進「顯示全部」；桌機不變
   - ⚠️ E2E：子頁面沒有 `data-hydrated`，互動測試不能用 `gotoReady`，要 `toPass` 重試（見 `theme.spec.ts`、`tools.spec.ts`）
 
 - **2026-11-24 手機版規則（使用者很在意手機）**：
