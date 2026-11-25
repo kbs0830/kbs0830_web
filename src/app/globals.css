@@ -3,6 +3,8 @@
 /* Tailwind v4 掃描整個 repo（含 .md）找 class candidate，CLAUDE.md 裡拿 `bg-[--accent]`
    當反例說明會被誤判成真的 class、生出一條垃圾規則。文件不該是 utility class 來源，全部排除。 */
 @source not "../../**/*.md";
+/* Tailwind v4 變數寫法檢查工具的範例跟正規式長得像錯誤寫法（TODO J14），掃到會編出壞掉的 CSS */
+@source not "../lib/tools/tailwind-vars.ts";
 
 :root {
   --bg:        #fafaf8;
@@ -400,5 +402,21 @@ details.disclosure[open]::details-content {
   a[href]::after {
     content: " (" attr(href) ")";
     font-size: 0.75em;
+  }
+
+  /* 文章列印版（TODO B11）：站內連結補完整網址、頁內錨點（#…）不印網址；長程式碼可以跨頁，短的不要被切成兩半 */
+  .blog-article a[href^="/"]::after {
+    content: " (https://kbs0830.com" attr(href) ")";
+  }
+  .blog-article a[href^="#"]::after,
+  a[href^="#"]::after {
+    content: none;
+  }
+  .blog-article pre {
+    break-inside: auto;
+  }
+  .blog-article h2,
+  .blog-article h3 {
+    break-after: avoid;
   }
 }

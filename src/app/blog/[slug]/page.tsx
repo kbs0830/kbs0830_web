@@ -105,10 +105,12 @@ const mdxComponents = {
   pre: (props: React.ComponentPropsWithoutRef<"pre">) => (
     <div className="relative group mb-5 -mx-6 sm:mx-0">
       <pre
-        className="text-[12.5px] sm:text-[13px] leading-relaxed p-4 rounded-none sm:rounded-sm border-y sm:border-x bg-(--surface) border-(--border) overflow-x-auto [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono"
+        className="text-[12.5px] sm:text-[13px] leading-relaxed p-4 rounded-none sm:rounded-sm border-y sm:border-x bg-(--surface) border-(--border) overflow-x-auto [&_code]:bg-transparent [&_code]:border-0 [&_code]:p-0 font-mono print:whitespace-pre-wrap print:break-words print:overflow-visible print:border print:mx-0"
         {...props}
       />
-      <CopyCodeButton />
+      <span className="print:hidden">
+        <CopyCodeButton />
+      </span>
     </div>
   ),
   strong: (props: React.ComponentPropsWithoutRef<"strong">) => (
@@ -150,7 +152,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const headings = getHeadings(post.content);
 
   return (
-    <PageShell backHref="/blog" backLabel="返回部落格">
+    <PageShell backHref="/blog" backLabel="返回部落格" printable>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -179,12 +181,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <p className="text-xs text-(--muted) tracking-[0.15em] mt-10 mb-4 font-mono">
         {post.date} · 約 {readingMinutes(post.content)} 分鐘
       </p>
+      {/* 列印版（TODO B11）：紙上看不到網址列，開頭印一行原文網址；文章底下的導覽、相關文章、留言不印 */}
+      <p className="hidden print:block text-xs font-mono mb-2">原文：{`${SITE_URL}/blog/${post.slug}`}</p>
       <h1 className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug font-serif">
         {post.title}
       </h1>
       <p className="text-sm font-light text-(--muted) mb-6">{post.titleEn}</p>
 
-      <div className="flex flex-wrap gap-1.5 mb-12">
+      <div className="flex flex-wrap gap-1.5 mb-12 print:hidden">
         {post.tags.map((tag) => (
           <Link key={tag} href={`/blog/tags/${tagSlug(tag)}`} className="hover:opacity-70 transition-opacity">
             <TagBadge>{tag}</TagBadge>
@@ -192,10 +196,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         ))}
       </div>
 
-      {series.length > 1 && <SeriesBox post={post} posts={series} />}
-      {headings.length >= 4 && <Toc headings={headings} />}
+      {/* 標籤、系列清單、目錄都是導覽，列印時不印（不然每個連結後面都印一串網址） */}
+      <div className="print:hidden">
+        {series.length > 1 && <SeriesBox post={post} posts={series} />}
+        {headings.length >= 4 && <Toc headings={headings} />}
+      </div>
 
-      <article>
+      <article className="blog-article">
         <MDXRemote source={post.content} components={mdxComponents} options={mdxOptions} />
       </article>
 
@@ -224,7 +231,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {seriesNext && (
         <Link
           href={`/blog/${seriesNext.slug}`}
-          className="group mt-14 block border border-(--border) rounded-sm bg-(--surface) px-5 py-4 hover:border-(--accent) transition-colors"
+          className="group mt-14 block border border-(--border) rounded-sm bg-(--surface) px-5 py-4 hover:border-(--accent) transition-colors print:hidden"
         >
           <span className="block text-xs text-(--accent) font-mono tracking-wide mb-1">
             系列「{post.series}」下一篇 →
@@ -235,15 +242,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </Link>
       )}
 
-      <nav aria-label="上一篇／下一篇" className={`grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10 sm:mt-16" : "mt-16"} pt-8 border-t border-(--border)`}>
+      <nav aria-label="上一篇／下一篇" className={`print:hidden grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10 sm:mt-16" : "mt-16"} pt-8 border-t border-(--border)`}>
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
 
-      <Comments slug={post.slug} />
+      <div className="print:hidden">
+        <Comments slug={post.slug} />
+      </div>
 
       {related.length > 0 && (
-        <section className="mt-12">
+        <section className="mt-12 print:hidden">
           <SectionHeading en="Related">相關文章</SectionHeading>
           <ul className="space-y-3">
             {related.map((p) => (
