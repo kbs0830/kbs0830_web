@@ -69,6 +69,13 @@
       "date": "2028-12-31",
       "subject": "提醒：華航金卡 2028 到期，/hotels 會籍要更新",
       "body": "華航金卡今年底到期。/hotels 會籍寫的是「金卡（天合聯盟 Elite Plus）」，續了不用動；沒續就跟 Claude 說現在是哪一卡。\n資料在 src/lib/travel/hotels.ts 的 MEMBERSHIPS。"
+    },
+    {
+      "id": "2026-11-26-gh-login",
+      "date": "2026-11-26",
+      "time": "09:00",
+      "subject": "提醒：在桌機登入 gh（讓 Claude 看得到 CI 失敗原因）",
+      "body": "在桌機自己的終端機（不要在 Claude 對話裡）執行：gh auth login\n選 GitHub.com → HTTPS → 用瀏覽器登入。\n登入後 Claude 就能用 gh run view --log-failed 直接看 CI 錯誤訊息，也能讀 school 私有 repo。\n做完跟 Claude 說一聲，它會回查 gh auth status。"
     }
   ]
 }

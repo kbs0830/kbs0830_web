@@ -10,6 +10,9 @@
 
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
+- [ ] **登入 `gh`**（11/25，11/26 09:00 會寄提醒信）：桌機自己的終端機跑 `gh auth login`（GitHub.com → HTTPS → 瀏覽器登入）。
+  登入後 Claude 能看 CI 失敗的錯誤訊息（`gh run view --log-failed`）、讀 school 私有 repo。GitHub 外掛不用修（它缺 `GITHUB_PERSONAL_ACCESS_TOKEN`，而且每次對話都要載入說明）
+
 1. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
    不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）。
    📍 11/22 回查：還在
