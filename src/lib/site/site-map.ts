@@ -35,6 +35,7 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
       { href: "/hotels", zh: "住宿紀錄", en: "Hotels", desc: "住過的飯店、會籍" },
       { href: "/airports", zh: "機場時刻表", en: "Airports", desc: "小港、福岡機場即時航班" },
       { href: "/radar", zh: "自家雷達", en: "Radar", desc: "ADS-B 接收器收到的飛機" },
+      { href: "/radar/zukan", zh: "機體図鑑", en: "Zukan", desc: "自家雷達收到過的機型，收到過的點亮" },
     ],
   },
   {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { airlineOf, applySample, detail, lookupTypes, summarize } from "./radar.js";
+import { airlineOf, applySample, detail, dex, lookupTypes, summarize } from "./radar.js";
 import { twDate } from "./tw-time.js";
 
 type Plane = { hex: string; flight?: string; seen?: number; alt?: number | string };
@@ -180,5 +180,22 @@ describe("flightsNow（Q1：現在收到的航班）", () => {
     const d = detail(s, T0);
     if (!("flightsNow" in d)) throw new Error("detail 沒有 flightsNow");
     expect(d.flightsNow[0]).toMatchObject({ flight: "CAL31", airlineName: expect.any(String) });
+  });
+});
+
+describe("dex（機體図鑑）", () => {
+  it("記初見日期、累計架次，跨天保留；舊資料第一次跑時從 days 回填", () => {
+    const types = { a1: { t: "A321" }, a2: { t: "B744" }, a3: { t: "A321" } };
+    let s = applySample(null, ok([{ hex: "a1", seen: 0 }, { hex: "a2", seen: 0 }]), T0, types);
+    s = applySample(s, ok([{ hex: "a1", seen: 0 }]), T0 + 60_000, types); // 同一天同一架不重算
+    s = applySample(s, ok([{ hex: "a3", seen: 0 }]), T0 + 86400_000, types);
+    expect(dex(s)).toEqual([
+      { code: "A321", first: "2026-11-21", n: 2 },
+      { code: "B744", first: "2026-11-21", n: 1 },
+    ]);
+    // 沒有 dex 的舊狀態：從 days 回填
+    const old = { ...s, dex: undefined };
+    const s2 = applySample(old, ok([]), T0 + 2 * 86400_000, types);
+    expect(dex(s2).find((e) => e.code === "A321")).toEqual({ code: "A321", first: "2026-11-21", n: 2 });
   });
 });

@@ -116,6 +116,17 @@ function applySample(prev, sample, now, types) {
     }
   }
 
+  // 機體図鑑（2026-11-25）：每種機型第一次收到的日期＋累計架次，永久保留（days 只留 KEEP_DAYS 天）。
+  // 第一次跑時從現有的 days 回填，之後跟 day.types 一起加
+  if (!state.dex) {
+    state.dex = {};
+    for (const d of Object.keys(state.days).sort())
+      for (const [t, n] of Object.entries(state.days[d].types || {})) {
+        const e = (state.dex[t] = state.dex[t] || { first: d, n: 0 });
+        e.n += n;
+      }
+  }
+
   // 機型：今天看過、快取裡查到了、還沒算過的才算（查不到的也記成算過，不再重試）
   if (types) {
     if (!day.types) day.types = {};
@@ -124,7 +135,11 @@ function applySample(prev, sample, now, types) {
       const hit = types[hex];
       if (!hit) continue;
       state.today.typed[hex] = 1;
-      if (hit.t) day.types[hit.t] = (day.types[hit.t] || 0) + 1;
+      if (hit.t) {
+        day.types[hit.t] = (day.types[hit.t] || 0) + 1;
+        const e = (state.dex[hit.t] = state.dex[hit.t] || { first: date, n: 0 });
+        e.n++;
+      }
     }
   }
 
@@ -143,6 +158,23 @@ function applySample(prev, sample, now, types) {
   const cutoff = twDate(now - KEEP_DAYS * 86400_000);
   for (const d of Object.keys(state.days)) if (d < cutoff) delete state.days[d];
   return state;
+}
+
+/** 機體図鑑：[{ code, first, n }]，初見早的排前面。只有機型代碼、日期、架次（沒有識別碼、時間、位置） */
+function dex(state) {
+  let book = state && state.dex;
+  if (!book && state && state.days) {
+    // 還沒跑過新版 applySample（剛部署）：直接從 days 算
+    book = {};
+    for (const d of Object.keys(state.days).sort())
+      for (const [t, n] of Object.entries(state.days[d].types || {})) {
+        const e = (book[t] = book[t] || { first: d, n: 0 });
+        e.n += n;
+      }
+  }
+  return Object.entries(book || {})
+    .map(([code, e]) => ({ code, first: e.first, n: e.n }))
+    .sort((a, b) => a.first.localeCompare(b.first) || b.n - a.n);
 }
 
 /** /api/radar 回傳的公開資料：只有數字跟航空公司，沒有識別碼、座標、IP、金鑰 */
@@ -319,4 +351,4 @@ function startRadarPoller({ host, file, typesFile, log }) {
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, applySample, summarize, detail, readState, startRadarPoller, flightsNow };
+module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, applySample, summarize, detail, dex, readState, startRadarPoller, flightsNow };

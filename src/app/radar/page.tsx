@@ -7,7 +7,8 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
 import RadarLive from "@/components/live/RadarLive";
 import { BarChart, ShareList, Tiles } from "@/components/ui/StatCharts";
-import { detail, readState } from "../../../scripts/lib/radar.js";
+import { detail, dex, readState } from "../../../scripts/lib/radar.js";
+import { DEX_HIDDEN } from "@/lib/live/aircraft-dex";
 import { nf, monthDay as md } from "@/lib/format";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -34,6 +35,7 @@ type NowFlight = { flight: string; alt: number | null; airlineName: string | nul
 async function RadarContent() {
   await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const d = loadRadar();
+  const dexCount = (dex(readState(radarFile())) as { code: string }[]).filter((e) => !DEX_HIDDEN.has(e.code)).length;
 
   return (
     <Shell>
@@ -51,6 +53,18 @@ async function RadarContent() {
               [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime"],
             ]}
           />
+
+          {/* 機體図鑑（2026-11-25）入口 */}
+          <Link
+            href="/radar/zukan"
+            className="group mb-12 flex items-center justify-between border border-(--border) rounded-sm px-5 py-4 hover:border-(--accent) transition-colors"
+          >
+            <span>
+              <span className="block text-base font-light text-(--text) group-hover:text-(--accent) transition-colors">機體図鑑 · Zukan</span>
+              <span className="block mt-0.5 text-[13px] font-light text-(--muted)">收到過的機型點亮，目前 {dexCount} 種</span>
+            </span>
+            <span aria-hidden className="text-(--muted) group-hover:text-(--accent) transition-colors">→</span>
+          </Link>
 
           {/* 現在收到的航班（決策表 Q1，2026-11-25）：航班代碼、機型、高度（四捨五入到 1,000 ft），不放位置、識別碼 */}
           {d.flightsNow.length > 0 && (

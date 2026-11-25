@@ -16,8 +16,9 @@ import {
   type RestartKind,
 } from "@/lib/ops/status";
 import { incidents } from "@/lib/ops/incidents";
-import { getPostBySlug } from "@/lib/content/blog";
+import { getAllPosts, getPostBySlug } from "@/lib/content/blog";
 import { Suspense } from "react";
+import Bonsai from "@/components/content/Bonsai";
 import { connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 
@@ -94,6 +95,25 @@ function UptimeBars({ days }: { days: DayUptime[] }) {
   );
 }
 
+// 盆栽（2026-11-25）：枝＝部署、葉＝文章、幹＝運作天數、落葉＝近 90 天有中斷的日子、疤＝事故報告。
+// 放在元件外面：元件裡直接呼叫 Date.now() 會被 React 的 purity 規則擋（理由同 /radar 的 loadRadar）
+function loadBonsai(deploys: ReturnType<typeof readDeploys>, since: string | null, days: ReturnType<typeof readUptime>) {
+  const now = Date.now();
+  // 「幾歲」：可用率紀錄、部署紀錄、事故報告裡最早的那天（網站比監控早開始）
+  const born = [since, deploys.at(-1)?.start, ...incidents.map((i) => (i.date.length === 7 ? `${i.date}-01` : i.date))]
+    .filter((d): d is string => Boolean(d))
+    .map((d) => new Date(d).getTime())
+    .reduce((x, y) => Math.min(x, y), now);
+  return {
+    deploys: deploys.filter((d) => d.result !== "running").length,
+    posts: getAllPosts().length,
+    ageDays: Math.max(0, Math.floor((now - born) / 86400000)),
+    fallen: days.filter((d) => d.checks > 0 && d.up < d.checks).length,
+    scars: incidents.length,
+    month: new Date(now + 8 * 3600000).getUTCMonth() + 1,
+  };
+}
+
 async function StatusContent() {
   await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const days = readUptime(90);
@@ -101,6 +121,7 @@ async function StatusContent() {
   const deploys = readDeploys();
   const restarts = readRestarts();
   const sum = summarizeStatus(deploys, restarts);
+  const bonsai = loadBonsai(deploys, since, days);
 
   return (
     <Shell>
@@ -116,6 +137,8 @@ async function StatusContent() {
           </span>
         </p>
       </div>
+
+      <Bonsai input={bonsai} />
 
       <Tiles
         items={[

@@ -27,6 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/travel", "monthly", 0.4),
     page("/stats", "daily", 0.3),
     page("/radar", "daily", 0.5),
+    page("/radar/zukan", "daily", 0.5),
     page("/airports", "hourly", 0.4),
     page("/changelog", "weekly", 0.4),
     page("/status", "daily", 0.4),
