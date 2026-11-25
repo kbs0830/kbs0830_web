@@ -59,6 +59,18 @@ function Submit-IndexNow {
     } catch {
         Log "[WARN] IndexNow 通知失敗：$($_.Exception.Message)"
     }
+    # Google：沒有 IndexNow，改成重新提交 sitemap（2026-11-25；11/21 之後加的 16 頁 Google 都不知道，因為它 4 天沒回來讀 sitemap）。
+    # 用 Search Console 服務帳號（scripts\lib\search-console.js --submit-sitemap）；沒設 GSC_KEY_FILE 就跳過。失敗只記 log
+    try {
+        if (-not $changed) { return }
+        $out = (& node (Join-Path $PSScriptRoot "lib\search-console.js") --submit-sitemap 2>$null) -join ""
+        $r = $out | ConvertFrom-Json
+        if ($r.ok) { Log "Google：已重新提交 sitemap" }
+        elseif ($r.skipped) { Log "Google sitemap 提交跳過：$($r.skipped)" }
+        else { Log "[WARN] Google sitemap 提交失敗：$($r.error)" }
+    } catch {
+        Log "[WARN] Google sitemap 提交失敗：$($_.Exception.Message)"
+    }
 }
 
 # 新功能上線（2026-11-12，使用者：「推送新功能（持續 12 小時）就給我櫻花粉」）：這次部署的 commit 裡有 feat 開頭的，

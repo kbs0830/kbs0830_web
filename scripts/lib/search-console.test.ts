@@ -20,6 +20,9 @@ describe("signJwt", () => {
       iat: 1_700_000_000,
       exp: 1_700_003_600,
     });
+    // 重新提交 sitemap 才要寫入權限，要明講
+    const w = JSON.parse(Buffer.from(signJwt(key, 1_700_000_000, "https://www.googleapis.com/auth/webmasters").split(".")[1], "base64url").toString());
+    expect(w.scope).toBe("https://www.googleapis.com/auth/webmasters");
   });
 });
 

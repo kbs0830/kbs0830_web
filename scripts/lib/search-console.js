@@ -22,6 +22,8 @@ const path = require("path");
 const REPO = path.resolve(__dirname, "..", "..");
 const SITE = "https://kbs0830.com";
 const SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
+// 只有重新提交 sitemap 用（部署後，deploy.ps1 → `node search-console.js --submit-sitemap`）；週報、月報還是唯讀
+const WRITE_SCOPE = "https://www.googleapis.com/auth/webmasters";
 const TOKEN_URI = "https://oauth2.googleapis.com/token";
 // 自己的工具 UA 帶 kbs0830-：raw-traffic.js 不會把抓 sitemap 這次算進「未過濾流量」
 const UA = "kbs0830-weekly-report";
@@ -53,10 +55,10 @@ function readEnv(file) {
 const b64url = (v) => Buffer.from(v).toString("base64url");
 
 /** 服務帳號換 token 用的 JWT（RS256） */
-function signJwt(key, now = Math.floor(Date.now() / 1000)) {
+function signJwt(key, now = Math.floor(Date.now() / 1000), scope = SCOPE) {
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claim = b64url(
-    JSON.stringify({ iss: key.client_email, scope: SCOPE, aud: key.token_uri || TOKEN_URI, iat: now, exp: now + 3600 }),
+    JSON.stringify({ iss: key.client_email, scope, aud: key.token_uri || TOKEN_URI, iat: now, exp: now + 3600 }),
   );
   const sig = crypto.sign("RSA-SHA256", Buffer.from(`${header}.${claim}`), key.private_key);
   return `${header}.${claim}.${b64url(sig)}`;
@@ -188,7 +190,40 @@ async function run() {
   };
 }
 
-if (require.main === module) {
+/** 重新提交 sitemap（2026-11-25，TODO I5 那輪）：部署有改到內容就叫 Google 回來讀。
+ *  服務帳號在 Search Console 要是「完整」權限（siteFullUser，11/25 確認過已經是）；受限權限會回 403 */
+async function submitSitemap() {
+  const env = readEnv(path.join(REPO, ".env.local"));
+  const keyFile = process.env.GSC_KEY_FILE || env.GSC_KEY_FILE;
+  if (!keyFile) return { skipped: ".env.local 沒有 GSC_KEY_FILE" };
+  const key = JSON.parse(fs.readFileSync(keyFile, "utf8"));
+  const tokenRes = await fetch(key.token_uri || TOKEN_URI, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: signJwt(key, undefined, WRITE_SCOPE) }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const tok = await tokenRes.json().catch(() => ({}));
+  if (!tokenRes.ok) return { error: `拿不到 token：${tok.error_description || tok.error || tokenRes.status}` };
+  const site = env.GSC_SITE || "sc-domain:kbs0830.com";
+  const feed = `${SITE}/sitemap.xml`;
+  const res = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/sitemaps/${encodeURIComponent(feed)}`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${tok.access_token}` },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    return { error: `${res.status} ${(d.error && d.error.message) || ""}`.trim() };
+  }
+  return { ok: true, feed };
+}
+
+if (require.main === module && process.argv.includes("--submit-sitemap")) {
+  submitSitemap()
+    .catch((e) => ({ error: e.message }))
+    .then((out) => process.stdout.write(JSON.stringify(out)));
+} else if (require.main === module) {
   run()
     .catch((e) => ({ error: e.message }))
     .then((out) => process.stdout.write(JSON.stringify(out)));
