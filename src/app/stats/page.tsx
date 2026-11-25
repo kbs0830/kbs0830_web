@@ -3,6 +3,7 @@ import { after, connection } from "next/server";
 import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
+import VisitorConstellation from "@/components/stats/VisitorConstellation";
 import BulletList from "@/components/ui/BulletList";
 import NotMeToggle from "@/components/stats/NotMeToggle";
 import { BarChart, Share, ShareList, Tiles } from "@/components/ui/StatCharts";
@@ -173,6 +174,7 @@ async function StatsContent() {
       {countries.length > 0 && (
         <section className="mb-12">
           <SectionHeading en="Visitors by country">真人訪客來自</SectionHeading>
+          <VisitorConstellation countries={countries} />
           <ul className="flex flex-wrap gap-2">
             {countries.map(([code, count]) => (
               <li key={code} className="flex items-center gap-2 border border-(--border) rounded-sm px-3 py-1.5 text-sm">
