@@ -99,6 +99,13 @@ export default function RootLayout({
         <JsonLd data={jsonLd} />
       </head>
       <body className="min-h-full flex flex-col">
+        {/* 跳到主要內容（TODO F6）：平常看不到，用鍵盤按第一下 Tab 才出現，不用每頁先 Tab 過整排導覽 */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-sm focus:bg-(--accent) focus:text-(--bg) focus:text-sm"
+        >
+          跳到主要內容
+        </a>
         <WebVitals />
         <VisitBeacon />
         <Presence />

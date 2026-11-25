@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import FooterNavLink from "@/components/layout/FooterNavLink";
 import BuildInfo from "@/components/live/BuildInfo";
 import { SITE_GROUPS } from "@/lib/site/site-map";
 
@@ -39,13 +39,10 @@ export default function SiteFooter({
             <ul className="space-y-1">
               {g.pages.map((p) => (
                 <li key={p.href}>
-                  <Link
-                    href={p.href}
-                    className="group inline-flex items-baseline gap-2 py-1 text-sm font-light text-(--text) hover:text-(--accent) transition-colors"
-                  >
+                  <FooterNavLink href={p.href}>
                     {p.zh}
                     <span className="text-[10px] tracking-wider text-(--muted) group-hover:text-(--accent) font-mono transition-colors">{p.en}</span>
-                  </Link>
+                  </FooterNavLink>
                 </li>
               ))}
             </ul>

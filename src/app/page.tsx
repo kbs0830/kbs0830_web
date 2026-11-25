@@ -25,7 +25,7 @@ export default function Home() {
       {/* 告訴搜尋引擎「首頁就是這個人的個人檔案頁」，人名搜尋比較容易把首頁對上 layout 的 Person */}
       <JsonLd data={{ "@context": "https://schema.org", "@type": "ProfilePage", url: SITE_URL, mainEntity: { "@id": PERSON_ID } }} />
       <NavBar />
-      <main>
+      <main id="main" tabIndex={-1} className="outline-none">
         <HeroSection />
         <AboutSection />
         <PortfolioSection />

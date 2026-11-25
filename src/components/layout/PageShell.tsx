@@ -36,7 +36,7 @@ export default function PageShell({
     <>
       <div className={`flex-1 bg-(--bg) px-6 py-20 ${printable ? "print:py-0 print:px-0" : ""}`}>
         <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
-        <main className={`max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
+        <main id="main" tabIndex={-1} className={`outline-none max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
           <div className="relative flex items-center justify-between gap-4 print:hidden">
             <Link
               href={backHref}

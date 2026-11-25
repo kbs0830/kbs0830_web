@@ -34,7 +34,8 @@ export default function NavBar() {
       const el = document.getElementById(id);
       if (!el) return [];
       const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
+        // 離開時也要清掉（TODO F5）：原本只在進入時設定，捲回 Hero 時「自己紹介」會一直亮著
+        ([entry]) => setActiveSection((cur) => (entry.isIntersecting ? id : cur === id ? "" : cur)),
         { rootMargin: "-40% 0px -55% 0px" }
       );
       obs.observe(el);
@@ -74,6 +75,7 @@ export default function NavBar() {
             <li key={href}>
               <a
                 href={href}
+                aria-current={activeSection === id ? "location" : undefined}
                 className={`text-sm font-light tracking-wide transition-colors ${
                   activeSection === id ? "text-(--accent)" : "text-(--muted) hover:text-(--accent)"
                 }`}
@@ -114,6 +116,7 @@ export default function NavBar() {
               <li key={href}>
                 <a
                   href={href}
+                  aria-current={activeSection === id ? "location" : undefined}
                   onClick={() => setMenuOpen(false)}
                   className={`block py-2 text-[15px] font-light tracking-wide transition-colors ${
                     activeSection === id ? "text-(--accent)" : "text-(--muted)"
