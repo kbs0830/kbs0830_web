@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 
 test("/tools 總覽列出所有工具", async ({ page }) => {
   await page.goto("/tools");
-  for (const name of ["日幣換匯比價", "台灣⇄福岡直飛", "福岡穿搭", "機場距離", "日本消費稅", "AI 爬蟲檢查", "UA 是爬蟲嗎"]) {
+  for (const name of ["日幣換匯比價", "台灣⇄福岡直飛", "福岡穿搭", "機場距離", "日本消費稅", "AI 爬蟲檢查", "UA 是爬蟲嗎", "Tailwind v4 變數檢查", "PowerShell 亂碼檢查"]) {
     await expect(page.getByRole("main").getByRole("link", { name: new RegExp(name) })).toBeVisible();
   }
 });
@@ -55,4 +55,17 @@ test("發文標記 ?ref=（I9）：記錄後從網址拿掉，其他參數保留
   await expect(page).toHaveURL(/\/tools\/japan-tax\?yen=500/);
   await expect(page).not.toHaveURL(/ref=/);
   await expect.poll(() => sent.some((b) => b.includes('"ref":"ref:reddit-selfhosted"'))).toBe(true);
+});
+
+test("Tailwind v4 變數檢查：預設範例找到要改的地方", async ({ page }) => {
+  await page.goto("/tools/tailwind-v4-vars");
+  await expect(page.getByText(/找到 \d+ 處在 v4 會失效的寫法/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("bg-(--accent)").first()).toBeVisible();
+});
+
+test("PowerShell 亂碼檢查：沒有 BOM 的中文 .ps1 → 要修、可以下載", async ({ page }) => {
+  await page.goto("/tools/ps1-encoding");
+  await page.locator('input[type="file"]').setInputFiles({ name: "deploy.ps1", mimeType: "text/plain", buffer: Buffer.from('Write-Host "部署完成"', "utf8") });
+  await expect(page.getByText("要修")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "下載加好 BOM 的版本" })).toBeVisible();
 });

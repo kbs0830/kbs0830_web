@@ -60,6 +60,8 @@ export const TOOL_PAGES: SitePage[] = [
   { href: "/tools/japan-tax", zh: "日本消費稅", en: "Tax", desc: "含稅未稅、8%／10% 換算，順便換成台幣" },
   { href: "/tools/ai-crawlers", zh: "AI 爬蟲檢查", en: "robots.txt", desc: "輸入網域，看 GPTBot、ClaudeBot 等 AI 爬蟲有沒有被擋" },
   { href: "/tools/user-agent", zh: "UA 是爬蟲嗎", en: "User-Agent", desc: "貼一串 User-Agent，判斷是瀏覽器、搜尋引擎、AI 爬蟲還是機器人" },
+  { href: "/tools/tailwind-v4-vars", zh: "Tailwind v4 變數檢查", en: "Tailwind v4", desc: "升級 v4 後顏色不見？找出方括號變數寫法、一鍵改成小括號" },
+  { href: "/tools/ps1-encoding", zh: "PowerShell 亂碼檢查", en: "PS1 BOM", desc: "有中文的 .ps1 在 PowerShell 5.1 變亂碼？檢查有沒有 BOM、一鍵補上" },
 ];
 
 /** 快速跳轉的一筆結果（頁面、作品、文章共用） */
