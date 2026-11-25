@@ -153,6 +153,12 @@
 - [ ] **C9. Renovate PR 自動試跑** 🟧 🙋：PR 開出來就 build 到第三個槽＋跑 E2E，結果留言在 PR 上（要 fine-grained PAT，跟 TODO 那項同一組）
 - [ ] **C12. MCP 伺服器登記到公開目錄** 🟩 🙋（11/22 新）：`/mcp` 做好了但沒人知道。可以登記到官方 MCP Registry 之類的目錄，
   要用你的 GitHub 帳號驗證、會公開出現在別人的網站上，所以要你決定要不要
+- [ ] **C13. 改用 Cache Components（Next 16 的新快取模型）** 🟥（11/25 新，使用者：「我要創新」）：開 `cacheComponents: true`＋`partialPrefetching: true`，
+  頁面的固定部分在 build 時先畫好（靜態外殼），即時資料（雷達、訪客數、機場看板）用 `<Suspense>` 串流補進來，換頁可以「瞬間」出現外殼。
+  → 規模：35 個路由有 `dynamic`／`dynamicParams` 設定要拿掉、21 個檔案在畫面裡用 `Date.now()`／`new Date()`（開了之後 build 會直接報錯，要搬進 Suspense 或 client）、
+    `lib/live/live-cache.ts` 自己寫的記憶體快取可以換成 `"use cache"`＋`cacheLife`
+  → 做法：官方建議先全站加 `instant = false`（codemod）讓它能 build，再一頁一頁轉；本機 3200 驗證、E2E 全過才上
+  → 風險：GET 的 API route 也會被當成可預先產生（雷達、統計那幾支要確認還是每次即時）；Cloudflare 那層快取規則可能要跟著調
 - [ ] **C10. 筆電當第二台主機** 🟥：Cloudflare Tunnel 可以同時接兩個來源。筆電開著時自動分擔、桌機掛了接手。
   但筆電不是一直開著，**A2 比較實際**，這個當備案
 
@@ -295,10 +301,25 @@ Ollama 已經裝好（`%LOCALAPPDATA%\Programs\Ollama`），但**沒有在跑**�
   → 英文平台要寫英文。每篇都附**真實的數字跟踩過的坑**，不要只貼連結（大部分社群會刪純宣傳文）
 - [ ] **I2. iThome 鐵人賽（2027 秋）** 🙋：連寫 30 天，台灣技術圈曝光最大的活動，文章頁會連回你的網站。
   題材現成：「從零開始在家架正式站」（部落格題材庫加上 H2 的本機 AI 實測就夠 30 篇）。報名時間到了再提醒 (?)
-- [ ] **I3. 文章轉貼到其他平台** 🟧：dev.to、Medium、HackMD 用英文或中文轉貼；日本的 Zenn／Qiita 用日文（H3 先用本機模型翻）。
-  每篇都設 canonical 指回 kbs0830.com，Google 才會把排名算給原文
 - [ ] **I4. 所有個人檔案都放網站連結** ⭐ 🙋：GitHub 個人頁＋3 個 repo 的 About（🙋 第 3 項「GitHub 門面」，**建議往前排**）、
   LinkedIn、104、Cake、FR24 feeder 個人頁。這些就是第一批站外連結；IG 你說過先不放，維持
+- [ ] **I11. 登記到個人網站目錄** 🟩 🙋（11/25 新）：現成的頁面直接對得上，各花 5 分鐘、連結長期有效
+  → `/uses` → GitHub `wesbos/awesome-uses` 開 PR（Claude 寫好 PR 內容，要你的帳號送）
+  → `/now` → nownownow.com 的登記表單
+  → 整站 → personalsit.es、ooh.directory（個人網站／部落格目錄）；`/mcp` 的目錄登記見 ⚙️ C12
+  📍 **11/25 查過規則**：
+  → awesome-uses：fork 後改 `src/data.js`（不是 readme），網址結尾必須是 `/uses`（符合），**插在陣列中間、不要放最後**，
+    PR 標題寫名字（如「Adding PINGWEI LI」）；欄位 name／description／url／country／tags，選填 computer: 'windows'、phone
+  → nownownow：把 `/now` 網址 email 給站長 Derek Sivers（sive.rs/contact），他回信給連結填資料；只收個人網站、不收公司
+  → personalsit.es：GitHub 的 issue 表單送（不用 fork），欄位 title／url／tags（＋選填 feed 放 `/feed.xml`）；
+    **站長明說會關掉一看就是 AI 寫的送件** → 這個要你自己填，Claude 不代寫
+  → ooh.directory：頁面擋自動抓取，規則沒讀到 (?)，你用瀏覽器開 ooh.directory/suggest 看
+- [ ] **I12. 技術聚會／研討會講一次** 🙋（11/25 新）：講者頁、議程、投影片都會連回網站，聽眾也是最對的人
+  → 高雄的 MOPCON、台北的 COSCUP／JSDC；福岡也有前端、Python 的聚會 (?)
+  → 題目現成：「在家用一台桌機跑正式站一年」（跟 I1 的 Show HN 同一份素材）
+  → 各場的徵稿時間沒查 (?)，Claude 可以先查好列進來，投稿要你決定
+- [ ] **I13. 在別人的討論串回答問題，順便附相關文章** 🙋（11/25 新）：Reddit、Threads、PTT 有人問 Cloudflare Tunnel、
+  自架、YOLO 部署時，先把問題答完、最後才附文章連結（帶 I9 的 `?ref=`）。比 I1 的發文細水長流，也比較不會被當廣告刪
 
 *② 內容改成別人會搜的（Claude 可以做）*
 - [ ] **I5 回頭看（12/9 左右）**：11/25 已經把 8 篇文章、/airports、/radar 的 `<title>` 改成照搜尋字寫（畫面標題不動），
@@ -388,6 +409,10 @@ Ollama 已經裝好（`%LOCALAPPDATA%\Programs\Ollama`），但**沒有在跑**�
   WebGPU 版是直接用 three，沒有這個 warning）
 
 ## 評估過、先不做（記下理由免得重查）
+
+- **I3. 文章轉貼到 dev.to／Zenn／Qiita 等平台**（2026-11-25 使用者：「轉貼到這些平台不就是發廣告，我的原則就是不要濫發宣傳會有反效果」）：
+  不做。站外曝光只做「對方本來就想要的」：個人檔案放連結（I4）、主動登記的目錄（I11）、別人問了才回答（I13，要先問過你）。
+  11/25 查過的平台規則留著備查：dev.to 有 `canonical_url`；Zenn、Qiita 找不到 canonical 設定
 
 - **搞錢方面的不做清單**（2026-11-24）：廣告、業配、雷達資料收費、付費 AI API、付費牆鎖現有內容、嵌入付款 widget（出租 GPU 11/24 改成評估中，見 H9）——
   理由寫在 [make-money.md](make-money.md)「不做」那一節
