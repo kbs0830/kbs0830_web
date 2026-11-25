@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSakuraSeason, phaseAt, skyWeather, sunTimes } from "@/lib/client/sky";
+import { isSakuraSeason, moonPhase, phaseAt, skyWeather, sunTimes } from "@/lib/client/sky";
 
 const tw = (s: string) => new Date(`${s}+08:00`).getTime();
 const twClock = (ms: number) => new Date(ms + 8 * 3600_000).toISOString().slice(11, 16);
@@ -36,5 +36,23 @@ describe("skyWeather／isSakuraSeason", () => {
     expect(isSakuraSeason(tw("2026-03-30T12:00:00"))).toBe(true);
     expect(isSakuraSeason(tw("2026-04-13T12:00:00"))).toBe(false);
     expect(isSakuraSeason(tw("2026-11-25T12:00:00"))).toBe(false);
+  });
+});
+
+describe("moonPhase", () => {
+  // 天文台公布的時刻：2024-01-11 11:57 UTC 新月、2024-01-25 17:54 UTC 滿月、2025-01-13 22:27 UTC 滿月
+  it("新月幾乎全暗、滿月幾乎全亮", () => {
+    expect(moonPhase(Date.UTC(2024, 0, 11, 11, 57)).illum).toBeLessThan(0.02);
+    expect(moonPhase(Date.UTC(2024, 0, 25, 17, 54)).illum).toBeGreaterThan(0.98);
+    expect(moonPhase(Date.UTC(2025, 0, 13, 22, 27))).toMatchObject({ name: "滿月" });
+  });
+
+  it("新月後一週是上弦（盈、亮一半），滿月後一週是下弦（虧）", () => {
+    const newMoon = Date.UTC(2024, 0, 11, 11, 57);
+    const first = moonPhase(newMoon + 7.4 * 86_400_000);
+    expect(first).toMatchObject({ name: "上弦", waxing: true });
+    expect(first.illum).toBeGreaterThan(0.4);
+    expect(first.illum).toBeLessThan(0.6);
+    expect(moonPhase(Date.UTC(2024, 0, 25, 17, 54) + 7.4 * 86_400_000)).toMatchObject({ name: "下弦", waxing: false });
   });
 });

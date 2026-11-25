@@ -29,6 +29,7 @@ export default function HeroSky() {
           <span aria-hidden className="inline-block w-1.5 h-1.5 rounded-full bg-(--accent) mr-2 align-middle opacity-70" />
           高雄{sky.live && sky.temp !== null ? ` ${sky.temp}°` : ""}
           {sky.live ? ` · ${WEATHER_NAMES[sky.weather]}` : ""} · {PHASE_NAMES[sky.phase]}
+          {sky.phase === "night" && sky.moon ? ` · ${sky.moon}` : ""}
           {sky.sakura ? " · 桜" : ""}
         </p>
       )}

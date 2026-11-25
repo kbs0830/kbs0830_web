@@ -4,6 +4,7 @@
 //   - HeroScene／HeroSceneLite（雨、櫻花、夜晚流星）：每幀直接讀 skyNow()，不進 React
 // 天氣：/api/weather（伺服器 30 分鐘跟 Open-Meteo 抓一次）的高雄 WMO 代碼；時段：瀏覽器自己算高雄的日出日落。
 // 預覽：網址加 ?sky=rain|storm|cloud|fog|clear&phase=dawn|day|dusk|night&sakura=1 強制指定（截圖、E2E、給人看效果）
+// 月相：?moon=<0～29.5 的月齡> 強制指定（手機夜空的月亮）
 
 import { useSyncExternalStore } from "react";
 
@@ -16,6 +17,8 @@ export interface Sky {
   temp: number | null;
   /** 天氣是不是讀到了（讀到之前 weather 是 clear、不顯示天氣字） */
   live: boolean;
+  /** 今天的月相名字（新月、上弦、滿月…），夜晚顯示 */
+  moon: string;
 }
 
 const KAOHSIUNG = { lat: 22.63, lon: 120.3 };
@@ -67,14 +70,46 @@ export function isSakuraSeason(now: number): boolean {
   return md >= 318 && md <= 412;
 }
 
+// ── 月相（2026-11-26，手機夜空畫月亮用）────────────────────
+// 平均朔望月＋一個已知新月（2000-01-06 18:14 UTC）推算，誤差半天以內；只拿來畫圖跟顯示名字，夠用。
+export const SYNODIC_DAYS = 29.530588853;
+const KNOWN_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);
+
+export interface MoonPhase {
+  /** 月齡（天，0＝新月、約 14.77＝滿月） */
+  age: number;
+  /** 被照亮的比例 0～1 */
+  illum: number;
+  /** 盈（上半月，北半球右邊亮）／虧（左邊亮） */
+  waxing: boolean;
+  name: string;
+}
+
+const MOON_NAMES = ["新月", "眉月", "上弦", "盈凸", "滿月", "虧凸", "下弦", "殘月"] as const;
+
+export function moonPhase(now: number): MoonPhase {
+  const days = (now - KNOWN_NEW_MOON) / DAY_MS;
+  const age = ((days % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS;
+  const frac = age / SYNODIC_DAYS; // 0～1
+  const illum = (1 - Math.cos(frac * 2 * Math.PI)) / 2;
+  return { age, illum, waxing: frac < 0.5, name: MOON_NAMES[Math.round(frac * 8) % 8] };
+}
+
 export const PHASE_NAMES: Record<Phase, string> = { dawn: "清晨", day: "白天", dusk: "黃昏", night: "夜晚" };
 export const WEATHER_NAMES: Record<SkyWeather, string> = { clear: "晴", cloud: "多雲", rain: "雨", storm: "雷雨", fog: "霧" };
 
 // ── 狀態 ────────────────────────────────────────────────
-let sky: Sky = { phase: "day", weather: "clear", sakura: false, temp: null, live: false };
+let sky: Sky = { phase: "day", weather: "clear", sakura: false, temp: null, live: false, moon: "" };
 const listeners = new Set<() => void>();
 let started = false;
 const forced: Partial<Sky> = {};
+let forcedMoonAge: number | null = null;
+
+/** 現在的月相（?moon= 有指定就用指定的月齡） */
+export function moonNow(): MoonPhase {
+  if (forcedMoonAge === null) return moonPhase(Date.now());
+  return moonPhase(KNOWN_NEW_MOON + forcedMoonAge * DAY_MS);
+}
 
 const set = (next: Partial<Sky>) => {
   const merged = { ...sky, ...next, ...forced };
@@ -94,9 +129,11 @@ function start() {
   if (w && w in WEATHER_NAMES) forced.weather = w as SkyWeather;
   if (p && p in PHASE_NAMES) forced.phase = p as Phase;
   if (q.get("sakura") === "1") forced.sakura = true;
+  const m = Number(q.get("moon"));
+  if (q.has("moon") && Number.isFinite(m)) forcedMoonAge = ((m % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS;
   if (forced.weather) forced.live = true;
 
-  const tick = () => set({ phase: phaseAt(Date.now()), sakura: isSakuraSeason(Date.now()) });
+  const tick = () => set({ phase: phaseAt(Date.now()), sakura: isSakuraSeason(Date.now()), moon: moonNow().name });
   tick();
   setInterval(tick, 60_000);
   const load = async () => {
