@@ -164,6 +164,11 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 ---
 
 ## SEO
+- **搜尋標題（2026-11-25，TODO I5）**：文章 frontmatter `seoTitle` 只給 `<title>` 用（照大家會搜的字：錯誤訊息、工具名、版本），
+  畫面上的 h1、og:title 還是說故事的 `title`。`e2e/share-meta.spec.ts` 對文章頁只檢查 `<title>` 結尾是「 — PINGWEI LI」。新文章兩個都要寫
+- **Google 重新提交 sitemap（2026-11-25）**：deploy.ps1 的 `Submit-IndexNow` 在內容有變時順便跑 `node scripts/lib/search-console.js --submit-sitemap`
+  （PUT sitemaps API，`webmasters` 寫入 scope；週報、月報還是 readonly）。服務帳號 `kbs0830-weekly@…` 在 Search Console 是「完整」權限（`siteFullUser`）。
+  起因：11/21 之後加的 16 頁 Google 都不知道（它 4 天沒回來讀 sitemap）。Google 沒有給一般網頁用的「要求建立索引」API（Indexing API 只收徵才／直播），那個只能手動
 
 | 項目 | 位置 |
 |---|---|
