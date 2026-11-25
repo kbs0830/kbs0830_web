@@ -47,8 +47,8 @@ export interface Project {
   image?: string;
   /** 圖不是截圖時寫清楚是什麼（示意圖、封面）；沒寫就用「○○ 截圖」 */
   imageAlt?: string;
-  /** 手機版卡片（80px 正方形）專用的縮圖。整頁截圖切中間只剩空白，所以另外做一張只取重點的（2026-11-25 使用者：手機版怪怪的） */
-  thumb?: string;
+  /** 手機作品卡片左邊的小圖示（2026-11-25 使用者：「換簡易版的，emoji 也可以」，截圖點進作品頁才看） */
+  icon: string;
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
   /** 作品頁上的即時資料區塊（TODO D2／D5：課程作品的「線上版」，資料由伺服器抓外部 API） */
@@ -60,6 +60,7 @@ const allProjects: Project[] = [
   // ── 個人專案 ─────────────────────────────────
   {
     slug: "foodlens-advisor",
+    icon: "🍱",
     title: "FoodLens Advisor",
     titleJa: "フードレンズ",
     titleZh: "食物辨識助手",
@@ -75,7 +76,6 @@ const allProjects: Project[] = [
     // 2026-11-25 圖：GitHub main 分支的 web-client 實際跑起來的畫面（只把 BFF 健康檢查回成正常，其他照原樣）。
     // 一開始誤用本機舊分支（Android 版）畫了示意圖，查 origin/main 才發現現在是瀏覽器端版本，已換掉
     image: "/image/projects/foodlens-advisor.jpg",
-    thumb: "/image/projects/thumbs/foodlens-advisor.jpg",
     isPersonal: true,
     detail: {
       caseStudy: {
@@ -157,6 +157,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "ticketing-system",
+    icon: "🎫",
     title: "Event Registration System",
     titleJa: "イベント受付システム",
     titleZh: "活動報名系統",
@@ -171,7 +172,6 @@ const allProjects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：本機跑 frontend 截的真實報名表單；/api/bootstrap 用設定預設值假資料，客戶品牌、活動名稱、銀行帳號換成範例文字
     image: "/image/projects/ticketing-system.jpg",
-    thumb: "/image/projects/thumbs/ticketing-system.jpg",
     isPersonal: true,
     detail: {
       caseStudy: {
@@ -254,6 +254,7 @@ const allProjects: Project[] = [
 
   {
     slug: "frc-robot",
+    icon: "🏆",
     // 2026-11-25 使用者：「frc 的專門頁面先隱藏，稍微提到就好」——高工學習記録、自動跟隨機器人頁、About 時間軸裡有提
     hidden: true,
     title: "FRC Robot Team",
@@ -322,6 +323,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "auto-following-robot",
+    icon: "🤖",
     title: "Auto-Following Robot",
     titleJa: "自動追従ロボット",
     titleZh: "自動跟隨機器人",
@@ -410,6 +412,7 @@ const allProjects: Project[] = [
   {
     // 數字全部有出處：CLAUDE.md（部署／監控／備份章節）、DONE.md、git log。改這裡之前先確認還是真的
     slug: "kbs0830-web",
+    icon: "🌐",
     title: "kbs0830.com — This Site",
     titleJa: "本サイト",
     titleZh: "個人網站（本站）",
@@ -424,7 +427,6 @@ const allProjects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：正式站首頁截圖
     image: "/image/projects/kbs0830-web.jpg",
-    thumb: "/image/projects/thumbs/kbs0830-web.jpg",
     isPersonal: true,
     live: { href: "/colophon", label: "看架構圖（即時數字）· Colophon" },
     detail: {
@@ -539,6 +541,7 @@ const allProjects: Project[] = [
     // 2026-11-20／21 實際除錯與上線的紀錄（DONE.md、CLAUDE.md「自家 FR24 雷達」）。
     // ⚠️ 接收器在使用者家：不寫位置、雷達代碼、涵蓋範圍、離機場多近（「收得到地面滑行的飛機」也不寫，那等於說住在機場旁）
     slug: "fr24-receiver",
+    icon: "📡",
     title: "Home ADS-B Receiver",
     titleJa: "自宅レーダー",
     titleZh: "自架 FR24 雷達站",
@@ -552,7 +555,6 @@ const allProjects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：/radar 的每小時分布、近 30 天、航空公司（真實資料；頁面本來就公開，沒有位置）
     image: "/image/projects/fr24-receiver.jpg",
-    thumb: "/image/projects/thumbs/fr24-receiver.jpg",
     isPersonal: true,
     live: { href: "/radar", label: "看即時狀態 · Live Status" },
     detail: {
@@ -632,6 +634,7 @@ const allProjects: Project[] = [
   // ── 課程専題 ─────────────────────────────────
   {
     slug: "yen-rate-analyzer",
+    icon: "💴",
     title: "JPY Rate Analyzer",
     titleJa: "円相場分析システム",
     titleZh: "日圓匯率分析系統",
@@ -715,6 +718,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "expense-tracker",
+    icon: "🧾",
     title: "Personal Finance Tracker",
     titleJa: "家計簿アプリ",
     titleZh: "個人記帳分析系統",
@@ -792,6 +796,7 @@ const allProjects: Project[] = [
   // 去識別化：不放學號、本名、班級組別、組員姓名；路口排雷的 GitHub repo README 有組員本名，所以不連過去。
   {
     slug: "lukou-pailei",
+    icon: "🚦",
     title: "Road Hazard Map",
     titleJa: "道路危険マップ",
     titleZh: "路口排雷",
@@ -876,6 +881,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "aqi-classification",
+    icon: "🌫️",
     title: "Air Quality Classification",
     titleJa: "空気質分類",
     titleZh: "空氣品質等級分類",
@@ -948,6 +954,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "sql-analysis",
+    icon: "🗃️",
     title: "SQL Business Queries",
     titleJa: "SQL 分析",
     titleZh: "資料庫 SQL 分析",
@@ -1009,6 +1016,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "churn-preprocessing",
+    icon: "🛒",
     title: "Customer Churn Data Cleaning",
     titleJa: "データ前処理",
     titleZh: "電商顧客流失資料預處理",
@@ -1089,6 +1097,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "ma-backtest",
+    icon: "📈",
     title: "Moving-Average Backtest",
     titleJa: "移動平均バックテスト",
     titleZh: "均線交叉回測",
@@ -1164,6 +1173,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "school",
+    icon: "📚",
     title: "Learning Records",
     titleJa: "学習記録",
     titleZh: "課程學習記録",
@@ -1178,7 +1188,6 @@ const allProjects: Project[] = [
     status: "學習記録",
     // 2026-11-25 圖：school repo 實際的課程資料夾跟檔案數做的封面（不放學號、姓名、報告內容）
     image: "/image/projects/school.jpg",
-    thumb: "/image/projects/thumbs/school.jpg",
     imageAlt: "課程學習記録的封面：school repo 的課程資料夾跟檔案數",
     detail: {
       intro:
@@ -1231,6 +1240,7 @@ const allProjects: Project[] = [
   // 報告裡的學號、組員與老師姓名一律不放
   {
     slug: "trash-collector",
+    icon: "🗑️",
     // 2026-11-25 使用者：「不要放太明顯的地方」——不進作品集卡片，只從高工學習記録連過來
     unlisted: true,
     title: "Auto Trash Collector",
@@ -1247,7 +1257,6 @@ const allProjects: Project[] = [
     status: "課程専題",
     // 圖：專題報告書裡的實機照片（報告裡其他圖是零件的商品圖跟新聞照片，不是自己的，不用）
     image: "/image/projects/trash-collector.jpg",
-    thumb: "/image/projects/thumbs/trash-collector.jpg",
     detail: {
       caseStudy: {
         "problem": "看到新聞裡大型戶外活動（像演唱會）開始前、結束後垃圾滿地，不只影響其他人的活動，也污染環境。專題目標是做一台體積小、能在人群裡移動，把地上垃圾集中起來的自動小車，縮短活動後整理場地的時間。",
@@ -1312,6 +1321,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "vocational-records",
+    icon: "🔧",
     title: "Vocational High School Records",
     titleJa: "高工学習記録",
     titleZh: "高工學習記録",
@@ -1325,7 +1335,6 @@ const allProjects: Project[] = [
     highlightZh: "三年從積木程式到 Verilog、物聯網",
     status: "學習記録",
     image: "/image/projects/vocational-records.jpg",
-    thumb: "/image/projects/thumbs/vocational-records.jpg",
     imageAlt: "高工學習記録的封面：各科實習做出來的東西",
     detail: {
       intro:

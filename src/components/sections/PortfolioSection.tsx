@@ -51,27 +51,26 @@ function ProjectCard({
         <div className="relative z-10 flex flex-row items-start gap-4 sm:flex-col sm:items-stretch sm:gap-0 flex-1 pointer-events-none">
           {project.image && (
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
-              <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-sm bg-(--surface) sm:w-auto sm:h-auto sm:-mx-7 sm:-mt-7 sm:mb-5 sm:aspect-video sm:rounded-b-none">
-                {/* 有手機專用縮圖（thumb）的：手機用正方形縮圖、桌機用大圖。display:none 的那張 lazy 圖不會被下載 */}
-                {project.thumb && (
-                  <Image
-                    src={project.thumb}
-                    alt={project.imageAlt ?? `${project.titleZh} 截圖`}
-                    fill
-                    className="object-cover sm:hidden"
-                    sizes="80px"
-                  />
-                )}
+              {/* 桌機的大圖（使用者：桌機不用改）。手機 display:none，lazy 圖不會下載 */}
+              <div className="relative hidden sm:block overflow-hidden rounded-sm bg-(--surface) -mx-7 -mt-7 mb-5 aspect-video rounded-b-none">
                 <Image
                   src={project.image}
                   alt={project.imageAlt ?? `${project.titleZh} 截圖`}
                   fill
-                  className={`object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500 ${project.thumb ? "hidden sm:block" : ""}`}
-                  sizes="(max-width: 639px) 80px, (max-width: 768px) 100vw, 50vw"
+                  className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </ViewTransition>
           )}
+          {/* 手機：左邊一個 emoji 小圖示，截圖點進作品頁才看（2026-11-25 使用者：「截圖好醜，點進去再顯示截圖」；
+              原本的正方形截圖縮圖 thumb 拿掉了，同網址換圖還會被圖片快取卡住舊圖） */}
+          <div
+            aria-hidden
+            className="sm:hidden w-14 h-14 shrink-0 grid place-items-center rounded-sm bg-(--surface) text-[28px] leading-none select-none"
+          >
+            {project.icon}
+          </div>
           <div className="flex flex-col flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-start justify-between mb-2 sm:mb-4">
