@@ -89,6 +89,14 @@ function project(p: Project) {
   ];
   if (d) {
     parts.push(d.intro);
+    // 案例段落（TODO B9）：AI 助理問「他為什麼這樣做」時，答案在這裡
+    const c = d.caseStudy;
+    if (c) {
+      parts.push(`## 背景與問題 · Problem\n\n${c.problem}${c.role ? `\n\n我的角色：${c.role}` : ""}`);
+      parts.push(`## 關鍵決定 · Key decisions\n\n${c.decisions.map((x, i) => `${i + 1}. **${x.what}**：${x.why}`).join("\n")}`);
+      if (c.tradeoffs?.length) parts.push(`## 取捨與限制 · Trade-offs\n\n${list(c.tradeoffs)}`);
+      parts.push(`## 成果 · Results\n\n${list(c.results)}`);
+    }
     if (d.architectureDiagram) parts.push(`## 架構圖 · Architecture\n\n\`\`\`mermaid\n${d.architectureDiagram}\n\`\`\``);
     for (const s of d.sections) {
       // 站內連結（例：課程 → 那門課的期末專題作品頁）接在條列後面，給完整網址

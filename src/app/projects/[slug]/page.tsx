@@ -18,6 +18,7 @@ import BulletList from "@/components/ui/BulletList";
 import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/layout/PageShell";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
+import CaseStudy from "@/components/content/CaseStudy";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
 
@@ -138,6 +139,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       {/* 課程作品的「線上版」：client 元件自己跟 /api 要資料（作品頁是預先產生的靜態頁） */}
       {project.liveWidget === "jpy-rate" && <JpyRateLive />}
       {project.liveWidget === "air-quality" && <AirQualityLive />}
+
+      {/* 案例：背景 → 角色 → 關鍵決定 → 取捨 → 成果（TODO B9）；下面的架構圖、條列是技術細節 */}
+      {project.detail?.caseStudy && <CaseStudy data={project.detail.caseStudy} />}
 
       {project.detail?.architectureDiagram && (
         <div className="mt-12">
