@@ -8,7 +8,7 @@ import { isAdmin } from "@/lib/admin/auth";
 // 後台每一頁的外框：PageShell＋分頁列。頁面裡再驗一次門禁（proxy.ts 是第一道）。
 // 讀 headers() 是即時資料，所以呼叫端要包在 <Suspense> 裡（照 /radar 的寫法）。
 export default async function AdminShell({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
-  if (!isAdmin(await headers())) notFound();
+  if (!(await isAdmin(await headers()))) notFound();
   return (
     <PageShell backHref="/" backLabel="回網站" eyebrow="站長後台 · Admin" title={title} intro={intro}>
       <AdminNav />

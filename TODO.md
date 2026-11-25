@@ -13,7 +13,7 @@
 - [ ] **登入 `gh`**（11/25 已寄 check list 信）：桌機自己的終端機跑 `gh auth login`（GitHub.com → HTTPS → 瀏覽器登入）。
   登入後 Claude 能看 CI 失敗的錯誤訊息（`gh run view --log-failed`）、讀 school 私有 repo。GitHub 外掛不用修（它缺 `GITHUB_PERSONAL_ACCESS_TOKEN`，而且每次對話都要載入說明）
 - [ ] **站長後台的 Cloudflare Access**（A1；11/25 check list 第 2 項）：Zero Trust → Access → Self-hosted，`kbs0830.com/admin*`、`/api/admin/*`，只放 1394kbs@gmail.com；
-  做完給 Claude team 名稱跟 AUD tag，它補 `lib/admin/auth.ts` 的 JWT 驗證
+  JWT 驗證已寫好（11/26）；做完把 team 名稱、AUD tag 填進 `.env.local` 的 `CF_ACCESS_TEAM`／`CF_ACCESS_AUD`／`ADMIN_EMAIL`，重啟網站
 - [ ] **school repo push**（11/25 check list 第 3 項）：均線回測修正 commit 0d871c3 只在本機
 - [ ] **雷達樹莓派換官方電源**（11/25 check list 第 4 項）：Pi 3 官方 5.1V 2.5A；供電不足導致離線
 
@@ -96,7 +96,7 @@
 ### 🟥 A1 站長後台 /admin（2026-11-25 設計好，下一個 session 實作；使用者：「把站長後台架構及前端入口先想好，等等實作」）
 
 **進度**：✅ 骨架上線（2026-11-25，commit 9f7881a）：`src/proxy.ts`、`lib/admin/auth.ts`（目前只放行本機）、五頁空殼、`/api/admin/me`、`e2e/admin.spec.ts`。
-✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。⬜ 下一步：使用者設 Cloudflare Access → `auth.ts` 的 `isAdmin()` 補 JWT 驗證 → 各頁填資料 → 隱藏入口 → /reports 搬進來
+✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。✅ `auth.ts` 的 JWT 驗證（11/26，WebCrypto、單元測試 `auth.test.ts`；env 沒設＝外部一律 404）。⬜ 下一步：使用者設 Cloudflare Access＋填 env → 各頁填資料 → 隱藏入口 → /reports 搬進來
 
 **目標**：把現在散在各處、只能在桌機看的東西（/reports、/stats 的細節、部署／watchdog／雷達狀態、寄信紀錄）集中到一個只有站長能進的地方，外出用手機也能看。
 
