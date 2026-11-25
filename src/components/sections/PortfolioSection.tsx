@@ -54,7 +54,7 @@ function ProjectCard({
               <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-sm bg-(--surface) sm:w-auto sm:h-auto sm:-mx-7 sm:-mt-7 sm:mb-5 sm:aspect-video sm:rounded-b-none">
                 <Image
                   src={project.image}
-                  alt={`${project.titleZh} 截圖`}
+                  alt={project.imageAlt ?? `${project.titleZh} 截圖`}
                   fill
                   className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
                   sizes="(max-width: 639px) 80px, (max-width: 768px) 100vw, 50vw"

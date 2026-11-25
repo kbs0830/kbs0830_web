@@ -114,7 +114,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <div className="mb-10 border border-(--border) rounded-sm overflow-hidden">
             <Image
               src={project.image}
-              alt={`${project.titleZh} screenshot`}
+              alt={project.imageAlt ?? `${project.titleZh} 截圖`}
               width={1200}
               height={800}
               className="w-full h-auto"

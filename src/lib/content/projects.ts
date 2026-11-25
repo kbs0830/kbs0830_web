@@ -29,6 +29,8 @@ export interface Project {
   status: "完成" | "製作中" | "學習記録" | "課程専題";
   isPersonal?: boolean;
   image?: string;
+  /** 圖不是截圖時寫清楚是什麼（示意圖、封面）；沒寫就用「○○ 截圖」 */
+  imageAlt?: string;
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
   /** 作品頁上的即時資料區塊（TODO D2／D5：課程作品的「線上版」，資料由伺服器抓外部 API） */
@@ -52,6 +54,9 @@ export const projects: Project[] = [
     highlight: "Token cost ~300–1000× lower vs. image-based AI",
     highlightZh: "Token 成本降低約 300～1000 倍，影像不上傳",
     status: "完成",
+    // 2026-11-25 圖：Android App 這台跑不了，照 android-client 的 FoodAnalysisScreen.kt 重繪「分析結果」畫面、數字用 bff-fastapi 的 mock 回應（圖上有標示意）
+    image: "/image/projects/foodlens-advisor.jpg",
+    imageAlt: "食物辨識助手的示意圖：依 Android 程式碼重繪的分析結果畫面，數字是後端的範例回應",
     isPersonal: true,
     detail: {
       // 2026-11-21 使用者確認：repo 裡那份課程說明 PDF 就是這門課的期末專題說明
@@ -114,6 +119,8 @@ export const projects: Project[] = [
     highlight: "Full registration flow: form → payment → email notification",
     highlightZh: "完整報名流程：填表 → 付款確認 → Email 通知",
     status: "完成",
+    // 2026-11-25 圖：本機跑 frontend 截的真實報名表單；/api/bootstrap 用設定預設值假資料，客戶品牌、活動名稱、銀行帳號換成範例文字
+    image: "/image/projects/ticketing-system.jpg",
     isPersonal: true,
     detail: {
       intro:
@@ -267,6 +274,8 @@ export const projects: Project[] = [
     highlight: "Deploy downtime 5–40 s → 1–2 s, with automatic rollback",
     highlightZh: "部署停站 5～40 秒 → 1～2 秒，健檢失敗自動退回上一版",
     status: "完成",
+    // 2026-11-25 圖：正式站首頁截圖
+    image: "/image/projects/kbs0830-web.jpg",
     isPersonal: true,
     live: { href: "/colophon", label: "看架構圖（即時數字）· Colophon" },
     detail: {
@@ -356,6 +365,8 @@ export const projects: Project[] = [
     highlight: "Decoded messages: 0 → 6,663 in 41 minutes after tuning the gain",
     highlightZh: "調整增益後，解碼從一則都沒有 → 41 分鐘 6,663 則",
     status: "完成",
+    // 2026-11-25 圖：/radar 的每小時分布、近 30 天、航空公司（真實資料；頁面本來就公開，沒有位置）
+    image: "/image/projects/fr24-receiver.jpg",
     isPersonal: true,
     live: { href: "/radar", label: "看即時狀態 · Live Status" },
     detail: {
@@ -758,6 +769,9 @@ export const projects: Project[] = [
     highlight: "Organised learning journey from web basics to AI applications",
     highlightZh: "從網頁基礎到 AI 應用的完整學習歷程記録",
     status: "學習記録",
+    // 2026-11-25 圖：school repo 實際的課程資料夾跟檔案數做的封面（不放學號、姓名、報告內容）
+    image: "/image/projects/school.jpg",
+    imageAlt: "課程學習記録的封面：school repo 的課程資料夾跟檔案數",
     detail: {
       intro:
         "大學課程的作業、考試練習跟期末報告，依課程分資料夾整理。比較完整的已經獨立成上面的課程専題（日圓匯率、記帳系統、空氣品質分類、SQL 分析、顧客流失預處理、均線回測），這裡是其餘的練習。",
