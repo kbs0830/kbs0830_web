@@ -86,6 +86,34 @@
 
 ## ⚙️ 還沒做的點子（Claude 可以直接做，說「做 ○○」就開工）
 
+### 🟥 A1 站長後台 /admin（2026-11-25 設計好，下一個 session 實作；使用者：「把站長後台架構及前端入口先想好，等等實作」）
+
+**目標**：把現在散在各處、只能在桌機看的東西（/reports、/stats 的細節、部署／watchdog／雷達狀態、寄信紀錄）集中到一個只有站長能進的地方，外出用手機也能看。
+
+**門禁（兩層，缺一不可）**
+1. **Cloudflare Access**（Zero Trust 免費版，≤50 人）：Application 保護 `kbs0830.com/admin*` 跟 `/api/admin/*`，政策只放 `1394kbs@gmail.com`，登入方式 Email OTP（或 Google）。沒登入連頁面都到不了 origin。🙋 要使用者在 Cloudflare dashboard 建（或給有 Access:Edit 權限的 API token 讓 Claude 用 API 建），建完 `curl -sI https://kbs0830.com/admin` 要看到 302 到 `*.cloudflareaccess.com` 才算數
+2. **origin 自己再驗一次**：`src/lib/admin/auth.ts` 的 `requireAdmin()`——驗 `Cf-Access-Jwt-Assertion`（JWT，用 `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs` 的公鑰、檢查 `aud`＝Application AUD、`email`＝站長）；**本機請求**（沒有 cf-connecting-ip，跟現在 `/api/reports` 一樣的判斷）直接放行，方便桌機上開。驗不過一律回 **404**（不是 401，不讓人知道有後台）。team 名、AUD 放 `.env.local`
+- 在 `proxy.ts`（Next 16 的 middleware）擋 `/admin`、`/api/admin` 前綴，頁面跟 route 裡再呼叫一次 `requireAdmin()`（proxy 只是第一道，不能只靠它）
+
+**頁面（全部 `PageShell`、noindex、不進 sitemap／llms.txt／Ctrl+K 公開索引；robots.txt Disallow `/admin`；統計不記錄 /admin 的瀏覽）**
+| 路徑 | 內容 | 資料來源（已有） |
+|---|---|---|
+| `/admin` | 總覽卡片：今天訪客／即時線上、上次部署（成功或失敗＋時間）、watchdog 最近告警、雷達在不在線、下一封週報／月報日期 | `lib/stats`、`logs/deploy.log`、`data/alerts/`、`data/radar.json`、`data/report-mail-state.json` |
+| `/admin/reports` | 現在的 `/reports` 搬進來（日報／週報／月報），舊網址 308 轉過來 | `lib/stats/reports.ts` |
+| `/admin/traffic` | 未過濾流量、爬蟲、404 清單、來源細節（/stats 公開版看不到的） | `raw-traffic.js`、`NOT_FOUND_FILE` |
+| `/admin/ops` | 部署紀錄（最近 20 次）、排程工作狀態、watchdog 告警歷史、備份最後時間 | `logs/`、`data/alerts/` |
+| `/admin/mail` | 週報／月報寄送紀錄，按鈕「重寄這週」「預覽」（呼叫 `report-mail.ps1 -DryRun`／`-Force`） | `report-mail-state.json` |
+- 寫入類動作（重寄信、清快取）走 `POST /api/admin/*`，要再檢查 `Origin` 是 kbs0830.com（防 CSRF）；**第一版先只做唯讀**，寫入類第二步再加
+- Cache Components：每頁照 `/radar` 的寫法 `Shell`＋`<Suspense>`＋`await connection()`；全部是 ƒ
+- 檔案位置：頁面 `src/app/admin/`、資料讀取 `src/lib/admin/`（`import "server-only"`）、元件 `src/components/admin/`
+
+**前端入口（公開頁面上看不到）**
+- 不在 NavBar／Footer 放任何連結；站長自己存書籤 `kbs0830.com/admin`
+- 登入過 Access 之後才出現的小入口：Ctrl+K 打 `admin`／`管理` 時打 `GET /api/admin/me`，回 200 才在結果裡多一列「站長後台」；Footer 的「最後更新」那行在 me=200 時多一個小 `管理` 連結。沒登入的人 /api/admin/me 是 404，前端什麼都不顯示
+- `/api/admin/me` 只回 `{ ok: true }`，不回 email
+
+**測試**：E2E 打 `/admin`、`/api/admin/me` 帶假的 `cf-connecting-ip` 要 404；本機（不帶）要 200；`privacy.spec` 加 /admin 頁面不能被 sitemap／llms.txt 列出
+
 標記：🟥 大（好幾天）🟧 中（一兩天）🟩 小（一次做完）｜🙋 需要你提供東西｜⭐ Claude 推薦。2026-11-17 腦力激盪整理（使用者：「多想一些點子」「工作量大點的」），還沒決定要做；不做的搬到最下面「評估過、先不做」
 
 **⭐ Claude 推薦的**
