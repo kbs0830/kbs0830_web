@@ -4,7 +4,7 @@ import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { BarChart, ShareList } from "@/components/ui/StatCharts";
 import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period } from "@/lib/stats/reports";
-import { nf, monthDay as md } from "@/lib/format";
+import { nf, monthDay as md, regionName } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
 };
 
 const N = (n: number) => nf.format(n);
-const regionName = new Intl.DisplayNames(["zh-TW"], { type: "region" });
 const twTime = (iso: string) =>
   new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 const PERIODS: Period[] = ["day", "week", "month"];
@@ -169,7 +168,7 @@ async function ReportsContent({ searchParams }: { searchParams: Promise<{ p?: st
           <Shares label="熱門頁面（瀏覽）" entries={r.pages.map(([path, n]): Entry => [pageTitle(path), n])} />
           <Shares label="外部來源（造訪）" entries={r.direct != null ? [["直接進入", r.direct], ...r.refKinds] : r.refKinds} total={sessionsTotal} />
           <Shares label="來源網域" entries={r.referrers} />
-          <Shares label="國家（瀏覽）" entries={r.countries.map(([c, n]): Entry => [`${regionName.of(c) ?? c}`, n])} />
+          <Shares label="國家（瀏覽）" entries={r.countries.map(([c, n]): Entry => [`${regionName(c)}`, n])} />
           <Shares label="裝置（造訪）" entries={r.devices} />
           <Shares label="瀏覽器" entries={r.browsers} />
           <Shares label="作業系統" entries={r.os} />

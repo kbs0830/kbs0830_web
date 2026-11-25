@@ -12,7 +12,9 @@
 - [x] **盆栽** `/status`：主枝與葉團＝部署、茂密＝文章、幹＝運作天數、落葉＝有中斷的日子、疤＝事故、葉色＝季節（`lib/ops/bonsai.ts`）
 - [x] **迷子の飛行機**：404 頁的小遊戲，把紙飛機帶回 KHH／FUK（`components/fun/LostPlane.tsx`）
 - [x] **訪客星座** `/stats`：一國一顆星、越多人越亮、最小生成樹連成星座（`lib/stats/constellation.ts`）
-- 沒做：4 デプロイ俳句（使用者沒選）
+- [x] 安全檢查抓到：國碼格式不對時 `Intl.DisplayNames.of()` 會丟錯讓 /stats、/reports 整頁掛掉——改用 `format.ts` 的 `regionName()`（包 try/catch），
+  `/api/visitor-stats` 寫入時也只收兩個大寫英文字母的國碼
+- 沒做、已記進 TODO：B16 稀有機型首頁提示、B17 デプロイ俳句
 
 ### 2026-11-25 安全檢查、後台內容、三個新工具（使用者：「幫我找找網站漏洞」「繼續做 todo.md 裡你能做到的事情」）
 - [x] 安全：POST API 改成邊讀邊算 body 大小（`lib/api/request-guard.ts`）、訪客統計同一 IP 10 分鐘最多記 20 次、拿掉 `x-powered-by`；

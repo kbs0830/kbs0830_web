@@ -1,9 +1,8 @@
 import { SKY_H, SKY_W, buildConstellation } from "@/lib/stats/constellation";
-import { nf } from "@/lib/format";
+import { nf, regionName } from "@/lib/format";
 
 // 訪客星座（lib/stats/constellation.ts）：Server Component、純 SVG。滑鼠移到星星上看國家跟次數（<title>）。
 // 最多人的前 5 國標名字。星星用強調色；深色主題底色本來就暗，像夜空
-const regionName = new Intl.DisplayNames(["zh-TW"], { type: "region" });
 // 背景的小星星（固定位置，只是氣氛）
 const DUST = Array.from({ length: 48 }, (_, i) => ({ x: (i * 137.5) % SKY_W, y: (i * 89.3 + (i % 7) * 31) % SKY_H, r: i % 5 === 0 ? 0.9 : 0.5 }));
 
@@ -26,12 +25,12 @@ export default function VisitorConstellation({ countries }: { countries: [string
         ))}
         {stars.map((s) => (
           <g key={s.code}>
-            <title>{`${regionName.of(s.code) ?? s.code}：${nf.format(s.count)} 次`}</title>
+            <title>{`${regionName(s.code)}：${nf.format(s.count)} 次`}</title>
             <circle cx={s.x} cy={s.y} r={s.r * 2.6} className="fill-(--accent)" opacity={s.glow * 0.12} />
             <circle cx={s.x} cy={s.y} r={s.r} className="fill-(--accent)" opacity={s.glow} />
             {top.has(s.code) && (
               <text x={s.x} y={s.y - s.r - 6} textAnchor="middle" className="fill-(--muted)" fontSize="10">
-                {regionName.of(s.code) ?? s.code}
+                {regionName(s.code)}
               </text>
             )}
           </g>

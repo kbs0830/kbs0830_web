@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
   // readFileSync/writeFileSync 改成 fs.promises 版本，也不要改成多 process 模式，
   // 除非同時把這段改成真正的原子操作（例如檔案鎖或換成資料庫）。
   const country = req.headers.get("cf-ipcountry")!.toUpperCase();
+  // 國碼只收兩個英文字母（Cloudflare 一定是這個格式；格式不對＝偽造的請求，直接不記）
+  if (!/^[A-Z]{2}$/.test(country)) return NextResponse.json(summarize(readStats()));
   const stats = readStats();
   stats[country] = (stats[country] || 0) + 1;
 

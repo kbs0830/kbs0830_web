@@ -11,7 +11,7 @@ import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } f
 import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/stats/site-stats";
 import { lastDays, readDetail } from "@/lib/stats/visit-detail";
 import { HERO_VARIANTS, VARIANT_NAMES, readHeroStats } from "@/lib/stats/hero-stats";
-import { nf } from "@/lib/format";
+import { nf, regionName } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
 import { Suspense } from "react";
 import LoadingBlock from "@/components/ui/LoadingBlock";
@@ -32,7 +32,6 @@ export const metadata: Metadata = withShare({
 }, { ownImage: true });
 
 // 國名用瀏覽器內建的翻譯表（Intl），不用自己維護對照表；Windows 不顯示國旗 emoji 時至少看得懂
-const regionName = new Intl.DisplayNames(["zh-TW"], { type: "region" });
 const KIND_LABEL: Record<BotKind, string> = { ai: "AI", search: "搜尋引擎", bot: "其他" };
 
 
@@ -179,7 +178,7 @@ async function StatsContent() {
             {countries.map(([code, count]) => (
               <li key={code} className="flex items-center gap-2 border border-(--border) rounded-sm px-3 py-1.5 text-sm">
                 <span aria-hidden>{countryFlag(code)}</span>
-                <span className="text-xs text-(--text) font-light">{regionName.of(code) ?? code}</span>
+                <span className="text-xs text-(--text) font-light">{regionName(code)}</span>
                 <span className="font-mono text-xs text-(--muted)">{nf.format(count)}</span>
               </li>
             ))}
