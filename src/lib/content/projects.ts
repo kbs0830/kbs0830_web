@@ -8,8 +8,18 @@ interface ProjectDetailSection {
   links?: { href: Route; label: string }[];
 }
 
+/** 案例段落（TODO B9，2026-11-25）：背景 → 角色 → 關鍵決定（做了什麼＋為什麼）→ 取捨 → 成果。只寫查得到的事實 */
+export interface CaseStudy {
+  problem: string;
+  role?: string;
+  decisions: { what: string; why: string }[];
+  tradeoffs?: string[];
+  results: string[];
+}
+
 export interface ProjectDetail {
   intro: string;
+  caseStudy?: CaseStudy;
   sections: ProjectDetailSection[];
   context?: string; // 課程/團隊背景等補充說明，不含第三方姓名
   architectureDiagram?: string; // Mermaid flowchart 語法，內容須對應 sections 裡已經寫的真實架構，不要編造新細節
@@ -31,6 +41,8 @@ export interface Project {
   image?: string;
   /** 圖不是截圖時寫清楚是什麼（示意圖、封面）；沒寫就用「○○ 截圖」 */
   imageAlt?: string;
+  /** 手機版卡片（80px 正方形）專用的縮圖。整頁截圖切中間只剩空白，所以另外做一張只取重點的（2026-11-25 使用者：手機版怪怪的） */
+  thumb?: string;
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
   /** 作品頁上的即時資料區塊（TODO D2／D5：課程作品的「線上版」，資料由伺服器抓外部 API） */
@@ -51,14 +63,46 @@ export const projects: Project[] = [
       "瀏覽器端 YOLOv8（ONNX Runtime）辨識食物，影像不離裝置；僅傳送文字標籤至 Gemini 進行營養分析。薄客戶端＋雲端大腦架構，隱私優先。",
     tags: ["Python", "FastAPI", "YOLOv8", "ONNX Runtime", "Gemini API", "TensorFlow.js"],
     github: "https://github.com/kbs0830/FoodLens-Advisor",
-    highlight: "Token cost ~300–1000× lower vs. image-based AI",
-    highlightZh: "Token 成本降低約 300～1000 倍，影像不上傳",
+    highlight: "Images stay on device; ~50–150 tokens per analysis vs. 5,000–10,000 for an image",
+    highlightZh: "影像不上傳；每次分析約 50–150 token（傳圖片要 5,000–10,000）",
     status: "完成",
-    // 2026-11-25 圖：Android App 這台跑不了，照 android-client 的 FoodAnalysisScreen.kt 重繪「分析結果」畫面、數字用 bff-fastapi 的 mock 回應（圖上有標示意）
+    // 2026-11-25 圖：GitHub main 分支的 web-client 實際跑起來的畫面（只把 BFF 健康檢查回成正常，其他照原樣）。
+    // 一開始誤用本機舊分支（Android 版）畫了示意圖，查 origin/main 才發現現在是瀏覽器端版本，已換掉
     image: "/image/projects/foodlens-advisor.jpg",
-    imageAlt: "食物辨識助手的示意圖：依 Android 程式碼重繪的分析結果畫面，數字是後端的範例回應",
+    thumb: "/image/projects/thumbs/foodlens-advisor.jpg",
     isPersonal: true,
     detail: {
+      caseStudy: {
+        "problem": "「拍照算熱量」的服務多半把整張照片上傳給雲端模型：照片會帶出使用者的生活環境，一張圖又要數千個 token，成本跟延遲都高。這個期末專題的目標，是做一套照片不離開裝置、仍然能給出營養分析與飲食建議的系統。",
+        "decisions": [
+          {
+            "what": "食物辨識放在瀏覽器裡跑",
+            "why": "ONNX Runtime Web（WASM）直接在瀏覽器執行 YOLOv8，照片不需要上傳到任何伺服器。"
+          },
+          {
+            "what": "只把文字標籤交給大型語言模型",
+            "why": "後端把偵測到的食物名稱交給 Gemini 2.5 Flash Lite 做營養分析，每次請求約 50–150 token；直接傳圖片則要 5,000–10,000 token。"
+          },
+          {
+            "what": "前端跟模型之間隔一層 FastAPI 後端（BFF）",
+            "why": "API 金鑰只放在伺服器的環境變數，瀏覽器拿不到；請求跟回應用 Pydantic v2 定義型別，格式不對直接擋下。"
+          },
+          {
+            "what": "每一層都有備援",
+            "why": "瀏覽器端的 ONNX 模型沒偵測到東西，就改用 TensorFlow.js 的 COCO-SSD；後端另外有 YOLOv8 跟 ResNet-50（Food-101）分類模型，任何一層失敗都能退到下一層。"
+          }
+        ],
+        "tradeoffs": [
+          "主模型認得的是 46 類中亞料理，台灣常見的食物要靠 COCO-SSD 的通用類別，能精確辨識的種類有限",
+          "語言模型只看得到食物名稱，看不到份量跟烹調方式，熱量是依名稱推估的數字",
+          "錯誤直接顯示真實原因、不用假資料填版面，代價是外部服務出問題時使用者會看到錯誤訊息"
+        ],
+        "results": [
+          "照片全程只存在使用者的瀏覽器裡",
+          "送給語言模型的資料量只有傳圖片的約 0.5–3%（50–150 對 5,000–10,000 token）",
+          "前端不需要框架或打包工具，純 HTML／CSS／JavaScript"
+        ]
+      },
       // 2026-11-21 使用者確認：repo 裡那份課程說明 PDF 就是這門課的期末專題說明
       context: "這也是「人工智慧與深度學習應用」課程的期末專題。",
       intro:
@@ -121,8 +165,43 @@ export const projects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：本機跑 frontend 截的真實報名表單；/api/bootstrap 用設定預設值假資料，客戶品牌、活動名稱、銀行帳號換成範例文字
     image: "/image/projects/ticketing-system.jpg",
+    thumb: "/image/projects/thumbs/ticketing-system.jpg",
     isPersonal: true,
     detail: {
+      caseStudy: {
+        "problem": "為一場鐵道旅遊型的文化活動做線上報名售票。需求包括：依車廂分配有限名額、一次可以替 1–10 人報名、不同票種跟加購項目、參加者必須讀完活動規範才能勾選同意、報名後三天內匯款，主辦方對帳後通知參加者。",
+        "decisions": [
+          {
+            "what": "資料寫進 Google Sheets，不另外架資料庫",
+            "why": "主辦單位直接在試算表裡看名單、對帳，系統不用另外做管理後台；部署在 Render 免費方案也不用維護資料庫。"
+          },
+          {
+            "what": "報名序號＝日期＋流水號，產生序號跟寫入都加鎖，寫入前依序號去重",
+            "why": "使用者重按送出或網路重送時，名單裡不會出現兩筆一樣的報名。"
+          },
+          {
+            "what": "每一列都記下資料表結構的版本",
+            "why": "欄位改版後，系統啟動時會偵測到版本不一致並嘗試自動修正，舊資料不會錯位。"
+          },
+          {
+            "what": "錯誤分層編碼，寄信失敗進重試佇列",
+            "why": "E_VALIDATION、E_SHEET_UNAVAILABLE、E_SHEET_WRITE、E_SMTP_SEND 一看就知道問題出在哪一層；付款信寄不出去時可以用 API 重送，不會默默遺失。"
+          },
+          {
+            "what": "Google Sheets 連不上時切換成暫時模式",
+            "why": "報名頁不會整個掛掉，參加者仍然可以先填寫資料。"
+          }
+        ],
+        "tradeoffs": [
+          "名額檢查跟寫入靠同一個程序裡的鎖保護；目前 Render 只跑一個 gunicorn worker 所以成立，要擴充成多個 worker，就得改成有交易保證的資料庫",
+          "每次寫入前會先讀整張表做去重，名單越長，每次寫入前讀表的成本越高"
+        ],
+        "results": [
+          "完整流程上線：填表 → 系統計算金額並寄付款信 → 參加者用 LINE 或 Email 回報帳號後五碼 → 主辦對帳",
+          "手機上多人報名改成下拉選單切換參加者，一次只顯示一位、每位分三個步驟",
+          "部署在 Render 免費方案（gunicorn），前後端分離"
+        ]
+      },
       intro:
         "為文化活動主辦單位製作的線上報名售票系統，前後端分離架構：後端 Flask API 處理報名、付款與通知邏輯，前端純 HTML/CSS/JS 頁面，部署在 Render（gunicorn 啟動）。",
       sections: [
@@ -184,6 +263,24 @@ export const projects: Project[] = [
     isPersonal: true,
     image: "/image/projects/frc-robot.jpg",
     detail: {
+      caseStudy: {
+        "problem": "FIRST Robotics Competition（FRC）是國際高中機器人競賽，每季在約六週內從零設計、製作一台符合當季任務的機器人，再跟其他隊伍組成聯盟比賽。",
+        "role": "團隊成員：負責 Raspberry Pi 視覺系統、LabVIEW 機器人控制程式，並參與機構的 CNC 加工與氬焊。",
+        "decisions": [
+          {
+            "what": "視覺處理交給獨立的 Raspberry Pi",
+            "why": "影像辨識跟機器人控制分在不同的處理器上，視覺運算不會拖慢控制迴圈。"
+          },
+          {
+            "what": "機構零件自己加工",
+            "why": "用 CNC 跟氬焊製作機構零件，設計改了可以在隊上直接重做。"
+          }
+        ],
+        "results": [
+          "2023 年賽季拿下全國冠軍聯盟",
+          "這台機器人的底盤後來沿用到「自動跟隨機器人」專題"
+        ]
+      },
       intro:
         "參與 FIRST Robotics Competition（FRC）機器人競賽，負責 Raspberry Pi 視覺系統與 LabVIEW 程式，並參與機構的 CNC 加工與氬焊製作。團隊在 2023 年賽季拿下全國冠軍聯盟。",
       sections: [
@@ -217,6 +314,34 @@ export const projects: Project[] = [
     isPersonal: true,
     image: "/image/projects/auto-following-robot.jpg",
     detail: {
+      caseStudy: {
+        "problem": "汽修廠的工具車大多靠人力推動，技師一邊搬工具一邊移動車子，容易發生工安問題。專題的目標是做一台會自己跟在技師後面走的工具車（原競賽作品名稱「小跟班」）。",
+        "decisions": [
+          {
+            "what": "辨識跟控制分在兩塊板子上",
+            "why": "Jetson Nano 跑 YOLOv8 負責「看」，只用 GPIO 高／低電位告訴 Arduino 該前進、後退還是停止；Arduino 用 PWM 控制馬達。兩邊之間的介面只有幾條訊號線，好除錯。"
+          },
+          {
+            "what": "用辨識框的高度判斷距離",
+            "why": "框比預設值小代表人走遠了、要前進，比預設值大代表太近、要後退，不需要另外加測距感測器。"
+          },
+          {
+            "what": "底盤沿用 FRC 競賽的 AM14U5 與 CIM 馬達",
+            "why": "直接用現成、已經在比賽中驗證過的競賽級底盤，把時間花在辨識跟控制上。"
+          },
+          {
+            "what": "加一顆實體停止按鈕",
+            "why": "不管軟體狀態如何，按下去就切斷底盤動作。"
+          }
+        ],
+        "tradeoffs": [
+          "馬達控制器換了三次才定案：Spark SPX 的 PWM 跟 Arduino 不相容 → L298N 電流不足以驅動底盤馬達 → 最後用 BTS-7960（最大 43A）",
+          "控制邏輯只有前進、後退、停止三種狀態，距離判斷只靠一支攝影機的辨識框高度"
+        ],
+        "results": [
+          "112 學年度全國高級中等學校專業群科專題實作及創意競賽（動力機械群）全國佳作"
+        ]
+      },
       intro:
         "原始競賽作品名稱為「小跟班（跟隨工具車）」：以 Jetson Nano 執行 YOLOv8 即時物件追蹤辨識人員，透過 GPIO 訊號交由 Arduino 判斷，再用 BTS-7960 馬達驅動器控制沿用自 FRC 的 AM14U5 底盤與 CIM 馬達追蹤目標移動。發想自汽修廠工具車多仰賴人力搬運、易生工安風險，參加 112 學年度全國高級中等學校專業群科專題實作及創意競賽動力機械群，獲得全國佳作。",
       sections: [
@@ -276,9 +401,46 @@ export const projects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：正式站首頁截圖
     image: "/image/projects/kbs0830-web.jpg",
+    thumb: "/image/projects/thumbs/kbs0830-web.jpg",
     isPersonal: true,
     live: { href: "/colophon", label: "看架構圖（即時數字）· Colophon" },
     detail: {
+      caseStudy: {
+        "problem": "想要一個能展示作品、本身也算是作品的個人網站，但不想付雲端主機的月費；家用網路又封鎖了對外的 80／443 port。只有一個人維運，所以部署、監控、備份都必須自動化：壞了要自己救回來，救不回來要通知我。",
+        "decisions": [
+          {
+            "what": "用 Cloudflare Tunnel 從家裡的桌機往外連",
+            "why": "不需要開 port、不需要固定 IP，HTTPS、快取跟擋惡意流量交給 Cloudflare。"
+          },
+          {
+            "what": "雙槽部署（兩個 build 資料夾輪流用）",
+            "why": "新版本 build 在沒上線的那一槽，build 失敗完全不影響線上；切換後健康檢查不過就自動退回上一版並寄信。"
+          },
+          {
+            "what": "首頁改成 Server Components、拿掉動畫函式庫",
+            "why": "動畫改用 CSS、原生 <dialog> 跟 React View Transitions，只把真的需要互動的小元件送到瀏覽器。"
+          },
+          {
+            "what": "Next.js 16 Cache Components",
+            "why": "即時資料的頁面先送出 build 時畫好的外殼，數字再串流補上；文章、作品頁鎖定為完全靜態。"
+          },
+          {
+            "what": "訪客統計自己做",
+            "why": "不用第三方分析服務、不存 IP、不用 cookie，只存彙總數字；日報／週報／月報也從同一份資料產生。"
+          }
+        ],
+        "tradeoffs": [
+          "整個網站跑在一台桌機上，停電或斷網時就會停站；已經有自動重啟、外部監控跟開機通知，但沒有第二台機器能接手",
+          "沒有用雲端平台的現成功能，部署、備份、監控都要自己寫腳本、自己維護"
+        ],
+        "results": [
+          "部署時的停站時間從 5–40 秒降到 1–2 秒，健康檢查失敗自動退回",
+          "手機首頁 JavaScript 從 225 KB 降到 170 KB；作品頁從 2.8 MB 降到 565 KB",
+          "Lighthouse 無障礙、最佳實務、SEO 三項 100",
+          "每日加密異地備份，每 90 天自動從備份還原並逐檔比對一次",
+          "200 多個單元測試、130 多個 E2E 測試（含無障礙掃描），每次 push 自動跑"
+        ]
+      },
       intro:
         "這個網站本身。沒有租雲端主機，跑在家裡的桌機（i7-12700 + RTX 3070）上；家用網路封鎖了對外的 80／443 port，所以用 Cloudflare Tunnel 從桌機往外連。網頁之外，重點是「一個人維運」需要的自動化：部署、監控、告警、備份都不需要人守在旁邊。",
       sections: [
@@ -367,9 +529,40 @@ export const projects: Project[] = [
     status: "完成",
     // 2026-11-25 圖：/radar 的每小時分布、近 30 天、航空公司（真實資料；頁面本來就公開，沒有位置）
     image: "/image/projects/fr24-receiver.jpg",
+    thumb: "/image/projects/thumbs/fr24-receiver.jpg",
     isPersonal: true,
     live: { href: "/radar", label: "看即時狀態 · Live Status" },
     detail: {
+      caseStudy: {
+        "problem": "飛機會持續用 1090 MHz 廣播自己的位置、高度跟航班代碼（ADS-B）。想在家自己接收這些訊號、分享給 Flightradar24，並把即時狀態接到網站上——但接收器在自己家，網站不能透露它的位置。",
+        "decisions": [
+          {
+            "what": "Pi24 映像＋DVB-T 電視棒",
+            "why": "樹莓派加一支電視棒當 SDR 接收器，Flightradar24 的 fr24feed 內建 dump1090 解碼，成本低、資料直接分享出去。"
+          },
+          {
+            "what": "網站只在區網讀兩份 JSON、只存彙總",
+            "why": "狀態資料裡的 Flightradar24 分享金鑰跟內網 IP 不存也不出去；網站每 30 秒讀一次，只留現在／今天／最多同時幾架、航空公司、機型跟在線率。"
+          },
+          {
+            "what": "不畫地圖、不算涵蓋範圍",
+            "why": "把收到的飛機位置畫出來，就能反推接收器在哪裡；寧可少一張圖。"
+          },
+          {
+            "what": "異常也納入監控",
+            "why": "離線超過 15 分鐘，或白天 2 小時一架都沒收到，就寄信通知；每週、每月報表也有一段雷達統計。"
+          }
+        ],
+        "tradeoffs": [
+          "為了隱私，網站上沒有大部分雷達網站都有的航跡地圖",
+          "樹莓派 3 用一般的 micro-USB 電源時會供電不足，系統記錄到低電壓警告後整台斷線，要換成官方電源"
+        ],
+        "results": [
+          "剛架好時每分鐘約 100 萬個疑似訊號一則都解不出來；查出是增益開到最大、雜訊蓋過訊號，設成 40 後 41 分鐘解出 6,663 則訊息、21 架飛機",
+          "位置解碼 1,021 次、0 次失敗",
+          "即時狀態、每小時分布、近 30 天、航空公司跟機型統計都接到網站的 /radar"
+        ]
+      },
       intro:
         "家裡自己架的航空雷達。飛機會一直用 1090 MHz 廣播自己的位置、高度和航班代碼（ADS-B），樹莓派接一支 SDR 電視棒就收得到，解碼後即時分享給 Flightradar24。飛行紀錄頁記的是我自己搭過的航班，這台收的是從頭上飛過的。",
       sections: [
@@ -431,6 +624,39 @@ export const projects: Project[] = [
     image: "/image/projects/yen-rate-analyzer.jpg",
     liveWidget: "jpy-rate",
     detail: {
+      caseStudy: {
+        "problem": "要換日幣時，得一家一家去看銀行牌價；就算看到了數字，也不知道「現在換划不划算」。這個專題把多家銀行的匯率集中起來，並直接回答該不該換。",
+        "decisions": [
+          {
+            "what": "銀行清單寫在設定檔，6 條執行緒並行抓取",
+            "why": "新增一家銀行只要改設定檔；6 家銀行的網路等待時間重疊，不用一家等完再抓下一家。"
+          },
+          {
+            "what": "用 Repository Pattern 包住 SQLite",
+            "why": "所有資料存取集中在同一層，交易管理跟一致性在這裡處理，上層不直接碰資料庫。"
+          },
+          {
+            "what": "抓取失敗時回傳上一次成功的資料（Last Known Good）",
+            "why": "某家銀行暫時抓不到時，畫面顯示最近一次的牌價，而不是一片空白。"
+          },
+          {
+            "what": "用 Yahoo Finance 回填歷史匯率",
+            "why": "銀行網頁只有當下的牌價，歷史走勢由 Yahoo Finance 補齊。"
+          },
+          {
+            "what": "把匯率轉成購買建議",
+            "why": "目標匯率＝台幣預算 ÷ 商品的日圓價格；銀行現金賣出價低於目標，就建議現在換，否則建議再等等。"
+          }
+        ],
+        "tradeoffs": [
+          "爬蟲依賴銀行網頁的結構，銀行改版時要更新對應的解析設定"
+        ],
+        "results": [
+          "台銀、第一、華南、玉山、國泰世華、元大 6 家銀行的匯率整合在同一個介面",
+          "Flask 介面加 REST API，附商品換算跟歷史趨勢圖",
+          "這個網站的作品頁有線上版：即時抓台銀、玉山牌價，照同一套規則給建議"
+        ]
+      },
       intro:
         "基於 Python 的即時日圓匯率監控與分析平台，採用配置驅動架構整合多家銀行匯率資訊，透過並行爬蟲抓取最新匯率、SQLite 落盤保存，Flask 提供介面與 REST API，並附商品換算與歷史趨勢圖。「大數據倉儲」課程期末専題。",
       sections: [
@@ -445,10 +671,10 @@ export const projects: Project[] = [
           ],
         },
         {
-          heading: "購買力決策引擎（創新亮點）",
+          heading: "購買決策",
           headingEn: "Purchase Decision Engine",
           body: [
-            "獨創演算法：結合使用者預算與商品目標價格，計算損益平衡點",
+            "目標匯率＝台幣預算 ÷ 商品的日圓價格，跟銀行現金賣出價比較",
             "直接輸出「現在就買／再等等」的可執行建議，而不只是丟一張匯率圖表給使用者自己判斷",
           ],
         },
@@ -480,6 +706,30 @@ export const projects: Project[] = [
     status: "課程専題",
     image: "/image/projects/expense-tracker.jpg",
     detail: {
+      caseStudy: {
+        "problem": "大學生的收入多半是每月固定的生活費，但聚餐、娛樂、通勤這類瑣碎開銷很容易讓人月底透支。目標是做一個不用註冊、沒有廣告、打開就能記的桌面記帳程式。",
+        "role": "「程式設計（三）」小組期末專題，與組員共同完成。",
+        "decisions": [
+          {
+            "what": "資料存在 CSV 檔，不裝資料庫",
+            "why": "第一次執行自動建立檔案，使用者不用另外安裝或設定任何東西。"
+          },
+          {
+            "what": "預算三段式警示",
+            "why": "依花費佔預算的比例顯示「狀況良好／即將超支／已超支」，文字顏色跟著變，一眼看得出狀態。"
+          },
+          {
+            "what": "讀檔放在背景執行緒（QThread）",
+            "why": "表格跟圓餅圖等資料讀完才一起更新，讀取期間畫面不會卡住。"
+          }
+        ],
+        "tradeoffs": [
+          "CSV 沒有交易跟並行寫入保護，適合單人、單機使用"
+        ],
+        "results": [
+          "新增／刪除消費記錄、設定每月預算、類別圓餅圖即時更新的桌面應用（PyQt5）"
+        ]
+      },
       intro:
         "專為大學生設計的桌面端記帳應用：大多數大學生經濟來源依賴每月固定生活費，卻常因聚餐、娛樂課金、通勤等瑣碎開銷導致月底透支。本系統用 PyQt5 圖形介面搭配 CSV 檔案儲存與 Matplotlib 視覺化，提供無廣告、輕量化、啟動快速的記帳方案。「程式設計(三)」小組期末専題。",
       sections: [
@@ -498,7 +748,7 @@ export const projects: Project[] = [
           body: [
             "記帳管理：新增／刪除消費記錄（日期、項目、類別、金額），表格化顯示",
             "預算設定：設定本月預算上限，即時顯示總花費／預算",
-            "數據視覺化：圓餅圖即時顯示類別分布，空白資料時優雅顯示",
+            "數據視覺化：圓餅圖即時顯示類別分布，沒有資料時也能正常顯示",
             "不卡畫面：讀取資料放在背景執行緒（QThread），表格跟圖表讀完才一起更新",
           ],
         },
@@ -532,6 +782,39 @@ export const projects: Project[] = [
     status: "課程専題",
     image: "/image/projects/lukou-pailei.jpg",
     detail: {
+      caseStudy: {
+        "problem": "道路坑洞、標線不清、危險路口的資訊很分散。這個專題讓用路人在地圖上回報、其他人附議驗證，管理員在後台追蹤處理狀態，從「待審」推到「已驗證」「已修復」。",
+        "role": "「系統分析與設計」小組專題；v2 重構版（模組化、雙資料庫、Render 部署）由我完成。",
+        "decisions": [
+          {
+            "what": "真實資料跟展示資料分成兩個資料庫",
+            "why": "middleware 依登入帳號切換資料庫；展示帳號怎麼操作都不會動到真實資料，展示資料每次啟動自動重建。"
+          },
+          {
+            "what": "後端拆成 routes／middleware／db 三層",
+            "why": "Express 只負責組裝，每一層可以單獨修改跟測試。"
+          },
+          {
+            "what": "密碼跟 Session 照標準做法",
+            "why": "密碼用 PBKDF2-SHA256（10 萬次迭代、每人隨機 salt），Session 用 192-bit 隨機 token 存在 HttpOnly cookie。"
+          },
+          {
+            "what": "所有輸入都驗證",
+            "why": "SQL 全部參數化；字串長度、數值範圍、上傳檔案的大小與類型都有檢查；附議用資料表的複合主鍵擋重複投票。"
+          },
+          {
+            "what": "前端不用打包工具，做成 PWA",
+            "why": "Vanilla JS 單頁應用可以直接加到手機桌面，拍照回報不用另外裝 App。"
+          }
+        ],
+        "tradeoffs": [
+          "SQLite 是單一檔案的資料庫，適合專題規模；同時寫入的人多了要換成資料庫伺服器"
+        ],
+        "results": [
+          "地圖回報（GPS 定位或手動點選、可附照片）、社群附議、留言、6 種成就徽章、管理後台（審核、統計圖表、匯出 CSV）",
+          "展示帳號可以放心交給任何人試用"
+        ]
+      },
       intro:
         "讓用路人一起標記、驗證道路危險點：看到坑洞、標線不清、危險路口就拍照回報，其他人附議確認，管理員在後台把狀態從「待審」推到「已驗證」「已修復」。前端是不用打包工具的 Vanilla JS 單頁應用，可以加到手機桌面（PWA），部署在 Render。",
       sections: [
@@ -585,6 +868,35 @@ export const projects: Project[] = [
     image: "/image/projects/aqi-classification.jpg",
     liveWidget: "air-quality",
     detail: {
+      caseStudy: {
+        "problem": "用環境部空氣品質開放資料裡的六項污染物數值（PM2.5、PM10、O3、CO、SO2、NO2），預測全台 85 個測站的空氣品質等級，並比較不同分類模型的表現。",
+        "decisions": [
+          {
+            "what": "分層抽樣切 80／20，固定亂數種子",
+            "why": "每個等級在訓練集跟測試集的比例一致，結果可以重現。"
+          },
+          {
+            "what": "AQI 數值本身不當特徵",
+            "why": "等級就是從 AQI 換算來的，放進去所有模型都會是 100%，比較就沒有意義。"
+          },
+          {
+            "what": "五種模型用同一份獨立測試集評估",
+            "why": "kNN、SVM、決策樹、隨機森林、神經網路一起比 AUC、準確率、F1、MCC 跟混淆矩陣。"
+          },
+          {
+            "what": "另外用 k-means 看資料自然分幾群",
+            "why": "k 從 2 試到 8，用輪廓分數選群數，跟官方的六級做對照。"
+          }
+        ],
+        "tradeoffs": [
+          "測試集只有 17 筆、而且是單一時間點的快照，準確率 100% 不代表在別的時間點一樣準",
+          "決策樹佔優勢是因為 AQI 等級本來就是污染物數值切門檻換算的，換成雜訊多的資料就不一定"
+        ],
+        "results": [
+          "決策樹、隨機森林在測試集 17 筆全對；kNN、SVM、神經網路各錯 1 筆，都是相鄰等級的誤判",
+          "k-means 在 k=3 時輪廓分數最高（0.581）：官方分六級，資料自然只分得出「良好／中度／不健康以上」三群"
+        ]
+      },
       intro:
         "資料來自環境部空氣品質指標（AQI）開放資料，全台 85 個測站的即時快照，用 PM2.5、PM10、O3、CO、SO2、NO2 六項污染物預測空氣品質等級。整個流程在 Orange 裡用拉方塊的方式建好，左邊是非監督式分群、右邊是五種分類器比較。",
       sections: [
@@ -627,6 +939,24 @@ export const projects: Project[] = [
     status: "課程専題",
     image: "/image/projects/sql-analysis.jpg",
     detail: {
+      caseStudy: {
+        "problem": "在一個有 17 張表（員工、部門、客戶、產品、訂單、進貨、加班、請假等）的範例公司資料庫上，用 SQL 回答業績、人事、成本相關的商業問題。",
+        "decisions": [
+          {
+            "what": "複雜查詢拆成 CTE（WITH）",
+            "why": "把「先算年度業績、再挑兩年都過門檻的人」拆成幾段，每段可以單獨檢查結果。"
+          },
+          {
+            "what": "答案對不上時寫程式驗證，而不是直接相信參考答案",
+            "why": "解析資料庫匯出檔重新計算，用數字證明是哪裡算錯。"
+          }
+        ],
+        "results": [
+          "寫了 30 多支分析查詢：年度／季度業績、成長率、加班費、全勤名單、產品毛利、庫存積壓成本",
+          "發現參考答案少了一個 JOIN 條件（每筆訂單明細跟全部 20 個產品做了笛卡兒積），業績被灌大 18–27 倍；用 Python 重算，缺 JOIN 的算法跟參考答案完全吻合",
+          "另一題「薪資分級」也用腳本證明參考答案的排序跟題目要求不同"
+        ]
+      },
       intro:
         "「資料庫」課程的練習與分析：資料庫有員工、部門、客戶、產品、訂單、進貨、加班、請假等 17 張表，題目是用 SQL 回答商業問題，例如哪些業務連續兩年業績過門檻、各部門加班費、台北客戶的獲利。",
       sections: [
@@ -670,6 +1000,35 @@ export const projects: Project[] = [
     status: "課程専題",
     image: "/image/projects/churn-preprocessing.jpg",
     detail: {
+      caseStudy: {
+        "problem": "Kaggle 的電商顧客流失資料集有 50,000 筆、25 個欄位，流失率約 29%。作業要求完成缺失值、偏離值、類別編碼三項前處理，每一項都要先偵測、再處理，最後輸出乾淨的資料集跟報告。",
+        "role": "「大數據商業分析與決策」小組作業。",
+        "decisions": [
+          {
+            "what": "缺失值依比例分級處理，不直接 dropna",
+            "why": "直接刪會損失 64% 的樣本；低於 1% 刪列、1–5% 補中位數、5% 以上補中位數並加一欄缺失標記（例如 App 使用時數缺失，可能代表根本沒裝 App）。"
+          },
+          {
+            "what": "補中位數而不是平均數",
+            "why": "先用 skew() 確認過，行為資料多半右偏。"
+          },
+          {
+            "what": "偏離值先用商業常識、再用統計",
+            "why": "年齡 5 歲、200 歲、購買次數負數這類邏輯錯誤只把那一格設成缺失；1.5×IQR 的極端值拉回上下界（縮尾）而不是刪掉——高消費顧客是真實存在的重要客群。"
+          },
+          {
+            "what": "依類別特性選編碼方式",
+            "why": "註冊季度有順序 → 有序映射；性別、國家類別少 → One-hot（drop_first）；城市有 40 種 → 頻率編碼，避免多出 40 個欄位。"
+          }
+        ],
+        "tradeoffs": [
+          "統計量（中位數、IQR）是在全部資料上算的；之後要建模應該只用訓練集計算，避免資料洩漏（報告裡有寫明）"
+        ],
+        "results": [
+          "50,000 筆只刪 168 列，其餘全部補值或縮尾保留",
+          "報告裡每一個數字都是程式實際輸出的結果"
+        ]
+      },
       intro:
         "Kaggle 的電商顧客流失資料集，50,000 筆、25 個欄位，流失率約 29%。作業要求做三件事：缺失值、偏離值、類別編碼，每一項都要先偵測再處理，最後輸出清理好的資料集跟報告表。",
       sections: [
@@ -721,6 +1080,31 @@ export const projects: Project[] = [
     status: "課程専題",
     image: "/image/projects/ma-backtest.jpg",
     detail: {
+      caseStudy: {
+        "problem": "把一個簡單的均線交易策略寫成可以重複執行的回測程式，用 2024 年台積電、鴻海、聯發科的日線資料，看策略會在哪裡進出場、成本怎麼計算。",
+        "decisions": [
+          {
+            "what": "每支股票一個 BacktestEngine 物件",
+            "why": "資金、持股、交易紀錄、損益全部包在物件裡，彼此不共用狀態。"
+          },
+          {
+            "what": "用 ThreadPoolExecutor 同時回測多支股票",
+            "why": "因為狀態不共用，不需要加鎖就能並行。"
+          },
+          {
+            "what": "逐根 K 棒餵進引擎",
+            "why": "模擬「只看得到今天以前的資料」，避免用到未來的價格。"
+          }
+        ],
+        "tradeoffs": [
+          "每次只交易一張、沒有計算滑價，只是練習回測的寫法，不是投資建議",
+          "2026-11 回頭檢查時修正了三個計算錯誤：沒有持股時不會再記一筆 0 張的賣出、賣出的手續費與證交稅改成從金額扣除、買進前先檢查本金夠不夠"
+        ],
+        "results": [
+          "MA10 進出場、跌破 MA60 清倉，每筆交易計入手續費 0.1425% 與證交稅 0.3%",
+          "三支股票並行回測，輸出最終資金、持倉、交易與損益紀錄"
+        ]
+      },
       intro:
         "「投資決策及應用」課程作業：把一個簡單的均線策略寫成回測程式，用 2024 年台積電、鴻海、聯發科的日線資料跑一遍，看策略會在哪裡進出場。",
       sections: [
@@ -771,6 +1155,7 @@ export const projects: Project[] = [
     status: "學習記録",
     // 2026-11-25 圖：school repo 實際的課程資料夾跟檔案數做的封面（不放學號、姓名、報告內容）
     image: "/image/projects/school.jpg",
+    thumb: "/image/projects/thumbs/school.jpg",
     imageAlt: "課程學習記録的封面：school repo 的課程資料夾跟檔案數",
     detail: {
       intro:

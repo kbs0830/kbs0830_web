@@ -52,11 +52,21 @@ function ProjectCard({
           {project.image && (
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
               <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-sm bg-(--surface) sm:w-auto sm:h-auto sm:-mx-7 sm:-mt-7 sm:mb-5 sm:aspect-video sm:rounded-b-none">
+                {/* 有手機專用縮圖（thumb）的：手機用正方形縮圖、桌機用大圖。display:none 的那張 lazy 圖不會被下載 */}
+                {project.thumb && (
+                  <Image
+                    src={project.thumb}
+                    alt={project.imageAlt ?? `${project.titleZh} 截圖`}
+                    fill
+                    className="object-cover sm:hidden"
+                    sizes="80px"
+                  />
+                )}
                 <Image
                   src={project.image}
                   alt={project.imageAlt ?? `${project.titleZh} 截圖`}
                   fill
-                  className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
+                  className={`object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500 ${project.thumb ? "hidden sm:block" : ""}`}
                   sizes="(max-width: 639px) 80px, (max-width: 768px) 100vw, 50vw"
                 />
               </div>
