@@ -40,6 +40,10 @@ export interface Project {
   highlightZh: string;
   status: "完成" | "製作中" | "學習記録" | "課程専題";
   isPersonal?: boolean;
+  /** 整個作品先隱藏：頁面 404、不進作品集／sitemap／API（資料留著，拿掉這行就恢復） */
+  hidden?: boolean;
+  /** 有作品頁，但不列在首頁作品集、終端機、Ctrl+K（只從別的頁面連過去） */
+  unlisted?: boolean;
   image?: string;
   /** 圖不是截圖時寫清楚是什麼（示意圖、封面）；沒寫就用「○○ 截圖」 */
   imageAlt?: string;
@@ -52,7 +56,7 @@ export interface Project {
   detail?: ProjectDetail;
 }
 
-export const projects: Project[] = [
+const allProjects: Project[] = [
   // ── 個人專案 ─────────────────────────────────
   {
     slug: "foodlens-advisor",
@@ -250,6 +254,8 @@ export const projects: Project[] = [
 
   {
     slug: "frc-robot",
+    // 2026-11-25 使用者：「frc 的專門頁面先隱藏，稍微提到就好」——高工學習記録、自動跟隨機器人頁、About 時間軸裡有提
+    hidden: true,
     title: "FRC Robot Team",
     titleJa: "ロボット競技団",
     titleZh: "FRC 機器人競技",
@@ -1225,6 +1231,8 @@ export const projects: Project[] = [
   // 報告裡的學號、組員與老師姓名一律不放
   {
     slug: "trash-collector",
+    // 2026-11-25 使用者：「不要放太明顯的地方」——不進作品集卡片，只從高工學習記録連過來
+    unlisted: true,
     title: "Auto Trash Collector",
     titleJa: "自動ゴミ回収機",
     titleZh: "自動垃圾撿拾機",
@@ -1366,7 +1374,6 @@ export const projects: Project[] = [
           links: [
             { href: "/projects/trash-collector" as Route, label: "自動垃圾撿拾機 →" },
             { href: "/projects/auto-following-robot" as Route, label: "自動跟隨機器人 →" },
-            { href: "/projects/frc-robot" as Route, label: "FRC 機器人競技 →" },
           ],
         },
       ],
@@ -1375,8 +1382,11 @@ export const projects: Project[] = [
   },
 ];
 
-export const personalProjects = projects.filter((p) => p.isPersonal);
-export const courseProjects = projects.filter((p) => !p.isPersonal);
+export const projects = allProjects.filter((p) => !p.hidden);
+/** 首頁作品集、終端機、Ctrl+K 用：不含 unlisted */
+export const listedProjects = projects.filter((p) => !p.unlisted);
+export const personalProjects = listedProjects.filter((p) => p.isPersonal);
+export const courseProjects = listedProjects.filter((p) => !p.isPersonal);
 
 // 技能 ↔ 作品互連（2026-11-09）：About 的技能名稱對到作品 tag（技能常帶版本號，例如「Next.js 16」→「Next.js」）。
 const projectTags = new Set(projects.flatMap((p) => p.tags));

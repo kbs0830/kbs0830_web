@@ -85,4 +85,4 @@ export const resumeSkillGroups = [
   { label: "工具", items: ["Git", "Jetson Nano", "Raspberry Pi", "Arduino", "丙級電腦硬體裝修"] },
 ];
 
-export const resumeFeaturedSlugs = ["foodlens-advisor", "kbs0830-web", "ticketing-system", "frc-robot", "auto-following-robot"];
+export const resumeFeaturedSlugs = ["foodlens-advisor", "kbs0830-web", "ticketing-system", "auto-following-robot"];

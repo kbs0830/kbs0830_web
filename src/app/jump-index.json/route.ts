@@ -1,5 +1,5 @@
 import { getAllPosts } from "@/lib/content/blog";
-import { projects } from "@/lib/content/projects";
+import { listedProjects as projects } from "@/lib/content/projects";
 import type { JumpItem } from "@/lib/site/site-map";
 
 // Ctrl+K 快速跳轉的作品＋文章清單：build 時產生，第一次打開快速跳轉才下載（頁面清單直接編在 client 裡，不用等這個）。

@@ -16,7 +16,7 @@ import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFi
 // 篩選列：2 個以上作品用到的 tag 直接列出（多的排前面），只出現一次的收進「更多」。
 // 2026-11-09 作品加到 13 個、tag 變 42 個，全部攤開桌機要排 5 行。
 const tagCounts = new Map<string, number>();
-for (const tag of projects.flatMap((p) => p.tags)) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+for (const tag of [...personalProjects, ...courseProjects].flatMap((p) => p.tags)) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
 const byCountThenName = ([a, ca]: [string, number], [b, cb]: [string, number]) => cb - ca || a.localeCompare(b, "en");
 const sortedTags = [...tagCounts].sort(byCountThenName);
 const mainTags = sortedTags.filter(([, c]) => c >= 2).map(([t]) => t);

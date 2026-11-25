@@ -11,7 +11,7 @@ import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
 import LatestPosts from "@/components/sections/LatestPosts";
-import { projects } from "@/lib/content/projects";
+import { listedProjects as projects } from "@/lib/content/projects";
 import { PERSON_ID, SITE_URL } from "@/lib/site/site";
 import JsonLd from "@/components/ui/JsonLd";
 import SiteFooter from "@/components/layout/SiteFooter";
