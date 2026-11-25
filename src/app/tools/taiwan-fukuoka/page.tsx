@@ -6,10 +6,12 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import AutoRefresh from "@/components/live/AutoRefresh";
 import ToolNote from "@/components/tools/ToolNote";
 import { getBoards, taiwanFuk, type Flight } from "@/lib/travel/airport-board";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 台灣 ⇄ 福岡直飛（TODO J2，2026-11-24，使用者把「高雄 ⇄ 福岡」改成「台灣各機場」）。
 // 福岡空港的看板（/airports 已經在抓、3 分鐘快取）本來就有每班的出發／抵達機場，篩出台灣的就是全部直飛，不用另外接桃園機場。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare({
   title: "台灣 ⇄ 福岡直飛班機（今天）：桃園、高雄、台中 · TW⇄FUK — PINGWEI LI",
@@ -45,19 +47,14 @@ function List({ title, flights }: { title: string; flights: Flight[] }) {
   );
 }
 
-export default async function TaiwanFukuokaPage() {
+async function TaiwanFukuokaContent() {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const { fuk } = await getBoards();
   const groups = taiwanFuk(fuk?.value ?? null);
   const total = groups.reduce((n, g) => n + g.toFuk.length + g.fromFuk.length, 0);
 
   return (
-    <PageShell
-      backHref="/tools"
-      backLabel="返回小工具"
-      eyebrow="Tools · TW ⇄ FUK"
-      title={<>台灣 ⇄ 福岡直飛</>}
-      intro="今天台灣各機場跟福岡之間的全部直飛班機。時間都是福岡（日本）時間，比台灣快 1 小時；開著這頁會自己刷新。"
-    >
+    <Shell>
       <AutoRefresh everyMs={3 * 60_000} />
       {!fuk ? (
         <p className="text-sm text-(--muted) font-light">福岡空港的航班資料暫時讀不到，晚點再來看看。</p>
@@ -90,6 +87,35 @@ export default async function TaiwanFukuokaPage() {
           。
         </p>
       </ToolNote>
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      backHref="/tools"
+      backLabel="返回小工具"
+      eyebrow="Tools · TW ⇄ FUK"
+      title={<>台灣 ⇄ 福岡直飛</>}
+      intro="今天台灣各機場跟福岡之間的全部直飛班機。時間都是福岡（日本）時間，比台灣快 1 小時；開著這頁會自己刷新。"
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function TaiwanFukuokaPage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="讀取今天的班機中…" minHeight={600} />
+        </Shell>
+      }
+    >
+      <TaiwanFukuokaContent />
+    </Suspense>
   );
 }

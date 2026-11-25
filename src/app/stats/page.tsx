@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { after } from "next/server";
+import { after, connection } from "next/server";
 import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -12,6 +12,8 @@ import { lastDays, readDetail } from "@/lib/stats/visit-detail";
 import { HERO_VARIANTS, VARIANT_NAMES, readHeroStats } from "@/lib/stats/hero-stats";
 import { nf } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
+import { Suspense } from "react";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 訪客分析頁（2026-11-09 公開流量頁 → 同天使用者要「訪客分析的頁面」，升級成這頁）。
 // 這個網站是自己桌機架的，流量本身就是作品的一部分。只有彙總數字：不記 IP、完整 UA、完整網址、cookie。
@@ -21,7 +23,6 @@ import { pageTitle } from "@/lib/site/page-title";
 //   - Cloudflare：lib/stats/cloudflare-analytics.ts（含機器人、含快取命中）
 //   - 到達主機的請求：scripts/lib/raw-traffic.js（Cloudflare 快取之後只剩沒命中的）
 // 每次請求現讀資料檔，所以沒有 Markdown 版（那是 build 時預先產生的）。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare({
   title: "訪客分析 · Analytics — PINGWEI LI",
@@ -36,7 +37,8 @@ const KIND_LABEL: Record<BotKind, string> = { ai: "AI", search: "搜尋引擎", 
 
 const sorted = (m: Record<string, number> = {}) => Object.entries(m).sort((a, b) => b[1] - a[1]);
 
-export default function StatsPage() {
+async function StatsContent() {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   // Cloudflare 一小時最多抓一次：頁面送出之後才抓（after），這次用檔案裡現有的
   after(refreshCloudflareIfStale);
   const cf = readCloudflareSummary();
@@ -64,11 +66,7 @@ export default function StatsPage() {
   const deviceTotal = detail ? Object.values(detail.devices).reduce((n, c) => n + c, 0) : 0;
 
   return (
-    <PageShell
-      eyebrow="Analytics"
-      title={<>訪客分析 &nbsp;·&nbsp; Analytics</>}
-      intro="這個網站跑在自己的桌機上，透過 Cloudflare 對外。下面是它的訪客：每天多少人、看哪些頁、從哪裡來、用什麼裝置。只有彙總數字，不記 IP、不記完整網址、不用 cookie。"
-    >
+    <Shell>
       {detail && today && (
         <>
           <Tiles
@@ -288,6 +286,33 @@ export default function StatsPage() {
         <SectionHeading en="Exclude this browser">不計入自己</SectionHeading>
         <NotMeToggle />
       </section>
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      eyebrow="Analytics"
+      title={<>訪客分析 &nbsp;·&nbsp; Analytics</>}
+      intro="這個網站跑在自己的桌機上，透過 Cloudflare 對外。下面是它的訪客：每天多少人、看哪些頁、從哪裡來、用什麼裝置。只有彙總數字，不記 IP、不記完整網址、不用 cookie。"
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function StatsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="讀取訪客統計中…" minHeight={1400} />
+        </Shell>
+      }
+    >
+      <StatsContent />
+    </Suspense>
   );
 }

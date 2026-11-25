@@ -7,7 +7,6 @@ import { twDate } from "../../../../scripts/lib/tw-time.js";
 // 首頁 3D 背景版本回報（決策表 B13）。HeroBackground 每個工作階段送一次 { variant }，WebGPU 退回時另外送 { fallback }。
 // 跟 /api/visitor-stats 同樣的過濾：沒經過 Cloudflare（本機、CI）、機器人 UA 都不記。
 // read-modify-write 中間沒有 await（同步 fs、單一 process），不會互相蓋掉，理由同 visitor-stats。
-export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const ua = req.headers.get("user-agent") || "";

@@ -1,8 +1,6 @@
 import { getAllPosts } from "@/lib/content/blog";
 import { apiJson, apiPost } from "@/lib/api/public-api";
 
-export const dynamic = "force-static";
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));

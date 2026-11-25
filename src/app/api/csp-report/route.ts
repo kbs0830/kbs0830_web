@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
 
 // Content-Security-Policy 先 report-only（TODO 點子，2026-11-09）：瀏覽器照常載入，只是把「如果正式開會被擋的東西」
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  await connection(); // Cache Components：同步讀檔不算「即時」，不加這行 build 時會把當下的數字凍結（TODO C13）
   const sorted = Object.entries(read()).sort((a, b) => b[1] - a[1]);
   return NextResponse.json({ total: sorted.reduce((n, [, c]) => n + c, 0), reports: Object.fromEntries(sorted) });
 }

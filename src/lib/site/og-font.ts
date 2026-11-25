@@ -3,6 +3,8 @@
 // ImageResponse 內建的字型只有拉丁字母，中文會變方框。build 時跟 Google Fonts 要
 // 「只含這張圖用到的字」的 Noto Serif TC 子集（幾十 KB，不是整套 10MB+）。
 // 抓不到（沒網路）回 null，呼叫端要退回英文，寧可沒中文也不要一排方框。
+import { cacheLife } from "next/cache";
+
 export const OG_FONT_NAME = "Noto Serif TC";
 
 // 2026-11-21 部署 build 失敗過一次：/changelog 的分享圖產生時丟「Cannot read properties of undefined (reading 'split')」，
@@ -17,11 +19,24 @@ function looksLikeFont(buf: ArrayBuffer): boolean {
 
 export async function loadSubsetFont(text: string): Promise<ArrayBuffer | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
-    const font = await fetchSubsetFont(text);
-    if (font) return font;
+    try {
+      return await cachedSubsetFont(text);
+    } catch {
+      // 這次沒抓到，再試一次
+    }
   }
   console.warn(`[og-font] 抓不到可用的中文字型（${text.length} 字），這張分享圖用英文`);
   return null;
+}
+
+// Cache Components（TODO C13）：同一組字只跟 Google 要一次、結果存進快取，分享圖才能在 build 時預先畫好
+// （不然每次有人分享都要即時畫、每次都連 Google）。失敗用丟例外表示：丟例外不會被快取，下次會重抓；回 null 的話「失敗」會被永久存起來
+async function cachedSubsetFont(text: string): Promise<ArrayBuffer> {
+  "use cache";
+  cacheLife("max");
+  const font = await fetchSubsetFont(text);
+  if (!font) throw new Error("subset font unavailable");
+  return font;
 }
 
 async function fetchSubsetFont(text: string): Promise<ArrayBuffer | null> {

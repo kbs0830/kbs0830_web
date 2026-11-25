@@ -17,11 +17,13 @@ import {
 } from "@/lib/ops/status";
 import { incidents } from "@/lib/ops/incidents";
 import { getPostBySlug } from "@/lib/content/blog";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 維運狀態頁（TODO A4，2026-11-21）：這個網站跑在自家桌機上，可用率、部署、自動重啟、出過的事故都公開。
 // 資料見 lib/ops/status.ts（只公開彙總，不放 log 原文）、事故報告在 lib/ops/incidents.ts。
 // 每次請求現讀，所以跟 /stats 一樣沒有 Markdown 版。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare(
   {
@@ -92,7 +94,8 @@ function UptimeBars({ days }: { days: DayUptime[] }) {
   );
 }
 
-export default function StatusPage() {
+async function StatusContent() {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const days = readUptime(90);
   const since = uptimeSince();
   const deploys = readDeploys();
@@ -100,19 +103,7 @@ export default function StatusPage() {
   const sum = summarizeStatus(deploys, restarts);
 
   return (
-    <PageShell
-      eyebrow="Status"
-      title={<>維運狀態 &nbsp;·&nbsp; Status</>}
-      intro={
-        <>
-          這個網站跑在我家的桌機上，沒有租雲端主機。它多穩、多常更新、出過哪些事、怎麼修的，都在這裡。整套怎麼搭起來的看{" "}
-          <Link href="/colophon" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
-            本站構造
-          </Link>
-          。
-        </>
-      }
-    >
+    <Shell>
       <div className="flex items-center gap-3 mb-10 p-4 border border-(--border) rounded-sm bg-(--surface)">
         {/* 靜止的點：設計原則「不跳不彈不閃」，不用 ping 動畫 */}
         <span aria-hidden className="inline-flex size-2.5 shrink-0 rounded-full bg-(--accent)" />
@@ -254,6 +245,41 @@ export default function StatusPage() {
           })}
         </div>
       </section>
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      eyebrow="Status"
+      title={<>維運狀態 &nbsp;·&nbsp; Status</>}
+      intro={
+        <>
+          這個網站跑在我家的桌機上，沒有租雲端主機。它多穩、多常更新、出過哪些事、怎麼修的，都在這裡。整套怎麼搭起來的看{" "}
+          <Link href="/colophon" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
+            本站構造
+          </Link>
+          。
+        </>
+      }
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function StatusPage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="讀取維運紀錄中…" minHeight={1200} />
+        </Shell>
+      }
+    >
+      <StatusContent />
+    </Suspense>
   );
 }

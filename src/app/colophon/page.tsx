@@ -4,10 +4,12 @@ import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import { readSiteFacts, type SiteFacts } from "@/lib/ops/colophon";
 import { nf } from "@/lib/format";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 本站構造（TODO A8，2026-11-21）：CLAUDE.md「部署架構」那一大段，做成給人看的一張圖。
 // 點圖上的方塊跳到下面那張說明卡（<a href="#…"> ＋ CSS :target，零 JS）。每個方塊上的數字是現在的值（每次請求現讀）。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare(
   {
@@ -271,15 +273,12 @@ function Diagram({ items }: { items: NodeDef[] }) {
   );
 }
 
-export default function ColophonPage() {
+async function ColophonContent() {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const items = nodes(loadFacts());
 
   return (
-    <PageShell
-      eyebrow="Colophon"
-      title={<>本站構造 &nbsp;·&nbsp; Colophon</>}
-      intro="這個網站沒有租雲端主機，跑在我家的桌機上。下面是一個請求從你的瀏覽器到這台桌機、再回去的路，以及旁邊讓它一個人也能維運的那些東西。點方塊看說明，數字都是現在的值。"
-    >
+    <Shell>
       <div className="border border-(--border) rounded-sm bg-(--surface) p-3 sm:p-5 mb-12">
         <Diagram items={items} />
       </div>
@@ -326,6 +325,33 @@ export default function ColophonPage() {
       <p className="text-xs text-(--muted) font-light mt-12 leading-relaxed">
         原始碼都在 GitHub（網站本身、部署腳本、watchdog）。字體：Noto Serif JP、Geist、Geist Mono。
       </p>
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      eyebrow="Colophon"
+      title={<>本站構造 &nbsp;·&nbsp; Colophon</>}
+      intro="這個網站沒有租雲端主機，跑在我家的桌機上。下面是一個請求從你的瀏覽器到這台桌機、再回去的路，以及旁邊讓它一個人也能維運的那些東西。點方塊看說明，數字都是現在的值。"
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function ColophonPage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="讀取即時數字中…" minHeight={1000} />
+        </Shell>
+      }
+    >
+      <ColophonContent />
+    </Suspense>
   );
 }

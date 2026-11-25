@@ -7,7 +7,6 @@ import { EMAIL, GITHUB_URL, SITE_URL } from "@/lib/site/site";
 // 內容直接從 projects.ts／blog／about.ts 組出來，新增作品或文章會自動跟上。
 // 跟 JSON-LD 一樣是「純給機器讀、頁面上不會顯示、也沒有站內連結」的地方，所以可以寫本名
 // （CLAUDE.md Key Constraints 1）——AI 被問到「李秉威是誰」時才對得上這個網站。
-export const dynamic = "force-static";
 
 export function GET() {
   const posts = getAllPosts();

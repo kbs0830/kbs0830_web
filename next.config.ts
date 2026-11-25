@@ -86,6 +86,11 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   // <Link href> 寫錯路徑（打錯字、頁面改名刪掉）在 tsc／build 就會報錯，不會上線才發現 404
   typedRoutes: true,
+  // Cache Components（2026-11-25，TODO C13）：頁面＝build 時畫好的靜態外殼＋<Suspense> 串流補進來的即時資料；
+  // 快取改用 "use cache"＋cacheLife，路由的 dynamic／revalidate／dynamicParams 設定不能再用。Next 17 會變預設
+  cacheComponents: true,
+  // 換頁時先預先載入下一頁的靜態外殼（官方要求跟 cacheComponents 一起明講）
+  partialPrefetching: true,
   // next/image 優先給 AVIF（比 WebP 再小 20～30%），不支援的瀏覽器照舊拿 WebP
   images: { formats: ["image/avif", "image/webp"] },
   env: { BUILD_COMMIT_SHA: head.sha, BUILD_COMMIT_TIME: head.time, BUILD_FEAT_LOG: gitFeatLog() },

@@ -26,6 +26,10 @@ import Comments from "@/components/content/Comments";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
+// 整頁一定要是靜態（Next 16.4，TODO C13）：清單外的網址會等整頁產生完才回應，notFound() 才會是真的 404（不加的話先串流外殼、狀態碼變 200）；
+// 以後有人在這頁加了即時資料，build 會直接失敗
+export const ensureStatic = "navigation";
+
 export function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
 }

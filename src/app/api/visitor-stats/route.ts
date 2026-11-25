@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse, after, connection } from "next/server";
 import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/stats/cloudflare-analytics";
@@ -27,6 +27,7 @@ function summarize(stats: Record<string, number>) {
 }
 
 export async function GET() {
+  await connection(); // Cache Components：同步讀檔不算「即時」，不加這行 build 時會把當下的數字凍結（TODO C13）
   return NextResponse.json(summarize(readStats()));
 }
 

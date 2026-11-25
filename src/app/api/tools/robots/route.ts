@@ -7,7 +7,6 @@ import { fetchPublicText, normalizeHost } from "@/lib/tools/safe-fetch";
 // 抓對方的 robots.txt（＋看有沒有 llms.txt），判斷各家爬蟲能不能抓首頁。
 // 防濫用：網域驗證＋連線時檢查 IP（lib/tools/safe-fetch.ts）、每個 IP 10 分鐘 15 次、全站每小時 300 次、同一網域 10 分鐘快取。
 // 不記錄誰查了什麼網域（只在記憶體算次數，重啟就清空）。
-export const dynamic = "force-dynamic";
 
 const perIp = new Map<string, number[]>();
 let recent: number[] = [];

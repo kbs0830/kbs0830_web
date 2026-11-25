@@ -2,7 +2,6 @@ import { getAllPosts } from "@/lib/content/blog";
 import { plainText, type IndexedPost } from "@/lib/content/blog-search";
 
 // 部落格搜尋索引（TODO A6）：build 時產生，/blog 的搜尋框第一次用到才下載。說明見 lib/content/blog-search.ts
-export const dynamic = "force-static";
 
 export function GET() {
   const index: IndexedPost[] = getAllPosts().map((p) => ({

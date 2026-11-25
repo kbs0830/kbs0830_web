@@ -6,11 +6,13 @@ import { BarChart, ShareList } from "@/components/ui/StatCharts";
 import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period } from "@/lib/stats/reports";
 import { nf, monthDay as md } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 日報／週報／月報（2026-11-25，使用者：「要詳細的日報週報月報，在網站裡面，我之後再挪到私人的管理者裡面」）。
 // 週報、月報另外寄信（scripts/report-mail.ps1），日報只在這裡看。資料跟信是同一份 lib/stats/reports.ts。
 // 暫時公開但不給搜尋引擎（noindex、不進 sitemap、導覽不放連結）；Search Console 的搜尋字詞只進信、這裡不放（TODO G1 後台做好再搬）。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "營運報表 · Reports — PINGWEI LI",
@@ -66,7 +68,8 @@ function Shares({ label, entries, total }: { label?: string; entries: Entry[]; t
 
 const Empty = ({ children }: { children: React.ReactNode }) => <p className="text-sm text-(--muted) font-light">{children}</p>;
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ p?: string; d?: string }> }) {
+async function ReportsContent({ searchParams }: { searchParams: Promise<{ p?: string; d?: string }> }) {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const sp = await searchParams;
   const period: Period = sp.p === "week" || sp.p === "month" ? sp.p : "day";
   const range = resolveRange(period, sp.d);
@@ -77,11 +80,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const sessionsTotal = r.direct != null ? r.direct + r.refKinds.reduce((n, [, c]) => n + c, 0) : undefined;
 
   return (
-    <PageShell
-      eyebrow="Reports"
-      title={<>營運報表 &nbsp;·&nbsp; Reports</>}
-      intro="這個網站每天、每週、每月的狀況：訪客、流量、維運、雷達、機場。週報、月報另外寄信；這頁暫時公開、不給搜尋引擎收錄。"
-    >
+    <Shell>
       {/* 期間切換：日／週／月，跟前後一期 */}
       <nav aria-label="報表期間" className="mb-8 space-y-4">
         <div className="grid grid-cols-3 border border-(--border) rounded-sm overflow-hidden text-sm">
@@ -369,6 +368,33 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <Empty>這段期間沒有公開的更新。</Empty>
         )}
       </Block>
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      eyebrow="Reports"
+      title={<>營運報表 &nbsp;·&nbsp; Reports</>}
+      intro="這個網站每天、每週、每月的狀況：訪客、流量、維運、雷達、機場。週報、月報另外寄信；這頁暫時公開、不給搜尋引擎收錄。"
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function ReportsPage(props: Parameters<typeof ReportsContent>[0]) {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="產生報表中…" minHeight={1400} />
+        </Shell>
+      }
+    >
+      <ReportsContent {...props} />
+    </Suspense>
   );
 }

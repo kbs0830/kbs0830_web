@@ -9,7 +9,10 @@ import PageShell from "@/components/layout/PageShell";
 // 依 tag 列文章（TODO「Tag 頁」，2026-11-09）。網址用 tagSlug()：`Next.js` → /blog/tags/next-js
 type TagPageProps = { params: Promise<{ tag: string }> };
 
-export const dynamicParams = false;
+
+// 整頁一定要是靜態（Next 16.4，TODO C13）：清單外的網址會等整頁產生完才回應，notFound() 才會是真的 404（不加的話先串流外殼、狀態碼變 200）；
+// 以後有人在這頁加了即時資料，build 會直接失敗
+export const ensureStatic = "navigation";
 
 export function generateStaticParams() {
   return getAllTags().map((t) => ({ tag: t.slug }));

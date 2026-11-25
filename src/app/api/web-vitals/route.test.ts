@@ -4,6 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
 
+// route 的 GET 會呼叫 connection()（Cache Components）；測試直接呼叫、不在 Next 的請求範圍內，換成不做事
+vi.mock("next/server", async (importOriginal) => ({ ...(await importOriginal<typeof import("next/server")>()), connection: async () => {} }));
+
 // 隔離方式同 visitor-stats：每個測試用自己的暫存檔（WEB_VITALS_FILE）＋ resetModules
 describe("web-vitals API route", () => {
   let vitalsFile: string;

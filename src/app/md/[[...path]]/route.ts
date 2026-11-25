@@ -4,7 +4,6 @@ import { SITE_URL } from "@/lib/site/site";
 // 「Markdown for Agents」的出口，說明見 lib/content/markdown.ts。訪客不會直接打這裡：
 // next.config.ts 的 rewrites 把 `Accept: text/markdown` 的請求、以及 `xxx.md` 網址轉過來。
 // build 時全部預先產生（跟頁面一樣是靜態的），不存在的路徑直接 404。
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return markdownPaths().map((p) => ({ path: p ? p.split("/") : [] }));

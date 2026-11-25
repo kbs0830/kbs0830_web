@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { writeJsonFile } from "@/lib/data-file";
 import { p75, readVitals, vitalsFile } from "@/lib/stats/web-vitals";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
@@ -16,6 +16,7 @@ const PATH_PATTERN = /^\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)?)?$/;
 
 // GET：每頁每個指標的樣本數跟 p75（Google 判斷 Core Web Vitals 及格與否用的就是 p75）
 export async function GET() {
+  await connection(); // Cache Components：同步讀檔不算「即時」，不加這行 build 時會把當下的數字凍結（TODO C13）
   const vitals = readVitals();
   const summary = Object.fromEntries(
     Object.entries(vitals).map(([page, metrics]) => [

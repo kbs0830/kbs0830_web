@@ -9,13 +9,15 @@ import RadarLive from "@/components/live/RadarLive";
 import { BarChart, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { detail, readState } from "../../../scripts/lib/radar.js";
 import { nf, monthDay as md } from "@/lib/format";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 自家雷達頁（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）。
 // 資料：scripts/server.js 每 30 秒在區網讀雷達寫的 data/radar.json（scripts/lib/radar.js 的 detail()）。
-// 跟 /stats 一樣每次請求現讀檔（force-dynamic）→ 沒有 Markdown 版（Markdown 是 build 時預先產生的，會是舊數字）。
+// 跟 /stats 一樣每次請求現讀檔（Cache Components：頁首是外殼、數字串流進來）→ 沒有 Markdown 版（Markdown 是 build 時預先產生的，會是舊數字）。
 // ⚠️ 隱私：接收器在使用者家。只放數字、航空公司、時段——不放地圖、座標、涵蓋範圍、最遠距離，
 //    也不寫離哪個機場多近（CLAUDE.md「自家 FR24 雷達」）。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare({
   title: "自架 ADS-B 飛機雷達：樹莓派＋SDR 接收、分享給 Flightradar24 · My Radar — PINGWEI LI",
@@ -29,17 +31,12 @@ const loadRadar = () => detail(readState(radarFile()), Date.now());
 /** detail().flightsNow 的一筆（radar.js 是 JS，型別在這裡補） */
 type NowFlight = { flight: string; alt: number | null; airlineName: string | null; typeName: string | null };
 
-export default function RadarPage() {
+async function RadarContent() {
+  await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
   const d = loadRadar();
 
   return (
-    <PageShell
-      backHref="/flights"
-      backLabel="返回飛行紀錄"
-      eyebrow="My Radar"
-      title={<>自家雷達 &nbsp;·&nbsp; My Radar</>}
-      intro="家裡自己架的 ADS-B 接收器。飛機會一直在 1090 MHz 廣播自己的位置、高度跟航班代碼，這台把訊號收下來、解碼，同時分享給 Flightradar24。"
-    >
+    <Shell>
       {!("daily" in d) ? (
         <p className="text-sm text-(--muted) font-light">雷達資料暫時讀不到，晚點再來看看。</p>
       ) : (
@@ -166,6 +163,35 @@ export default function RadarPage() {
           </section>
         </>
       )}
+    </Shell>
+  );
+}
+
+// 頁首（標題、說明）是 build 時就畫好的外殼；內容讀即時資料，訪客打開時才串流補進來（Cache Components，TODO C13）
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <PageShell
+      backHref="/flights"
+      backLabel="返回飛行紀錄"
+      eyebrow="My Radar"
+      title={<>自家雷達 &nbsp;·&nbsp; My Radar</>}
+      intro="家裡自己架的 ADS-B 接收器。飛機會一直在 1090 MHz 廣播自己的位置、高度跟航班代碼，這台把訊號收下來、解碼，同時分享給 Flightradar24。"
+    >
+      {children}
     </PageShell>
+  );
+}
+
+export default function RadarPage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <LoadingBlock label="讀取雷達資料中…" minHeight={1100} />
+        </Shell>
+      }
+    >
+      <RadarContent />
+    </Suspense>
   );
 }

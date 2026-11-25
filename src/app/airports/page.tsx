@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
 import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Tabs from "@/components/ui/Tabs";
 import AutoRefresh from "@/components/live/AutoRefresh";
+import LoadingBlock from "@/components/ui/LoadingBlock";
 import { getBoards, khhFuk, upcoming, type Flight } from "@/lib/travel/airport-board";
 import { summarizeDelays } from "@/lib/travel/airport-delays";
 import { readDelays } from "@/lib/travel/airport-delay-recorder";
 import { nf } from "@/lib/format";
 
 // 機場即時時刻表（TODO D6，2026-11-22）：小港（KHH）跟福岡（FUK），最上面是高雄 ⇄ 福岡的直飛班機。
-// 資料由伺服器 3 分鐘抓一次（lib/travel/airport-board.ts），每次請求現讀 → force-dynamic，跟 /stats、/radar 一樣沒有 Markdown 版。
+// 資料由伺服器 3 分鐘抓一次（lib/travel/airport-board.ts）。Cache Components：標題、說明、資料來源是 build 時畫好的外殼，
+// 看板跟延誤統計在 <LiveBoards>（先 connection() 才讀「現在」），串流補進來。沒有 Markdown 版。
 // 只放機場公開的航班表，跟自家雷達無關（雷達不公開位置，這頁也不拿雷達資料來比對）。
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = withShare(
   {
@@ -110,21 +113,15 @@ function Direct({ title, from, flights }: { title: string; from: string; flights
   );
 }
 
-export default async function AirportsPage() {
+/** 即時的部分：看板、直飛、延誤統計（訪客打開時才讀） */
+async function LiveBoards() {
+  await connection();
   const { khh, fuk, nowKhh, nowFuk, delays } = await load();
   const direct = khhFuk(khh?.value ?? null, fuk?.value ?? null);
   const board = (list: Flight[] | undefined, dir: "dep" | "arr", now: string) => upcoming((list ?? []).filter((f) => f.dir === dir), now);
 
   return (
-    <PageShell
-      backHref="/flights"
-      backLabel="返回飛行紀錄"
-      eyebrow="Airport Boards"
-      title={<>機場時刻表 &nbsp;·&nbsp; Airport Boards</>}
-      intro="高雄小港跟福岡兩個機場的即時航班——我在兩地之間跑，這兩個機場的看板最常看。資料每 3 分鐘更新，開著這頁也會自己刷新。"
-    >
-      <AutoRefresh everyMs={3 * 60_000} />
-
+    <>
       <section className="mb-14">
         <SectionHeading en="KHH ⇄ FUK">高雄 ⇄ 福岡</SectionHeading>
         {khh || fuk ? (
@@ -211,6 +208,25 @@ export default async function AirportsPage() {
           <p className="mt-3 text-xs text-(--muted) font-light">機場網站只給今天的看板，這是這個網站每 20 分鐘自己記下來的，官方沒有這份資料。至少飛過 5 次的航班才排。</p>
         </section>
       )}
+
+    </>
+  );
+}
+
+export default function AirportsPage() {
+  return (
+    <PageShell
+      backHref="/flights"
+      backLabel="返回飛行紀錄"
+      eyebrow="Airport Boards"
+      title={<>機場時刻表 &nbsp;·&nbsp; Airport Boards</>}
+      intro="高雄小港跟福岡兩個機場的即時航班——我在兩地之間跑，這兩個機場的看板最常看。資料每 3 分鐘更新，開著這頁也會自己刷新。"
+    >
+      <AutoRefresh everyMs={3 * 60_000} />
+
+      <Suspense fallback={<LoadingBlock label="讀取航班中…" minHeight={900} />}>
+        <LiveBoards />
+      </Suspense>
 
       <section>
         <SectionHeading en="Data">資料來源</SectionHeading>

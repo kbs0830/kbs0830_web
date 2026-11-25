@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import { dataFile } from "@/lib/data-file";
 import { readState, summarize } from "../../../../scripts/lib/radar.js";
 
@@ -8,9 +8,9 @@ import { readState, summarize } from "../../../../scripts/lib/radar.js";
 // `next dev` 沒有 RADAR_FILE，退回專案根目錄的 data/radar.json（沒有就回 configured: false，元件不顯示）。
 const radarFile = () => dataFile("RADAR_FILE", "radar.json");
 
-export const dynamic = "force-dynamic";
 
-export function GET() {
+export async function GET() {
+  await connection(); // Cache Components：同步讀檔不算「即時」，不加這行 build 時會把當下的數字凍結（TODO C13）
   return NextResponse.json(summarize(readState(radarFile()), Date.now()), {
     headers: { "cache-control": "no-store" },
   });
