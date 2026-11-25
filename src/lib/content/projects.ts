@@ -6,6 +6,8 @@ interface ProjectDetailSection {
   body: string[];
   /** 這段相關的站內頁面（例：課程 → 那門課的期末專題作品頁），列在條列下面 */
   links?: { href: Route; label: string }[];
+  /** 這段的附圖（2026-11-25：FRC 休士頓世界賽照片、卡皮巴拉餐飲中心的三種版面），放在條列下面 */
+  images?: { src: string; alt: string; caption?: string; width: number; height: number }[];
 }
 
 /** 案例段落（TODO B9，2026-11-25）：背景 → 角色 → 關鍵決定（做了什麼＋為什麼）→ 取捨 → 成果。只寫查得到的事實 */
@@ -252,13 +254,13 @@ export const projects: Project[] = [
     titleJa: "ロボット競技団",
     titleZh: "FRC 機器人競技",
     description:
-      "FIRST Robotics Competition team member. Built Raspberry Pi vision system, LabVIEW programming, CNC machining and argon welding. Team won National Championship Alliance 2023.",
+      "FRC Team 7527 member: Raspberry Pi vision, LabVIEW robot code, CNC machining and argon welding. Won the 2022 New Taipei City x Hon Hai Regional (Winner + Autonomous Award) and competed at the 2022 FIRST Championship in Houston.",
     descriptionZh:
-      "參與 FIRST Robotics Competition 機器人競賽。團隊榮獲 2023 年全國冠軍聯盟。",
+      "FRC 7527 隊成員。2022 新北鴻海區域賽拿下聯盟冠軍與自動控制獎，並參加美國休士頓的 FIRST Championship 世界賽。",
     tags: ["Python", "Raspberry Pi", "LabVIEW", "CNC", "FRC"],
     github: "",
-    highlight: "National Championship Alliance — FRC 2023",
-    highlightZh: "2023 FRC · 全國冠軍聯盟",
+    highlight: "2022 New Taipei x Hon Hai Regional Winner · FIRST Championship, Houston",
+    highlightZh: "2022 新北鴻海區域賽聯盟冠軍 · 休士頓世界賽",
     status: "完成",
     isPersonal: true,
     image: "/image/projects/frc-robot.jpg",
@@ -277,12 +279,14 @@ export const projects: Project[] = [
           }
         ],
         "results": [
-          "2023 年賽季拿下全國冠軍聯盟",
+          "2022 FRC 新北鴻海區域賽（New Taipei City x Hon Hai Regional，2022/3/4–6）：聯盟冠軍（Winner）",
+          "同一場拿下自動控制獎（Autonomous Award sponsored by Ford）：比賽開頭由程式自動操作的階段表現最好",
+          "參加 2022 FIRST Championship（美國休士頓世界賽）",
           "這台機器人的底盤後來沿用到「自動跟隨機器人」專題"
         ]
       },
       intro:
-        "參與 FIRST Robotics Competition（FRC）機器人競賽，負責 Raspberry Pi 視覺系統與 LabVIEW 程式，並參與機構的 CNC 加工與氬焊製作。團隊在 2023 年賽季拿下全國冠軍聯盟。",
+        "參與 FIRST Robotics Competition（FRC）機器人競賽，負責 Raspberry Pi 視覺系統與 LabVIEW 程式，並參與機構的 CNC 加工與氬焊製作。隊伍編號 7527，2022 年在新北鴻海區域賽拿下聯盟冠軍與自動控制獎，並參加美國休士頓的世界賽。",
       sections: [
         {
           heading: "負責項目",
@@ -293,8 +297,21 @@ export const projects: Project[] = [
             "機構製作：CNC 加工、氬焊",
           ],
         },
+        {
+          heading: "2022 休士頓世界賽",
+          headingEn: "FIRST Championship, Houston",
+          body: [
+            "2022 年 3 月在新北鴻海區域賽拿下聯盟冠軍與自動控制獎，之後到美國休士頓參加 FIRST Championship 世界賽",
+            "照片是隊上在休士頓拍的：7527 的機器人排隊等上場、比賽中的主場館、開賽前的場地（只挑沒有人臉的）",
+          ],
+          images: [
+            { src: "/image/projects/frc/robot-7527.jpg", alt: "保險桿上印著 7527 的 FRC 機器人在場邊排隊", caption: "7527 的機器人，排隊等上場", width: 1600, height: 900 },
+            { src: "/image/projects/frc/houston-match.jpg", alt: "休士頓世界賽主場館，比賽進行中，四周坐滿觀眾", caption: "比賽中的主場館", width: 1600, height: 1067 },
+            { src: "/image/projects/frc/houston-arena.jpg", alt: "開賽前空蕩的世界賽場館與比賽場地", caption: "開賽前的場地", width: 1600, height: 900 },
+          ],
+        },
       ],
-      context: "這是實體硬體競賽專案，沒有公開程式碼倉庫，細節以團隊比賽紀錄為主。",
+      context: "這是實體硬體競賽專案，沒有公開程式碼倉庫。比賽成績照獎狀與參賽證（2026-11-25 核對：原本誤寫成 2023 全國冠軍聯盟，已更正）。",
     },
   },
   {
@@ -1169,6 +1186,9 @@ export const projects: Project[] = [
             "期末作品：虛構餐廳「卡皮巴拉餐飲中心」的響應式網頁，用 media query 切手機／平板／桌機三種欄寬",
             "考試練習：前端 fetch 搭配 PHP（PDO）做資料的新增、查詢、修改、刪除",
           ],
+          images: [
+            { src: "/image/projects/school-capybara.jpg", alt: "卡皮巴拉餐飲中心網頁在桌機、平板、手機三種寬度的樣子：三欄、兩欄、一欄", caption: "期末作品在 1280／768／390px 下的版面（2026-11-25 用瀏覽器實際打開截的）", width: 1600, height: 1000 },
+          ],
         },
         {
           heading: "程式設計（二）",
@@ -1198,6 +1218,159 @@ export const projects: Project[] = [
         },
       ],
       context: "私有倉庫，報告裡的學號、姓名等個人資料不公開。",
+    },
+  },
+  // ── 高工（高雄市立中正高工 資訊科）──────────────────────────
+  // 2026-11-25 使用者：「外接硬碟應該還有高中學習的東西，幫我找找」。資料取自外接硬碟裡的四技甄選學習歷程（專題報告書、實習報告），
+  // 報告裡的學號、組員與老師姓名一律不放
+  {
+    slug: "trash-collector",
+    title: "Auto Trash Collector",
+    titleJa: "自動ゴミ回収機",
+    titleZh: "自動垃圾撿拾機",
+    description:
+      "Vocational high school group project (team lead): an Arduino car that drives toward litter and gathers it under its body, using a 4-channel relay to switch the motors and an ultrasonic sensor to turn away from obstacles.",
+    descriptionZh:
+      "高工專題實作（組長）：Arduino 小車用四路繼電器控制馬達、超音波感測器避障，朝垃圾開過去把垃圾集中到車體下方，想用在大型活動散場後整理場地。",
+    tags: ["Arduino", "C", "繼電器", "超音波感測器"],
+    github: "",
+    highlight: "Team lead · obstacle avoidance + litter gathering, demoed on video",
+    highlightZh: "組長 · 自動避障＋集中垃圾，實機錄影展示",
+    status: "課程専題",
+    // 圖：專題報告書裡的實機照片（報告裡其他圖是零件的商品圖跟新聞照片，不是自己的，不用）
+    image: "/image/projects/trash-collector.jpg",
+    thumb: "/image/projects/thumbs/trash-collector.jpg",
+    detail: {
+      caseStudy: {
+        "problem": "看到新聞裡大型戶外活動（像演唱會）開始前、結束後垃圾滿地，不只影響其他人的活動，也污染環境。專題目標是做一台體積小、能在人群裡移動，把地上垃圾集中起來的自動小車，縮短活動後整理場地的時間。",
+        "role": "組長，三人小組（111 學年度第 2 學期專題實作）。",
+        "decisions": [
+          {
+            "what": "Arduino 透過四路繼電器控制馬達",
+            "why": "訊號線控制繼電器裡的電磁鐵，讓馬達電路接通或斷開；Arduino 只需要輸出開關訊號。"
+          },
+          {
+            "what": "轉彎靠兩顆輪子一停一轉",
+            "why": "不需要另外的轉向機構，兩顆馬達分別開關就能轉向。"
+          },
+          {
+            "what": "前方裝超音波感測器",
+            "why": "量到前方障礙物太近就自動轉彎，不會直接撞上。"
+          },
+          {
+            "what": "垃圾收進車體下方的空間",
+            "why": "車子朝垃圾開過去，把垃圾集中到底下，不需要手臂之類的複雜機構。"
+          }
+        ],
+        "tradeoffs": [
+          "預算不夠，材料沒辦法一次買齊",
+          "做到一半輪子中間的零件壞掉，先跟別人借輪子撐過，最後換回原本的零件完成",
+          "繼電器只有開／關兩種狀態，馬達只能全速或停止，沒辦法調速"
+        ],
+        "results": [
+          "完成實機並錄影展示：遇到障礙物自動轉彎、朝垃圾行駛並把垃圾集中到車體下方",
+          "車體小，可以在人群中移動",
+          "之後的「自動跟隨機器人」（全國佳作）延續了同樣的「感測 → Arduino → 馬達」架構，改用 Jetson Nano 做影像辨識"
+        ]
+      },
+      intro:
+        "高雄市立中正高工資訊科二年級下學期的專題實作。三人小組，我是組長：做一台會自己在場地裡移動、把地上垃圾集中起來的小車，靈感來自演唱會這類大型活動散場後垃圾滿地的新聞。",
+      sections: [
+        {
+          heading: "硬體",
+          headingEn: "Hardware",
+          body: [
+            "機械車：整台機器的主體，垃圾收在車體下方",
+            "Arduino：控制行進方向，並把電流送到繼電器",
+            "四路繼電器模組：讓 Arduino 的訊號線控制馬達電路的開關",
+            "馬達兩顆：分別控制兩邊輪子的前進跟轉彎",
+            "超音波感測器：量前方障礙物的距離",
+            "電池盒：供電給 Arduino，讓車子不用接線",
+          ],
+        },
+        {
+          heading: "運作方式",
+          headingEn: "How it works",
+          body: [
+            "電池盒供電給 Arduino，Arduino 再透過繼電器控制兩顆馬達",
+            "超音波感測器量到障礙物時通知 Arduino，Arduino 讓一顆輪子停、一顆繼續轉，車子就轉彎避開",
+            "平常朝垃圾的方向行駛，把垃圾集中到車體下方的空間",
+          ],
+          links: [{ href: "/projects/auto-following-robot" as Route, label: "高三專題：自動跟隨機器人 →" }],
+        },
+      ],
+      context: "高雄市立中正高工資訊科，111 學年度第 2 學期專題實作，三人小組。資料整理自專題實作報告書。",
+    },
+  },
+  {
+    slug: "vocational-records",
+    title: "Vocational High School Records",
+    titleJa: "高工学習記録",
+    titleZh: "高工學習記録",
+    description:
+      "Lab reports from the information technology program at Kaohsiung Municipal Chung-Cheng Industrial High School: App Inventor, VB.NET, Arduino, CPLD with Verilog, CMOS circuits, ESP32 IoT and a soldered interface card for the Level B hardware certification.",
+    descriptionZh:
+      "高雄市立中正高工資訊科的實習報告：App Inventor、VB.NET、Arduino、CPLD（Verilog）、CMOS 電路、ESP32 物聯網，以及電腦硬體裝修乙級的介面卡電路板。",
+    tags: ["VB.NET", "Arduino", "Verilog", "CPLD", "ESP32", "App Inventor"],
+    github: "",
+    highlight: "From visual blocks to Verilog and IoT in three years",
+    highlightZh: "三年從積木程式到 Verilog、物聯網",
+    status: "學習記録",
+    image: "/image/projects/vocational-records.jpg",
+    thumb: "/image/projects/thumbs/vocational-records.jpg",
+    imageAlt: "高工學習記録的封面：各科實習做出來的東西",
+    detail: {
+      intro:
+        "高雄市立中正高工資訊科三年的實習報告，整理自四技甄選時繳交的學習歷程。從一年級的積木式程式（App Inventor）、文字式程式（VB.NET、Arduino 的 C），到二年級的數位邏輯、電子學跟物聯網；專題另外獨立成作品（自動垃圾撿拾機、自動跟隨機器人），課外是 FRC 機器人隊。",
+      sections: [
+        {
+          heading: "程式設計",
+          headingEn: "Programming",
+          body: [
+            "資訊科技（App Inventor）：用拖拉積木的方式做手機 App，作品是占卜跟計算機",
+            "高階程式語言實習（VB.NET）：疫情期間改成線上上課、沒辦法實體考試，做了一個線上測驗程式——老師用文字檔更新考題，學生用程式讀取考題作答",
+          ],
+        },
+        {
+          heading: "硬體與控制",
+          headingEn: "Hardware & control",
+          body: [
+            "機器人實習（Arduino）：溫度控制器，溫度超過 26 度啟動風扇，溫度越高轉速越高，用 PWM 控制馬達",
+            "電子學實習：CMOS（CD4007）配光敏電阻做光控 LED 電路",
+            "電腦網路實習：電腦硬體裝修乙級的介面卡電路板，焊接電路後用 VB 寫程式控制板子上的 LED",
+          ],
+        },
+        {
+          heading: "數位邏輯",
+          headingEn: "Digital logic",
+          body: [
+            "可程式邏輯設計實習：在 CPLD 上用 Verilog 從半加器、全加器做到 4 位元加法器，再加上 BCD 加法器跟七段顯示器，用指撥開關輸入",
+          ],
+        },
+        {
+          heading: "物聯網",
+          headingEn: "IoT",
+          body: [
+            "單晶片微處理機實習（ESP32）：房間溫溼度異常時，透過 Wi-Fi 用 LINE Notify 推播到手機，數值同時上傳 ThingSpeak 畫成圖表",
+          ],
+        },
+        {
+          heading: "專題與課外",
+          headingEn: "Projects & activities",
+          body: [
+            "二年級專題：自動垃圾撿拾機（組長）",
+            "三年級專題：自動跟隨機器人「小跟班」——校內專題實作競賽第一名、全國動力機械群佳作",
+            "FRC 機器人隊（Team 7527）：2022 新北鴻海區域賽聯盟冠軍、自動控制獎，參加休士頓世界賽",
+            "證照：電腦硬體裝修丙級",
+          ],
+          links: [
+            { href: "/projects/trash-collector" as Route, label: "自動垃圾撿拾機 →" },
+            { href: "/projects/auto-following-robot" as Route, label: "自動跟隨機器人 →" },
+            { href: "/projects/frc-robot" as Route, label: "FRC 機器人競技 →" },
+          ],
+        },
+      ],
+      context: "整理自四技甄選的學習歷程檔案（實習報告、專題報告書、獎狀）。報告裡的學號、同學與老師姓名不公開。",
     },
   },
 ];
