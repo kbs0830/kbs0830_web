@@ -6,6 +6,7 @@ import { Float } from "@react-three/drei";
 import {
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   Color,
   EdgesGeometry,
   Group,
@@ -18,6 +19,7 @@ import {
   Vector3,
 } from "three";
 import { useAccentColor, usePrefersReducedMotion } from "@/lib/client/hooks";
+import { ensureSky, skyNow } from "@/lib/client/sky";
 
 // 桌機 Hero 3D 背景：稀疏細線＋靛藍粒子，慢速旋轉。2026-11-05 加上互動（使用者要桌機多一點炫技）：
 //   - 游標靠近時粒子被輕輕推開，離開後彈簧拉回原位（不彈跳：阻尼夠大，沒有來回震盪）
@@ -409,6 +411,13 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
         l.visible = false;
         return;
       }
+      // 下雨天看不到流星：時間到了也先不發射，6 秒後再看一次
+      const w = skyNow().weather;
+      if (w === "rain" || w === "storm") {
+        meteors.next = now + 6;
+        l.visible = false;
+        return;
+      }
       // 從畫面上半部偏右出發，往左下劃（角度 200°～215°）
       const deg = 200 + Math.random() * 15;
       const x = rand(8, 2);
@@ -440,7 +449,12 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
       }
       if (live) any = true;
     });
-    if (meteors.slots.every((m) => m.start < 0)) meteors.next = now + 4 + Math.random() * 4;
+    // 天空同步：夜晚 2.5～5.5 秒一顆、黃昏清晨照舊、白天 7～13 秒（下雨天不發射，見上面）
+    if (meteors.slots.every((m) => m.start < 0)) {
+      const { phase } = skyNow();
+      const gap = phase === "night" ? 2.5 + Math.random() * 3 : phase === "day" ? 7 + Math.random() * 6 : 4 + Math.random() * 4;
+      meteors.next = now + gap;
+    }
     l.geometry.attributes.position.needsUpdate = true;
     l.geometry.attributes.color.needsUpdate = true;
     l.visible = any;
@@ -453,6 +467,138 @@ function Meteor({ color, reduced }: { color: string; reduced: boolean }) {
   );
 }
 
+
+// ── 天空同步：雨、櫻花瓣（2026-11-25，lib/client/sky.ts）────────────────
+// 數量用 amount 慢慢淡入淡出（天氣變了不會突然冒出一堆），狀態放 module 層級（理由同 sim）
+const RAIN_MAX = 90;
+const rain = {
+  amount: 0,
+  drops: Array.from({ length: RAIN_MAX }, () => ({ x: rand(14), y: rand(9), z: rand(4, -1), v: 0.85 + Math.random() * 0.3 })),
+  rgb: new Color("#2d5a8e"),
+};
+
+function Rain({ color, reduced }: { color: string; reduced: boolean }) {
+  const ref = useRef<LineSegments>(null);
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(new Float32Array(RAIN_MAX * 2 * 3), 3));
+    g.setAttribute("color", new BufferAttribute(new Float32Array(RAIN_MAX * 2 * 4), 4));
+    return g;
+  }, []);
+  useEffect(() => {
+    rain.rgb.set(color);
+  }, [color]);
+  useEffect(() => () => geo.dispose(), [geo]);
+
+  useFrame((_, delta) => {
+    const l = ref.current;
+    if (!l) return;
+    const { weather } = skyNow();
+    const storm = weather === "storm";
+    const target = reduced ? 0 : storm ? 1 : weather === "rain" ? 0.6 : 0;
+    rain.amount += (target - rain.amount) * Math.min(1, delta * 0.6);
+    if (rain.amount < 0.01) {
+      l.visible = false;
+      return;
+    }
+    l.visible = true;
+    const dt = Math.min(delta, 0.05);
+    const speed = storm ? 9 : 6;
+    const len = storm ? 0.55 : 0.38;
+    const active = Math.round(RAIN_MAX * rain.amount);
+    const pos = l.geometry.attributes.position.array as Float32Array;
+    const col = l.geometry.attributes.color.array as Float32Array;
+    const { r, g, b } = rain.rgb;
+    rain.drops.forEach((d, i) => {
+      d.y -= speed * d.v * dt;
+      d.x -= speed * d.v * dt * 0.16; // 微微斜著下
+      if (d.y < -4.8) {
+        d.y = 4.8 + Math.random() * 0.6;
+        d.x = rand(14, 0.8);
+      }
+      const on = i < active;
+      const a = on ? (0.16 + (d.z + 3) * 0.04) * Math.min(1, rain.amount * 1.6) : 0;
+      pos.set([d.x, d.y, d.z, d.x + len * 0.16, d.y + len, d.z], i * 6);
+      col.set([r, g, b, a * 0.4, r, g, b, a], i * 8);
+    });
+    l.geometry.attributes.position.needsUpdate = true;
+    l.geometry.attributes.color.needsUpdate = true;
+  });
+
+  return (
+    <lineSegments ref={ref} geometry={geo} frustumCulled={false} visible={false}>
+      <lineBasicMaterial vertexColors transparent depthWrite={false} />
+    </lineSegments>
+  );
+}
+
+const PETALS = 26;
+const petals = {
+  amount: 0,
+  list: Array.from({ length: PETALS }, () => ({ x: rand(14), y: rand(9), z: rand(3, -0.5), phase: Math.random() * Math.PI * 2, v: 0.7 + Math.random() * 0.6 })),
+};
+
+function Petals({ reduced }: { reduced: boolean }) {
+  const ref = useRef<Points>(null);
+  const geo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(new Float32Array(PETALS * 3), 3));
+    return g;
+  }, []);
+  // 花瓣形狀的貼圖（點預設是方的）：一片橢圓、尾端一個小缺口，像櫻花瓣
+  const petalTex = useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const x = c.getContext("2d")!;
+    x.translate(32, 32);
+    x.rotate(-0.5);
+    x.fillStyle = "#fff";
+    x.beginPath();
+    x.ellipse(0, 0, 26, 15, 0, 0, Math.PI * 2);
+    x.fill();
+    x.globalCompositeOperation = "destination-out";
+    x.beginPath();
+    x.moveTo(26, 0);
+    x.lineTo(14, -6);
+    x.lineTo(14, 6);
+    x.fill();
+    return new CanvasTexture(c);
+  }, []);
+  useEffect(() => () => { geo.dispose(); petalTex.dispose(); }, [geo, petalTex]);
+
+  useFrame(({ clock }, delta) => {
+    const p = ref.current;
+    if (!p) return;
+    const target = !reduced && skyNow().sakura ? 1 : 0;
+    petals.amount += (target - petals.amount) * Math.min(1, delta * 0.5);
+    if (petals.amount < 0.01) {
+      p.visible = false;
+      return;
+    }
+    p.visible = true;
+    const dt = Math.min(delta, 0.05);
+    const t = clock.elapsedTime;
+    const pos = p.geometry.attributes.position.array as Float32Array;
+    petals.list.forEach((q, i) => {
+      q.y -= 0.32 * q.v * dt;
+      q.x += (Math.sin(t * 0.8 + q.phase) * 0.25 - 0.12) * dt; // 左右飄、整體往左
+      if (q.y < -4.8) {
+        q.y = 4.8;
+        q.x = rand(14, 1);
+      }
+      pos.set([q.x + Math.sin(t * 1.3 + q.phase) * 0.08, q.y, q.z], i * 3);
+    });
+    p.geometry.attributes.position.needsUpdate = true;
+    (p.material as { opacity: number }).opacity = 0.75 * petals.amount;
+  });
+
+  return (
+    <points ref={ref} geometry={geo} frustumCulled={false} visible={false}>
+      <pointsMaterial color="#e9a6bb" map={petalTex} size={0.16} transparent opacity={0} depthWrite={false} alphaTest={0.05} />
+    </points>
+  );
+}
+
 // <Canvas> 會在自己的外層 div 加 inline style `position:relative; height:100%`，
 // className="absolute inset-0" 直接給 Canvas 會被蓋掉；外面多包一層真正 absolute 的 div，Canvas 填滿它。
 export default function HeroScene() {
@@ -461,6 +607,7 @@ export default function HeroScene() {
   const color = useAccentColor();
   const [onScreen, setOnScreen] = useState(true);
   usePointerTracking(container, reduced);
+  useEffect(ensureSky, []);
 
   // Hero 整個捲出畫面就停止繪製
   useEffect(() => {
@@ -482,6 +629,8 @@ export default function HeroScene() {
         <ambientLight intensity={0.5} />
         <ScrollRig reduced={reduced} />
         <Meteor color={color} reduced={reduced} />
+        <Rain color={color} reduced={reduced} />
+        <Petals reduced={reduced} />
         <PointerRig reduced={reduced}>
           <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.3}>
             <Lines color={color} reduced={reduced} />

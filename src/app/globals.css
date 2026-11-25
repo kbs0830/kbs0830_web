@@ -420,3 +420,154 @@ details.disclosure[open]::details-content {
     break-after: avoid;
   }
 }
+
+/* ── 首頁天空同步（2026-11-25，components/sections/HeroSky.tsx、lib/client/sky.ts）──────────
+   四個時段各一層漸層，只顯示現在那層（4 秒交叉淡入）；多雲／雨加三朵慢慢飄的雲、霧加一層霧氣。
+   淺色主題的透明度壓低，Hero 文字的對比不受影響（a11y.spec 會掃）。 */
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-sky-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 4s var(--ease-ma);
+}
+.hero-sky-layer[data-on] {
+  opacity: 1;
+}
+.hero-sky-dawn {
+  background: linear-gradient(to bottom, rgb(255 196 160 / 0.32), rgb(236 200 220 / 0.16) 45%, transparent 80%);
+}
+.hero-sky-day {
+  background: linear-gradient(to bottom, rgb(190 218 245 / 0.34), rgb(220 235 248 / 0.12) 50%, transparent 85%);
+}
+.hero-sky-dusk {
+  background: linear-gradient(to top, rgb(245 158 110 / 0.30), rgb(232 168 196 / 0.18) 40%, rgb(150 160 210 / 0.08) 70%, transparent 90%);
+}
+.hero-sky-night {
+  background: linear-gradient(to bottom, rgb(45 70 120 / 0.20), rgb(45 90 142 / 0.08) 55%, transparent 90%);
+}
+[data-theme="dark"] .hero-sky-dawn {
+  background: linear-gradient(to bottom, rgb(190 110 90 / 0.22), rgb(120 80 120 / 0.12) 45%, transparent 80%);
+}
+[data-theme="dark"] .hero-sky-day {
+  background: linear-gradient(to bottom, rgb(70 120 180 / 0.20), transparent 70%);
+}
+[data-theme="dark"] .hero-sky-dusk {
+  background: linear-gradient(to top, rgb(200 100 60 / 0.24), rgb(140 70 110 / 0.14) 45%, transparent 85%);
+}
+[data-theme="dark"] .hero-sky-night {
+  background: linear-gradient(to bottom, rgb(10 20 60 / 0.45), rgb(20 30 70 / 0.18) 60%, transparent 95%);
+}
+
+/* 雲：三團很淡的模糊橢圓，60～90 秒飄過畫面 */
+.hero-sky-clouds {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 4s var(--ease-ma);
+}
+.hero-sky[data-weather="cloud"] .hero-sky-clouds,
+.hero-sky[data-weather="rain"] .hero-sky-clouds,
+.hero-sky[data-weather="storm"] .hero-sky-clouds {
+  opacity: 1;
+}
+.hero-sky-clouds span {
+  position: absolute;
+  width: 46vw;
+  height: 18vh;
+  border-radius: 50%;
+  background: rgb(150 160 175 / 0.16);
+  filter: blur(40px);
+  left: -50vw;
+}
+[data-theme="dark"] .hero-sky-clouds span {
+  background: rgb(150 165 190 / 0.10);
+}
+.hero-sky[data-weather="storm"] .hero-sky-clouds span,
+.hero-sky[data-weather="rain"] .hero-sky-clouds span {
+  background: rgb(120 130 150 / 0.20);
+}
+.hero-sky-clouds span:nth-child(1) { top: 6%; animation-duration: 80s; }
+.hero-sky-clouds span:nth-child(2) { top: 22%; width: 34vw; animation-duration: 95s; animation-delay: -40s; }
+.hero-sky-clouds span:nth-child(3) { top: 2%; width: 28vw; animation-duration: 70s; animation-delay: -55s; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-sky-clouds span {
+    animation-name: cloud-drift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-sky-clouds span:nth-child(1) { left: 10vw; }
+  .hero-sky-clouds span:nth-child(2) { left: 55vw; }
+  .hero-sky-clouds span:nth-child(3) { left: 35vw; }
+}
+@keyframes cloud-drift {
+  to { transform: translateX(150vw); }
+}
+
+/* 霧：整片往下越來越白（深色主題是灰） */
+.hero-sky-haze {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 4s var(--ease-ma);
+  background: linear-gradient(to top, rgb(250 250 248 / 0.55), rgb(235 236 238 / 0.25) 60%, transparent);
+}
+[data-theme="dark"] .hero-sky-haze {
+  background: linear-gradient(to top, rgb(60 64 72 / 0.45), rgb(40 44 52 / 0.2) 60%, transparent);
+}
+.hero-sky[data-weather="fog"] .hero-sky-haze {
+  opacity: 1;
+}
+
+/* 夜晚：一層很淡的星星，8 秒慢慢呼吸（不閃）。radial-gradient 排成的點，零 JS */
+.hero-sky-night::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 35% 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 8%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 46% 22%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 61% 12%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 74% 28%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 9%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 93% 34%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 40%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 36% 44%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 55% 52%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 81% 55%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 20% 62%, var(--accent) 50%, transparent 51%);
+}
+[data-theme="dark"] .hero-sky-night::after {
+  opacity: 0.9;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 8%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 46% 22%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 61% 12%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 74% 28%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 9%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 93% 34%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 40%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 36% 44%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 55% 52%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 81% 55%, #dfe6f2 50%, transparent 51%),
+    radial-gradient(1px 1px at 20% 62%, #dfe6f2 50%, transparent 51%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-sky-night::after {
+    animation: star-breathe 8s ease-in-out infinite alternate;
+  }
+}
+@keyframes star-breathe {
+  from { opacity: 0.35; }
+  to { opacity: 0.9; }
+}

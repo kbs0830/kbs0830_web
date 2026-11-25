@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import Magnetic from "@/components/ui/Magnetic";
 import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import HeroBackground from "@/components/sections/HeroBackground";
+import HeroSky from "@/components/sections/HeroSky";
 import Typewriter from "@/components/sections/Typewriter";
 import HeroNameScramble from "@/components/sections/HeroNameScramble";
 import HeroTwoCities from "@/components/sections/HeroTwoCities";
@@ -24,6 +25,7 @@ const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
 export default function HeroSection() {
   return (
     <section id="top" className="relative min-h-svh flex flex-col justify-center overflow-hidden">
+      <HeroSky />
       <HeroBackground />
       <HeroNameScramble />
 

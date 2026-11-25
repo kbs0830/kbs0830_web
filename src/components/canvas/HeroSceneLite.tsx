@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ensureSky, skyNow } from "@/lib/client/sky";
 
 // 手機版 Hero 背景：桌機 HeroScene（three.js）的同一個畫面語言——稀疏細線＋靛藍粒子、慢速旋轉——
 // 改用 Canvas 2D 自己做 3D 投影，不載 three.js（這支約 2KB）。
@@ -17,6 +18,12 @@ const LINES = Array.from({ length: 14 }, () => {
 });
 const DOTS = Array.from({ length: 46 }, () => [rand(9), rand(11), rand(6, -2)]);
 
+// 天空同步（2026-11-25，lib/client/sky.ts）：下雨畫斜斜的雨絲、福岡櫻花季畫幾片花瓣，數量用 amount 慢慢淡入淡出。
+// 用螢幕比例座標（0～1），不走 3D 投影，便宜
+const RAIN = Array.from({ length: 40 }, () => ({ x: Math.random() * 1.2, y: Math.random(), v: 0.8 + Math.random() * 0.4, a: 0.5 + Math.random() * 0.5 }));
+const PETALS = Array.from({ length: 14 }, () => ({ x: Math.random() * 1.1, y: Math.random(), v: 0.7 + Math.random() * 0.6, ph: Math.random() * 6.3 }));
+const weatherFx = { rain: 0, petals: 0 };
+
 const CAMERA_Z = 6;
 const FOV = (55 * Math.PI) / 180; // 跟桌機場景同一個相機
 const FRAME_MS = 1000 / 30 - 4; // 60Hz 螢幕上 rAF 間隔約 16.7ms，留點餘裕才會穩定每兩幀畫一次（≈30fps）
@@ -30,6 +37,7 @@ export default function HeroSceneLite() {
     if (!canvas || !ctx) return;
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    ensureSky();
     let color = "";
     const readColor = () => (color = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2d5a8e");
     readColor();
@@ -83,6 +91,31 @@ export default function HeroSceneLite() {
         ctx.arc(x, y, Math.max(0.6, s * 0.012), 0, Math.PI * 2);
         ctx.fill();
       }
+      // 雨絲：細線、微微往左斜
+      if (weatherFx.rain > 0.01) {
+        const storm = skyNow().weather === "storm";
+        const len = (storm ? 0.05 : 0.035) * h;
+        const n = Math.round(RAIN.length * weatherFx.rain);
+        for (let i = 0; i < n; i++) {
+          const d = RAIN[i];
+          const x = d.x * w, y = d.y * h;
+          ctx.globalAlpha = 0.22 * d.a * Math.min(1, weatherFx.rain * 1.5);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + len * 0.16, y - len);
+          ctx.stroke();
+        }
+      }
+      // 花瓣：淡粉色小橢圓
+      if (weatherFx.petals > 0.01) {
+        ctx.fillStyle = "#e9a6bb";
+        for (const q of PETALS) {
+          ctx.globalAlpha = 0.7 * weatherFx.petals;
+          ctx.beginPath();
+          ctx.ellipse(q.x * w, q.y * h, 3.2, 2, q.ph + t, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
       ctx.globalAlpha = 1;
     };
 
@@ -106,6 +139,25 @@ export default function HeroSceneLite() {
       spinDots += sec * 0.015;
       tilt.x += (target.x - tilt.x) * 0.08;
       tilt.y += (target.y - tilt.y) * 0.08;
+      const sky = skyNow();
+      const rainTarget = sky.weather === "storm" ? 1 : sky.weather === "rain" ? 0.6 : 0;
+      weatherFx.rain += (rainTarget - weatherFx.rain) * Math.min(1, sec * 0.6);
+      weatherFx.petals += ((sky.sakura ? 1 : 0) - weatherFx.petals) * Math.min(1, sec * 0.5);
+      if (weatherFx.rain > 0.01) {
+        const speed = sky.weather === "storm" ? 1.5 : 1;
+        for (const d of RAIN) {
+          d.y += sec * speed * d.v;
+          d.x -= sec * speed * d.v * 0.16 * (h / Math.max(w, 1));
+          if (d.y > 1.05) { d.y = -0.05; d.x = Math.random() * 1.2; }
+        }
+      }
+      if (weatherFx.petals > 0.01) {
+        for (const q of PETALS) {
+          q.y += sec * 0.05 * q.v;
+          q.x += sec * (Math.sin(t * 0.8 + q.ph) * 0.03 - 0.015);
+          if (q.y > 1.05) { q.y = -0.05; q.x = Math.random() * 1.1; }
+        }
+      }
       draw();
     };
     const start = () => { if (!raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(loop); } };
