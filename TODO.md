@@ -10,8 +10,12 @@
 
 ## 🙋 你要動手的（要你的帳號或管理員權限，Claude 做不到）
 
-- [ ] **登入 `gh`**（11/25，11/26 09:00 會寄提醒信）：桌機自己的終端機跑 `gh auth login`（GitHub.com → HTTPS → 瀏覽器登入）。
+- [ ] **登入 `gh`**（11/25 已寄 check list 信）：桌機自己的終端機跑 `gh auth login`（GitHub.com → HTTPS → 瀏覽器登入）。
   登入後 Claude 能看 CI 失敗的錯誤訊息（`gh run view --log-failed`）、讀 school 私有 repo。GitHub 外掛不用修（它缺 `GITHUB_PERSONAL_ACCESS_TOKEN`，而且每次對話都要載入說明）
+- [ ] **站長後台的 Cloudflare Access**（A1；11/25 check list 第 2 項）：Zero Trust → Access → Self-hosted，`kbs0830.com/admin*`、`/api/admin/*`，只放 1394kbs@gmail.com；
+  做完給 Claude team 名稱跟 AUD tag，它補 `lib/admin/auth.ts` 的 JWT 驗證
+- [ ] **school repo push**（11/25 check list 第 3 項）：均線回測修正 commit 0d871c3 只在本機
+- [ ] **雷達樹莓派換官方電源**（11/25 check list 第 4 項）：Pi 3 官方 5.1V 2.5A；供電不足導致離線
 
 1. [ ] **刪掉 FoodLens repo 裡的 `irs_1774….pdf`**（11/21 使用者決定刪。內容是「人工智慧與深度學習應用」期末專題說明，不是個人文件，
    不用清 git 歷史）：GitHub 打開那個檔案 → 右上「⋯」→ Delete file → Commit changes（Claude 沒有那個 repo 的推送權限）。
