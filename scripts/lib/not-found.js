@@ -1,5 +1,5 @@
 // 404 統計（決策表 C3，2026-11-25）：哪些網址被打了但不存在——壞掉的站外連結、改過的舊網址、打錯字。
-// 週報（weekly-report.ps1）列近 7 天前幾名。
+// 日報／週報／月報（src/lib/reports.ts）列前幾名。
 //
 // 只存「台灣日期 → 路徑 → 次數」，不存 IP、UA、query string。保留 35 天。
 // 掃描器（找 .php、.env、wp-admin 這類漏洞的機器人）每天幾百次，跟這個網站無關：只記總數，不記路徑。
@@ -7,6 +7,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { twDate } = require("./tw-time");
 
 const KEEP_DAYS = 35;
 const MAX_PATHS_PER_DAY = 100;
@@ -34,13 +35,11 @@ function normalizePath(url) {
   return p.length > 120 ? p.slice(0, 120) + "…" : p;
 }
 
-const twDate = (now) => new Date(now.getTime() + 8 * 3600_000).toISOString().slice(0, 10);
-
 /** 純函式：把一次 404 加進統計 */
 function addNotFound(stats, url, now) {
   const s = stats && stats.days ? stats : { days: {}, scanners: {} };
   if (!s.scanners) s.scanners = {};
-  const date = twDate(now);
+  const date = twDate(now.getTime());
   const p = normalizePath(url);
   if (p === null) {
     s.scanners[date] = (s.scanners[date] || 0) + 1;
@@ -49,7 +48,7 @@ function addNotFound(stats, url, now) {
     const key = day[p] === undefined && Object.keys(day).length >= MAX_PATHS_PER_DAY ? "(其他)" : p;
     day[key] = (day[key] || 0) + 1;
   }
-  const cutoff = twDate(new Date(now.getTime() - KEEP_DAYS * 86400_000));
+  const cutoff = twDate(now.getTime() - KEEP_DAYS * 86400_000);
   for (const k of Object.keys(s.days)) if (k < cutoff) delete s.days[k];
   for (const k of Object.keys(s.scanners)) if (k < cutoff) delete s.scanners[k];
   return s;

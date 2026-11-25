@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
+import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
 import { readFeatureRelease, readRawTraffic } from "@/lib/site-stats";
 import { recordVisit, type VisitInput } from "@/lib/visit-detail";
@@ -11,21 +11,11 @@ import { recordVisit, type VisitInput } from "@/lib/visit-detail";
 // turbopackIgnore：這個 fs 路徑組合是給執行期讀寫用的資料檔，不是程式碼依賴，
 // 不需要（也不應該）被 Turbopack 追蹤進 build 的檔案清單，避免它誤判整個專案
 // 都被這支 API route 依賴（deploy.log 曾經真的跳出這個 NFT over-trace 警告）。
-const statsFile =
-  process.env.VISITOR_STATS_FILE ||
-  path.join(/* turbopackIgnore: true */ process.cwd(), "data", "visitor-stats.json");
+const statsFile = () => dataFile("VISITOR_STATS_FILE", "visitor-stats.json");
 
 export type { RawTraffic } from "@/lib/site-stats";
 
-const BOT_UA_PATTERN = /bot|spider|crawl|slurp|facebookexternalhit|preview|curl|wget|python-requests|axios|scrapy|headless/i;
-
-function readStats(): Record<string, number> {
-  try {
-    return JSON.parse(fs.readFileSync(statsFile, "utf8"));
-  } catch {
-    return {};
-  }
-}
+const readStats = (): Record<string, number> => readJsonFile<Record<string, number>>(statsFile()) ?? {};
 
 function summarize(stats: Record<string, number>) {
   const entries = Object.entries(stats).filter(([code]) => code !== "XX");
@@ -50,7 +40,7 @@ export async function POST(req: NextRequest) {
   // 2026-11-05 之前這種請求會被記成 "XX"，資料檔裡累積了 1037 筆（GET 本來就不計 XX，所以沒顯示出來）。
   // Cloudflare 自己認不出國家時也會送 "XX"，那種才留著。跟 /api/web-vitals 同一條規則。
   const ua = req.headers.get("user-agent") || "";
-  if (!req.headers.get("cf-ipcountry") || BOT_UA_PATTERN.test(ua)) {
+  if (!req.headers.get("cf-ipcountry") || !isBrowserUA(ua)) {
     return NextResponse.json(summarize(readStats()));
   }
 
@@ -74,13 +64,7 @@ export async function POST(req: NextRequest) {
   const stats = readStats();
   stats[country] = (stats[country] || 0) + 1;
 
-  try {
-    const dir = path.dirname(statsFile);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(statsFile, JSON.stringify(stats));
-  } catch {
-    // 寫檔失敗不影響回應，下次還有機會
-  }
+  writeJsonFile(statsFile(), stats); // 寫檔失敗不影響回應，下次還有機會
   recordVisit(input, ua, new Date(), country);
 
   return NextResponse.json(summarize(stats));

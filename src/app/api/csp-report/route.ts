@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
 
 // Content-Security-Policy 先 report-only（TODO 點子，2026-11-09）：瀏覽器照常載入，只是把「如果正式開會被擋的東西」
 // 回報到這裡。累積一陣子確認沒有誤擋，再把 next.config.ts 的 header 從 -Report-Only 改成正式的。
@@ -8,20 +7,13 @@ import path from "path";
 // 只存「被擋的指令 + 來源網域 + 頁面路徑 → 次數」，不存 IP、UA、完整網址（query string 可能有個資）。
 // 跟 /api/web-vitals 一樣只收經過 Cloudflare 的（有 cf-ipcountry），CI／本機測試不算。
 // 看結果：curl https://kbs0830.com/api/csp-report
-const reportFile = () =>
-  process.env.CSP_REPORT_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "csp-reports.json");
+const reportFile = () => dataFile("CSP_REPORT_FILE", "csp-reports.json");
 
 const MAX_KEYS = 300;
 
 type Counts = Record<string, number>;
 
-function read(): Counts {
-  try {
-    return JSON.parse(fs.readFileSync(reportFile(), "utf8"));
-  } catch {
-    return {};
-  }
-}
+const read = (): Counts => readJsonFile<Counts>(reportFile()) ?? {};
 
 /** blocked-uri 只留到網域（inline／eval／data 這種關鍵字原樣保留） */
 export function blockedSource(uri: string): string {
@@ -69,10 +61,7 @@ export async function POST(req: NextRequest) {
     if (counts[key] === undefined && Object.keys(counts).length >= MAX_KEYS) continue;
     counts[key] = (counts[key] ?? 0) + 1;
   }
-  try {
-    fs.mkdirSync(path.dirname(reportFile()), { recursive: true });
-    fs.writeFileSync(reportFile(), JSON.stringify(counts));
-  } catch {}
+  writeJsonFile(reportFile(), counts);
   return new NextResponse(null, { status: 204 });
 }
 

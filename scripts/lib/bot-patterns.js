@@ -38,4 +38,7 @@ function classify(ua) {
   return { kind: "browser" };
 }
 
-module.exports = { classify, AI_BOTS, SEARCH_BOTS };
+/** 看起來是真人的瀏覽器（統計、Web Vitals、版本回報都只收這種）。2026-11-25 起取代兩支 route 各自的 BOT_UA_PATTERN */
+const isBrowserUA = (ua) => classify(ua).kind === "browser";
+
+module.exports = { classify, isBrowserUA, AI_BOTS, SEARCH_BOTS };

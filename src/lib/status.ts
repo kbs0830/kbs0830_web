@@ -1,5 +1,6 @@
 import fs from "fs";
-import path from "path";
+import { dataFile, logFile } from "./data-file";
+import { twDate } from "../../scripts/lib/tw-time.js";
 
 // 維運狀態頁 /status（TODO A4，2026-11-21）的資料。三個來源，都只讀不寫，只公開彙總：
 //   - data/uptime.log：watchdog 每 5 分鐘一行「時間 o=origin p=外網 m=維修模式」（2026-11-21 才開始記）
@@ -29,7 +30,7 @@ export interface RestartEvent {
   auto: boolean;
 }
 
-const taipeiDate = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(d);
+const taipeiDate = (d: Date) => twDate(d.getTime());
 
 /** uptime.log → 最近 days 天（舊 → 新），沒有紀錄的日子 checks=0 */
 export function parseUptime(raw: string, now = new Date(), days = 90): DayUptime[] {
@@ -129,8 +130,7 @@ function readCached<T>(file: string, parse: (raw: string) => T, fallback: T): T 
   }
 }
 
-const logsDir = () => process.env.LOGS_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), "logs");
-const uptimeFile = () => process.env.UPTIME_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "uptime.log");
+const uptimeFile = () => dataFile("UPTIME_FILE", "uptime.log");
 
 export function readUptime(days = 90): DayUptime[] {
   // 日期跟著今天走，不能整份快取結果：快取原始字串，每次重新切天
@@ -139,11 +139,11 @@ export function readUptime(days = 90): DayUptime[] {
 }
 
 export function readDeploys(): Deploy[] {
-  return readCached(path.join(logsDir(), "deploy.log"), parseDeploys, []);
+  return readCached(logFile("deploy.log"), parseDeploys, []);
 }
 
 export function readRestarts(): RestartEvent[] {
-  return readCached(path.join(logsDir(), "watchdog.log"), parseRestarts, []);
+  return readCached(logFile("watchdog.log"), parseRestarts, []);
 }
 
 /** uptime.log 第一筆的時間（「從哪天開始記」）；沒有回 null */

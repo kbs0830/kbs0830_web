@@ -1,4 +1,5 @@
 import { cached, fetchJson, fetchText } from "./live-cache";
+import { twDate } from "../../scripts/lib/tw-time.js";
 
 // 日圓匯率作品的「線上版」（TODO D2，2026-11-22）。照作品本身（school repo 的「大數據倉儲」期末專題）的做法：
 //   - 銀行牌價看「現金賣出」（去銀行換日幣現鈔的價格），最低的是「最佳」
@@ -63,7 +64,7 @@ export function parseYahoo(raw: unknown): { date: string; rate: number }[] {
   const byDate = new Map<string, number>();
   ts.forEach((t, i) => {
     const v = valid(close[i]);
-    if (v !== null) byDate.set(new Date(t * 1000 + 8 * 3600_000).toISOString().slice(0, 10), Math.round(v * 10000) / 10000);
+    if (v !== null) byDate.set(twDate(t * 1000), Math.round(v * 10000) / 10000);
   });
   const out = [...byDate].map(([date, rate]) => ({ date, rate })).sort((a, b) => a.date.localeCompare(b.date));
   if (out.length < 10) throw new Error("Yahoo 走勢資料太少");
@@ -99,6 +100,6 @@ export async function getJpyRate(): Promise<JpyRate | null> {
   const list: BankRate[] = banks.flatMap(({ b, c }) => (c ? [{ id: b.id, name: b.name, ...c.value, at: c.at, stale: c.stale }] : []));
   if (!list.length && !trend) return null;
   // Yahoo 的 range=90d 實際回傳約 4 個月（2026-11-22 看到從 7/20 開始），自己切最近 90 天
-  const since = new Date(Date.now() + 8 * 3600_000 - 90 * 86400_000).toISOString().slice(0, 10);
+  const since = twDate(Date.now() - 90 * 86400_000);
   return { banks: list, trend: (trend?.value ?? []).filter((p) => p.date >= since) };
 }

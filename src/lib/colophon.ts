@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import { dataFile, logFile } from "./data-file";
 import { availability, readDeploys, readRestarts, readUptime } from "./status";
 import { readCloudflareSummary } from "./cloudflare-analytics";
 import { readCountryCounts } from "./site-stats";
@@ -24,8 +24,7 @@ export interface SiteFacts {
   radar: { online: boolean; aircraftNow: number } | null;
 }
 
-const logsDir = () => process.env.LOGS_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), "logs");
-const radarFile = () => process.env.RADAR_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "radar.json");
+const radarFile = () => dataFile("RADAR_FILE", "radar.json");
 
 /** backup.log 最後一次成功的時間 */
 export function lastBackupTime(raw: string): string | null {
@@ -41,7 +40,7 @@ export function readSiteFacts(now = Date.now()): SiteFacts {
   const cf = readCloudflareSummary();
   let backupRaw = "";
   try {
-    backupRaw = fs.readFileSync(path.join(logsDir(), "backup.log"), "utf8");
+    backupRaw = fs.readFileSync(logFile("backup.log"), "utf8");
   } catch {}
   const radar = summarizeRadar(readState(radarFile()), now) as { configured: boolean; online?: boolean; aircraftNow?: number };
 

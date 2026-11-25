@@ -1,5 +1,7 @@
 import fs from "node:fs";
-import path from "node:path";
+import { dataFile, logFile, readJsonFile } from "./data-file";
+import { p75, readVitals } from "./web-vitals";
+import { twDate } from "../../scripts/lib/tw-time.js";
 import { readCloudflareDays } from "./cloudflare-analytics";
 import { readDetail, type DayDetail } from "./visit-detail";
 import { readDeploys, readRestarts, readUptime, type Deploy, type RestartEvent } from "./status";
@@ -20,7 +22,6 @@ export const PERIOD_NAMES: Record<Period, string> = { day: "日報", week: "週�
 
 const DAY = 86400_000;
 const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
-export const twDate = (ms: number) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 10);
 const parse = (d: string) => Date.parse(`${d}T00:00:00Z`);
 const addDays = (d: string, n: number) => new Date(parse(d) + n * DAY).toISOString().slice(0, 10);
 const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
@@ -110,15 +111,6 @@ export function refKind(host: string): string {
   return "其他網站";
 }
 
-const dataDir = () => path.join(/* turbopackIgnore: true */ process.cwd(), "data");
-const logsDir = () => process.env.LOGS_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), "logs");
-function readJson<T>(file: string): T | null {
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8")) as T;
-  } catch {
-    return null;
-  }
-}
 
 // ── 報表 ────────────────────────────────────────────────────────────────
 export interface Totals3 {
@@ -185,7 +177,7 @@ function watchdogExtras(from: string, to: string) {
   let localFail = 0;
   let raw = "";
   try {
-    raw = fs.readFileSync(path.join(logsDir(), "watchdog.log"), "utf8");
+    raw = fs.readFileSync(logFile("watchdog.log"), "utf8");
   } catch {}
   for (const line of raw.split(/\r?\n/)) {
     const m = /^﻿?\[([^\]]+)\]\s*(.*)$/.exec(line);
@@ -201,10 +193,8 @@ function watchdogExtras(from: string, to: string) {
 }
 
 function webVitals(): Report["vitals"] {
-  const v = readJson<Record<string, Record<string, number[]>>>(process.env.WEB_VITALS_FILE || path.join(dataDir(), "web-vitals.json"));
-  const home = v?.["/"];
+  const home = readVitals()["/"];
   if (!home) return null;
-  const p75 = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor((a.length - 1) * 0.75)];
   return ["LCP", "INP", "CLS", "FCP", "TTFB"].filter((k) => home[k]?.length).map((k) => ({ metric: k, p75: p75(home[k]), n: home[k].length }));
 }
 
@@ -256,7 +246,7 @@ export function buildReport(range: Range, now = new Date()): Report {
 
   // 未過濾流量（server.js 每個頁面請求）
   // site-stats 的 readRawTraffic 只回累計，逐日要直接讀檔
-  const rawData = readJson<{ daily?: RawDaily }>(process.env.RAW_TRAFFIC_FILE || path.join(dataDir(), "raw-traffic.json"));
+  const rawData = readJsonFile<{ daily?: RawDaily }>(dataFile("RAW_TRAFFIC_FILE", "raw-traffic.json"));
   const daily = rawData?.daily ?? {};
   const rawSum = (a: string, b: string) => {
     const days = Object.entries(daily).filter(([d]) => inRange(d, a, b));
@@ -276,7 +266,7 @@ export function buildReport(range: Range, now = new Date()): Report {
     : null;
 
   // 404
-  const nf = readJson<NotFoundData>(process.env.NOT_FOUND_FILE || path.join(dataDir(), "not-found.json"));
+  const nf = readJsonFile<NotFoundData>(dataFile("NOT_FOUND_FILE", "not-found.json"));
   const nfDays = Object.entries(nf?.days ?? {}).filter(([d]) => inRange(d, from, end));
   const nfPaths = merge(nfDays.map(([, v]) => v));
   const scanners = Object.entries(nf?.scanners ?? {}).filter(([d]) => inRange(d, from, end)).reduce((n, [, v]) => n + v, 0);
@@ -291,7 +281,7 @@ export function buildReport(range: Range, now = new Date()): Report {
   const extras = watchdogExtras(from, end);
 
   // 雷達
-  const radarState = readRadar(process.env.RADAR_FILE || path.join(dataDir(), "radar.json")) as { days?: Record<string, RadarDay> } | null;
+  const radarState = readRadar(dataFile("RADAR_FILE", "radar.json")) as { days?: Record<string, RadarDay> } | null;
   const rDays = Object.entries(radarState?.days ?? {}).filter(([d]) => inRange(d, from, end)).map(([, v]) => v);
   const polls = rDays.reduce((n, d) => n + d.polls, 0);
   const radar = rDays.length

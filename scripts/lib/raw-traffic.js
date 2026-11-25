@@ -18,6 +18,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { classify } = require("./bot-patterns");
+const { twDate } = require("./tw-time");
 
 const ASSET_PATTERN = /\.(?:js|mjs|css|map|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|mp4|webm)$/i;
 
@@ -36,7 +37,7 @@ function shouldCount(req) {
 }
 
 function emptyStats() {
-  const since = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
+  const since = twDate();
   return { since, total: 0, browser: 0, ai: 0, search: 0, bot: 0, names: {} };
 }
 
@@ -51,7 +52,7 @@ function readRawTraffic(file) {
 // 逐日（日報／週報／月報用，2026-11-25 起）：daily[台灣日期] = { total, browser, ai, search, bot, names }，留 120 天、每天最多 40 個名字
 const KEEP_DAYS = 120;
 function addDaily(stats, kind, name, now) {
-  const date = new Date(now.getTime() + 8 * 3600_000).toISOString().slice(0, 10);
+  const date = twDate(now.getTime());
   const daily = (stats.daily = stats.daily || {});
   const d = (daily[date] = daily[date] || { total: 0, browser: 0, ai: 0, search: 0, bot: 0, names: {} });
   d.total += 1;

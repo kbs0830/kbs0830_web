@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import path from "path";
+import { dataFile } from "@/lib/data-file";
 import { withShare } from "@/lib/share-meta";
 import PageShell from "@/components/ui/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -22,10 +22,10 @@ export const metadata: Metadata = withShare({
   alternates: { canonical: "/radar" },
 }, { ownImage: true });
 
-const radarFile = process.env.RADAR_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "radar.json");
+const radarFile = () => dataFile("RADAR_FILE", "radar.json");
 const nf = new Intl.NumberFormat("zh-TW");
 // 讀檔＋算現在的數字放在元件外面：元件裡直接呼叫 Date.now() 會被 React 的 purity 規則擋（每次請求重算本來就是這頁要的）
-const loadRadar = () => detail(readState(radarFile), Date.now());
+const loadRadar = () => detail(readState(radarFile()), Date.now());
 /** detail().flightsNow 的一筆（radar.js 是 JS，型別在這裡補） */
 type NowFlight = { flight: string; alt: number | null; airlineName: string | null; typeName: string | null };
 const md = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;

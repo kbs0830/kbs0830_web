@@ -7,23 +7,15 @@
 // production 由 scripts/server.js 透過環境變數傳絕對路徑（Task Scheduler 啟動時 cwd 不保證是專案根目錄）；
 // `next dev`／測試沒設就退回 process.cwd()/data。每次呼叫才讀環境變數，測試才能換檔案。
 // turbopackIgnore：這是執行期資料檔，不是程式碼依賴，不要被 build 追蹤（曾經跳過 NFT over-trace 警告）。
-import fs from "fs";
-import path from "path";
+import { dataFile, readJsonFile } from "./data-file";
 import { classify } from "../../scripts/lib/raw-traffic.js";
-
-const dataFile = (envName: string, fileName: string) =>
-  process.env[envName] || path.join(/* turbopackIgnore: true */ process.cwd(), "data", fileName);
 
 /** 國碼 → 真人造訪次數。XX（Cloudflare 認不出國家）不算 */
 export function readCountryCounts(): [string, number][] {
-  try {
-    const stats = JSON.parse(fs.readFileSync(dataFile("VISITOR_STATS_FILE", "visitor-stats.json"), "utf8"));
-    return (Object.entries(stats) as [string, number][])
-      .filter(([code]) => code !== "XX")
-      .sort((a, b) => b[1] - a[1]);
-  } catch {
-    return [];
-  }
+  const stats = readJsonFile<Record<string, number>>(dataFile("VISITOR_STATS_FILE", "visitor-stats.json"));
+  return Object.entries(stats ?? {})
+    .filter(([code]) => code !== "XX")
+    .sort((a, b) => b[1] - a[1]);
 }
 
 export type BotKind = "ai" | "search" | "bot";
@@ -40,13 +32,10 @@ export type RawTraffic = {
 };
 
 function readRawFile() {
-  try {
-    const raw = JSON.parse(fs.readFileSync(dataFile("RAW_TRAFFIC_FILE", "raw-traffic.json"), "utf8"));
-    const names = (Object.entries(raw.names ?? {}) as [string, number][]).sort((a, b) => b[1] - a[1]);
-    return { raw, names };
-  } catch {
-    return null;
-  }
+  const raw = readJsonFile<Record<string, unknown> & { names?: Record<string, number> }>(dataFile("RAW_TRAFFIC_FILE", "raw-traffic.json"));
+  if (!raw) return null;
+  const names = Object.entries(raw.names ?? {}).sort((a, b) => b[1] - a[1]);
+  return { raw, names };
 }
 
 /** 頁尾用的彙總（/api/visitor-stats 的 raw 欄位） */
@@ -82,11 +71,6 @@ export function countryFlag(code: string) {
  * 只回到期時間（commit 訊息不往外送）；VisitBeacon 拿到就把分頁圖示的指示燈點亮成櫻花粉。
  */
 export function readFeatureRelease(now = new Date()): { until: string } | null {
-  try {
-    const j = JSON.parse(fs.readFileSync(dataFile("FEATURE_RELEASE_FILE", "feature-release.json"), "utf8"));
-    const until = String(j.until ?? "");
-    return Date.parse(until) > now.getTime() ? { until } : null;
-  } catch {
-    return null;
-  }
+  const until = String(readJsonFile<{ until?: string }>(dataFile("FEATURE_RELEASE_FILE", "feature-release.json"))?.until ?? "");
+  return Date.parse(until) > now.getTime() ? { until } : null;
 }

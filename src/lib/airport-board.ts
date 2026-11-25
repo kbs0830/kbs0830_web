@@ -25,11 +25,6 @@ export interface Flight {
   note: string | null; // 延誤原因之類
 }
 
-export interface Board {
-  airport: "KHH" | "FUK";
-  flights: Flight[];
-}
-
 const hhmm = (s: string | null | undefined): string | null => {
   if (!s) return null;
   const m = s.match(/(\d{2}):?(\d{2})$/);

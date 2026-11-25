@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import { dataFile, readJsonFile, writeJsonFile } from "./data-file";
 import { getBoards } from "./airport-board";
 import { recordBoard, type DelayStore } from "./airport-delays";
 
@@ -9,26 +8,15 @@ import { recordBoard, type DelayStore } from "./airport-delays";
 
 const INTERVAL_MS = 20 * 60_000;
 
-export const delaysFile = () =>
-  process.env.AIRPORT_DELAYS_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "airport-delays.json");
-
-export function readDelays(): DelayStore | null {
-  try {
-    return JSON.parse(fs.readFileSync(delaysFile(), "utf8")) as DelayStore;
-  } catch {
-    return null;
-  }
-}
+const delaysFile = () => dataFile("AIRPORT_DELAYS_FILE", "airport-delays.json");
+export const readDelays = () => readJsonFile<DelayStore>(delaysFile());
 
 async function tick() {
   try {
     const { khh } = await getBoards();
     if (!khh?.value.length || khh.stale) return; // 讀不到、或拿到的是舊資料：這一輪不記
     const next = recordBoard(readDelays(), khh.value, Date.now());
-    const file = delaysFile();
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(`${file}.tmp`, JSON.stringify(next));
-    fs.renameSync(`${file}.tmp`, file);
+    if (!writeJsonFile(delaysFile(), next, { atomic: true })) throw new Error("寫不進去");
   } catch (e) {
     console.warn(`[airport-delays] 記錄失敗：${e instanceof Error ? e.message : e}`);
   }

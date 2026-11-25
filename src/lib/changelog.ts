@@ -1,3 +1,4 @@
+import { twDate } from "../../scripts/lib/tw-time.js";
 import { execFileSync } from "node:child_process";
 
 // 網站更新紀錄 /changelog（TODO B1，2026-11-21）：從 git 的 `feat` commit 自動產生，跟新功能指示燈
@@ -78,10 +79,7 @@ export function parseChangelog(raw: string): ChangelogEntry[] {
   return entries;
 }
 
-function taipeiDate(iso: string): string {
-  // en-CA 的日期格式剛好是 YYYY-MM-DD
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(new Date(iso));
-}
+const taipeiDate = (iso: string) => twDate(Date.parse(iso));
 
 export function readChangelog(): ChangelogEntry[] {
   // build 時 next.config.ts 先讀好（env 寫死進來）；在產生靜態頁的 worker 裡自己跑 git，

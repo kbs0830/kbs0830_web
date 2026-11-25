@@ -10,8 +10,7 @@
 //   Cloudflare 只保留一段時間的資料，存在本機的「累計」才不會哪天變少
 // - 一小時最多更新一次，而且是在背景更新：回應直接用檔案裡現有的數字，不等 Cloudflare
 // - 「訪客」是每天不重複 IP 加總（跟 dashboard 的 30 天視圖同一種算法），同一個人隔天再來會算兩次
-import fs from "fs";
-import path from "path";
+import { dataFile, readJsonFile, writeJsonFile } from "./data-file";
 
 export const CLOUDFLARE_ZONE_ID = "bedff9fea6cd187647a5f2dbd02ae833"; // kbs0830.com，不是機密
 const REFRESH_MS = 60 * 60 * 1000;
@@ -23,17 +22,8 @@ type StoredStats = { updatedAt: string; days: Record<string, Omit<DailyRow, "dat
 type Totals = { uniques: number; pageViews: number; requests: number };
 export type CloudflareSummary = { since: string; last30: Totals; total: Totals };
 
-const statsFile = () =>
-  process.env.CLOUDFLARE_STATS_FILE ||
-  path.join(/* turbopackIgnore: true */ process.cwd(), "data", "cloudflare-daily.json");
-
-function readStored(): StoredStats | null {
-  try {
-    return JSON.parse(fs.readFileSync(statsFile(), "utf8"));
-  } catch {
-    return null;
-  }
-}
+const statsFile = () => dataFile("CLOUDFLARE_STATS_FILE", "cloudflare-daily.json");
+const readStored = () => readJsonFile<StoredStats>(statsFile());
 
 /** 新抓到的那幾天覆蓋舊的（當天還沒過完，數字會一直長），其他天保留 */
 export function mergeDays(stored: StoredStats["days"], rows: DailyRow[]): StoredStats["days"] {
@@ -123,8 +113,7 @@ export function refreshCloudflareIfStale(now = new Date()): Promise<void> {
   inFlight = fetchDays(token, since, until)
     .then((rows) => {
       const next: StoredStats = { updatedAt: now.toISOString(), days: mergeDays(stored?.days ?? {}, rows) };
-      fs.mkdirSync(path.dirname(statsFile()), { recursive: true });
-      fs.writeFileSync(statsFile(), JSON.stringify(next));
+      writeJsonFile(statsFile(), next);
     })
     .catch(() => {
       // 網路／權限問題：沿用舊數字，下一個請求再試

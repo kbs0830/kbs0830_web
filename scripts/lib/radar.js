@@ -16,6 +16,7 @@
 // ⚠️ 不做航線統計：航線的交會處就是接收器的位置
 
 const fs = require("fs");
+const { twDate, twHour } = require("./tw-time");
 const path = require("path");
 
 const POLL_MS = 30_000;
@@ -52,10 +53,6 @@ function airlineOf(callsign) {
   return m ? m[1] : null;
 }
 
-/** 台灣日期 YYYY-MM-DD */
-function twDate(ms) {
-  return new Date(ms + 8 * 3600_000).toISOString().slice(0, 10);
-}
 
 function emptyState(now) {
   return { since: twDate(now), status: null, days: {}, today: { date: twDate(now), seen: {} } };
@@ -100,7 +97,7 @@ function applySample(prev, sample, now, types) {
   day.polls++;
   if (ok) {
     day.online++;
-    const h = new Date(now + 8 * 3600_000).getUTCHours();
+    const h = twHour(now);
     day.hourPeak[h] = Math.max(day.hourPeak[h] ?? 0, current.length);
   }
   day.peak = Math.max(day.peak, current.length);

@@ -1,4 +1,5 @@
 import type { Flight } from "./airport-board";
+import { twDate } from "../../scripts/lib/tw-time.js";
 
 // 小港機場延誤統計（決策表 J3，2026-11-25）。官方網站只給「今天」的看板，不留歷史——
 // 網站每 20 分鐘把小港的看板記一次（lib/airport-delay-recorder.ts，instrumentation.ts 啟動），
@@ -20,7 +21,6 @@ export interface DelayStore {
 }
 
 const KEEP_DAYS = 120;
-export const twDate = (ms: number) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 10);
 
 /** 晚了幾分鐘（提早是負的）；跨午夜的（23:50 → 00:20）算 30 分 */
 export function delayMinutes(sched: string, changed: string | null): number | null {

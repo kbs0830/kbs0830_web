@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import { dataFile, readJsonFile } from "./data-file";
 
 // 首頁 3D 背景版本統計（決策表 B13，2026-11-25）：訪客實際拿到哪一版、WebGPU 版有沒有退回、為什麼退回。
 // 每個工作階段只回報一次（HeroBackground），只存「分類 → 次數」，不存任何訪客資訊。檔案 data/hero-stats.json（不進 git）。
@@ -19,16 +18,8 @@ export interface HeroStats {
   days?: Record<string, Record<string, number>>; // 台灣日期 → { lite, gl, gpu, "退回:slow"… }（報表用，留 120 天）
 }
 
-export const heroStatsFile = () =>
-  process.env.HERO_STATS_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "hero-stats.json");
-
-export function readHeroStats(): HeroStats | null {
-  try {
-    return JSON.parse(fs.readFileSync(heroStatsFile(), "utf8")) as HeroStats;
-  } catch {
-    return null;
-  }
-}
+export const heroStatsFile = () => dataFile("HERO_STATS_FILE", "hero-stats.json");
+export const readHeroStats = () => readJsonFile<HeroStats>(heroStatsFile());
 
 /** 回報內容 → 要加的分類；看不懂的回 null（不記） */
 export function parseHeroReport(body: unknown): { variant?: HeroVariant; fallback?: string } | null {

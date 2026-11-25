@@ -58,11 +58,6 @@ export async function cached<T>(
   return { value: e.value, at: e.at, stale: e.failedAt > e.at };
 }
 
-/** 測試用：清掉全部快取 */
-export function resetLiveCache() {
-  entries.clear();
-}
-
 /** 抓 JSON／文字的共用設定：逾時 10 秒、帶一般瀏覽器 UA（台銀的 CSV 沒帶 UA 會被擋成驗證頁） */
 export const FETCH_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 

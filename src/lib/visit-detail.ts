@@ -7,8 +7,8 @@
 //   - 裝置／瀏覽器／作業系統：從 UA 粗分成幾類，UA 本身不存
 //   - 新訪客／新工作階段：瀏覽器端用 localStorage／sessionStorage 記「來過沒」，伺服器只收到 true/false
 // 檔案：data/visits-detail.json（VISITS_DETAIL_FILE，scripts/server.js 設）。寫入跟 visitor-stats 一樣同步 read-modify-write。
-import fs from "fs";
-import path from "path";
+import { dataFile, readJsonFile, writeJsonFile } from "./data-file";
+import { twDate, twHour } from "../../scripts/lib/tw-time.js";
 
 export type VisitInput = { path?: unknown; ref?: unknown; newSession?: unknown; newVisitor?: unknown };
 
@@ -41,13 +41,11 @@ const KEEP_DAYS = 120;
 const MAX_PAGES = 200;
 const MAX_REFERRERS = 100;
 
-export const detailFile = () =>
-  process.env.VISITS_DETAIL_FILE || path.join(/* turbopackIgnore: true */ process.cwd(), "data", "visits-detail.json");
+export const detailFile = () => dataFile("VISITS_DETAIL_FILE", "visits-detail.json");
 
 /** 台灣時間的日期（YYYY-MM-DD）跟小時 */
 export function taipeiTime(now: Date): { date: string; hour: number } {
-  const t = new Date(now.getTime() + 8 * 3600_000);
-  return { date: t.toISOString().slice(0, 10), hour: t.getUTCHours() };
+  return { date: twDate(now.getTime()), hour: twHour(now.getTime()) };
 }
 
 /** 只收像本站路由的路徑；其餘（掃描器亂打、怪字元）算「(其他)」 */
@@ -114,13 +112,7 @@ export function emptyDetail(now: Date): VisitDetail {
   return { since: taipeiTime(now).date, days: {}, hours: Array(24).fill(0), pages: {}, referrers: {}, devices: {}, browsers: {}, os: {} };
 }
 
-export function readDetail(): VisitDetail | null {
-  try {
-    return JSON.parse(fs.readFileSync(detailFile(), "utf8"));
-  } catch {
-    return null;
-  }
-}
+export const readDetail = () => readJsonFile<VisitDetail>(detailFile());
 
 const bump = (map: Record<string, number>, key: string, max: number) => {
   if (map[key] === undefined && Object.keys(map).length >= max) key = "(其他)";
@@ -172,12 +164,7 @@ export function addVisit(detail: VisitDetail, input: VisitInput, ua: string, now
 /** 寫檔（同步：理由見 /api/visitor-stats 的 POST 註解） */
 export function recordVisit(input: VisitInput, ua: string, now = new Date(), country?: string): void {
   const next = addVisit(readDetail() ?? emptyDetail(now), input, ua, now, country);
-  try {
-    fs.mkdirSync(path.dirname(detailFile()), { recursive: true });
-    fs.writeFileSync(detailFile(), JSON.stringify(next));
-  } catch {
-    // 寫不進去不影響回應
-  }
+  writeJsonFile(detailFile(), next); // 寫不進去不影響回應
 }
 
 /** 最近 n 天（台灣日期）每天的數字，沒資料補 0 */
