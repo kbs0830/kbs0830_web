@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
-import HotelMap from "@/components/ui/HotelMap";
-import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "@/lib/hotels";
+import HotelMap from "@/components/content/HotelMap";
+import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "@/lib/travel/hotels";
+import { nf } from "@/lib/format";
 
 export const metadata: Metadata = withShare({
   title: "住宿紀錄 · Hotel Log — PINGWEI LI",
@@ -12,7 +13,6 @@ export const metadata: Metadata = withShare({
   alternates: { canonical: "/hotels", types: { "text/markdown": "/hotels.md" } },
 }, { ownImage: true });
 
-const nf = new Intl.NumberFormat("zh-TW");
 
 export default function HotelsPage() {
   const stats = hotelStats();

@@ -1,4 +1,4 @@
-import { apiJson, apiProfile } from "@/lib/public-api";
+import { apiJson, apiProfile } from "@/lib/api/public-api";
 
 export const dynamic = "force-static";
 

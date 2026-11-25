@@ -14,8 +14,8 @@
 //     不是有人打開那一頁
 // 靜態資源（/_next/、圖片、字型）跟 /api/ 也不算：那是同一次瀏覽附帶的請求，不是另一次瀏覽。
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const { classify } = require("./bot-patterns");
 const { twDate } = require("./tw-time");
@@ -81,4 +81,4 @@ function recordRawHit(file, req) {
   return true;
 }
 
-module.exports = { classify, shouldCount, readRawTraffic, recordRawHit, addDaily };
+module.exports = { classify, shouldCount, readRawTraffic, recordRawHit };

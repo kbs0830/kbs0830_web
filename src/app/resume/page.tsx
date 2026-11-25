@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
+import { withShare } from "@/lib/site/share-meta";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { projects } from "@/lib/projects";
-import { EMAIL, GITHUB_URL } from "@/lib/site";
-import { certifications, education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@/lib/page-content";
-import PageShell from "@/components/ui/PageShell";
+import { projects } from "@/lib/content/projects";
+import { EMAIL, GITHUB_URL } from "@/lib/site/site";
+import { certifications, education, resumeFeaturedSlugs, resumeRole, resumeSkillGroups } from "@/lib/content/page-content";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 export const metadata: Metadata = withShare({

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
-import RouteMap from "@/components/ui/RouteMap";
-import RadarStatus from "@/components/ui/RadarStatus";
-import { AIRLINES, AIRPORTS, MOON_DISTANCE_KM, airportsByCountry, flightStats, routes, type Route } from "@/lib/flights";
-import { formatFlightCode } from "@/lib/aircraft";
+import RouteMap from "@/components/content/RouteMap";
+import RadarStatus from "@/components/live/RadarStatus";
+import { AIRLINES, AIRPORTS, MOON_DISTANCE_KM, airportsByCountry, flightStats, routes, type Route } from "@/lib/travel/flights";
+import { formatFlightCode } from "@/lib/travel/aircraft";
+import { nf } from "@/lib/format";
 
 export const metadata: Metadata = withShare({
   title: "飛行紀錄 · Flight Log — PINGWEI LI",
@@ -14,7 +15,6 @@ export const metadata: Metadata = withShare({
   alternates: { canonical: "/flights", types: { "text/markdown": "/flights.md" } },
 }, { ownImage: true });
 
-const nf = new Intl.NumberFormat("zh-TW");
 const TOP_ROUTES = 10; // 預設只列最常飛的前 10 條，其餘收在 <details>
 
 function RouteList({ items }: { items: Route[] }) {

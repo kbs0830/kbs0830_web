@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { after } from "next/server";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
-import NotMeToggle from "@/components/ui/NotMeToggle";
+import NotMeToggle from "@/components/stats/NotMeToggle";
 import { BarChart, Share, ShareList, Tiles } from "@/components/ui/StatCharts";
-import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
-import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/site-stats";
-import { lastDays, readDetail } from "@/lib/visit-detail";
-import { projects } from "@/lib/projects";
-import { getAllPosts } from "@/lib/blog";
-import { HERO_VARIANTS, VARIANT_NAMES, readHeroStats } from "@/lib/hero-stats";
+import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/stats/cloudflare-analytics";
+import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/stats/site-stats";
+import { lastDays, readDetail } from "@/lib/stats/visit-detail";
+import { HERO_VARIANTS, VARIANT_NAMES, readHeroStats } from "@/lib/stats/hero-stats";
+import { nf } from "@/lib/format";
+import { pageTitle } from "@/lib/site/page-title";
 
 // 訪客分析頁（2026-11-09 公開流量頁 → 同天使用者要「訪客分析的頁面」，升級成這頁）。
 // 這個網站是自己桌機架的，流量本身就是作品的一部分。只有彙總數字：不記 IP、完整 UA、完整網址、cookie。
 // 資料：
-//   - 真人訪客（瀏覽、工作階段、頁面、來源、裝置、時段）：lib/visit-detail.ts，VisitBeacon 回報（要執行 JS）
-//   - 國家：lib/site-stats.ts（同一個回報）
-//   - Cloudflare：lib/cloudflare-analytics.ts（含機器人、含快取命中）
+//   - 真人訪客（瀏覽、工作階段、頁面、來源、裝置、時段）：lib/stats/visit-detail.ts，VisitBeacon 回報（要執行 JS）
+//   - 國家：lib/stats/site-stats.ts（同一個回報）
+//   - Cloudflare：lib/stats/cloudflare-analytics.ts（含機器人、含快取命中）
 //   - 到達主機的請求：scripts/lib/raw-traffic.js（Cloudflare 快取之後只剩沒命中的）
 // 每次請求現讀資料檔，所以沒有 Markdown 版（那是 build 時預先產生的）。
 export const dynamic = "force-dynamic";
@@ -28,43 +29,16 @@ export const metadata: Metadata = withShare({
   alternates: { canonical: "/stats" },
 }, { ownImage: true });
 
-const nf = new Intl.NumberFormat("en-US");
 // 國名用瀏覽器內建的翻譯表（Intl），不用自己維護對照表；Windows 不顯示國旗 emoji 時至少看得懂
 const regionName = new Intl.DisplayNames(["zh-TW"], { type: "region" });
 const KIND_LABEL: Record<BotKind, string> = { ai: "AI", search: "搜尋引擎", bot: "其他" };
 
-// 路徑 → 看得懂的頁名（熱門頁面用）
-const PAGE_NAMES: Record<string, string> = {
-  "/": "首頁",
-  "/blog": "部落格",
-  "/resume": "履歷",
-  "/now": "現在",
-  "/uses": "開発環境",
-  "/flights": "飛行紀錄",
-  "/hotels": "住宿紀錄",
-  "/travel": "旅行地球",
-  "/stats": "訪客分析",
-  "/radar": "自家雷達",
-  "/airports": "機場時刻表",
-  "/changelog": "更新紀錄",
-  "/status": "維運狀態",
-  "/colophon": "本站構造",
-  "/developers": "開發者",
-};
-function pageName(path: string): string {
-  if (PAGE_NAMES[path]) return PAGE_NAMES[path];
-  const [, section, slug, rest] = path.split("/");
-  if (section === "projects") return projects.find((p) => p.slug === slug)?.titleZh ?? path;
-  if (section === "blog" && slug === "tags" && rest) return `標籤：${rest}`;
-  if (section === "blog") return getAllPosts().find((p) => p.slug === slug)?.title ?? path;
-  return path;
-}
 
 const sorted = (m: Record<string, number> = {}) => Object.entries(m).sort((a, b) => b[1] - a[1]);
 
 export default function StatsPage() {
-  // Cloudflare 一小時最多抓一次，背景跑不等它（這次用檔案裡現有的）
-  void refreshCloudflareIfStale();
+  // Cloudflare 一小時最多抓一次：頁面送出之後才抓（after），這次用檔案裡現有的
+  after(refreshCloudflareIfStale);
   const cf = readCloudflareSummary();
   const cfDays = readCloudflareDays(30);
   const raw = readRawTraffic();
@@ -137,7 +111,7 @@ export default function StatsPage() {
                     <li key={path} className="flex items-baseline gap-3 py-2.5">
                       <span className="w-5 text-xs text-(--muted) font-mono shrink-0">{i + 1}</span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-[15px] sm:text-sm font-light text-(--text) truncate">{pageName(path)}</span>
+                        <span className="block text-[15px] sm:text-sm font-light text-(--text) truncate">{pageTitle(path)}</span>
                         <span className="block text-[11px] text-(--muted) font-mono truncate">{path}</span>
                       </span>
                       <span className="w-14 text-right text-xs text-(--muted) font-mono shrink-0">{nf.format(count)}</span>

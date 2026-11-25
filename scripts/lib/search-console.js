@@ -15,9 +15,9 @@
 // 搜尋字詞只寄進 otemon 的週報信，不存檔（可能有人搜本名，那是給自己看的）。
 // 手動跑：node scripts\lib\search-console.js
 
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const REPO = path.resolve(__dirname, "..", "..");
 const SITE = "https://kbs0830.com";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import UserAgentCheck from "@/components/tools/UserAgentCheck";
 import ToolNote from "@/components/tools/ToolNote";
 import { AI_BOTS, SEARCH_BOTS } from "../../../../scripts/lib/bot-patterns.js";

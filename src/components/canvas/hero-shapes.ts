@@ -1,6 +1,6 @@
 // HeroSceneGPU 的「形狀」：每顆粒子的家（Float32Array，每 3 個數字一顆）。雙擊時把家換成下一個形狀，GPU 那邊的彈簧會把粒子拉過去。
 // 每顆粒子在每個形狀上的位置是隨機抽的：數量依效能只用前面 N 顆時，形狀還是完整的（只是比較稀）。
-import { AIRPORTS, routes } from "@/lib/flights";
+import { AIRPORTS, routes } from "@/lib/travel/flights";
 
 export type ShapeName = "stars" | "name" | "routes" | "icon" | "cities";
 

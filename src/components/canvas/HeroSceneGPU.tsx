@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
 import { Fn, If, Loop, Return, abs, deltaTime, float, hash, instanceIndex, instancedArray, length, max, mix, mx_noise_vec3, normalize, smoothstep, time, uniform, uv, vec3 } from "three/tsl";
-import { useAccentColor } from "@/lib/hooks";
+import { useAccentColor } from "@/lib/client/hooks";
 import { heroShapes, type ShapeName } from "./hero-shapes";
 
 // 桌機 Hero 的 WebGPU 版（2026-11-22，使用者：「電腦版要更多可玩性」）。粒子全在 GPU 上用 compute shader 算，數量依效能自動調整。

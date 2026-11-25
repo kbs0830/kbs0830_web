@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import PageShell from "@/components/ui/PageShell";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { BarChart, ShareList } from "@/components/ui/StatCharts";
-import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period } from "@/lib/reports";
+import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period } from "@/lib/stats/reports";
+import { nf, monthDay as md } from "@/lib/format";
+import { pageTitle } from "@/lib/site/page-title";
 
 // 日報／週報／月報（2026-11-25，使用者：「要詳細的日報週報月報，在網站裡面，我之後再挪到私人的管理者裡面」）。
-// 週報、月報另外寄信（scripts/report-mail.ps1），日報只在這裡看。資料跟信是同一份 lib/reports.ts。
+// 週報、月報另外寄信（scripts/report-mail.ps1），日報只在這裡看。資料跟信是同一份 lib/stats/reports.ts。
 // 暫時公開但不給搜尋引擎（noindex、不進 sitemap、導覽不放連結）；Search Console 的搜尋字詞只進信、這裡不放（TODO G1 後台做好再搬）。
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const nf = new Intl.NumberFormat("en-US");
 const N = (n: number) => nf.format(n);
 const regionName = new Intl.DisplayNames(["zh-TW"], { type: "region" });
-const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
 const twTime = (iso: string) =>
   new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 const PERIODS: Period[] = ["day", "week", "month"];
@@ -167,7 +167,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           )}
         </div>
         <div className="space-y-8">
-          <Shares label="熱門頁面（瀏覽）" entries={r.pages} />
+          <Shares label="熱門頁面（瀏覽）" entries={r.pages.map(([path, n]): Entry => [pageTitle(path), n])} />
           <Shares label="外部來源（造訪）" entries={r.direct != null ? [["直接進入", r.direct], ...r.refKinds] : r.refKinds} total={sessionsTotal} />
           <Shares label="來源網域" entries={r.referrers} />
           <Shares label="國家（瀏覽）" entries={r.countries.map(([c, n]): Entry => [`${regionName.of(c) ?? c}`, n])} />

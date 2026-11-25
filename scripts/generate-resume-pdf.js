@@ -11,7 +11,7 @@
 //   node scripts/generate-resume-pdf.js                          # 預設打 http://localhost:3000
 //   node scripts/generate-resume-pdf.js http://localhost:3100    # 指定其他 URL
 
-const path = require("path");
+const path = require("node:path");
 const { chromium } = require("playwright");
 
 const baseUrl = process.argv[2] || "http://localhost:3000";

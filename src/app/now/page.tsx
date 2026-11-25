@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import BulletList from "@/components/ui/BulletList";
-import { nowItems } from "@/lib/page-content";
+import { nowItems } from "@/lib/content/page-content";
 
 export const metadata: Metadata = withShare({
   title: "/now — PINGWEI LI",

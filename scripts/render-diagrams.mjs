@@ -12,9 +12,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
-import { projects } from "../src/lib/projects.ts";
-import { mermaidConfig } from "../src/lib/mermaid-config.ts";
-import { diagramKey } from "../src/lib/diagram-key.ts";
+import { projects } from "../src/lib/content/projects.ts";
+import { mermaidConfig } from "../src/lib/content/mermaid-config.ts";
+import { diagramKey } from "../src/lib/content/diagram-key.ts";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "src", "generated", "diagrams");

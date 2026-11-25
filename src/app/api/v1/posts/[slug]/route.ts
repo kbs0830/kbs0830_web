@@ -1,5 +1,5 @@
-import { getAllPosts } from "@/lib/blog";
-import { apiJson, apiPost } from "@/lib/public-api";
+import { getAllPosts } from "@/lib/content/blog";
+import { apiJson, apiPost } from "@/lib/api/public-api";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;

@@ -5,15 +5,15 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
-import SpotifyNowPlaying from "@/components/ui/SpotifyNowPlaying";
-import { RadarBadge } from "@/components/ui/RadarStatus";
+import SpotifyNowPlaying from "@/components/live/SpotifyNowPlaying";
+import { RadarBadge } from "@/components/live/RadarStatus";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Link from "next/link";
 import Tabs from "@/components/ui/Tabs";
-import { flightStats } from "@/lib/flights";
-import { hotelStats } from "@/lib/hotels";
-import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/about";
-import { projectCountForTag, tagForSkill } from "@/lib/projects";
+import { flightStats } from "@/lib/travel/flights";
+import { hotelStats } from "@/lib/travel/hotels";
+import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/content/about";
+import { projectCountForTag, tagForSkill } from "@/lib/content/projects";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
 const pill = "px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide";

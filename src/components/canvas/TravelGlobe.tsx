@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Arc, Place } from "@/lib/travel";
-import { useAccentColor } from "@/lib/hooks";
+import type { Arc, Place } from "@/lib/travel/travel";
+import { useAccentColor } from "@/lib/client/hooks";
 
 // 旅行地球（TODO A5，2026-11-21）：Canvas 2D 正射投影，桌機手機同一套（不載 three.js）。
 // 畫面語言跟 Hero 一樣：經緯線細線、大圓航線弧線、住過的城市點；沒有底圖（跟 RouteMap 一樣）。

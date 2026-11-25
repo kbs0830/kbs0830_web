@@ -2,7 +2,7 @@
 #   - 週報：週一 09:00 後寄「上一週（週一～週日）」
 #   - 月報：每月 1 號 09:00 後寄「上個月」
 #   - 日報不寄信，只在網站 /reports 看（使用者要的）
-# 內容跟網頁 /reports 是同一份（src\lib\reports.ts）：這裡打本機的 /api/reports?format=text 拿純文字版，
+# 內容跟網頁 /reports 是同一份（src\lib\stats\reports.ts）：這裡打本機的 /api/reports?format=text 拿純文字版，
 # 再補一段 Google 搜尋（scripts\lib\search-console.js，網頁上不放搜尋字詞）。網站沒回應就這輪不寄，下一輪（5 分鐘後）再試。
 #
 # 由 watchdog.ps1 每 5 分鐘呼叫（-Period week、-Period month 各一次）；這一期寄過就直接結束（data\report-mail-state.json）。

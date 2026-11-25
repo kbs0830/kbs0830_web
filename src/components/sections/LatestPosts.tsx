@@ -1,7 +1,7 @@
 // 首頁的最新文章（TODO「首頁顯示最新文章」，2026-11-09）：部落格原本只靠頁尾一個小連結。
 // Server Component，零 JS。不編號、不進 NavBar——它是作品集的延伸，不是新的一區。
 import Link from "next/link";
-import { getAllPosts } from "@/lib/blog";
+import { getAllPosts } from "@/lib/content/blog";
 import Reveal from "@/components/ui/Reveal";
 import Eyebrow from "@/components/ui/Eyebrow";
 

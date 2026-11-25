@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import TagBadge from "@/components/ui/TagBadge";
-import { groupByMonth, readChangelog } from "@/lib/changelog";
-import { REPO_URL } from "@/lib/site";
+import { groupByMonth, readChangelog } from "@/lib/ops/changelog";
+import { REPO_URL } from "@/lib/site/site";
 
-// 網站更新紀錄（TODO B1，2026-11-21）：build 時從 git 的 feat commit 產生，說明見 lib/changelog.ts。
+// 網站更新紀錄（TODO B1，2026-11-21）：build 時從 git 的 feat commit 產生，說明見 lib/ops/changelog.ts。
 // 頁尾「最後更新」連過來。靜態頁：每次部署重新 build 就會更新。
 export const metadata: Metadata = withShare(
   {

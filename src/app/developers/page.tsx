@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { API_BASE, API_ENDPOINTS } from "@/lib/public-api";
-import { TOOLS } from "@/lib/mcp";
-import { SITE_URL } from "@/lib/site";
+import { API_BASE, API_ENDPOINTS } from "@/lib/api/public-api";
+import { TOOLS } from "@/lib/api/mcp";
+import { SITE_URL } from "@/lib/site/site";
 
 // 開發者頁（TODO A9＋A10，2026-11-21）：公開 JSON API（/api/v1）跟 MCP 伺服器（/mcp）的說明。靜態頁，有 Markdown 版。
 export const metadata: Metadata = withShare({

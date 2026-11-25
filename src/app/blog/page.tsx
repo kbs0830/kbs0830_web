@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
+import { withShare } from "@/lib/site/share-meta";
 import Link from "next/link";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import { getAllPosts, getAllTags } from "@/lib/content/blog";
 import TagBadge from "@/components/ui/TagBadge";
-import PageShell from "@/components/ui/PageShell";
-import BlogSearch from "@/components/ui/BlogSearch";
+import PageShell from "@/components/layout/PageShell";
+import BlogSearch from "@/components/content/BlogSearch";
 
 export const metadata: Metadata = withShare({
   title: "技術部落格 · Blog — PINGWEI LI",

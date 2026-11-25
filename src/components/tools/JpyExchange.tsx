@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Trend, usableJpyRate } from "@/components/ui/JpyRateLive";
-import { useJson } from "@/lib/hooks";
-import type { JpyRate } from "@/lib/jpy-rate";
+import { Trend, usableJpyRate } from "@/components/live/JpyRateLive";
+import { useJson } from "@/lib/client/hooks";
+import type { JpyRate } from "@/lib/live/jpy-rate";
+import { twClock as hm } from "@/lib/format";
 
 // 日幣換匯比價（TODO J1，2026-11-24）：/api/jpy-rate 的台銀、玉山牌價（10 分鐘更新）＋Yahoo 近 90 天市場價。
 // 算的都在瀏覽器：輸入的台幣金額只放在網址（?twd=），可以直接分享，不會送到伺服器。
@@ -12,13 +13,12 @@ import type { JpyRate } from "@/lib/jpy-rate";
 
 const yen = (n: number) => `¥${Math.floor(n).toLocaleString("en-US")}`;
 const rate4 = (n: number | null) => (n == null ? "–" : n.toFixed(4));
-const hm = (ms: number) => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(ms);
 const DEFAULT_TWD = "30000";
 
 /** 最新市場價在近 90 天裡的位置：回傳「比幾 % 的日子便宜」（匯率越低＝日幣越便宜） */
-export function cheaperThanPct(trend: { rate: number }[]): number | null {
+function cheaperThanPct(trend: { rate: number }[]): number | null {
   if (trend.length < 10) return null;
-  const last = trend[trend.length - 1].rate;
+  const last = trend.at(-1)!.rate;
   return Math.round((trend.filter((p) => p.rate > last).length / trend.length) * 100);
 }
 
@@ -94,7 +94,7 @@ export default function JpyExchange() {
 
       {pct != null && data && (
         <p className="mt-8 text-sm font-light text-(--text) leading-relaxed" aria-live="polite">
-          現在的市場價 <span className="font-mono">{data.trend[data.trend.length - 1].rate.toFixed(4)}</span>，
+          現在的市場價 <span className="font-mono">{data.trend.at(-1)!.rate.toFixed(4)}</span>，
           比近 90 天裡 <span className="text-(--accent) font-mono">{pct}%</span> 的日子便宜
           {pct >= 70 ? "——算是好時機。" : pct <= 30 ? "——偏貴，不急的話可以再等等。" : "——普普通通。"}
         </p>

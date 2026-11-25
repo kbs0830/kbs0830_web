@@ -1,7 +1,7 @@
-import { API_BASE, apiJson } from "@/lib/public-api";
-import { SITE_URL } from "@/lib/site";
+import { API_BASE, apiJson } from "@/lib/api/public-api";
+import { SITE_URL } from "@/lib/site/site";
 
-// 公開 JSON API 的入口（TODO A10，2026-11-21）：列出所有端點。資料說明見 lib/public-api.ts、文件在 /developers
+// 公開 JSON API 的入口（TODO A10，2026-11-21）：列出所有端點。資料說明見 lib/api/public-api.ts、文件在 /developers
 export const dynamic = "force-static";
 
 export function GET() {

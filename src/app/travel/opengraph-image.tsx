@@ -1,14 +1,14 @@
-import { pageCardImage } from "@/lib/og-card";
-import { travelStats } from "@/lib/travel";
+import { pageCardImage } from "@/lib/site/og-card";
+import { travelStats } from "@/lib/travel/travel";
+import { nf } from "@/lib/format";
 
-// 這頁的分享圖（版面在 lib/og-card.tsx）
+// 這頁的分享圖（版面在 lib/site/og-card.tsx）
 export const alt = "PINGWEI LI · 旅行地球";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
   const s = travelStats();
-  const nf = new Intl.NumberFormat("en-US");
   return pageCardImage({
     eyebrow: "旅行地球 · Travel",
     eyebrowEn: "Travel",

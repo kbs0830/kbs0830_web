@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 import { execFileSync, execSync } from "node:child_process";
-import { GISCUS } from "./src/lib/giscus";
+import { GISCUS } from "./src/lib/site/giscus";
 
 // 頁尾的「版本＋最後更新時間」：build 當下 HEAD 的 commit（hash 跟 commit 時間）。
 // 部署一定是在 git repo 裡 build；萬一讀不到（沒有 git）就顯示 dev，不讓 build 失敗
@@ -14,7 +14,7 @@ function gitHead() {
 }
 const head = gitHead();
 
-// /changelog 的資料（lib/changelog.ts）：只留 feat commit 的「短 hash␟時間␟標題」。
+// /changelog 的資料（lib/ops/changelog.ts）：只留 feat commit 的「短 hash␟時間␟標題」。
 // 在這裡讀、用 env 傳給頁面——2026-11-21 第一次上線時頁面自己在產生靜態頁的 worker 裡跑 git log，
 // 自己 build 正常、CI runner 部署的 build 卻是空的（next.config 這裡的 git 一直正常），所以改成在這裡讀。
 // 第二次（同一天）改到這裡還是空的、也沒有錯誤：git 有跑、但輸出裡找不到 feat 那幾行。
@@ -50,7 +50,7 @@ function contentSecurityPolicy(dev: boolean) {
     // cloudflareinsights.com：上面那支 beacon 把數據送回這裡（/cdn-cgi/rum）
     `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}`,
     "worker-src 'self' blob:",
-    // 文章留言（lib/giscus.ts 有設定才開）：giscus 的 iframe
+    // 文章留言（lib/site/giscus.ts 有設定才開）：giscus 的 iframe
     ...(GISCUS ? ["frame-src https://giscus.app"] : []),
     "object-src 'none'",
     "base-uri 'self'",
@@ -97,7 +97,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Markdown for Agents（lib/markdown.ts）：AI 工具帶 `Accept: text/markdown`、或網址加 `.md`，
+  // Markdown for Agents（lib/content/markdown.ts）：AI 工具帶 `Accept: text/markdown`、或網址加 `.md`，
   // 就改回 app/md 產生的 Markdown 版。靜態設定、在 Next 內部比對，每個請求不用多跑任何程式。
   // 只列有 Markdown 版的頁面，不要寫成 /:path*（會把 /_next、/api 也一起轉走）
   async rewrites() {

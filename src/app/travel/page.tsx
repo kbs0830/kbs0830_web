@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import { Tiles } from "@/components/ui/StatCharts";
 import TravelGlobe from "@/components/canvas/TravelGlobe";
-import { travelArcs, travelPlaces, travelStats } from "@/lib/travel";
+import { travelArcs, travelPlaces, travelStats } from "@/lib/travel/travel";
+import { nf } from "@/lib/format";
 
 // 旅行地球（TODO A5，2026-11-21）：飛行紀錄＋住宿紀錄放在同一顆地球上。/flights、/hotels 照舊（明細在那兩頁）。
 // 地球是 client（Canvas 2D），資料 build 時就算好傳進去；靜態頁，有 Markdown 版。
@@ -17,7 +18,6 @@ export const metadata: Metadata = withShare(
   { ownImage: true },
 );
 
-const nf = new Intl.NumberFormat("zh-TW");
 const link = "text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)";
 
 export default function TravelPage() {

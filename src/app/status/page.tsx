@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { Tiles } from "@/components/ui/StatCharts";
 import {
@@ -14,12 +14,12 @@ import {
   type DayUptime,
   type DeployResult,
   type RestartKind,
-} from "@/lib/status";
-import { incidents } from "@/lib/incidents";
-import { getPostBySlug } from "@/lib/blog";
+} from "@/lib/ops/status";
+import { incidents } from "@/lib/ops/incidents";
+import { getPostBySlug } from "@/lib/content/blog";
 
 // 維運狀態頁（TODO A4，2026-11-21）：這個網站跑在自家桌機上，可用率、部署、自動重啟、出過的事故都公開。
-// 資料見 lib/status.ts（只公開彙總，不放 log 原文）、事故報告在 lib/incidents.ts。
+// 資料見 lib/ops/status.ts（只公開彙總，不放 log 原文）、事故報告在 lib/ops/incidents.ts。
 // 每次請求現讀，所以跟 /stats 一樣沒有 Markdown 版。
 export const dynamic = "force-dynamic";
 

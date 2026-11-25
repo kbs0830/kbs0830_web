@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { fontVariables } from "./fonts";
-import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site";
+import { EMAIL, GITHUB_URL, INSTAGRAM_URL, PERSON_ID, SITE_URL } from "@/lib/site/site";
 import JsonLd from "@/components/ui/JsonLd";
-import WebVitals from "@/components/ui/WebVitals";
-import VisitBeacon from "@/components/ui/VisitBeacon";
-import Presence from "@/components/ui/Presence";
-import QuickJump from "@/components/ui/QuickJump";
+import WebVitals from "@/components/stats/WebVitals";
+import VisitBeacon from "@/components/stats/VisitBeacon";
+import Presence from "@/components/live/Presence";
+import QuickJump from "@/components/layout/QuickJump";
 import "./globals.css";
 
 export const metadata: Metadata = {

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { withShare } from "@/lib/share-meta";
-import { getAllTags, getPostsByTagSlug } from "@/lib/blog";
+import { withShare } from "@/lib/site/share-meta";
+import { getAllTags, getPostsByTagSlug } from "@/lib/content/blog";
 import TagBadge from "@/components/ui/TagBadge";
-import PageShell from "@/components/ui/PageShell";
+import PageShell from "@/components/layout/PageShell";
 
 // 依 tag 列文章（TODO「Tag 頁」，2026-11-09）。網址用 tagSlug()：`Next.js` → /blog/tags/next-js
 type TagPageProps = { params: Promise<{ tag: string }> };

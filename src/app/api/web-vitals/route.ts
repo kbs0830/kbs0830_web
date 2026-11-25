@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeJsonFile } from "@/lib/data-file";
-import { p75, readVitals, vitalsFile } from "@/lib/web-vitals";
+import { p75, readVitals, vitalsFile } from "@/lib/stats/web-vitals";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 
 // 真實訪客的 Core Web Vitals（WebVitals.tsx 用 sendBeacon 回報）。用來回答「首頁 LCP 要不要

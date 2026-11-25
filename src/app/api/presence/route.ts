@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isPresenceId, leave, presenceCount, touch } from "@/lib/presence";
+import { isPresenceId, leave, presenceCount, touch } from "@/lib/stats/presence";
 
 // 「いま N 人」（TODO B4）：POST { id, leave? } 回報／離開，回 { count }。GET 只讀。
 // 只收經過 Cloudflare 的請求（有 cf-ipcountry，跟訪客統計同規則）：本機測試、印履歷 PDF 的 headless 瀏覽器不算。

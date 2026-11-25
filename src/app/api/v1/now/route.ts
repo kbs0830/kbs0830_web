@@ -1,4 +1,4 @@
-import { apiJson, apiNow } from "@/lib/public-api";
+import { apiJson, apiNow } from "@/lib/api/public-api";
 
 export const dynamic = "force-static";
 

@@ -1,7 +1,7 @@
-import { pageCardImage } from "@/lib/og-card";
-import { readChangelog } from "@/lib/changelog";
+import { pageCardImage } from "@/lib/site/og-card";
+import { readChangelog } from "@/lib/ops/changelog";
 
-// 這頁的分享圖（TODO B7）；版面在 lib/og-card.tsx
+// 這頁的分享圖（TODO B7）；版面在 lib/site/og-card.tsx
 export const alt = "PINGWEI LI · 更新紀錄";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

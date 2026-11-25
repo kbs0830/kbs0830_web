@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useRevealOnce } from "@/lib/hooks";
+import { useRevealOnce } from "@/lib/client/hooks";
 
 // 捲動到時逐字淡入的標題。每個字是一個 span，延遲由 CSS 的 --i 算（globals.css
 // [data-reveal-chars]），JS 只負責在進入視窗時加上 data-shown。

@@ -1,8 +1,8 @@
-import { pageCardImage } from "@/lib/og-card";
-import { TOOLS } from "@/lib/mcp";
-import { API_ENDPOINTS } from "@/lib/public-api";
+import { pageCardImage } from "@/lib/site/og-card";
+import { TOOLS } from "@/lib/api/mcp";
+import { API_ENDPOINTS } from "@/lib/api/public-api";
 
-// 這頁的分享圖（版面在 lib/og-card.tsx）
+// 這頁的分享圖（版面在 lib/site/og-card.tsx）
 export const alt = "PINGWEI LI · 開發者 API & MCP";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

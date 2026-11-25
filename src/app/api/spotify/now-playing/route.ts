@@ -43,7 +43,7 @@ function toPayload(track: SpotifyTrack, isPlaying: boolean) {
     isPlaying,
     title: track.name,
     artist: track.artists?.map((a) => a.name).join(", ") ?? "",
-    albumArt: track.album?.images?.[track.album.images.length - 1]?.url ?? track.album?.images?.[0]?.url,
+    albumArt: track.album?.images?.at(-1)?.url ?? track.album?.images?.[0]?.url,
     url: track.external_urls?.spotify,
   };
 }

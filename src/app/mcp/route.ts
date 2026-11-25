@@ -1,6 +1,6 @@
-import { handleRpc } from "@/lib/mcp";
+import { handleRpc } from "@/lib/api/mcp";
 
-// MCP 伺服器的 HTTP 端點（TODO A9，2026-11-21）：POST JSON-RPC，邏輯在 lib/mcp.ts。
+// MCP 伺服器的 HTTP 端點（TODO A9，2026-11-21）：POST JSON-RPC，邏輯在 lib/api/mcp.ts。
 // 無狀態：不發 session、不開 SSE（GET 回 405），通知回 202。瀏覽器裡的 MCP 客戶端要 CORS，所以全開（唯讀、公開內容）。
 export const dynamic = "force-dynamic";
 

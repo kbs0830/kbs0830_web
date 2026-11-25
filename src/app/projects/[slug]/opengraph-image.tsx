@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
-import { projects } from "@/lib/projects";
-import { loadSubsetFont, OG_FONT_NAME } from "@/lib/og-font";
+import { projects } from "@/lib/content/projects";
+import { loadSubsetFont, OG_FONT_NAME } from "@/lib/site/og-font";
 
 // 每個作品自己的分享圖（TODO「每個作品專屬分享圖」，2026-11-09）：作品名＋一句話成果＋技術 tag。
 // 版面跟文章分享圖（app/blog/[slug]/opengraph-image.tsx）一致；中文字型抓不到就退回英文。

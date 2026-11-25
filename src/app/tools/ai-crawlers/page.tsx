@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import AiCrawlers from "@/components/tools/AiCrawlers";
 import ToolNote from "@/components/tools/ToolNote";
 
-// AI 爬蟲檢查（TODO J12，2026-11-24）。API：/api/tools/robots（防 SSRF 的做法在 lib/safe-fetch.ts）
+// AI 爬蟲檢查（TODO J12，2026-11-24）。API：/api/tools/robots（防 SSRF 的做法在 lib/tools/safe-fetch.ts）
 export const metadata: Metadata = withShare({
   title: "AI 爬蟲檢查：你的網站有沒有擋 GPTBot、ClaudeBot？ · robots.txt — PINGWEI LI",
   description: "輸入網域，讀它的 robots.txt，看 GPTBot、ClaudeBot、Google-Extended、PerplexityBot 等 AI 爬蟲跟搜尋引擎能不能抓你的網站，順便檢查有沒有 llms.txt。",

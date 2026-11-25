@@ -1,12 +1,12 @@
 // 404 統計（決策表 C3，2026-11-25）：哪些網址被打了但不存在——壞掉的站外連結、改過的舊網址、打錯字。
-// 日報／週報／月報（src/lib/reports.ts）列前幾名。
+// 日報／週報／月報（src/lib/stats/reports.ts）列前幾名。
 //
 // 只存「台灣日期 → 路徑 → 次數」，不存 IP、UA、query string。保留 35 天。
 // 掃描器（找 .php、.env、wp-admin 這類漏洞的機器人）每天幾百次，跟這個網站無關：只記總數，不記路徑。
 // 不算：沒經過 Cloudflare（本機、健檢）、自己的工具（WindowsPowerShell／kbs0830-）、非 GET／HEAD。
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { twDate } = require("./tw-time");
 
 const KEEP_DAYS = 35;

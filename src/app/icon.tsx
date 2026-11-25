@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
-import { brandIconDataUri } from "@/lib/brand-icon";
+import { brandIconDataUri } from "@/lib/site/brand-icon";
 
-// 網站圖示（圖形在 lib/brand-icon.ts，2026-11-12 換成終端機視窗）。
+// 網站圖示（圖形在 lib/site/brand-icon.ts，2026-11-12 換成終端機視窗）。
 // 32 用簡化版（分頁上看得清楚），192／512 用完整版（PWA、Android 主畫面）。
 export const contentType = "image/png";
 

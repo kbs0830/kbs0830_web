@@ -1,7 +1,7 @@
-import { pageCardImage } from "@/lib/og-card";
-import { incidents } from "@/lib/incidents";
+import { pageCardImage } from "@/lib/site/og-card";
+import { incidents } from "@/lib/ops/incidents";
 
-// 這頁的分享圖（版面在 lib/og-card.tsx）。可用率是即時數字，不放；事故報告篇數是固定的
+// 這頁的分享圖（版面在 lib/site/og-card.tsx）。可用率是即時數字，不放；事故報告篇數是固定的
 export const alt = "PINGWEI LI · 維運狀態";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

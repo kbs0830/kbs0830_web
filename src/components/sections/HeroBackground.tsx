@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
-import { useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks";
-import { isNotMe } from "@/lib/not-me";
+import { useMediaQuery, usePrefersReducedMotion } from "@/lib/client/hooks";
+import { isNotMe } from "@/lib/client/not-me";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { airlineOf, applySample, detail, lookupTypes, summarize, twDate } from "./radar.js";
+import { airlineOf, applySample, detail, lookupTypes, summarize } from "./radar.js";
+import { twDate } from "./tw-time.js";
 
 type Plane = { hex: string; flight?: string; seen?: number; alt?: number | string };
 const T0 = Date.parse("2026-11-21T02:00:00Z"); // 台灣 10:00

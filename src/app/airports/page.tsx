@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Tabs from "@/components/ui/Tabs";
-import AutoRefresh from "@/components/ui/AutoRefresh";
-import { getBoards, khhFuk, upcoming, type Flight } from "@/lib/airport-board";
-import { summarizeDelays } from "@/lib/airport-delays";
-import { readDelays } from "@/lib/airport-delay-recorder";
+import AutoRefresh from "@/components/live/AutoRefresh";
+import { getBoards, khhFuk, upcoming, type Flight } from "@/lib/travel/airport-board";
+import { summarizeDelays } from "@/lib/travel/airport-delays";
+import { readDelays } from "@/lib/travel/airport-delay-recorder";
+import { nf } from "@/lib/format";
 
 // 機場即時時刻表（TODO D6，2026-11-22）：小港（KHH）跟福岡（FUK），最上面是高雄 ⇄ 福岡的直飛班機。
-// 資料由伺服器 3 分鐘抓一次（lib/airport-board.ts），每次請求現讀 → force-dynamic，跟 /stats、/radar 一樣沒有 Markdown 版。
+// 資料由伺服器 3 分鐘抓一次（lib/travel/airport-board.ts），每次請求現讀 → force-dynamic，跟 /stats、/radar 一樣沒有 Markdown 版。
 // 只放機場公開的航班表，跟自家雷達無關（雷達不公開位置，這頁也不拿雷達資料來比對）。
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,6 @@ export const metadata: Metadata = withShare(
   { ownImage: true },
 );
 
-const nf = new Intl.NumberFormat("en-US");
 const hm = (tz: string, ms: number) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(ms);
 
 // 讀資料＋算「現在」放元件外面（元件裡呼叫 Date.now() 會被 React 的 purity 規則擋）

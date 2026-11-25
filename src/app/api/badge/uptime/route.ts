@@ -1,5 +1,5 @@
-import { availability, readUptime } from "@/lib/status";
-import { badgeSvg, uptimeBadge } from "@/lib/badge";
+import { availability, readUptime } from "@/lib/ops/status";
+import { badgeSvg, uptimeBadge } from "@/lib/ops/badge";
 
 // 近 90 天可用率徽章（TODO B15，2026-11-24）。資料跟 /status 的可用率同一份（data/uptime.log）。
 // 用法：README 放 ![uptime](https://kbs0830.com/api/badge/uptime)。只給數字，不給 log。

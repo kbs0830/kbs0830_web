@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { dataFile, readJsonFile, writeJsonFile } from "@/lib/data-file";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
-import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/cloudflare-analytics";
-import { readFeatureRelease, readRawTraffic } from "@/lib/site-stats";
-import { recordVisit, type VisitInput } from "@/lib/visit-detail";
+import { readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/stats/cloudflare-analytics";
+import { readFeatureRelease, readRawTraffic } from "@/lib/stats/site-stats";
+import { recordVisit, type VisitInput } from "@/lib/stats/visit-detail";
 
 // production 由 scripts/server.js 透過 VISITOR_STATS_FILE 傳絕對路徑進來，
 // 因為 Task Scheduler 啟動時的 process.cwd() 不保證是專案根目錄。
@@ -13,16 +13,16 @@ import { recordVisit, type VisitInput } from "@/lib/visit-detail";
 // 都被這支 API route 依賴（deploy.log 曾經真的跳出這個 NFT over-trace 警告）。
 const statsFile = () => dataFile("VISITOR_STATS_FILE", "visitor-stats.json");
 
-export type { RawTraffic } from "@/lib/site-stats";
+export type { RawTraffic } from "@/lib/stats/site-stats";
 
 const readStats = (): Record<string, number> => readJsonFile<Record<string, number>>(statsFile()) ?? {};
 
 function summarize(stats: Record<string, number>) {
   const entries = Object.entries(stats).filter(([code]) => code !== "XX");
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
-  const top = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
-  // Cloudflare 的數字一小時更新一次，在背景跑、不等它（這次回應用檔案裡現有的）
-  void refreshCloudflareIfStale();
+  const top = entries.toSorted((a, b) => b[1] - a[1]).slice(0, 5);
+  // Cloudflare 的數字一小時更新一次：回應送出之後才去抓（after），這次回應用檔案裡現有的
+  after(refreshCloudflareIfStale);
   return { total, countryCount: entries.length, top, raw: readRawTraffic(), cloudflare: readCloudflareSummary(), newFeature: readFeatureRelease() };
 }
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const text = await req.text();
     if (text && text.length < 2000) input = JSON.parse(text);
   } catch {}
-  // 站長自己的瀏覽器（/stats 的「不計入」開關，lib/not-me.ts）：國家、明細都不記，只回彙總（新功能指示燈要用）
+  // 站長自己的瀏覽器（/stats 的「不計入」開關，lib/client/not-me.ts）：國家、明細都不記，只回彙總（新功能指示燈要用）
   if (input.notMe === true) return NextResponse.json(summarize(readStats()));
 
   // 這段 read-modify-write 中間刻意不夾雜任何 await，靠 fs.*Sync 的同步阻塞特性

@@ -1,9 +1,9 @@
-import { getAllPosts } from "@/lib/blog";
-import { markdownToHtml } from "@/lib/md-html";
-import { SITE_URL } from "@/lib/site";
+import { getAllPosts } from "@/lib/content/blog";
+import { markdownToHtml } from "@/lib/content/md-html";
+import { SITE_URL } from "@/lib/site/site";
 
 // /feed.xml：部落格的 RSS 2.0（TODO「RSS feed」，2026-11-09）。build 時產生，新增文章會自動跟上。
-// 2026-11-21 起附全文（TODO A6）：<content:encoded> 放 lib/md-html.ts 轉出來的 HTML，<description> 照舊是摘要。
+// 2026-11-21 起附全文（TODO A6）：<content:encoded> 放 lib/content/md-html.ts 轉出來的 HTML，<description> 照舊是摘要。
 // 原本只放摘要的理由是「讀者點進來才算得到瀏覽」——取捨後改成讓 RSS 讀者不用點進來也能讀完。
 // 作者只寫 PINGWEI LI：RSS 閱讀器會直接顯示這個欄位給人看（CLAUDE.md Key Constraints 1）
 export const dynamic = "force-static";

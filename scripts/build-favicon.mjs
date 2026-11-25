@@ -1,12 +1,12 @@
 // 產生 src/app/favicon.ico（2026-11-12 換新圖示時補：之前 /favicon.ico 是 404，舊瀏覽器、一些爬蟲會預設去要這個）。
-// 圖形來源跟 app/icon.tsx 同一份：src/lib/brand-icon.ts 的 small 版。改了圖示要重跑：node scripts/build-favicon.mjs
+// 圖形來源跟 app/icon.tsx 同一份：src/lib/site/brand-icon.ts 的 small 版。改了圖示要重跑：node scripts/build-favicon.mjs
 // 用 Playwright Chromium 把 SVG 畫成 16／32／48 的 PNG，再包成 ICO（ICO 可以直接內嵌 PNG，不用轉 BMP）。
 // 腳本直接 import .ts（Node 24 內建型別剝除），所以 brand-icon.ts 不能用 @/ alias。
 import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brandIconSvg } from "../src/lib/brand-icon.ts";
+import { brandIconSvg } from "../src/lib/site/brand-icon.ts";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "src", "app", "favicon.ico");

@@ -8,8 +8,8 @@
 //   4. node scripts/spotify-get-refresh-token.js <code>
 //      → 換到的 refresh token 會直接寫進 .env.local，不會印在畫面上
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const envPath = path.join(__dirname, "..", ".env.local");
 const REDIRECT_URI = "https://kbs0830.com/";

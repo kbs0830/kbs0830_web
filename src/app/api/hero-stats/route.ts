@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { addHeroReport, heroStatsFile, parseHeroReport, readHeroStats } from "@/lib/hero-stats";
+import { addHeroReport, heroStatsFile, parseHeroReport, readHeroStats } from "@/lib/stats/hero-stats";
 import { writeJsonFile } from "@/lib/data-file";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 import { twDate } from "../../../../scripts/lib/tw-time.js";

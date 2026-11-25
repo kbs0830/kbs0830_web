@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
-import { projects } from "@/lib/projects";
-import { getAllPosts } from "@/lib/blog";
-import { SITE_URL } from "@/lib/site";
+import { projects } from "@/lib/content/projects";
+import { getAllPosts } from "@/lib/content/blog";
+import { SITE_URL } from "@/lib/site/site";
 
 type Entry = MetadataRoute.Sitemap[number];
 const page = (path: string, changeFrequency: Entry["changeFrequency"], priority: number, lastModified?: Date): Entry => ({

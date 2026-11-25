@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useJson } from "@/lib/hooks";
-import type { JpyRate } from "@/lib/jpy-rate";
+import { useJson } from "@/lib/client/hooks";
+import type { JpyRate } from "@/lib/live/jpy-rate";
 
 // 日本消費稅換算（TODO J6，2026-11-24）。全部在瀏覽器算；台幣換算用 /api/jpy-rate 最低的現金賣出（讀不到就不顯示台幣）。
 // 稅額的小數一律無條件捨去（日本店家最常見的做法，實際看店家）。
 
-export type TaxMode = "excl" | "incl"; // 標價是「税抜」未稅 or「税込」含稅
-export type TaxRate = 10 | 8; // 8% 是外帶食品、飲料（軽減税率）
+type TaxMode = "excl" | "incl"; // 標價是「税抜」未稅 or「税込」含稅
+type TaxRate = 10 | 8; // 8% 是外帶食品、飲料（軽減税率）
 
-export function splitTax(price: number, mode: TaxMode, rate: TaxRate) {
+function splitTax(price: number, mode: TaxMode, rate: TaxRate) {
   if (!(price > 0)) return null;
   if (mode === "excl") {
     const tax = Math.floor((price * rate) / 100);

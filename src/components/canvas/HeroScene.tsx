@@ -17,7 +17,7 @@ import {
   Quaternion,
   Vector3,
 } from "three";
-import { useAccentColor, usePrefersReducedMotion } from "@/lib/hooks";
+import { useAccentColor, usePrefersReducedMotion } from "@/lib/client/hooks";
 
 // 桌機 Hero 3D 背景：稀疏細線＋靛藍粒子，慢速旋轉。2026-11-05 加上互動（使用者要桌機多一點炫技）：
 //   - 游標靠近時粒子被輕輕推開，離開後彈簧拉回原位（不彈跳：阻尼夠大，沒有來回震盪）

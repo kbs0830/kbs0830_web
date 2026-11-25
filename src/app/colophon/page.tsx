@@ -1,8 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
-import { readSiteFacts, type SiteFacts } from "@/lib/colophon";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
+import { readSiteFacts, type SiteFacts } from "@/lib/ops/colophon";
+import { nf } from "@/lib/format";
 
 // 本站構造（TODO A8，2026-11-21）：CLAUDE.md「部署架構」那一大段，做成給人看的一張圖。
 // 點圖上的方塊跳到下面那張說明卡（<a href="#…"> ＋ CSS :target，零 JS）。每個方塊上的數字是現在的值（每次請求現讀）。
@@ -17,7 +18,6 @@ export const metadata: Metadata = withShare(
   { ownImage: true },
 );
 
-const nf = new Intl.NumberFormat("en-US");
 const loadFacts = () => readSiteFacts(Date.now());
 
 function ago(iso: string | null) {

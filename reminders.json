@@ -44,7 +44,7 @@
       "id": "2026-12-31-gha-titanium",
       "date": "2026-12-31",
       "subject": "提醒：GHA DISCOVERY 鈦金今年底到期，/hotels 會籍要更新",
-      "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "body": "GHA DISCOVERY 鈦金今年底到期。/hotels 會籍寫的是「鈦金 Titanium」，續了不用動；掉級就跟 Claude 說現在是哪一級。\n資料在 src/lib/travel/hotels.ts 的 MEMBERSHIPS。"
     },
     {
       "id": "2027-05-16-domain",
@@ -56,19 +56,19 @@
       "id": "2027-08-31-school-year",
       "date": "2027-08-31",
       "subject": "提醒：網站上的年級／年齡要更新（三年級 → 四年級）",
-      "body": "9 月開學就是大四了，網站上寫「三年級」「20 歲」的地方要改：\n- src/lib/about.ts 的 statusLines（首頁現況卡）\n- src/lib/page-content.ts 的 nowItems（/now）\n- src/components/ui/TerminalMode.tsx 的 ABOUT_TXT（終端機 cat about.txt）\n跟 Claude 說「升大四了，幾歲」它會一起改。"
+      "body": "9 月開學就是大四了，網站上寫「三年級」「20 歲」的地方要改：\n- src/lib/content/about.ts 的 statusLines（首頁現況卡）\n- src/lib/content/page-content.ts 的 nowItems（/now）\n- src/components/fun/TerminalMode.tsx 的 ABOUT_TXT（終端機 cat about.txt）\n跟 Claude 說「升大四了，幾歲」它會一起改。"
     },
     {
       "id": "2027-12-31-ihg-lounge",
       "date": "2027-12-31",
       "subject": "提醒：IHG 年度行政酒廊 2027 到期，順便看 /hotels 會籍等級",
-      "body": "IHG 年度行政酒廊今年底到期（網站上沒寫酒廊，只寫「鑽石 Diamond」＋「洲際大使」）。\n等級有變就跟 Claude 說。資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "body": "IHG 年度行政酒廊今年底到期（網站上沒寫酒廊，只寫「鑽石 Diamond」＋「洲際大使」）。\n等級有變就跟 Claude 說。資料在 src/lib/travel/hotels.ts 的 MEMBERSHIPS。"
     },
     {
       "id": "2028-12-31-ci-gold",
       "date": "2028-12-31",
       "subject": "提醒：華航金卡 2028 到期，/hotels 會籍要更新",
-      "body": "華航金卡今年底到期。/hotels 會籍寫的是「金卡（天合聯盟 Elite Plus）」，續了不用動；沒續就跟 Claude 說現在是哪一卡。\n資料在 src/lib/hotels.ts 的 MEMBERSHIPS。"
+      "body": "華航金卡今年底到期。/hotels 會籍寫的是「金卡（天合聯盟 Elite Plus）」，續了不用動；沒續就跟 Claude 說現在是哪一卡。\n資料在 src/lib/travel/hotels.ts 的 MEMBERSHIPS。"
     }
   ]
 }

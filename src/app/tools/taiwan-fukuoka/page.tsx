@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
-import AutoRefresh from "@/components/ui/AutoRefresh";
+import AutoRefresh from "@/components/live/AutoRefresh";
 import ToolNote from "@/components/tools/ToolNote";
-import { getBoards, taiwanFuk, type Flight } from "@/lib/airport-board";
+import { getBoards, taiwanFuk, type Flight } from "@/lib/travel/airport-board";
 
 // 台灣 ⇄ 福岡直飛（TODO J2，2026-11-24，使用者把「高雄 ⇄ 福岡」改成「台灣各機場」）。
 // 福岡空港的看板（/airports 已經在抓、3 分鐘快取）本來就有每班的出發／抵達機場，篩出台灣的就是全部直飛，不用另外接桃園機場。

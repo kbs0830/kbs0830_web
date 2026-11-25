@@ -15,14 +15,14 @@ import {
   readingMinutes,
   tagSlug,
   type BlogPost,
-} from "@/lib/blog";
+} from "@/lib/content/blog";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { PERSON_ID, REPO_URL, SITE_URL } from "@/lib/site";
+import { PERSON_ID, REPO_URL, SITE_URL } from "@/lib/site/site";
 import TagBadge from "@/components/ui/TagBadge";
 import JsonLd from "@/components/ui/JsonLd";
-import PageShell from "@/components/ui/PageShell";
+import PageShell from "@/components/layout/PageShell";
 import CopyCodeButton from "@/components/ui/CopyCodeButton";
-import Comments from "@/components/ui/Comments";
+import Comments from "@/components/content/Comments";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 

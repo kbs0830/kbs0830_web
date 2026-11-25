@@ -1,3 +1,4 @@
+import "server-only"; // 只能在伺服器跑（讀寫磁碟）：被 client 元件 import 到時 build 直接報錯，不會把這支打包給瀏覽器
 import fs from "node:fs";
 import path from "node:path";
 

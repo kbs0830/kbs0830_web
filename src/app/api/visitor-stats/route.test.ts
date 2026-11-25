@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import fs from "fs";
-import os from "os";
-import path from "path";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { NextRequest } from "next/server";
+
+// route 用 after() 在回應之後才更新 Cloudflare 數字；測試直接呼叫 GET/POST、不在 Next 的請求範圍內，after 換成不做事
+vi.mock("next/server", async (importOriginal) => ({ ...(await importOriginal<typeof import("next/server")>()), after: () => {} }));
 
 // route.ts 在 module 頂層用 process.env.VISITOR_STATS_FILE（沒設就 fallback
 // process.cwd()）決定資料檔路徑，所以每個測試要在 import 之前先設好環境變數、

@@ -2,8 +2,8 @@
 // 2026-11-21 從 stats/page.tsx 抽出來（/radar 要用同一套樣式）
 
 import type { ReactNode } from "react";
+import { nf } from "@/lib/format";
 
-const nf = new Intl.NumberFormat("en-US");
 
 export function BarChart({ bars, caption, label }: { bars: { key: string; value: number; title: string }[]; caption: ReactNode; label: string }) {
   const max = Math.max(1, ...bars.map((b) => b.value));

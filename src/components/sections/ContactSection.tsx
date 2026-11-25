@@ -7,7 +7,7 @@ import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import { GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
-import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site";
+import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site/site";
 
 const linkClass = `${underlineLinkClass} text-(--muted) hover:text-(--text)`;
 

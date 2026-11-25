@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import MaintenancePage from "@/components/ui/MaintenancePage";
+import MaintenancePage from "@/components/layout/MaintenancePage";
 import { fontVariables } from "./fonts";
 import "./globals.css";
 

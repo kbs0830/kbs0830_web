@@ -31,7 +31,7 @@ param([switch]$Apply, [switch]$Check, [switch]$Quiet, [switch]$Purge)
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $repo = Split-Path -Parent $PSScriptRoot
-$zone = "bedff9fea6cd187647a5f2dbd02ae833"  # kbs0830.com（不是機密，lib/cloudflare-analytics.ts 也寫死）
+$zone = "bedff9fea6cd187647a5f2dbd02ae833"  # kbs0830.com（不是機密，lib/stats/cloudflare-analytics.ts 也寫死）
 $api = "https://api.cloudflare.com/client/v4/zones/$zone"
 $logFile = Join-Path $repo "logs\deploy.log"
 

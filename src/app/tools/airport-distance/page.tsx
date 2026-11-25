@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import AirportDistance from "@/components/tools/AirportDistance";
 import ToolNote from "@/components/tools/ToolNote";
-import { AIRPORTS } from "@/lib/flights";
+import { AIRPORTS } from "@/lib/travel/flights";
 
-// 機場距離／航程（TODO J5，2026-11-24）。我飛過的機場用中文名（lib/flights.ts），其他用 OurAirports 的英文城市名
+// 機場距離／航程（TODO J5，2026-11-24）。我飛過的機場用中文名（lib/travel/flights.ts），其他用 OurAirports 的英文城市名
 export const metadata: Metadata = withShare({
   title: "機場距離計算：兩個機場代碼算飛行距離跟時間 · Airport Distance — PINGWEI LI",
   description: "輸入兩個三碼機場代碼（例如 TPE、FUK），算出大圓距離（公里、英里）跟大概要飛多久。全球約 3,200 個有定期航班的機場。",

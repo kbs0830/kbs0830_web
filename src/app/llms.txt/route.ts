@@ -1,7 +1,7 @@
-import { projects } from "@/lib/projects";
-import { getAllPosts } from "@/lib/blog";
-import { statusLines } from "@/lib/about";
-import { EMAIL, GITHUB_URL, SITE_URL } from "@/lib/site";
+import { projects } from "@/lib/content/projects";
+import { getAllPosts } from "@/lib/content/blog";
+import { statusLines } from "@/lib/content/about";
+import { EMAIL, GITHUB_URL, SITE_URL } from "@/lib/site/site";
 
 // /llms.txt：給 AI（ChatGPT、Claude、Perplexity…）讀的網站摘要（llmstxt.org 慣例），build 時產生。
 // 內容直接從 projects.ts／blog／about.ts 組出來，新增作品或文章會自動跟上。

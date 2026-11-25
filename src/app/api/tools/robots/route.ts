@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { cached } from "@/lib/live-cache";
-import { CRAWLERS, parseRobots, verdict } from "@/lib/robots";
-import { fetchPublicText, normalizeHost } from "@/lib/safe-fetch";
+import { cached } from "@/lib/live/live-cache";
+import { CRAWLERS, parseRobots, verdict } from "@/lib/tools/robots";
+import { fetchPublicText, normalizeHost } from "@/lib/tools/safe-fetch";
 
 // AI 爬蟲檢查（TODO J12，2026-11-24）：GET /api/tools/robots?domain=example.com
 // 抓對方的 robots.txt（＋看有沒有 llms.txt），判斷各家爬蟲能不能抓首頁。
-// 防濫用：網域驗證＋連線時檢查 IP（lib/safe-fetch.ts）、每個 IP 10 分鐘 15 次、全站每小時 300 次、同一網域 10 分鐘快取。
+// 防濫用：網域驗證＋連線時檢查 IP（lib/tools/safe-fetch.ts）、每個 IP 10 分鐘 15 次、全站每小時 300 次、同一網域 10 分鐘快取。
 // 不記錄誰查了什麼網域（只在記憶體算次數，重啟就清空）。
 export const dynamic = "force-dynamic";
 

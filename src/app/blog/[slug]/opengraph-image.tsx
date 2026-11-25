@@ -1,10 +1,10 @@
 import { ImageResponse } from "next/og";
-import { getAllPosts, getPostBySlug } from "@/lib/blog";
-import { loadSubsetFont } from "@/lib/og-font";
+import { getAllPosts, getPostBySlug } from "@/lib/content/blog";
+import { loadSubsetFont } from "@/lib/site/og-font";
 
 // 每篇文章自己的分享圖（TODO「每篇文章專屬 OG 分享圖」，2026-11-09）。之前文章分享出去都是首頁那張
 // 「PINGWEI LI — Portfolio」，看不出是哪篇。build 時每篇產生一張（generateStaticParams）。
-// 中文字型見 lib/og-font.ts；抓不到就退回英文標題。
+// 中文字型見 lib/site/og-font.ts；抓不到就退回英文標題。
 export const alt = "PINGWEI LI · 技術部落格";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

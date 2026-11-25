@@ -3,7 +3,7 @@
 import { ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { projects, personalProjects, courseProjects } from "@/lib/projects";
+import { projects, personalProjects, courseProjects } from "@/lib/content/projects";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
 import { GitHubIcon } from "@/components/ui/icons";

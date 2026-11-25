@@ -1,20 +1,20 @@
-import NavBar from "@/components/ui/NavBar";
-import BackToTop from "@/components/ui/BackToTop";
-import LocalClock from "@/components/ui/LocalClock";
-import VisitorStats from "@/components/ui/VisitorStats";
-import { PresenceCount } from "@/components/ui/Presence";
-import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
-import KonamiEgg from "@/components/ui/KonamiEgg";
-import TerminalMode from "@/components/ui/TerminalMode";
+import NavBar from "@/components/layout/NavBar";
+import BackToTop from "@/components/layout/BackToTop";
+import LocalClock from "@/components/live/LocalClock";
+import VisitorStats from "@/components/live/VisitorStats";
+import { PresenceCount } from "@/components/live/Presence";
+import KeyboardShortcuts from "@/components/layout/KeyboardShortcuts";
+import KonamiEgg from "@/components/fun/KonamiEgg";
+import TerminalMode from "@/components/fun/TerminalMode";
 import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
 import LatestPosts from "@/components/sections/LatestPosts";
-import { projects } from "@/lib/projects";
-import { PERSON_ID, SITE_URL } from "@/lib/site";
+import { projects } from "@/lib/content/projects";
+import { PERSON_ID, SITE_URL } from "@/lib/site/site";
 import JsonLd from "@/components/ui/JsonLd";
-import SiteFooter from "@/components/ui/SiteFooter";
+import SiteFooter from "@/components/layout/SiteFooter";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");

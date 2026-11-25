@@ -15,9 +15,9 @@
 // （識別碼 → 機型的快取，跟位置無關、不公開）。公開的只有「每種機型幾架」的彙總。
 // ⚠️ 不做航線統計：航線的交會處就是接收器的位置
 
-const fs = require("fs");
+const fs = require("node:fs");
 const { twDate, twHour } = require("./tw-time");
-const path = require("path");
+const path = require("node:path");
 
 const POLL_MS = 30_000;
 const KEEP_DAYS = 120;
@@ -319,4 +319,4 @@ function startRadarPoller({ host, file, typesFile, log }) {
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, twDate, applySample, summarize, detail, readState, pollRadar, startRadarPoller, flightsNow };
+module.exports = { AIRLINE_NAMES, TYPE_NAMES, lookupTypes, airlineOf, applySample, summarize, detail, readState, startRadarPoller, flightsNow };

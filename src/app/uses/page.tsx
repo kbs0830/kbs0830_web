@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
+import { withShare } from "@/lib/site/share-meta";
 import { Fragment } from "react";
-import PageShell from "@/components/ui/PageShell";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
-import { usesGroups } from "@/lib/page-content";
+import { usesGroups } from "@/lib/content/page-content";
 
 export const metadata: Metadata = withShare({
   title: "/uses — PINGWEI LI",

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import ToolNote from "@/components/tools/ToolNote";
-import { clothingAdvice, getFukuokaForecast, getWeather } from "@/lib/weather";
+import { clothingAdvice, getFukuokaForecast, getWeather } from "@/lib/live/weather";
 
 // 現在去福岡要穿什麼（TODO J4，2026-11-24）。現在的溫度跟頁尾時鐘旁的天氣同一份（30 分鐘快取），
 // 福岡這幾天的最高／最低另外抓（3 小時快取）。都是伺服器端抓，訪客的瀏覽器不連第三方。

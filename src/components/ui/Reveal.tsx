@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { useRevealOnce } from "@/lib/hooks";
+import { useRevealOnce } from "@/lib/client/hooks";
 
 // 捲動到才淡入。原本 About／Portfolio／Contact 各自用 framer-motion 的
 // useInView + motion.div 重寫了 6 份，只差在位移方向/距離/時間，收斂成這一個。

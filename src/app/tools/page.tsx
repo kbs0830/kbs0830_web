@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
-import { TOOL_PAGES as tools } from "@/lib/site-map";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
+import { TOOL_PAGES as tools } from "@/lib/site/site-map";
 
-// 小工具總覽（2026-11-24，決策表 J 系列）。清單跟 Ctrl+K 共用 lib/site-map.ts 的 TOOL_PAGES（頁尾只放一個「小工具」入口）
+// 小工具總覽（2026-11-24，決策表 J 系列）。清單跟 Ctrl+K 共用 lib/site/site-map.ts 的 TOOL_PAGES（頁尾只放一個「小工具」入口）
 export const metadata: Metadata = withShare({
   title: "小工具 · Tools — PINGWEI LI",
   description: "日幣換匯比價、台灣⇄福岡直飛班機、福岡穿搭、機場距離、日本消費稅換算、AI 爬蟲檢查、User-Agent 判斷。免費、不用登入、不存你輸入的東西。",

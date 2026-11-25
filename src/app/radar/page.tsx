@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dataFile } from "@/lib/data-file";
-import { withShare } from "@/lib/share-meta";
-import PageShell from "@/components/ui/PageShell";
+import { withShare } from "@/lib/site/share-meta";
+import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
-import RadarLive from "@/components/ui/RadarLive";
+import RadarLive from "@/components/live/RadarLive";
 import { BarChart, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { detail, readState } from "../../../scripts/lib/radar.js";
+import { nf, monthDay as md } from "@/lib/format";
 
 // 自家雷達頁（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）。
 // 資料：scripts/server.js 每 30 秒在區網讀雷達寫的 data/radar.json（scripts/lib/radar.js 的 detail()）。
@@ -23,12 +24,10 @@ export const metadata: Metadata = withShare({
 }, { ownImage: true });
 
 const radarFile = () => dataFile("RADAR_FILE", "radar.json");
-const nf = new Intl.NumberFormat("zh-TW");
 // 讀檔＋算現在的數字放在元件外面：元件裡直接呼叫 Date.now() 會被 React 的 purity 規則擋（每次請求重算本來就是這頁要的）
 const loadRadar = () => detail(readState(radarFile()), Date.now());
 /** detail().flightsNow 的一筆（radar.js 是 JS，型別在這裡補） */
 type NowFlight = { flight: string; alt: number | null; airlineName: string | null; typeName: string | null };
-const md = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
 
 export default function RadarPage() {
   const d = loadRadar();
@@ -113,7 +112,7 @@ export default function RadarPage() {
               caption={
                 <>
                   <span>{md(d.daily[0].date)}</span>
-                  <span>{md(d.daily[d.daily.length - 1].date)}</span>
+                  <span>{md(d.daily.at(-1)!.date)}</span>
                 </>
               }
             />

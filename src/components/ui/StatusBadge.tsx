@@ -1,4 +1,4 @@
-import type { Project } from "@/lib/projects";
+import type { Project } from "@/lib/content/projects";
 
 const statusColor: Record<Project["status"], string> = {
   "完成":     "text-(--accent) border-(--accent-lt) bg-(--accent-lt)",

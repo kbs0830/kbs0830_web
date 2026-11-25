@@ -1,4 +1,4 @@
-import { SECURITY_EMAIL, SITE_URL } from "@/lib/site";
+import { SECURITY_EMAIL, SITE_URL } from "@/lib/site/site";
 
 // /.well-known/security.txt（RFC 9116，TODO B8，2026-11-23）：發現安全問題的人要聯絡誰。
 // build 時產生；Expires 是 build 當下 + 180 天，每次部署自動往後延（RFC 建議不超過一年）。

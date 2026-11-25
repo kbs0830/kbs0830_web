@@ -58,8 +58,8 @@
 - [ ] **Claude 做**：`/hire` 頁（包 `PageShell`、補 `alternates.canonical`、加進 `sitemap.ts`、補 Markdown 版）
   - 服務範例：FastAPI／Flask 後端、YOLOv8／ONNX 模型部署、Next.js 網站、ADS-B 接收器架設
   - 每項服務配一個作品當證明（連到 `/projects/*`）
-  - 聯絡方式沿用 Contact 的信箱（`lib/site.ts`），**不用另申請表單**
-- [ ] **Claude 做**：Contact 區加一行「目前可接案 · Available for work」，狀態寫在 `lib/site.ts`，滿檔時一鍵關掉
+  - 聯絡方式沿用 Contact 的信箱（`lib/site/site.ts`），**不用另申請表單**
+- [ ] **Claude 做**：Contact 區加一行「目前可接案 · Available for work」，狀態寫在 `lib/site/site.ts`，滿檔時一鍵關掉
 - [ ] **你做**：在 GitHub 個人頁、104、LinkedIn 填上 `kbs0830.com/hire`（站外連結也能補 SEO）
 
 ### 2. 求職

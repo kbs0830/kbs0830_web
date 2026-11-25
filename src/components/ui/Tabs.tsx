@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
-export type TabItem = {
+type TabItem = {
   key: string;
   label: string;
   labelEn: string;
