@@ -5,6 +5,18 @@
 
 ---
 
+### 2026-11-25 Cache Components（TODO C13，使用者：「開始手搓 C13」）
+- [x] `next.config.ts` 開 `cacheComponents`＋`partialPrefetching`；35 個路由的 `dynamic`／`dynamicParams` 拿掉
+- [x] 8 個即時頁（/radar、/airports、/stats、/status、/colophon、/reports、/tools/fukuoka-weather、/tools/taiwan-fukuoka）改成
+  「build 時畫好的頁首外殼＋串流補進來的內容」（共用 `components/ui/LoadingBlock.tsx`；/airports 連資料來源那段也在外殼裡）
+- [x] 6 支同步讀檔的 API（radar、badge/uptime、visitor-stats、web-vitals、csp-report、presence）加 `await connection()`；
+  實測改雷達測試檔後 /api/radar 跟 /radar 頁的數字跟著變（382 → 1,382），沒有被凍結
+- [x] 分享圖原本會因為抓 Google 字型變成每次即時畫：字型改 `"use cache"`（失敗丟例外不快取），全部回到 build 時畫好；security.txt 改 `"use cache"`＋`cacheLife("days")`
+- [x] 不存在的文章／作品／標籤一開始變成回 200（外殼先串流）：三個動態路由加 Next 16.4 的 `ensureStatic = "navigation"`，回到真的 404，
+  也保證這幾頁以後不會被加進即時資料
+- [x] 匯率等 4 個外部資料刻意留在自己的 live-cache（掛掉時給上次的資料）
+- [x] 快取標頭跟以前一樣（靜態頁 s-maxage、即時頁 no-store）；單元測試 210、E2E 129 全過；手機 /status、桌機 /airports 截圖確認
+
 ### 2026-11-25 專案分類整理＋新寫法（使用者：「整個專案好好的做分類，讓 AI 更好找，冗長的刪掉，能用新寫法新技術就用」）
 - [x] `src/lib` 47 支平鋪 → `site／content／stats／ops／travel／live／api／tools／client` 九類；`components/ui` 51 支 → `layout／ui／live／content／stats／fun`
   （105 個檔案用 `git mv` 搬，歷史還在；182 個檔案的 import、註解、文件路徑一起改；import 一律 `@/`）。`scripts/` 沒動（排程工作用絕對路徑）

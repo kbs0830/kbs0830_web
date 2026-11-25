@@ -153,21 +153,6 @@
 - [ ] **C9. Renovate PR 自動試跑** 🟧 🙋：PR 開出來就 build 到第三個槽＋跑 E2E，結果留言在 PR 上（要 fine-grained PAT，跟 TODO 那項同一組）
 - [ ] **C12. MCP 伺服器登記到公開目錄** 🟩 🙋（11/22 新）：`/mcp` 做好了但沒人知道。可以登記到官方 MCP Registry 之類的目錄，
   要用你的 GitHub 帳號驗證、會公開出現在別人的網站上，所以要你決定要不要
-- [ ] **C13. 改用 Cache Components（Next 16 的新快取模型）** 🟥（11/25 新，使用者：「我要創新」）：頁面拆成「build 時畫好的靜態外殼＋訪客打開後串流補進來的即時數字」，
-  快取從「整頁設定」改成元件／函式寫 `"use cache"`＋`cacheLife`。官方文件寫 Next 17 會預設開啟、拿掉開關，現在做等於先把 17 的升級做完。約一天
-  → **0. 設定**：`next.config.ts` 加 `cacheComponents: true`、`partialPrefetching: true`（官方要求兩個一起）
-  → **1. 即時頁 8 頁拆外殼**：/radar、/airports、/stats、/status、/colophon、/reports、/tools/fukuoka-weather、/tools/taiwan-fukuoka。
-    標題、說明先畫好，數字包 `<Suspense>`。其中 /radar、/airports、/colophon 在畫面裡直接用 `Date.now()`／`new Date()`，開了會 build 失敗，要搬進 Suspense 並先呼叫 `connection()`
-  → **2. API 28 支 GET**：固定內容 14 支（/api/v1/*、feed.xml、llms.txt…）刪 `force-static`；抓外部網路 5 支刪 `force-dynamic` 就好；
-    ⚠️ **同步讀資料檔的 6 支**（/api/radar、badge/uptime、visitor-stats、web-vitals、csp-report、presence）**一定要加 `await connection()`**，
-    不然 build 時會把當下的數字凍結、之後永遠回同一份（新模型只有「非同步」讀檔／網路／讀 request 才算即時）；
-    security.txt 的到期日改 `"use cache"`＋`cacheLife("days")`
-  → **3. `dynamicParams = false` 4 處**（/api/v1/posts/[slug]、/api/v1/projects/[slug]、/blog/tags/[tag]、/md）：新模型不支援，改成找不到就 `notFound()`
-  → **4. 匯率、天氣、空氣品質、機場看板**改 `"use cache"`＋`cacheLife`，可以刪掉一大段 `lib/live/live-cache.ts`。
-    (?) 現在外部 API 掛掉會繼續給上次的資料，官方的會不會一樣文件沒寫——先實測，不會就這四個留著自己的快取
-  → **不用改**：error.tsx／global-error.tsx（瀏覽器跑）、sitemap（固定日期）、延誤記錄器（背景）、其他本來就靜態的頁面
-  → **驗證**：3200 的 build 輸出逐條看 ○／◐／ƒ（沒有即時 API 被凍結）、單元測試＋全部 E2E、390／桌機截圖看載入中不跳版、上線後打 API 看數字會變
-  → 先做風險最高的第 2 項
 - [ ] **C10. 筆電當第二台主機** 🟥：Cloudflare Tunnel 可以同時接兩個來源。筆電開著時自動分擔、桌機掛了接手。
   但筆電不是一直開著，**A2 比較實際**，這個當備案
 

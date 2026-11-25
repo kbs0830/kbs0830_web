@@ -98,6 +98,7 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript 6.0（TS 7 暫不升：typescript-eslint 還不支援，見 TODO.md） |
 | React | React 19.3 + React Compiler（`next.config.ts` 的 `reactCompiler: true`） |
+| 渲染／快取 | **Cache Components**（`cacheComponents: true`＋`partialPrefetching: true`，2026-11-25）：頁面＝build 時畫好的靜態外殼＋`<Suspense>` 串流補進來的即時資料，規則見下方「Cache Components」 |
 | 型別安全路由 | `typedRoutes: true`：`<Link href>`／`PageShell backHref` 寫錯路徑 tsc 就報錯（型別用 `Route`，不要寫 `string`） |
 | 圖片 | `next/image` 優先輸出 AVIF，退回 WebP |
 | 3D / WebGL | Three.js + React Three Fiber + Drei |
@@ -186,6 +187,19 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
   utility（`sm:max-w-xl` 失效）；而且 Tailwind preflight 會把 `<dialog>` 預設的置中 margin
   歸零，`margin: auto` 要自己補（第一版沒注意到，終端機跑到左上角、佔滿全寬）
 - 列印樣式會強制把 `[data-reveal]`／`.enter-*` 顯示出來，不然還沒捲到的區塊印出來是空白
+
+### Cache Components（2026-11-25 開啟，TODO C13）
+開了之後舊寫法會直接讓 build 失敗，或更糟——**不報錯但把即時資料凍結**：
+- **不要再寫 `export const dynamic`／`revalidate`／`dynamicParams`**（build 失敗）
+- **讀即時資料的頁面**照 `/radar` 的寫法：`Shell`（PageShell 頁首）＋`<Suspense fallback={<Shell><LoadingBlock /></Shell>}>`＋內容元件第一行 `await connection()`。
+  畫面裡用 `Date.now()`／`new Date()` 一定要在 `connection()` 之後（不然 build 失敗）
+- **API 的 GET 如果是同步讀檔（`readFileSync`／`readJsonFile`），開頭一定要 `await connection()`**：新模型只有非同步讀檔、網路、讀 request 才算即時，
+  同步讀檔的 GET 會在 build 時被跑一次、之後永遠回同一份（不會報錯，最危險）。驗證法：改資料檔再打一次 API，數字要跟著變
+- **動態路由（`[slug]`）加 `export const ensureStatic = "navigation"`**：不加的話不存在的網址會先串流外殼，狀態碼變 200（軟 404）
+- 外部資料要快取用 `"use cache"`＋`cacheLife`；**失敗要丟例外、不要回 null**（回 null 的失敗會被快取住，例：`lib/site/og-font.ts`）
+- 匯率、天氣、空氣品質、機場看板刻意留在自己的 `live-cache`（外部 API 掛掉時給上次的資料，官方的沒保證這個行為）
+- 單元測試直接呼叫 route 的 GET／POST 要 `vi.mock("next/server")` 把 `connection`、`after` 換成不做事
+- build 輸出每條路由要看一下：○ 靜態、◐ 外殼＋串流、ƒ 每次即時、● 預先產生。即時 API 一定要是 ƒ
 
 ### 寫法慣例（2026-11-12 全站檢查過一輪，使用者：「都用新技術新寫法」）
 - 全螢幕高度用 `min-h-svh`，不要 `min-h-screen`（100vh 在手機會被網址列吃掉一截、捲動時跟著跳）
