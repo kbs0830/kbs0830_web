@@ -62,6 +62,9 @@ export const TOOL_PAGES: SitePage[] = [
   { href: "/tools/user-agent", zh: "UA 是爬蟲嗎", en: "User-Agent", desc: "貼一串 User-Agent，判斷是瀏覽器、搜尋引擎、AI 爬蟲還是機器人" },
   { href: "/tools/tailwind-v4-vars", zh: "Tailwind v4 變數檢查", en: "Tailwind v4", desc: "升級 v4 後顏色不見？找出方括號變數寫法、一鍵改成小括號" },
   { href: "/tools/ps1-encoding", zh: "PowerShell 亂碼檢查", en: "PS1 BOM", desc: "有中文的 .ps1 在 PowerShell 5.1 變亂碼？檢查有沒有 BOM、一鍵補上" },
+  { href: "/tools/kanji-jp", zh: "繁體→日文漢字", en: "Kanji", desc: "輸入繁體中文，標出日文寫法不一樣的字（學→学、發→発）" },
+  { href: "/tools/vram", zh: "顯存計算機", en: "VRAM", desc: "顯卡跑得動幾 B 模型？選顯存、量化、context 估算本機 LLM 要多少 VRAM" },
+  { href: "/tools/power-cost", zh: "架站電費", en: "Power", desc: "家裡電腦 24 小時開機一年多少電費、跟租 VPS 比划不划算" },
 ];
 
 /** 快速跳轉的一筆結果（頁面、作品、文章共用） */
