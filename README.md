@@ -146,17 +146,19 @@ node scripts/spotify-get-refresh-token.js <code>   # 用導回網址裡的 code 
 | 讀寫 `data/`、`logs/` 的檔案 | `src/lib/data-file.ts`（`dataFile`、`readJsonFile`、`writeJsonFile`） |
 | 台灣日期／小時 | `scripts/lib/tw-time.js`（`twDate`、`twHour`；`src/` 跟 `scripts/` 共用） |
 | 判斷 User-Agent 是真人還是爬蟲 | `scripts/lib/bot-patterns.js`（`classify`、`isBrowserUA`） |
-| client 元件抓 JSON | `src/lib/hooks.ts` 的 `useJson`（async/await＋卸載就中斷） |
-| 抓外部 API 並快取 | `src/lib/live-cache.ts`（`cached`、`fetchJson`） |
+| client 元件抓 JSON | `src/lib/client/hooks.ts` 的 `useJson`（async/await＋卸載就中斷） |
+| 抓外部 API 並快取 | `src/lib/live/live-cache.ts`（`cached`、`fetchJson`） |
+| 數字千分位、月/日、台灣時間 | `src/lib/format.ts`（`nf`、`monthDay`、`twClock`） |
+| 路徑 → 頁名（統計、報表） | `src/lib/site/page-title.ts` |
 | 頁面外框、小節標題、圖表 | `PageShell`、`SectionHeading`、`StatCharts` |
 
-各頁面、元件的完整位置見 `.claude/skills/kbs-site/SKILL.md`。
+資料夾怎麼分見 `CLAUDE.md`「找檔案：目錄地圖」；完整樹狀圖跟每支檔案的用途見 `.claude/skills/kbs-site/SKILL.md` 的「Project Structure」。
 
 ---
 
 ## 外部資料（伺服器端抓、存記憶體快取）
 
-訪客的瀏覽器不直接連第三方：伺服器去抓、快取在記憶體（`src/lib/live-cache.ts`），抓不到就繼續給上一次成功的資料，
+訪客的瀏覽器不直接連第三方：伺服器去抓、快取在記憶體（`src/lib/live/live-cache.ts`），抓不到就繼續給上一次成功的資料，
 完全沒有就那一塊不顯示。不用改 CSP，也不會把訪客 IP 給別人。
 
 | 用在哪 | 來源 | 金鑰 | 多久抓一次 |

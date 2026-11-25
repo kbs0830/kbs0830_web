@@ -102,7 +102,7 @@ Workflow: `.github/workflows/deploy.yml`；手動部署 `deploy.bat` 呼叫同�
 - 驗證退回：`powershell -File scripts\deploy.ps1 -TestRollback`（切過去後故意當成健檢失敗）
 - `pnpm-lock.yaml` 跟上次成功 install 的雜湊（`node_modules/.deploy-lock-hash`）不同才 install；
   install 前要停站（Windows 鎖 native `.node` 檔），這種部署停站時間是 install + build
-- 部署成功後：`/resume` 內容來源（`src/app/resume`、`lib/about.ts`、`lib/projects.ts`、`globals.css`、
+- 部署成功後：`/resume` 內容來源（`src/app/resume`、`lib/content/about.ts`、`lib/content/projects.ts`、`globals.css`、
   `app/fonts.ts`）跟上次部署（`data/last-deployed-commit.txt`）比有變，就自動重印 `public/resume.pdf`
   並 commit + push（會再觸發一次部署，那次只改到 PDF，不會再印）
 
@@ -177,7 +177,7 @@ watchdog 每輪呼叫，日期（＋`time`，預設 09:00）到了就寄一封�
 
 **週報／月報（2026-11-25 起，`scripts/report-mail.ps1`，取代 weekly-report.ps1）**：watchdog 每輪呼叫 `-Period week`、`-Period month`。
 週報週一 09:00 後寄上一週（週一～週日）、月報 1 號 09:00 後寄上個月；寄過的期別記在 `data/report-mail-state.json`（`week`＝那週週一、`month`＝`yyyy-MM`）。
-內容**不在 PowerShell 算**：打本機 `http://localhost:3000/api/reports?period=…&anchor=…&format=text`（`src/lib/reports.ts`，跟網頁 `/reports` 同一份），
+內容**不在 PowerShell 算**：打本機 `http://localhost:3000/api/reports?period=…&anchor=…&format=text`（`src/lib/stats/reports.ts`，跟網頁 `/reports` 同一份），
 再補 Search Console（`search-console.js --days 7|30`）。網站沒回應就這輪不寄、5 分鐘後再試。`/api/reports` 帶 `cf-ipcountry`／`cf-connecting-ip` 的請求回 404（只給本機）。
 手動：`-DryRun`、`-Force`、`-Anchor 2026-11-16`、`-BaseUrl http://localhost:3200`（對測試 server 試跑）。日報不寄信（使用者要的），只在網頁看。
 11/25 第一次部署時先把 state 設成 `month: 2026-10`，免得補寄一封幾乎沒資料的 10 月月報。

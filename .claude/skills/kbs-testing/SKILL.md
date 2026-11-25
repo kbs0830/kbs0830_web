@@ -47,10 +47,10 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 跟 `tsconfig.json` 對齊）。⚠️ Claude 的 Git Bash 有時會讓**所有**測試檔都報
 `Cannot read properties of undefined (reading 'config')`（0 tests）——環境問題不是程式壞掉，改用 PowerShell 跑就正常（2026-11-12）。跟 Playwright 分開維護：Vitest 測純函式跟 API route 的邏輯
 分支，不需要真的開瀏覽器。目前測：
-- `src/lib/blog.ts` 的 `getAllPosts()`／`getPostBySlug()`——直接讀 `content/blog/*.mdx`
+- `src/lib/content/blog.ts` 的 `getAllPosts()`／`getPostBySlug()`——直接讀 `content/blog/*.mdx`
   真實文章，不 mock fs（三篇文章目前 date 剛好都相同，正好覆蓋排序 comparator 對
   「相同日期」的處理）
-- `src/lib/aircraft.ts` 的 `formatFlightCode()`——原本這段「代碼 → 代碼(機型)」的格式化
+- `src/lib/travel/aircraft.ts` 的 `formatFlightCode()`——原本這段「代碼 → 代碼(機型)」的格式化
   邏輯是寫死在 `AboutSection.tsx` 裡的一行 inline expression，沒東西可以獨立測，抽成
   export function 之後才有辦法補單元測試，行為完全沒變
 - `src/app/api/visitor-stats/route.ts`——用 `VISITOR_STATS_FILE` 環境變數指到暫存檔

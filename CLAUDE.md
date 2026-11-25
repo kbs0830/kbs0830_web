@@ -107,6 +107,27 @@ Tailwind v4 把「方括號 + 裸變數名稱」的簡寫（`bg-[--accent]`）**
 | Tunnel | Cloudflare Tunnel (cloudflared) |
 | DNS | Cloudflare |
 
+### 找檔案：目錄地圖（2026-11-25 分類過，新檔案照這個放，import 一律 `@/`）
+
+| 要找… | 在哪 |
+|---|---|
+| 頁面、API | `src/app/`（`api/` 內部用、`api/v1/` 公開） |
+| 首頁四個區塊 | `components/sections/` |
+| 頁框、導覽、Ctrl+K、主題切換 | `components/layout/` |
+| 基本元件（標題、清單、Tabs、Modal、動畫、圖表） | `components/ui/` |
+| 即時資料小工具（雷達、匯率、Spotify、時鐘） | `components/live/`；資料來源在 `lib/live/` |
+| 3D 背景、地球 | `components/canvas/` |
+| 作品、文章、About 的資料 | `lib/content/` |
+| 訪客統計、報表 | `lib/stats/`；回報元件在 `components/stats/` |
+| 維運（可用率、部署、更新紀錄） | `lib/ops/` |
+| 航班、住宿、機場、延誤 | `lib/travel/` |
+| 網址、導覽分組、SEO、OG 圖 | `lib/site/` |
+| 只在瀏覽器跑的 hook | `lib/client/` |
+| 讀寫 `data/`、`logs/` | `lib/data-file.ts` |
+| 排程、部署、伺服器 | `scripts/`（⚠️ 不要搬，排程工作用絕對路徑指過去） |
+
+完整的樹狀圖跟每支檔案的用途在 `kbs-site` 技能的「Project Structure」。
+
 ### Server / Client Component 分工（2026-11）
 
 **首頁四個 section 都是 Server Component**，只把真的需要瀏覽器的小元件標 `"use client"`
@@ -121,14 +142,14 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 | Portfolio | `ProjectFilter`（只管 tag 篩選，卡片是 server 產生後當 ReactNode 傳進去） |
 | Contact | `CopyEmailButton`、`Magnetic` |
 
-- 資料檔：About 的技能/時間軸/足跡在 `lib/about.ts`，作品在 `lib/projects.ts`
+- 資料檔：About 的技能/時間軸/足跡在 `lib/content/about.ts`，作品在 `lib/content/projects.ts`
 - client 元件需要伺服器資料時，在 server 端先算好再當 prop 傳（例：`TerminalMode` 的
   `projectListing` 由 `page.tsx` 排好傳入，不在 client import `projects.ts`）
 - 字體一律用 `font-mono` / `font-serif` class（`globals.css` 的 `@theme inline` 已對應），
   不要再寫 `style={{ fontFamily: "var(--font-…)" }}`
 - 首頁以外的獨立頁面一律包 `<PageShell backHref backLabel printable eyebrow title intro>`
   （窄欄 + 返回連結；eyebrow/title/intro 是「小標＋大標＋一段說明」的頁首，/now、/uses、/blog、404 共用）
-- 網址、email、GitHub/FB/IG 連結一律從 `lib/site.ts` 引用，不要再寫字面值
+- 網址、email、GitHub/FB/IG 連結一律從 `lib/site/site.ts` 引用，不要再寫字面值
 - 重複出現的小區塊已經有元件，先找再寫：`SectionHeading`（小節標題）、`BulletList`（▸ 清單）、
   `StatusBadge`（作品狀態）、`ProjectHighlight`（作品成果一句話）、`JsonLd`（結構化資料）、
   `Eyebrow`、`TagBadge`
@@ -148,8 +169,8 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 | 展開/收合 | `<Collapse open>`（grid-rows 0fr↔1fr，收合時 `inert`） | `components/ui/Collapse.tsx` |
 | 彈窗 | `<Modal open onClose label>`（原生 `<dialog>` + `@starting-style`） | `components/ui/Modal.tsx` + `globals.css dialog.modal` |
 | 捲動進度條 | CSS `animation-timeline: scroll()` | `globals.css .scroll-progress` |
-| 讀 matchMedia / scrollY | `useMediaQuery` / `useScrolledPast`（`useSyncExternalStore`） | `lib/hooks.ts` |
-| 讀目前主題強調色（給 canvas／three.js 用） | `useAccentColor`（MutationObserver 看 `data-theme`） | `lib/hooks.ts` |
+| 讀 matchMedia / scrollY | `useMediaQuery` / `useScrolledPast`（`useSyncExternalStore`） | `lib/client/hooks.ts` |
+| 讀目前主題強調色（給 canvas／three.js 用） | `useAccentColor`（MutationObserver 看 `data-theme`） | `lib/client/hooks.ts` |
 | 分頁 | `<Tabs items label>`（ARIA tabs、←→ 換頁、沒選中的面板 `hidden="until-found"`：HTML 裡內容都在、Ctrl+F 找得到會自動切頁、列印全印） | `components/ui/Tabs.tsx` |
 | Hero 名字滑鼠解碼 | `data-scramble="hover"`（單一 text node） | `components/sections/HeroNameScramble.tsx`（只掛在 Hero） |
 | Hero 捲走時文字上飄淡出（零 JS） | `.hero-parallax` | `globals.css` `@supports (animation-timeline: view())` |
@@ -177,7 +198,10 @@ client bundle（2026-11 之前就是這樣，首頁 bundle 裡帶著所有詳細
 - 彈窗只用 `<Modal>`（原生 `<dialog>`），不要自己寫 div 遮罩＋Esc 監聽
 - **共用模組先用，不要再抄一份**（2026-11-25 整理過一輪：台灣日期原本寫了 10 份、資料檔讀寫 16 份、抓 JSON 5 份）：
   `data/`／`logs/` 讀寫用 `lib/data-file.ts`、台灣日期用 `scripts/lib/tw-time.js`、真人／爬蟲判斷用 `bot-patterns.js` 的 `isBrowserUA`、
-  client 抓 JSON 用 `hooks.ts` 的 `useJson`（完整對照表在 README「程式結構」）
+  client 抓 JSON 用 `hooks.ts` 的 `useJson`、數字／月日／台灣時間用 `lib/format.ts`、路徑轉頁名用 `lib/site/page-title.ts`（完整對照表在 README「程式結構」）
+- **新語法**（2026-11-25 掃過一輪）：Node 內建模組一律 `node:` 開頭；取最後一個用 `.at(-1)`、排序不改原陣列用 `.toSorted()`；
+  回應之後才做的背景工作用 `next/server` 的 `after()`（不要 `void promise`）；讀磁碟、抓外部 API 的模組開頭加 `import "server-only"`
+  （Next 內建、不用裝；vitest 那邊已設 alias）
 
 ### pnpm 注意事項
 
@@ -269,7 +293,7 @@ A14 的顯示晶片跟桌機的 RTX 3070 不同，首頁 WebGPU（`hero-webgpu.s
    **2026-11-04 使用者再次確認維持這條**（問過要不要在 About／頁面標題露出本名來提升人名搜尋，
    選了「只放不可見資料」）。**2026-11-05 使用者講得更明確：「AI 跟一般搜尋（爬蟲）找我的名字要找得到，
    只是不要顯示在網頁上，人看不到的地方可以」**。目前放本名的地方：Person JSON-LD 的 `alternateName`、
-   `/llms.txt`、每一頁的 Markdown 版（`lib/markdown.ts`，標題跟頁尾「作者」行）。**不能放**：畫面上的任何文字、
+   `/llms.txt`、每一頁的 Markdown 版（`lib/content/markdown.ts`，標題跟頁尾「作者」行）。**不能放**：畫面上的任何文字、
    `<title>`、meta description、OG／Twitter 卡片（這些會直接出現在搜尋結果或分享預覽裡給人看）。
    `e2e/privacy.spec.ts` 會擋：主要頁面的可見文字／title／description 有本名就失敗、首頁 JSON-LD 沒本名也失敗。
    已經跟使用者說明過：只靠不可見資料，Google 搜「李秉威」很難排上去，主要靠站外連結（GitHub 個人頁等）補強

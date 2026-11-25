@@ -5,6 +5,16 @@
 
 ---
 
+### 2026-11-25 專案分類整理＋新寫法（使用者：「整個專案好好的做分類，讓 AI 更好找，冗長的刪掉，能用新寫法新技術就用」）
+- [x] `src/lib` 47 支平鋪 → `site／content／stats／ops／travel／live／api／tools／client` 九類；`components/ui` 51 支 → `layout／ui／live／content／stats／fun`
+  （105 個檔案用 `git mv` 搬，歷史還在；182 個檔案的 import、註解、文件路徑一起改；import 一律 `@/`）。`scripts/` 沒動（排程工作用絕對路徑）
+- [x] CLAUDE.md 加「找檔案：目錄地圖」；kbs-site 技能的目錄樹整個重寫（原本已經過時，lib 只列 7 支）
+- [x] 刪冗長：`lib/format.ts` 取代 14 份 `NumberFormat`、各自的月/日與時:分；`lib/site/page-title.ts` 取代 /stats 手寫的頁名表（順便補上 7 個工具頁）；
+  50 個只有自己檔案在用的 export 收回來
+- [x] 新寫法：Node 內建模組全面 `node:` 前綴（36 處）、`.at(-1)`／`.toSorted()`、背景更新改用 Next 的 `after()`、
+  讀檔／抓外部 API 的模組加 `import "server-only"`（不小心被 client import 會在 build 時擋下）
+- [x] 單元測試 210、E2E 129 全過；22 條路由實際打過
+
 ### 2026-11-25 Google 搜尋優化（使用者：「Google 怎麼更好搜尋到我」「你直接做」）
 - [x] 查 Search Console：45 頁只收錄 26 頁、16 頁 Google 不知道（sitemap 11/21 之後沒回來讀，那時只有 29 個網址）；「pingwei li」已搜得到、「李秉威」0 曝光
 - [x] 重新提交 sitemap（服務帳號本來就是「完整」權限），並接進 deploy.ps1：內容有變就自動重新提交（`search-console.js --submit-sitemap`，寫入權限只用在這裡）

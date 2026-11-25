@@ -13,12 +13,12 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - **手機閱讀（2026-11-05）**：作品篩選列在手機是一列橫向滑動（`.filter-scroll`，邊緣淡出）；作品卡片手機只顯示
   中文說明（英文 `hidden sm:block`，詳細頁仍完整）；文章／作品詳細頁／清單內文手機 15px、行距 1.8～1.9；
   文章程式碼區塊手機貼齊螢幕邊；獨立頁面（PageShell）有閱讀進度條；文章顯示估計閱讀時間（`blog.ts` 的 `readingMinutes`）
-- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新；2026-11-22 加天氣「晴 23°」：`/api/weather` → `lib/weather.ts`，Open-Meteo 30 分鐘抓一次，讀不到只顯示時間）
+- **Footer**：`© 2026 PINGWEI LI` ＋ `BuildInfo`（「最後更新」＝build 時 HEAD 的 commit 時間，台灣時間到分鐘；`next.config.ts` 的 `env` 寫死，零 JS。版本號 2026-11-05 依使用者要求先拿掉）＋ `LocalClock`（高雄／福岡雙時區現地時間，每 30 秒更新；2026-11-22 加天氣「晴 23°」：`/api/weather` → `lib/live/weather.ts`，Open-Meteo 30 分鐘抓一次，讀不到只顯示時間）
   ＋ `PresenceCount`（「● いま N 人」，2026-11-23 TODO B4：layout 的 `Presence` 每頁前景時 30 秒 POST `/api/presence`，背景／關分頁 sendBeacon 離開；
-  `lib/presence.ts` 只在記憶體記 sessionStorage 分頁代碼 → 最後時間，70 秒過期，不寫檔、重啟歸零；只收有 `cf-ipcountry` 的，所以本機測試要自己帶這個 header）
+  `lib/stats/presence.ts` 只在記憶體記 sessionStorage 分頁代碼 → 最後時間，70 秒過期，不寫檔、重啟歸零；只收有 `cf-ipcountry` 的，所以本機測試要自己帶這個 header）
   ＋ `VisitorStats`（訪客來源國家統計，見下方「第三方整合」）
 - **頁面瀏覽（2026-11-23，使用者：「繼續改頁面瀏覽方便程度」）**：
-  - 全站頁面清單只有一份 `lib/site-map.ts`（`HOME_SECTIONS`＋`SITE_GROUPS` 三組：文章／旅／本站）。**新增獨立頁面要加進去**（sitemap.ts 另外加）
+  - 全站頁面清單只有一份 `lib/site/site-map.ts`（`HOME_SECTIONS`＋`SITE_GROUPS` 三組：文章／旅／本站）。**新增獨立頁面要加進去**（sitemap.ts 另外加）
   - `SiteFooter`：頁面索引＋版權＋最後更新，首頁跟每個 `PageShell` 頁都有（之前子頁面只有「← 返回首頁」，/now、/uses、/travel 等沒有站內入口）。
     首頁多傳 `extra`（時鐘、人數、訪客國家）；子頁不放，少打 API。PageShell 外框改 `flex-1`（body 是 flex-col）讓短頁面頁尾也貼底；內容包 `<main>`
   - `QuickJump`（掛在 layout，每頁都有）：Ctrl+K／⌘K，或 NavBar 的放大鏡、PageShell 右上「搜尋」（`QuickJumpButton` 送 `quickjump:open` 事件）。
@@ -26,14 +26,14 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
     結果是一般 `<Link>`，↑↓ 只移動高亮、Enter＝點那個連結。別的彈窗（終端機）開著時不疊。全站 `:focus-visible` 沒包 layer，輸入框外框用 inline style 關掉、改底線變色。
     E2E `e2e/quick-jump.spec.ts`
 - **BackToTop**：返回頂端按鈕
-- **KeyboardShortcuts**（`src/components/ui/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
+- **KeyboardShortcuts**（`src/components/layout/KeyboardShortcuts.tsx`）：`G` → GitHub、`E` → Email、
   `1/2/3` → section 快速跳轉，`?` 呼出快捷鍵提示浮窗
 - **KonamiEgg**：↑↑↓↓←→←→BA 觸發「ようこそ」全螢幕彩蛋
 - **TerminalMode**：按 `` ` `` 叫出偽終端機，支援 `help` / `ls projects` / `cat about.txt` /
   `ssh kbs0830@kbs0830.com` 等指令
 - **Print 樣式**：`@media print` 隱藏 3D / NavBar / 動畫，排成 A4 履歷格式
 - **2026-11-24 頁首頁尾小修（決策表 F1／F4／F10／Q5／I8）**：
-  - `ThemeToggle`（`components/ui/ThemeToggle.tsx`）從 NavBar 抽出來，PageShell 右上「搜尋」旁也有一顆——之前子頁面沒辦法切主題
+  - `ThemeToggle`（`components/layout/ThemeToggle.tsx`）從 NavBar 抽出來，PageShell 右上「搜尋」旁也有一顆——之前子頁面沒辦法切主題
   - 手機選單（NavBar 抽屜）：錨點下面多一組常用頁（`pages`：部落格、履歷、旅行）；打開時焦點移到第一個連結；Esc（焦點回漢堡鈕）、
     點 header 以外、捲動超過 40px 都會收起。E2E `navbar.spec.ts`「手機選單」
   - 頁尾 `© 2026–{年}`：年份用 `BUILD_COMMIT_TIME`（不是 build 當下的時鐘）；`BuildInfo` 時間後面加回 7 碼 hash（**不要加 opacity**，a11y 對比會掛）
@@ -58,18 +58,18 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   - 改手機版要實際量高度（390×844，`scrollHeight / innerHeight`）跟截圖；首頁 2026-11-24 從 14.6 → 7.3 個螢幕
 
 ### /tools 小工具（2026-11-24，決策表 J 系列）
-- 清單在 `lib/site-map.ts` 的 `TOOL_PAGES`（`/tools` 總覽、Ctrl+K 都讀這份）；頁尾只放一個「小工具」入口（7 個放進頁尾會擠成兩行，試過）
+- 清單在 `lib/site/site-map.ts` 的 `TOOL_PAGES`（`/tools` 總覽、Ctrl+K 都讀這份）；頁尾只放一個「小工具」入口（7 個放進頁尾會擠成兩行，試過）
 - 共同規則：能在瀏覽器算的在瀏覽器算；輸入放網址參數（`useSearchParams`，頁面要包 `<Suspense>`）可以分享結果；不存訪客輸入；
   每頁最下面 `ToolNote`（資料來源＋連回對應作品／頁面）。新增工具：加進 `TOOL_PAGES`＋`sitemap.ts`＋`llms.txt` 那行
 - `/tools/jpy`：`JpyExchange` 讀既有的 `/api/jpy-rate`，走勢圖共用 `JpyRateLive` 匯出的 `Trend`
-- `/tools/taiwan-fukuoka`：`taiwanFuk()`（`lib/airport-board.ts`）從福岡看板篩台灣機場（`TW_AIRPORTS`），時間都是福岡時間；force-dynamic＋AutoRefresh
-- `/tools/fukuoka-weather`：`getFukuokaForecast()`／`clothingAdvice()`（`lib/weather.ts`），force-dynamic
+- `/tools/taiwan-fukuoka`：`taiwanFuk()`（`lib/travel/airport-board.ts`）從福岡看板篩台灣機場（`TW_AIRPORTS`），時間都是福岡時間；force-dynamic＋AutoRefresh
+- `/tools/fukuoka-weather`：`getFukuokaForecast()`／`clothingAdvice()`（`lib/live/weather.ts`），force-dynamic
 - `/tools/airport-distance`：`public/data/airports.json`＝OurAirports（公共領域）精簡版，大中型＋有定期航班＋有 IATA，3,245 個，
-  只有這頁會下載；我飛過的機場用 `lib/flights.ts` 的中文名。要更新資料：重抓 ourairports-data 的 airports.csv／countries.csv 照同樣條件篩
+  只有這頁會下載；我飛過的機場用 `lib/travel/flights.ts` 的中文名。要更新資料：重抓 ourairports-data 的 airports.csv／countries.csv 照同樣條件篩
 - `/tools/japan-tax`：`splitTax()`，稅額小數捨去
-- `/tools/ai-crawlers`：`/api/tools/robots?domain=`。robots 解析在 `lib/robots.ts`（RFC 9309），**抓外部網址一律用 `lib/safe-fetch.ts`**
+- `/tools/ai-crawlers`：`/api/tools/robots?domain=`。robots 解析在 `lib/tools/robots.ts`（RFC 9309），**抓外部網址一律用 `lib/tools/safe-fetch.ts`**
   （只收網域、連線時檢查解析出來的 IP、轉址每跳重查、逾時／大小上限）；每 IP 10 分鐘 15 次、全站每小時 300 次、同網域快取 10 分鐘。
-  單元測試 `lib/robots.test.ts` 有私有 IP／網域正規化的案例，改 safe-fetch 要一起跑
+  單元測試 `lib/tools/robots.test.ts` 有私有 IP／網域正規化的案例，改 safe-fetch 要一起跑
 - `/tools/user-agent`：分類規則在 `scripts/lib/bot-patterns.js`（不碰 fs，client 可以 import；`raw-traffic.js` 也用它）
 
 ### 1. Hero
@@ -77,7 +77,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   （`[writing-mode:vertical-rl]`、`sm:hidden`）；按鈕上方 `HeroTwoCities`＝高雄 ⇄ 福岡兩地時鐘（`useSyncExternalStore`＋15 秒，伺服器 `--:--`；
   `<p>` 不能加 `aria-label`，axe 會擋）。桌機一個 class 都沒動，改之前截 1280 確認
 - **版本統計（B13，2026-11-25）**：`HeroBackground` 每個分頁 POST 一次 `/api/hero-stats` `{variant: lite|gl|gpu}`（sessionStorage `hero-reported`），
-  WebGPU 退回再送 `{fallback}`（route 歸成 slow／init／no-webgpu-backend／other）。`lib/hero-stats.ts` → `data/hero-stats.json`（`HERO_STATS_FILE`），
+  WebGPU 退回再送 `{fallback}`（route 歸成 slow／init／no-webgpu-backend／other）。`lib/stats/hero-stats.ts` → `data/hero-stats.json`（`HERO_STATS_FILE`），
   `/stats`「首頁 3D 背景拿到哪一版」。過濾：沒 `cf-ipcountry`、`classify(ua).kind !== "browser"`、`isNotMe()` 都不記
 - **WebGPU 版第五個形狀「cities」（B14）**：`hero-shapes.ts`，高雄（左下）⇄ 福岡（右上）兩點＋光圈＋弧線＋地名；雙擊順序 stars→name→routes→icon→cities
 - **桌機互動（2026-11-05）**：游標靠近粒子被推開、游標跟附近粒子連成星座線、點空白處送出衝擊波、往下捲相機後退；
@@ -132,11 +132,11 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - **足跡 · Footprint**：已到訪國家（日本／韓國／越南／泰國／香港／美國）與規劃中（新加坡／馬來西亞），
   標題下有一行粗顆粒度統計（已到訪/規劃中國家數，不含日期），最下面連到 `/flights`。
   **2026-11-05 航班明細搬到獨立頁 `/flights`**（使用者：「主角還是關於 code」），首頁只留國家跟城市。
-  航班資料在 `src/lib/flights.ts`（使用者提供的 byAir 匯出檔整理，**只留航班代碼＋起降機場**，日期／時間／座位／
+  航班資料在 `src/lib/travel/flights.ts`（使用者提供的 byAir 匯出檔整理，**只留航班代碼＋起降機場**，日期／時間／座位／
   訂位代碼／備註一律不放——有日期就拼得出行程；`flights.test.ts` 會擋日期時間格式混進來）。
   `/flights` 頁：統計（航班／機場／航空公司／大圓距離）、`RouteMap.tsx` 東亞航線圖（Server Component 靜態 SVG、
   沒有底圖、弧線用 CSS 畫出來）、航線（前 10 條，其餘 `<details>`）、機場、航空公司。排除的兩班：JX206（沒搭到）、
-  GK17（同日另有 UA837，使用者確認搭 UA837）。機型對照表獨立放在 `src/lib/aircraft.ts`（`aircraftByFlight: Record<string,
+  GK17（同日另有 UA837，使用者確認搭 UA837）。機型對照表獨立放在 `src/lib/travel/aircraft.ts`（`aircraftByFlight: Record<string,
   string>`，代碼 → 機型），這是使用者自己維護的航迷小筆記，純靜態編譯進頁面（首頁是
   static prerender，改完要 build/push 才會生效，不是即時資料庫）。**資料本身沒有官方來源**，
   新增/修改機型一律要使用者親口告知對應的航班代碼，不要自己猜或編造機型。「代碼 →
@@ -144,10 +144,10 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   `AboutSection.tsx` 裡的 inline expression，抽出來純粹是為了能補單元測試，行為沒變）。
   **旅行地球 `/travel`（2026-11-21，TODO A5）**：飛行＋住宿畫在同一顆地球（`components/canvas/TravelGlobe.tsx`，Canvas 2D 正射投影、
   桌機手機同一套、不載 three.js；經緯線＋大圓航線弧線（越長拱越高）＋城市點，沒有底圖）。拖曳轉、「全球／東亞」切換、點城市看住過幾間／起降幾次，
-  下面的城市清單是鍵盤操作的入口。慢慢自轉；reduced-motion 不轉；捲出畫面／背景分頁停畫。資料 `lib/travel.ts`（機場 80 km 內併到住過的城市）。
+  下面的城市清單是鍵盤操作的入口。慢慢自轉；reduced-motion 不轉；捲出畫面／背景分頁停畫。資料 `lib/travel/travel.ts`（機場 80 km 內併到住過的城市）。
   /flights、/hotels 照舊（明細），開頭都有「在地球上看 →」
   **住宿紀錄 `/hotels`（2026-11-09）**：使用者 Google 地圖「已儲存 → 飯店」的 Takeout 匯出，78 間，使用者確認**全部住過**。
-  資料在 `src/lib/hotels.ts`（名稱＋城市＋集團，**不放日期／房型／價格**；城市靠名稱＋地圖連結裡 S2 cell 解出的約略座標交叉確認，
+  資料在 `src/lib/travel/hotels.ts`（名稱＋城市＋集團，**不放日期／房型／價格**；城市靠名稱＋地圖連結裡 S2 cell 解出的約略座標交叉確認，
   集團不確定就歸「其他」）。`HotelMap.tsx` 跟 RouteMap 同風格：東亞圖（台灣併成一點）＋台灣放大圖，**只標城市不標飯店位置**（使用者選的）。
   足跡分頁底下跟 `/flights` 頁尾都有連過去。**會籍**（`MEMBERSHIPS`，2026-11-09 使用者給的：飯店／航空／機場貴賓室／郵輪／租車）只寫計畫名稱＋等級（**權益、效期不寫**，使用者說的），
   **會員編號一律不放**（`hotels.test.ts` 擋 6 位以上數字）；名稱照官方寫法校過。有效期的三筆（GHA、IHG 酒廊、華航）
@@ -163,7 +163,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 用 next/link 的話 client 換頁時網址參數不一定已經換好
 篩選卡片的 filter bar（`src/components/sections/PortfolioSection.tsx`），卡片 hover lift。
 
-個人専案（`isPersonal: true`，見 `src/lib/projects.ts`）：
+個人専案（`isPersonal: true`，見 `src/lib/content/projects.ts`）：
 - **FoodLens Advisor**：YOLOv8 + Gemini AI，影像留本機，隱私優先，薄客戶端架構
 - **YARTIX Ticketing**：Flask 活動報名售票系統（台灣鐵道文化意象），LINE/Email 付款、Google Sheets
 - **FRC Robot Team**：2023 全國冠軍聯盟
@@ -185,7 +185,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 底部日文備注：「学習記録は非公開リポジトリに保存されています。」
 
 **⚠️ `projects.ts` 曾列過的「麵包店電商網站」課程専題已依使用者要求移除**，改動這份清單前
-先確認 `src/lib/projects.ts` 目前實際內容，不要照這份文件的舊描述回填。
+先確認 `src/lib/content/projects.ts` 目前實際內容，不要照這份文件的舊描述回填。
 
 `/projects/[slug]` 詳細頁（`src/app/projects/[slug]/page.tsx`）：`generateStaticParams`
 把全部作品 SSG 成獨立頁面，卡片整張可點擊（overlay `<Link>`，GitHub icon 用 z-index
@@ -196,7 +196,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 **架構圖是部署前預先畫好的靜態 SVG（2026-11-04）**：
 - `scripts/render-diagrams.mjs`（`pnpm diagrams`）用 Playwright Chromium + mermaid 把每張圖畫成
   亮色／暗色兩份 SVG，存 `src/generated/diagrams/<key>-{light,dark}.svg`（**進版控**）。
-  key = 圖的原始碼＋`lib/mermaid-config.ts` 主題設定的雜湊（`lib/diagram-key.ts`），改圖或改設定就換 key
+  key = 圖的原始碼＋`lib/content/mermaid-config.ts` 主題設定的雜湊（`lib/content/diagram-key.ts`），改圖或改設定就換 key
 - `ArchitectureDiagram.tsx`（Server Component）build 時讀 SVG 嵌進 HTML，兩份都放，`globals.css` 依
   `data-theme` 只顯示一份——切換主題圖會跟著變（舊版只在載入時畫一次，切主題不會變）
 - 找不到對應 SVG 時退回 `MermaidDiagram.tsx` 瀏覽器端即時渲染（動態 import mermaid），網站不會壞
@@ -215,13 +215,13 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
   `/resume` 頁面跟 `public/resume.pdf` 照舊（部署照常自動重印）
 
 ### 5. `/blog`（獨立頁面，非首頁 section）
-內容來源 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析，`src/lib/blog.ts` 讀取），
+內容來源 `content/blog/*.mdx`（frontmatter 用 `gray-matter` 解析，`src/lib/content/blog.ts` 讀取），
 `/blog` 列表頁 + `/blog/[slug]` 用 `next-mdx-remote/rsc` 渲染，`generateStaticParams` SSG。
 **文章內容必須是真的踩過的坑，不能編造**——目前 8 篇都是實際 debug 過程的記錄（Next.js
 `params` Promise 陷阱、訪客統計被機器人污染、Lighthouse WCAG 對比度問題、Task Scheduler 72 小時上限、Tunnel 斷 4 天、
 `/blog/.env` 回 500（cwd 是 System32）、VS Code 鎖住 `.next`（雙槽部署由來）、CI 灌了 1037 筆假訪客）。
 **草稿放 `content/drafts/`**（`blog.ts` 不讀、不進 git），使用者看過才搬進 `content/blog/`、日期改成發佈當天。
-**2026-11-09 加的功能**（`lib/blog.ts`，都有單元測試）：
+**2026-11-09 加的功能**（`lib/content/blog.ts`，都有單元測試）：
 - 系列文：frontmatter `series: "自架網站維運"` ＋ `seriesOrder: N`，文章開頭出現系列導覽（目前 5 篇）。新文章屬於同系列就照加
 - 上一篇／下一篇（依日期）、相關文章（共同 tag，**不含同系列**——系列導覽已經列了）
 - 目錄：4 個以上 `##` 小標才出現，原生 `<details>` 預設收起；h2 的 id 跟目錄都用 `headingId()`，改規則兩邊一起變
@@ -235,11 +235,11 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 - 首頁作品集下面有「最新文章」3 篇（`components/sections/LatestPosts.tsx`）
 
 **2026-11-21 部落格升級（TODO A6）**，都沒有裝新套件：
-- 全文搜尋：`lib/blog-search.ts`＋`/blog/search-index.json`（build 時產生，約 30 KB）＋`BlogSearch`（第一次聚焦才下載索引，中文直接「包含」比對，多個詞 AND）。沒用 Pagefind：要在正式站目錄裝套件、中文斷詞還要另外測
+- 全文搜尋：`lib/content/blog-search.ts`＋`/blog/search-index.json`（build 時產生，約 30 KB）＋`BlogSearch`（第一次聚焦才下載索引，中文直接「包含」比對，多個詞 AND）。沒用 Pagefind：要在正式站目錄裝套件、中文斷詞還要另外測
 - 程式碼區塊右上角「複製」（`CopyCodeButton`，唯一的 client 部分）
 - frontmatter `commits: ["短hash"]` → 文章最後「對應的修改」連到 GitHub commit。**新文章有對應的修正就填**
-- RSS 全文：`<content:encoded>` 用 `lib/md-html.ts` 轉（只支援文章用到的語法；文章用到表格、圖片要補，`md-html.test.ts` 會逐篇檢查）
-- 留言 giscus：`lib/giscus.ts` 是 null 就整塊不出現、CSP 也不放行 giscus.app；**要使用者開 Discussions＋裝 giscus app** 才能填（步驟寫在那個檔案）。
+- RSS 全文：`<content:encoded>` 用 `lib/content/md-html.ts` 轉（只支援文章用到的語法；文章用到表格、圖片要補，`md-html.test.ts` 會逐篇檢查）
+- 留言 giscus：`lib/site/giscus.ts` 是 null 就整塊不出現、CSP 也不放行 giscus.app；**要使用者開 Discussions＋裝 giscus app** 才能填（步驟寫在那個檔案）。
   按「載入留言」才載入官方 client.js（打開文章不會連第三方）
 - E2E `blog-features.spec.ts`：⚠️ 文章頁不能用 `gotoReady`（它等的 data-hydrated 只有首頁有）
 
@@ -250,7 +250,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 但 blog 加這個功能的動機就是 SEO，完全沒有站內連結會抵銷這個動機，所以額外加了）。
 
 ### 5.5 `/changelog`（2026-11-21，TODO B1）
-- build 時跑 `git log` 撈 `feat` commit（`lib/changelog.ts`），頁尾「最後更新」（`BuildInfo`）整段連過來。靜態頁，每次部署重新產生
+- build 時跑 `git log` 撈 `feat` commit（`lib/ops/changelog.ts`），頁尾「最後更新」（`BuildInfo`）整段連過來。靜態頁，每次部署重新產生
 - ⚠️ git 在 `next.config.ts` 讀（env `BUILD_FEAT_LOG` 傳給頁面），而且**用 `execFileSync("git", [...])`，不要 `execSync("git log --format=%h…")`**：
   上線當天自己 build 都正常，CI runner 部署的 build 卻整頁空白、沒有錯誤——runner 環境下經過 cmd.exe 的 `%…%` 格式字串被動到，
   git 有輸出但找不到 feat 那幾行（改 execFileSync 才好，第三次部署才修對）。讀不到時 build log 會有 `[changelog]` 警告
@@ -259,42 +259,42 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 
 ### 5.6 `/status` 維運狀態（2026-11-21，TODO A4）
 - 近 90 天可用率長條、部署紀錄（含自動退回）、watchdog 自動重啟紀錄、**事故報告**。`force-dynamic`，沒有 Markdown 版（跟 /stats 一樣）
-- 資料 `lib/status.ts`：`data/uptime.log`（**watchdog 每一輪寫一行** `時間 o=origin p=外網 m=維修`，1／0／-；超過 2 MB 只留最後 4 萬行；
+- 資料 `lib/ops/status.ts`：`data/uptime.log`（**watchdog 每一輪寫一行** `時間 o=origin p=外網 m=維修`，1／0／-；超過 2 MB 只留最後 4 萬行；
   有進每日備份）、`logs/deploy.log`、`logs/watchdog.log`（依修改時間快取）。路徑：server.js 設 `UPTIME_FILE`、`LOGS_DIR`
 - **只公開彙總**：log 原文（路徑、chunk 檔名、錯誤訊息）不出去，watchdog 事件只轉成「網站／外網／runner × 自動恢復與否」
 - uptime.log 2026-11-21 才開始記，之前的日子是灰的（頁面有說明）；可用率＝origin 正常而且外網沒失敗
-- 事故報告在 `lib/incidents.ts`：**真的發生過的事才寫**，照「影響 → 怎麼發現 → 原因 → 修法 → 之後」；新的加最上面，有文章就填 `post`
+- 事故報告在 `lib/ops/incidents.ts`：**真的發生過的事才寫**，照「影響 → 怎麼發現 → 原因 → 修法 → 之後」；新的加最上面，有文章就填 `post`
 - 跟 `public/status/*.svg`（狀態色分頁圖示）同路徑前綴，兩邊都正常（測過）；維修模式會擋 `/status` 頁面、照常放行 `/status/*.svg`
 
 ### 5.7 `/colophon` 本站構造（2026-11-21，TODO A8）
 - 「部署架構」做成給人看的一張圖：訪客 → Cloudflare → Tunnel → server.js → Next.js 雙槽 → data/，旁邊雷達、告警信、watchdog、部署、備份
-- 每個方塊上是即時數字（`lib/colophon.ts` 的 `readSiteFacts()`，只收集既有資料：status、Cloudflare、真人造訪、backup.log、雷達彙總）；`force-dynamic`
+- 每個方塊上是即時數字（`lib/ops/colophon.ts` 的 `readSiteFacts()`，只收集既有資料：status、Cloudflare、真人造訪、backup.log、雷達彙總）；`force-dynamic`
 - 點方塊跳到下面的說明卡（`<a href="#id">` ＋ Tailwind `target:`，零 JS）。作品「個人網站（本站）」的 `live` 連過來
 - 說明文字照 CLAUDE.md 寫，**架構改了（加服務、換部署方式）這頁要跟著改**；不放內網 IP、雷達位置
 
 ### 5.8 公開 API `/api/v1`、MCP 伺服器 `/mcp`、說明頁 `/developers`（2026-11-21，TODO A9／A10）
-- 資料共用 `lib/public-api.ts`（來源同 projects／blog／page-content／flights，**不另外維護**）；名字只用 PINGWEI LI，不放本名
+- 資料共用 `lib/api/public-api.ts`（來源同 projects／blog／page-content／flights，**不另外維護**）；名字只用 PINGWEI LI，不放本名
 - API：`/api/v1`（入口）、`/profile`、`/projects`、`/projects/{slug}`、`/posts`、`/posts/{slug}`（含 MDX 全文）、`/now`、`/flights`、`/openapi.json`。
-  全部 `force-static`（build 時產生），CORS `*`、快取一小時。OpenAPI 在 `lib/openapi.ts`，**改 API 回傳欄位要一起改**（`public-api.test.ts` 會比對 required 欄位）
-- MCP：`lib/mcp.ts`＋`app/mcp/route.ts`，Streamable HTTP、無狀態（不發 session、GET 回 405、通知回 202）、只回 JSON。8 個唯讀工具
+  全部 `force-static`（build 時產生），CORS `*`、快取一小時。OpenAPI 在 `lib/api/openapi.ts`，**改 API 回傳欄位要一起改**（`public-api.test.ts` 會比對 required 欄位）
+- MCP：`lib/api/mcp.ts`＋`app/mcp/route.ts`，Streamable HTTP、無狀態（不發 session、GET 回 405、通知回 202）、只回 JSON。8 個唯讀工具
   （get_profile、list_projects、get_project、list_posts、get_post、search、get_now、get_flight_stats）。新增工具加進 `TOOLS`，/developers 跟 Markdown 版自動列出
 - `/developers` 有 Markdown 版；`/llms.txt` 也列了 API 跟 MCP。E2E `e2e/api.spec.ts` 真的打一輪 API 跟 MCP
 
 ### 5.9 `/airports` 機場時刻表＋課程作品的「線上版」（2026-11-22，TODO D2／D5／D6）
 - **`/airports`**（使用者：「順便做一個即時時刻表（小港機場／福岡機場）」）：最上面「高雄 ⇄ 福岡」今天的直飛班機，下面小港、福岡各一組出發／抵達分頁（`<Tabs>`），
   只列「接下來」的（還沒結束的＋30 分鐘內剛起飛／抵達／取消的，最多 30 班）。`force-dynamic`、沒有 Markdown 版，`AutoRefresh` 每 3 分鐘 `router.refresh()`（背景分頁不刷）
-- 資料 `lib/airport-board.ts`（伺服器 3 分鐘抓一次）：小港＝高雄國際航空站政府開放資料 `kia.gov.tw/Announce/NewsArea/InstantSchedule_{INT,DOM}{DEP,ARR}.json`；
+- 資料 `lib/travel/airport-board.ts`（伺服器 3 分鐘抓一次）：小港＝高雄國際航空站政府開放資料 `kia.gov.tw/Announce/NewsArea/InstantSchedule_{INT,DOM}{DEP,ARR}.json`；
   福岡＝福岡空港官網自己的 `/api/flight_schedule/flight_schedule.json`（**不是正式開放資料，官網改版就會壞**，抓不到那塊不顯示）。
   福岡的聯營另外列一行（`remarks2: "Code Share"`）→ 併進主航班；國際線城市只有片假名 → `FUK_PLACES` 換中文；狀態用英文那欄對應（`FUK_STATUS`，新的狀態字樣要補）
 - 延誤／取消用 `--warn`（「出事了」）。頁面不拿雷達資料比對（雷達不公開位置）
-- **小港延誤統計（J3，2026-11-25）**：`src/instrumentation.ts` 的 `register()` 開 `lib/airport-delay-recorder.ts`，每 20 分鐘（第一次 60 秒後）
+- **小港延誤統計（J3，2026-11-25）**：`src/instrumentation.ts` 的 `register()` 開 `lib/travel/airport-delay-recorder.ts`，每 20 分鐘（第一次 60 秒後）
   拿 `getBoards().khh` 記進 `data/airport-delays.json`（`AIRPORT_DELAYS_FILE`；key `代號|dep/arr|表定`，同一班同一天只留最後狀態，留 120 天）。
   `summarizeDelays` 只算已結束的班次：準點＝15 分鐘內、取消數、最常延誤（≥5 次、平均晚 >0）。**滿 7 天才顯示**在 `/airports`。
   build 時不開；`AIRPORT_DELAY_RECORDER=0` 關掉（3200 測試建議帶，或把檔案指到暫存）
 - **作品頁 `liveWidget`**：`projects.ts` 的 `liveWidget: "jpy-rate" | "air-quality"` → 作品頁放 `JpyRateLive`／`AirQualityLive`（client，讀 `/api/jpy-rate`、`/api/air-quality`）
-  - 匯率（`lib/jpy-rate.ts`）：台銀 `rate.bot.com.tw/xrt/flcsv/0/day`（**沒帶瀏覽器 UA 會被擋成驗證頁**）＋玉山外匯頁的 JSON-LD；Yahoo `JPYTWD=X` 走勢（`range=90d` 實際回 4 個月，自己切 90 天）。
+  - 匯率（`lib/live/jpy-rate.ts`）：台銀 `rate.bot.com.tw/xrt/flcsv/0/day`（**沒帶瀏覽器 UA 會被擋成驗證頁**）＋玉山外匯頁的 JSON-LD；Yahoo `JPYTWD=X` 走勢（`range=90d` 實際回 4 個月，自己切 90 天）。
     決策照作品原本：預算 ÷ 日圓價格＝目標匯率，現金賣出 ≤ 目標 →「現在就買」。作品的 6 家銀行只剩 2 家抓得到，不硬爬
-  - 空氣品質（`lib/air-quality.ts`）：Open-Meteo（CAMS 模型，不是測站）六項污染物，**環境部 114 年版即時 AQI 公式**（PM2.5 良好上限 12.4、PM 用 0.5×12h＋0.5×4h），
+  - 空氣品質（`lib/live/air-quality.ts`）：Open-Meteo（CAMS 模型，不是測站）六項污染物，**環境部 114 年版即時 AQI 公式**（PM2.5 良好上限 12.4、PM 用 0.5×12h＋0.5×4h），
     對照表 2026-11-22 從環境部官網抄的。環境部開放資料要 api_key，有了可以改抓測站
 - 外部 API 一覽在 README「外部資料」
 
@@ -306,7 +306,7 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 ### 7. `/resume`（獨立頁面）
 教育／技能／作品，內容全部取自網站上已經有的真實資料（timeline、skills、projects.ts），
 **沒有編造任何新的經歷、證照或年資**。**證照（2026-11-09）** 是使用者給的 104 履歷 PDF
-「資格認證」那段照抄（`lib/page-content.ts` 的 `certifications`）；同一份 PDF 的電話、地址、役別、工作經歷、求職條件**都沒用**
+「資格認證」那段照抄（`lib/content/page-content.ts` 的 `certifications`）；同一份 PDF 的電話、地址、役別、工作經歷、求職條件**都沒用**
 （經歷要不要放還在問，見 TODO）。套用 `globals.css` 既有的 `@media print` 樣式
 （列印時去色、A4 排版）。`public/resume.pdf` 是用 `scripts/generate-resume-pdf.js`
 （Playwright headless Chromium 印 `/resume` 頁面）產生的**靜態快照**，不是即時渲染——
@@ -317,114 +317,61 @@ description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Foot
 
 ## Project Structure
 
+2026-11-25 整理過一輪（使用者：「整個專案好好的做分類，讓 AI 更好找」）：`src/lib` 原本 47 支平鋪、`components/ui` 51 支平鋪，
+改成照「做什麼用」分資料夾。**新檔案放進對應的資料夾，不要再放回 `lib/` 或 `components/ui/` 根目錄**；import 一律用 `@/`。
+
 ```
-kbs0830_web/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx           # Noto Serif JP + Geist 字體，lang="zh-Hant"，inline dark-mode script + Person JSON-LD
-│   │   ├── page.tsx             # 組合所有 sections + Footer + 全站彩蛋/工具（見 Site Sections 0）
-│   │   ├── globals.css          # CSS variables 設計系統，@source not "../../**/*.md" 排除文件污染編譯
-│   │   ├── not-found.tsx        # 自訂 404
-│   │   ├── error.tsx / global-error.tsx  # render 錯誤 boundary（console log + timestamp/digest/path）
-│   │   ├── icon.tsx / apple-icon.tsx / favicon.ico  # 網站圖示（2026-11-12 換成「終端機視窗＋右上角指示燈」，使用者挑的）。
-│   │   │                        # 圖形唯一來源 lib/brand-icon.ts（full／small／apple 三版）；favicon.ico 用 scripts/build-favicon.mjs 產生，
-│   │   │                        # 改圖示要重跑那支。櫻花粉 #f2a7b8 只用在圖示，網站強調色照舊只有靛藍。不放字母（使用者不要 P）
-│   │   │                        # 狀態色（視窗顏色）：正常＝靛藍、本機 next dev＝綠、維修模式＝琥珀、頁面出錯＝紅（StatusFavicon.tsx）、
-│   │   │                        # 右上角的點＝新功能指示燈（使用者：「櫻花粉指示燈指右上角的點，不是整個 ICON」）：平常暖白（沒亮），
-│   │   │                        # 新功能上線 12 小時亮櫻花粉、稍微大一點，視窗照舊靛藍（deploy.ps1 的 Update-FeatureRelease：這次部署範圍有 `feat` 開頭的 commit
-│   │   │                        # 就寫 data/feature-release.json → /api/visitor-stats 回 newFeature（只給到期時間）→ VisitBeacon 換圖示；出錯的紅色優先）
-│   │   │                        # 所以 commit 訊息要照慣例：真的是新功能才用 feat，修 bug／文件用 fix／docs，不然會誤亮櫻花粉
-│   │   ├── opengraph-image.tsx  # OG 社群預覽圖，動態生成
-│   │   ├── manifest.ts          # PWA manifest
-│   │   ├── robots.ts / sitemap.ts
-│   │   ├── now/page.tsx         # /now
-│   │   ├── uses/page.tsx        # /uses
-│   │   ├── resume/page.tsx      # /resume，見「第三方整合」章節的「履歷 PDF」
-│   │   ├── blog/
-│   │   │   ├── page.tsx         # /blog 列表
-│   │   │   └── [slug]/page.tsx  # /blog/[slug]，next-mdx-remote/rsc 渲染
-│   │   ├── projects/[slug]/
-│   │   │   ├── page.tsx         # 專案詳細頁
-│   │   │   └── template.tsx     # <ViewTransition enter="page-enter">，配合卡片標題/縮圖 morph（CSS 在 globals.css）
-│   │   └── api/
-│   │       ├── spotify/now-playing/route.ts   # Spotify 正在聽後端（+ route.test.ts）
-│   │       └── visitor-stats/route.ts         # 訪客來源國家統計彙總（+ route.test.ts）
-│   ├── components/
-│   │   ├── canvas/
-│   │   │   ├── HeroScene.tsx           # R3F 3D 背景（細線 + 粒子），滑鼠互動
-│   │   │   └── SceneErrorBoundary.tsx  # WebGL 崩潰 fallback
-│   │   ├── ui/
-│   │   │   ├── NavBar.tsx
-│   │   │   ├── icons.tsx               # GitHub/Moon/Sun 共用 SVG icon（原本三處各自複製一份 SVG path，已收斂成單一來源）
-│   │   │   ├── Eyebrow.tsx             # 標題上方小標籤（mono 字＋寬字距＋uppercase），原本 9 個檔案 13 處逐字重複，已收斂
-│   │   │   ├── TagBadge.tsx            # tag/skill 小徽章樣式，原本 4 個檔案逐字重複，已收斂
-│   │   │   ├── BackToTop.tsx
-│   │   │   ├── LocalClock.tsx          # Footer 雙時區時鐘
-│   │   │   ├── VisitorStats.tsx        # Footer 訪客來源國家統計
-│   │   │   ├── KeyboardShortcuts.tsx
-│   │   │   ├── KonamiEgg.tsx
-│   │   │   ├── TerminalMode.tsx
-│   │   │   ├── SpotifyNowPlaying.tsx
-│   │   │   ├── ArchitectureDiagram.tsx # 專案架構圖：嵌入預先畫好的 SVG（見「製作物」）
-│   │   │   ├── MermaidDiagram.tsx      # 架構圖的瀏覽器端備援（SVG 還沒畫好時才用）
-│   │   │   ├── WebVitals.tsx           # 回報真實訪客 Web Vitals（見「第三方整合」）
-│   │   │   ├── Magnetic.tsx            # 磁吸按鈕效果（直接改 style.translate，不 re-render）
-│   │   │   ├── Tabs.tsx                # 分頁（About），面板 hidden="until-found"
-│   │   │   ├── Reveal.tsx              # 捲動淡入（見「動畫架構」）
-│   │   │   ├── RevealHeading.tsx       # scroll-triggered 逐字 reveal 標題
-│   │   │   ├── Collapse.tsx            # 展開/收合
-│   │   │   ├── Modal.tsx               # 原生 <dialog> 彈窗（終端機、快捷鍵說明）
-│   │   │   ├── Underline.tsx           # 文字連結 hover 底線（Hero/Contact 共用）
-│   │   │   ├── PageShell.tsx           # 獨立頁面共用外框（窄欄 + ← 返回連結 + 可選頁首 eyebrow/title/intro）
-│   │   │   ├── SectionHeading.tsx / BulletList.tsx / StatusBadge.tsx / ProjectHighlight.tsx / JsonLd.tsx
-│   │   │   │                           # 獨立頁面跟作品卡片共用的小區塊，見「Server / Client 分工」
-│   │   │   └── MaintenancePage.tsx
-│   │   └── sections/                   # 四個 section 都是 Server Component，見「Server / Client 分工」
-│   │       ├── HeroSection.tsx         # + HeroBackground.tsx / Typewriter.tsx（client）
-│   │       ├── AboutSection.tsx        # 資料在 lib/about.ts
-│   │       ├── PortfolioSection.tsx    # + ProjectFilter.tsx（client，tag 篩選）
-│   │       └── ContactSection.tsx      # + CopyEmailButton.tsx（client）
-│   └── lib/
-│       ├── site.ts            # SITE_URL／EMAIL／GitHub・FB・IG 連結（全站唯一來源）
-│       ├── projects.ts        # 作品資料（slug, title, tags, github, detail.architectureDiagram...；狀態顏色在 StatusBadge）
-│       ├── aircraft.ts        # 足跡航班機型對照表 + formatFlightCode()（+ aircraft.test.ts）
-│       ├── about.ts           # About 的技能、時間軸、足跡、現況資料
-│       ├── hooks.ts           # useMediaQuery / useScrolledPast / useRevealOnce
-│       ├── isTyping.ts        # 鍵盤快捷鍵的「正在輸入」防呆
-│       └── blog.ts            # 讀 content/blog/*.mdx，gray-matter 解析 frontmatter（+ blog.test.ts）
-├── content/
-│   └── blog/*.mdx             # 部落格文章，內容必須是真的踩過的坑，不能編造
-├── scripts/
-│   ├── server.js                    # 自訂 production server（request/error log + 訪客國家統計 + 30 分鐘一次的 MEM 診斷 log）
-│   ├── deploy.ps1                    # pull + build + restart + 健檢，manual/CI 共用
-│   ├── verify-deploy.ps1             # 部署後健檢（呼叫 lib/health-check.ps1）
-│   ├── watchdog.ps1                  # 每 5 分鐘健康檢查（網站 + GitHub Actions runner 存活），異常自動重啟（Task Scheduler: kbs0830_Watchdog）
-│   ├── backup.ps1                    # 每日備份到 D: ＋ GitHub 私有 repo（加密），由 watchdog 觸發，見「自動備份」
-│   ├── setup-autostart.ps1           # 一次性（管理員執行）：排程工作取消 72h 上限/改 S4U、Cloudflared 服務帶 tunnel 參數
-│   ├── spotify-get-refresh-token.js  # 一次性小工具：取得 Spotify refresh token
-│   ├── generate-resume-pdf.js        # 重新產生 public/resume.pdf（pnpm resume:pdf）
-│   ├── render-diagrams.mjs           # 架構圖預先畫成 SVG（pnpm diagrams），deploy.ps1 每次 build 前跑
-│   └── lib/
-│       ├── logger.ps1          # 共用時間戳記 log + 5MB 輪替（deploy.ps1 / watchdog.ps1 共用）
-│       ├── health-check.ps1    # 共用健康檢查邏輯（verify-deploy.ps1 / watchdog.ps1 共用）
-│       └── notify.ps1          # Email 告警＋冷卻（deploy.ps1 / watchdog.ps1 / backup.ps1 共用），見「健康監控」
-├── .husky/pre-commit          # commit 前 lint-staged + tsc --noEmit（見上方「Git hooks」）
-├── .github/workflows/
-│   ├── deploy.yml              # push to main → 自動部署
-│   ├── renovate.yml            # 每週一自動跑 Renovate CLI 開 PR（見「依賴更新」）
-│   └── e2e.yml                 # push to main → 平行跑 Playwright，不擋部署
-├── e2e/*.spec.ts               # Playwright E2E 測試（pnpm test:e2e）
-├── vitest.config.mts           # Vitest 設定（node 環境、@/* alias），src/**/*.test.ts（pnpm test:unit）
-├── renovate.json               # Renovate 設定
-├── data/                       # 執行期資料（gitignore，不進版控）：visitor-stats.json 等
-├── public/resume.pdf           # generate-resume-pdf.js 產生的靜態快照，/resume 內容有變時部署會自動重印
-├── .env.local                 # 不進版控，見「第三方整合」章節的 Spotify 環境變數
-├── pnpm-workspace.yaml        # pnpm 11 設定：allowBuilds（sharp／unrs-resolver 不跑 build script）、
-│                              # minimumReleaseAgeExclude（提早安裝的安全性更新，升下一版要清掉舊的）
-├── src/generated/diagrams/    # render-diagrams.mjs 預先畫好的架構圖 SVG（進版控）
-├── eslint.config.mjs          # scripts/**/*.js 關掉 no-require-imports（見「Git hooks」）
-├── CLAUDE.md
-├── TODO.md                   # 只放還沒做的（你要動手／要決定／Claude 可直接做的點子）
-├── DONE.md                   # 已完成紀錄（2026-11-09 從 TODO.md 拆出來）；做完的事從 TODO 搬過來
-└── package.json
+src/
+├── app/                      # 路由（Next.js App Router）。頁面 page.tsx、API route.ts、OG 圖 opengraph-image.tsx
+│   ├── page.tsx              # 首頁：組合 sections + Footer + 全站彩蛋/工具（見 Site Sections 0）
+│   ├── layout.tsx            # 字體、lang="zh-Hant"、inline 深色模式 script、Person JSON-LD
+│   ├── globals.css           # 設計 token、動畫、@source not "../../**/*.md"（排除文件污染 Tailwind）
+│   ├── api/                  # 內部 API：visitor-stats、web-vitals、hero-stats、reports、radar、presence、weather、jpy-rate…
+│   │   └── v1/               # 公開 JSON API（lib/api/public-api.ts）
+│   ├── tools/                # 小工具頁（元件在 components/tools）
+│   └── md/[[...path]]/       # 每一頁的 Markdown 版（lib/content/markdown.ts）
+├── components/
+│   ├── sections/             # 首頁四個區塊（Server Component）＋它們的 client island
+│   ├── layout/               # 頁框與導覽：NavBar、SiteFooter、PageShell、PageMenu、SiteIndex、QuickJump（Ctrl+K）、ThemeToggle、BackToTop、
+│   │                         #   KeyboardShortcuts、StatusFavicon、MaintenancePage、useMenuDismiss
+│   ├── ui/                   # 基本元件（沒有商業邏輯）：SectionHeading、BulletList、Eyebrow、TagBadge、StatusBadge、ProjectHighlight、
+│   │                         #   Tabs、Modal、Collapse、Reveal、RevealHeading、Magnetic、Underline、StatCharts、JsonLd、CopyCodeButton、icons
+│   ├── live/                 # 即時資料的 client 小工具：RadarLive、RadarStatus、JpyRateLive、AirQualityLive、SpotifyNowPlaying、
+│   │                         #   LocalClock、Presence、VisitorStats、BuildInfo、AutoRefresh
+│   ├── content/              # 內容型元件：ArchitectureDiagram、MermaidDiagram、Comments、BlogSearch、HotelMap、RouteMap
+│   ├── stats/                # 統計回報：VisitBeacon、WebVitals、NotMeToggle
+│   ├── fun/                  # 彩蛋：KonamiEgg、TerminalMode
+│   ├── canvas/               # 3D／Canvas：HeroScene（WebGL）、HeroSceneGPU（WebGPU）、HeroSceneLite（手機）、TravelGlobe
+│   └── tools/                # 小工具頁的 client 元件
+├── lib/
+│   ├── data-file.ts          # data/、logs/ 檔案讀寫（所有伺服器端資料檔都走這支）
+│   ├── client/               # 只在瀏覽器跑：hooks（useJson、useMediaQuery…）、is-typing、not-me
+│   ├── site/                 # 網站本身：site（網址、信箱）、site-map（導覽／頁尾分組）、share-meta、og-card、og-font、brand-icon、giscus
+│   ├── content/              # 內容資料：projects、about、blog、blog-search、markdown、md-html、page-content、mermaid-config、diagram-key
+│   ├── stats/                # 訪客與報表：visit-detail、site-stats、hero-stats、cloudflare-analytics、web-vitals、presence、reports
+│   ├── ops/                  # 維運：status（可用率、部署、重啟）、incidents、changelog、colophon、badge
+│   ├── travel/               # 航空／旅行：flights、hotels、travel、aircraft、airport-board、airport-delays、airport-delay-recorder
+│   ├── live/                 # 伺服器抓外部即時資料＋快取：live-cache、jpy-rate、air-quality、weather
+│   ├── api/                  # 對外介面：public-api（/api/v1）、mcp、openapi
+│   └── tools/                # 小工具的後端：robots（robots.txt 解析）、safe-fetch（防 SSRF）
+├── instrumentation.ts        # 伺服器啟動時開背景工作（小港延誤記錄器）
+└── generated/diagrams/       # render-diagrams.mjs 預先畫好的架構圖 SVG（進版控）
+scripts/                      # ⚠️ 不要搬：排程工作、CI 用絕對路徑指到這裡（改路徑要管理員重設排程）
+├── server.js                 # production server（排程 kbs0830_NextJS 直接跑這支）
+├── deploy.ps1 / verify-deploy.ps1 / watchdog.ps1 / backup.ps1 / restore-drill.ps1 / report-mail.ps1 / boot-notice.ps1 / reminders.ps1 / maintenance.ps1
+├── render-diagrams.mjs / build-favicon.mjs   # 用 Node 直接跑 src/lib 的 .ts（所以那幾支 .ts 只能用相對路徑＋.ts 副檔名 import）
+└── lib/                      # CommonJS，server.js 跟 src/ 共用：tw-time、bot-patterns、raw-traffic、not-found、radar、search-console＋PowerShell 共用（logger、notify、health-check）
+content/blog/*.mdx            # 部落格（真的踩過的坑才寫）
+e2e/*.spec.ts                 # Playwright
+docs/archive/                 # 舊的一次性報告
+data/、logs/                  # 執行期資料（不進版控）
 ```
+
+**重點檔案的細節**
+- 網站圖示：`app/icon.tsx`／`apple-icon.tsx`／`favicon.ico`，圖形唯一來源 `lib/site/brand-icon.ts`（full／small／apple 三版）；
+  favicon.ico 用 `scripts/build-favicon.mjs` 產生，改圖示要重跑。櫻花粉 #f2a7b8 只用在圖示。狀態色：正常＝靛藍、本機 dev＝綠、
+  維修＝琥珀、出錯＝紅（`components/layout/StatusFavicon.tsx`）；右上角的點＝新功能指示燈（deploy.ps1 看到 `feat` commit 就亮 12 小時），
+  所以 commit 訊息要照慣例：真的是新功能才用 feat
+- `projects/[slug]/template.tsx`：`<ViewTransition enter="page-enter">`，卡片標題／縮圖 morph
+- 被 Node 直接執行的 `.ts`：`lib/content/projects.ts`、`mermaid-config.ts`、`diagram-key.ts`、`lib/site/brand-icon.ts`——
+  不能用 `@/` alias、彼此 import 要寫 `./x.ts`

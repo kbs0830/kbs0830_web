@@ -16,7 +16,7 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 - **2026-11-09 起每一頁都算**：回報是 layout 的 `VisitBeacon.tsx`（每換一頁 POST 一次），頁尾 `VisitorStats` 只讀（GET），
   不然首頁會算兩次。之前只有首頁頁尾會回報，直接開文章／作品頁的訪客沒算到
 - `src/app/api/visitor-stats/route.ts` 讀這份 JSON 回傳彙總（total／countryCount／前 5 名），
-  `src/components/ui/VisitorStats.tsx`（Footer）用 regional indicator symbol 公式把國碼即時轉成
+  `src/components/live/VisitorStats.tsx`（Footer）用 regional indicator symbol 公式把國碼即時轉成
   國旗 emoji 顯示，不需要維護國碼對照表
 - 改 `scripts/server.js` 之後要記得跑一次 `node node_modules/eslint/bin/eslint.js scripts/server.js`——
   這個檔案是 CommonJS，`eslint.config.mjs` 裡已經對 `scripts/**/*.js` 關掉
@@ -67,16 +67,16 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 ### 訪客分析 `/stats`（2026-11-09 公開流量頁 → 2026-11-12 升級成訪客分析）
 - 使用者要「訪客分析的頁面」。真人訪客：每日瀏覽／造訪／新訪客、熱門頁面（路徑轉成頁名）、從哪裡來（只記網域）、
   裝置／瀏覽器／作業系統、24 小時時段；下面接國家、Cloudflare（含機器人）、到達主機的請求＋爬蟲排行
-- 明細資料：`lib/visit-detail.ts` → `data/visits-detail.json`（`VISITS_DETAIL_FILE`，server.js 設；有進每日備份）。
+- 明細資料：`lib/stats/visit-detail.ts` → `data/visits-detail.json`（`VISITS_DETAIL_FILE`，server.js 設；有進每日備份）。
   `VisitBeacon` 每頁 POST `{path, ref, newSession, newVisitor}` 到 `/api/visitor-stats`；新訪客／工作階段是瀏覽器自己的
   localStorage／sessionStorage 旗標，**不是 cookie、不送 ID**。只存分類次數：路徑只收本站路由格式、來源只留網域、UA 粗分後不存。
   每日數字留 120 天。單元測試 `visit-detail.test.ts`（含「存下來的沒有完整 UA／query」）
-- **不計入自己（2026-11-23，使用者要的）**：/stats 最下面的開關（`NotMeToggle`）→ localStorage `kbs-not-me`（`lib/not-me.ts`）。
+- **不計入自己（2026-11-23，使用者要的）**：/stats 最下面的開關（`NotMeToggle`）→ localStorage `kbs-not-me`（`lib/client/not-me.ts`）。
   開了之後 `VisitBeacon` 照樣 POST（要拿 newFeature 指示燈）但只送 `{notMe: true}`，route 直接回彙總、國家跟明細都不記。
   只影響那個瀏覽器；「いま N 人」、Web Vitals 照算。起因：11/21～23 的真人造訪幾乎都是站長自己。E2E `not-me.spec.ts` 攔截 API 只看送出內容
   （3200 的 server.js 寫的是正式 `data/`，**本機測試不要帶 `cf-ipcountry` 打 /api/visitor-stats**，會寫進正式統計）
 - 頁尾「未過濾 N 次…」那行 2026-11-12 依使用者要求拿掉（快取之後它只數得到沒命中的請求），細節留在 /stats
-- **報表 `/reports`（2026-11-25）**：日報／週報／月報，`src/lib/reports.ts` 的 `resolveRange`＋`buildReport`（網頁）＋`reportText`（寄信）。
+- **報表 `/reports`（2026-11-25）**：日報／週報／月報，`src/lib/stats/reports.ts` 的 `resolveRange`＋`buildReport`（網頁）＋`reportText`（寄信）。
   逐日分類來源：`visits-detail.json` 的 `daily[日期]`（頁面、來源、裝置、國家、時段）、`raw-traffic.json` 的 `daily`、`hero-stats.json` 的 `days`，都是 11/25 起才有、留 120 天。
   Cloudflare 是 UTC 日期，當天常常還沒抓到（顯示「還沒有數字」而不是 0）。noindex＋不進 sitemap；**搜尋字詞不放網頁**（只進信），等後台 G1 再整頁搬過去
 - **首頁 3D 版本（B13，2026-11-25）**：`/stats` 國家下面一塊，資料 `data/hero-stats.json`，細節在 kbs-site 的 Hero 段
@@ -85,8 +85,8 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 
 ### 公開流量頁 `/stats`（2026-11-09 第一版，以下是當時的紀錄）
 - 使用者要做（TODO 點子）。Cloudflare 近 30 天趨勢圖（伺服器端畫的 SVG）、未過濾流量四類佔比、爬蟲排行（AI／搜尋引擎標籤）、真人訪客國家
-- 資料跟頁尾同一份：讀取集中在 `lib/site-stats.ts`（國家、未過濾、爬蟲排行；爬蟲分類直接 import `scripts/lib/raw-traffic.js` 的 `classify`，
-  名單只維護一份）＋ `lib/cloudflare-analytics.ts` 的 `readCloudflareDays()`
+- 資料跟頁尾同一份：讀取集中在 `lib/stats/site-stats.ts`（國家、未過濾、爬蟲排行；爬蟲分類直接 import `scripts/lib/raw-traffic.js` 的 `classify`，
+  名單只維護一份）＋ `lib/stats/cloudflare-analytics.ts` 的 `readCloudflareDays()`
 - `dynamic = "force-dynamic"`：每次請求現讀資料檔。**所以沒有 Markdown 版**（Markdown 是 build 時預先產生的，會是過期數字）——
   這是「新頁面要加 Markdown」規則的刻意例外。sitemap 有、頁尾有 `Stats` 連結
 - 國家用 `Intl.DisplayNames` 顯示中文國名：Windows 不支援國旗 emoji，只放國旗會變成「TW TW 61」
@@ -94,7 +94,7 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 ### Cloudflare 流量數字（2026-11-06）
 - 使用者看 dashboard 覺得頁底數字太少（「我的造訪資料沒那麼少啊」）。Footer 加一行
   `Cloudflare · 近 30 天 N 訪客 · N 次瀏覽 · 累計 N 次瀏覽`，title 有累計訪客／請求跟起始日（2026-06-16）
-- `src/lib/cloudflare-analytics.ts`：GraphQL Analytics API 的 `httpRequests1dGroups`（免費方案可用），
+- `src/lib/stats/cloudflare-analytics.ts`：GraphQL Analytics API 的 `httpRequests1dGroups`（免費方案可用），
   `/api/visitor-stats` 回傳的 `cloudflare` 欄位。**一小時最多抓一次、背景抓不等它**；失敗 10 分鐘內不重試
 - 每天的數字合併存 `data/cloudflare-daily.json`（`CLOUDFLARE_STATS_FILE`，有進每日備份）——Cloudflare 只留一段時間，
   存在本機的累計才不會哪天變少。第一次抓一年，之後只抓最近 3 天
@@ -106,7 +106,7 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 - 「訪客」是每天不重複 IP 的加總（跟 dashboard 30 天視圖同算法），含機器人；同一人隔天再來算兩次
 
 ### 真實訪客 Web Vitals（2026-11-04，自架）
-- `components/ui/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
+- `components/stats/WebVitals.tsx`（掛在 `layout.tsx`）用 Next 的 `useReportWebVitals` 收 LCP／INP／CLS／
   FCP／TTFB，`sendBeacon` 送到 `/api/web-vitals`；作品／文章頁統一記成 `/projects/slug`、`/blog/slug`
 - 只存「頁面路徑 × 指標 → 最近 200 筆數值」到 `data/web-vitals.json`（gitignore），不存 IP／UA。
   路徑、指標名稱、數值範圍都有白名單驗證；bot／headless UA 不計
@@ -146,11 +146,11 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
   網頁的 Restart 沒用（它以為自己正在關），要拔電或 `sudo systemctl restart fr24feed`。**`restart.html` 一打開（GET）就會觸發重啟**，不要為了看內容去抓它
 - **機型統計（2026-11-22，TODO D4）**：新收到的飛機拿識別碼問 adsbdb.com（免費、不用金鑰），快取 `data/aircraft-types.json`（跟 radar.json 同資料夾；識別碼 → ICAO 機型，不公開）。
   每 30 秒最多查 4 架、查不到的 30 天後再試、網路錯誤這輪就停。`day.types` 只存「機型 → 架數」，/radar「機型（近 7 天）」顯示。**不做航線統計**（航線交會處＝接收器位置）
-- **外部 API 共用快取 `lib/live-cache.ts`**（天氣、之後的匯率／空氣品質／機場）：伺服器抓、記憶體快取、失敗給上一次成功的（LKG）、失敗後 1 分鐘內不重試
+- **外部 API 共用快取 `lib/live/live-cache.ts`**（天氣、之後的匯率／空氣品質／機場）：伺服器抓、記憶體快取、失敗給上一次成功的（LKG）、失敗後 1 分鐘內不重試
 - 收訊：增益 `--gain 40`（settings 的 Process arguments；沒設＝最大，雜訊蓋掉訊號、一則都解不出來）
 
 ### Spotify「正在聽」
-- 元件：`src/components/ui/SpotifyNowPlaying.tsx`，後端：`src/app/api/spotify/now-playing/route.ts`
+- 元件：`src/components/live/SpotifyNowPlaying.tsx`，後端：`src/app/api/spotify/now-playing/route.ts`
 - 用 `SPOTIFY_REFRESH_TOKEN` 換 access token，抓「正在播放／最近播放」單曲
 - 三個環境變數（`.env.local`，不進版控）：`SPOTIFY_CLIENT_ID`、`SPOTIFY_CLIENT_SECRET`、
   `SPOTIFY_REFRESH_TOKEN`——缺任何一個，API 直接回傳 `isPlaying:false`，前端元件不顯示，
@@ -177,16 +177,16 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 | ProfilePage JSON-LD（首頁＝這個人的個人檔案頁） | `src/app/page.tsx` |
 | Sitemap | `src/app/sitemap.ts` |
 | robots.txt | `src/app/robots.ts` |
-| OG 分享圖（⚠️ 2026-11-21 部署 build 因為分享圖的中文字型壞掉失敗過一次：`og-font.ts` 現在檢查字型檔頭、重抓一次，`og-card.tsx` 先試畫，畫不出來退回英文，不讓 build 失敗） | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
-| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁、/flights、/hotels、/stats、/radar、/now、/uses、/changelog 用 `withShare(meta, { ownImage: true })`（獨立頁的圖共用 `lib/og-card.tsx` 的 `pageCardImage`，新頁照抄三行）（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
+| OG 分享圖（⚠️ 2026-11-21 部署 build 因為分享圖的中文字型壞掉失敗過一次：`og-font.ts` 現在檢查字型檔頭、重抓一次，`og-card.tsx` 先試畫，畫不出來退回英文，不讓 build 失敗） | `src/app/opengraph-image.tsx`（全站預設）、`src/app/blog/[slug]/opengraph-image.tsx`（每篇文章一張）、`src/app/projects/[slug]/opengraph-image.tsx`（每個作品一張：作品名＋一句話成果＋tag，2026-11-09）。中文字型共用 `lib/site/og-font.ts`：build 時跟 Google Fonts 要 Noto Serif TC 子集，抓不到退回英文 |
+| 子頁面分享卡片（og/twitter title、description、url、圖） | `src/lib/site/share-meta.ts` 的 `withShare()`——**新增頁面的 metadata 用它包**，不然會繼承首頁的「PINGWEI LI — Portfolio」。自己有 opengraph-image 的頁面：作品頁、/flights、/hotels、/stats、/radar、/now、/uses、/changelog 用 `withShare(meta, { ownImage: true })`（獨立頁的圖共用 `lib/site/og-card.tsx` 的 `pageCardImage`，新頁照抄三行）（不寫 images，讓檔案慣例掛上），文章頁自己寫 openGraph |
 | RSS | `src/app/feed.xml/route.ts`（標題＋摘要＋連結，作者只寫 PINGWEI LI）；`/blog`、文章頁、首頁的 `<head>` 有 `application/rss+xml` |
 | `/.well-known/security.txt`（RFC 9116，2026-11-23 TODO B8；聯絡 `SECURITY_EMAIL`＝otemon，使用者指定；Expires＝build＋180 天） | `src/app/.well-known/security.txt/route.ts` |
 | `/llms.txt`（給 AI 讀的網站摘要，build 時從 projects／blog／about 產生） | `src/app/llms.txt/route.ts` |
 | IndexNow（部署時通知 Bing／Yandex） | `scripts/deploy.ps1` 的 `Submit-IndexNow`，金鑰檔 `public/<key>.txt` |
-| Markdown for Agents（每頁的 Markdown 版：`Accept: text/markdown` 或網址加 `.md`，首頁 `/index.md`） | `src/lib/markdown.ts` → `src/app/md/[[...path]]/route.ts`，轉址在 `next.config.ts` 的 `rewrites` |
+| Markdown for Agents（每頁的 Markdown 版：`Accept: text/markdown` 或網址加 `.md`，首頁 `/index.md`） | `src/lib/content/markdown.ts` → `src/app/md/[[...path]]/route.ts`，轉址在 `next.config.ts` 的 `rewrites` |
 
 **人名搜尋／AI 搜尋（2026-11-04）**：
-- 所有 JSON-LD 的「人」都用同一個 `@id`（`lib/site.ts` 的 `PERSON_ID`），首頁 ProfilePage、文章 author
+- 所有 JSON-LD 的「人」都用同一個 `@id`（`lib/site/site.ts` 的 `PERSON_ID`），首頁 ProfilePage、文章 author
   都指過去，搜尋引擎才會認成同一個人
 - AI 爬蟲（GPTBot、ClaudeBot、PerplexityBot…）`robots.txt` 全部允許。**Cloudflare 有「封鎖 AI 爬蟲」
   開關**（Security → Bots／AI Crawl Control），開了的話 `robots.txt` 寫什麼都沒用——用假 UA 打不出來
@@ -199,7 +199,7 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
   內容＝頁面可見內容換格式，**加上本名**（只有 AI 會讀；`markdown.test.ts` 確認每頁都有）。回應帶 `Vary: Accept` 跟指回 HTML 的
   `Link: rel="canonical"`；每頁 `<head>` 有 `<link rel="alternate" type="text/markdown">`（metadata 的 `alternates.types`，
   **新增頁面時跟 canonical 一起加**，再把路徑加進 `markdown.ts` 的 `markdownPaths()` 跟 `next.config.ts` 的 `pages`）。
-  `/now`、`/uses`、`/resume` 的資料因此搬到 `lib/page-content.ts`（頁面跟 Markdown 共用）
+  `/now`、`/uses`、`/resume` 的資料因此搬到 `lib/content/page-content.ts`（頁面跟 Markdown 共用）
 
 **⚠️ Google Search Console「網頁索引狀態」看到 `www.kbs0830.com` 404 是 DNS/Tunnel 層問題，
 不是這裡的 code 問題**——根因跟修法見上方「部署架構」章節那則 `www` DNS/Redirect Rule 說明，
