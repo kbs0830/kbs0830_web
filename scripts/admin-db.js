@@ -1,35 +1,158 @@
-// 讀站長後台的資料庫（data/admin.db，src/lib/admin/db.ts 寫的那份）。唯讀，CommonJS。
-// Claude 開工前：node scripts/admin-db.js decisions   → 「先做」排最前面，列出選擇跟備註
-//               node scripts/admin-db.js log         → 最近 20 筆後台操作
-// ADMIN_DB_FILE 可以換檔案（跟網站同一個環境變數）。
+// 站長後台的資料庫（data/admin.db，src/lib/admin/db.ts 建的那份）的命令列工具。CommonJS。
+// 2026-11-26 起待辦的正本在資料庫（使用者：「以後 todo 直接寫進網站後台，不用讀 MD」），TODO.md 不再更新。
+//
+// 讀：
+//   node scripts/admin-db.js todo                 還沒做的待辦（照分區，附使用者的決定／備註）
+//   node scripts/admin-db.js todo --all           含已完成、評估過不做
+//   node scripts/admin-db.js todo show <id>       一項的完整說明
+//   node scripts/admin-db.js decisions            使用者的決定（先做排最前面）
+//   node scripts/admin-db.js log                  最近 20 筆後台操作
+// 寫（Claude 用；說明要寫完整——背景、使用者原話、做法、要使用者做什麼）：
+//   node scripts/admin-db.js todo add --title "…" --section "還沒做的點子" [--group "B. 網站功能"] [--code B22]
+//        [--size S|M|L] [--you] [--star] [--detail "…" | --detail-file <檔案>]
+//   node scripts/admin-db.js todo edit <id> [--title …] [--detail … | --detail-file …] [--append "…"] [--size …] [--group …] [--section …]
+//   node scripts/admin-db.js todo done <id> [--note "做了什麼"]   完成（--note 會接在說明最後）
+//   node scripts/admin-db.js todo drop <id> --note "理由"        評估過、不做
+//   node scripts/admin-db.js todo reopen <id>
+// id：有編號就是編號（B16），沒有就是 "t:標題"。ADMIN_DB_FILE 可以換檔案（跟網站同一個環境變數）。
+// 資料庫要網站先開過一次後台（建表、從 TODO.md 匯入）；表還沒建會提示。
 const path = require("node:path");
 const fs = require("node:fs");
 const { DatabaseSync } = require("node:sqlite");
 
 const file = process.env.ADMIN_DB_FILE || path.join(__dirname, "..", "data", "admin.db");
+const [cmd = "todo", ...rest] = process.argv.slice(2);
+const tw = (ms) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 16).replace("T", " ");
+const LABEL = { now: "先做", later: "之後", skip: "不做" };
+const SIZE = { L: "大", M: "中", S: "小" };
+
+/** --key value／--flag 解析；第一個不是 -- 開頭的當位置參數 */
+function parseArgs(args) {
+  const out = { _: [] };
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (!a.startsWith("--")) { out._.push(a); continue; }
+    const key = a.slice(2);
+    const next = args[i + 1];
+    if (next === undefined || next.startsWith("--")) out[key] = true;
+    else { out[key] = next; i++; }
+  }
+  return out;
+}
+
 if (!fs.existsSync(file)) {
-  console.log(`還沒有資料庫（${file}）：後台還沒存過東西。`);
+  console.log(`還沒有資料庫（${file}）：先開一次 /admin/todo（網站會建表、從 TODO.md 匯入）。`);
   process.exit(0);
 }
-const db = new DatabaseSync(file, { readOnly: true });
-const cmd = process.argv[2] || "decisions";
-const tw = (ms) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 16).replace("T", " ");
+const writing = cmd === "todo" && ["add", "edit", "done", "drop", "reopen"].includes(rest[0]);
+const db = new DatabaseSync(file, { readOnly: !writing });
+db.exec("PRAGMA busy_timeout = 3000");
+const version = db.prepare("PRAGMA user_version").get().user_version;
+if ((cmd === "todo") && version < 2) {
+  console.log("資料庫還沒有 todos 表：先開一次 /admin/todo（網站會升級資料庫、從 TODO.md 匯入）。");
+  process.exit(1);
+}
+
+const decisionsMap = () => new Map(db.prepare("SELECT item_id, choice, note FROM decisions").all().map((d) => [d.item_id, d]));
+const log = (action, detail) =>
+  db.prepare("INSERT INTO admin_log (at, action, detail) VALUES (?, ?, ?)").run(Date.now(), action, String(detail).slice(0, 500));
+const getTodo = (id) => db.prepare("SELECT * FROM todos WHERE id = ?").get(id);
+const need = (cond, msg) => { if (!cond) { console.error(msg); process.exit(1); } };
+
+function readDetail(a) {
+  if (a["detail-file"]) return fs.readFileSync(a["detail-file"], "utf8").replace(/\r\n/g, "\n").trimEnd();
+  if (typeof a.detail === "string") return a.detail.replace(/\\n/g, "\n");
+  return undefined;
+}
 
 if (cmd === "decisions") {
   const order = { now: 0, later: 1, skip: 2 };
-  const label = { now: "先做", later: "之後", skip: "不做" };
+  const titles = version >= 2 ? new Map(db.prepare("SELECT id, title FROM todos").all().map((t) => [t.id, t.title])) : new Map();
   const rows = db.prepare("SELECT item_id, choice, note, updated_at FROM decisions").all();
   rows.sort((a, b) => (order[a.choice] ?? 3) - (order[b.choice] ?? 3) || b.updated_at - a.updated_at);
   if (rows.length === 0) console.log("還沒有任何決定。");
   for (const r of rows) {
-    console.log(`${(label[r.choice] ?? "備註").padEnd(3, "　")} ${r.item_id.replace(/^t:/, "")}${r.note ? `　— ${r.note}` : ""}　(${tw(r.updated_at)})`);
+    const name = titles.get(r.item_id) ?? r.item_id.replace(/^t:/, "");
+    const code = r.item_id.startsWith("t:") ? "" : `${r.item_id} `;
+    console.log(`${(LABEL[r.choice] ?? "備註").padEnd(3, "　")} ${code}${name}${r.note ? `　— ${r.note}` : ""}　(${tw(r.updated_at)})`);
   }
 } else if (cmd === "log") {
   for (const r of db.prepare("SELECT at, action, detail FROM admin_log ORDER BY id DESC LIMIT 20").all()) {
     console.log(`${tw(r.at)}  ${r.action}  ${r.detail}`);
   }
+} else if (cmd === "todo") {
+  const sub = rest[0] && !rest[0].startsWith("--") ? rest[0] : "list";
+  const a = parseArgs(sub === "list" ? rest : rest.slice(1));
+  const now = Date.now();
+
+  if (sub === "list") {
+    const rows = db.prepare(`SELECT * FROM todos ${a.all ? "" : "WHERE status = 'open'"} ORDER BY sort`).all();
+    const dec = decisionsMap();
+    let lastGroup = "";
+    for (const t of rows) {
+      const g = `${t.section}${t.grp ? ` · ${t.grp}` : ""}`;
+      if (g !== lastGroup) { console.log(`\n## ${g}`); lastGroup = g; }
+      const d = dec.get(t.id);
+      const tags = [t.size && SIZE[t.size], t.needs_you && "要你", t.recommended && "推薦", t.status !== "open" && (t.status === "done" ? "✓完成" : "不做")].filter(Boolean).join("・");
+      const decision = d ? `  ← ${d.choice ? LABEL[d.choice] : ""}${d.note ? `「${d.note}」` : ""}` : "";
+      console.log(`- [${t.id}] ${t.title}${tags ? `（${tags}）` : ""}${decision}`);
+    }
+    console.log(`\n共 ${rows.length} 項。完整說明：node scripts/admin-db.js todo show <id>`);
+  } else if (sub === "show") {
+    const t = getTodo(a._[0]);
+    need(t, `找不到 ${a._[0]}`);
+    const d = decisionsMap().get(t.id);
+    console.log(`[${t.id}] ${t.title}\n分區：${t.section}${t.grp ? ` · ${t.grp}` : ""}　狀態：${t.status}　大小：${t.size ?? "—"}${t.needs_you ? "　要你" : ""}${t.recommended ? "　推薦" : ""}`);
+    if (d) console.log(`使用者的決定：${d.choice ? LABEL[d.choice] : "—"}${d.note ? `　備註：${d.note}` : ""}`);
+    console.log(`更新：${tw(t.updated_at)}${t.done_at ? `　完成：${tw(t.done_at)}` : ""}\n\n${t.detail}`);
+  } else if (sub === "add") {
+    need(typeof a.title === "string" && typeof a.section === "string", "要 --title 跟 --section");
+    const code = typeof a.code === "string" ? a.code : null;
+    const id = code ?? `t:${a.title}`;
+    need(!getTodo(id), `已經有 ${id} 了`);
+    need(!a.size || SIZE[a.size], "--size 只能 S／M／L");
+    const sort = (db.prepare("SELECT MAX(sort) m FROM todos").get().m ?? 0) + 10;
+    db.prepare(
+      `INSERT INTO todos (id, code, title, detail, section, grp, size, needs_you, recommended, status, sort, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)`,
+    ).run(id, code, a.title, readDetail(a) ?? "", a.section, typeof a.group === "string" ? a.group : null, a.size || null, a.you ? 1 : 0, a.star ? 1 : 0, sort, now, now);
+    log("todo.add", `${id} ${a.title}`);
+    console.log(`新增 ${id}`);
+  } else if (sub === "edit") {
+    const t = getTodo(a._[0]);
+    need(t, `找不到 ${a._[0]}`);
+    let detail = readDetail(a) ?? t.detail;
+    if (typeof a.append === "string") detail = `${detail}\n${a.append.replace(/\\n/g, "\n")}`.trim();
+    need(!a.size || SIZE[a.size], "--size 只能 S／M／L");
+    db.prepare("UPDATE todos SET title = ?, detail = ?, size = ?, section = ?, grp = ?, needs_you = ?, recommended = ?, updated_at = ? WHERE id = ?").run(
+      typeof a.title === "string" ? a.title : t.title,
+      detail,
+      a.size || t.size,
+      typeof a.section === "string" ? a.section : t.section,
+      typeof a.group === "string" ? a.group : t.grp,
+      a.you === true ? 1 : a["not-you"] ? 0 : t.needs_you,
+      a.star === true ? 1 : a["no-star"] ? 0 : t.recommended,
+      now,
+      t.id,
+    );
+    log("todo.edit", t.id);
+    console.log(`改好 ${t.id}`);
+  } else if (sub === "done" || sub === "drop" || sub === "reopen") {
+    const t = getTodo(a._[0]);
+    need(t, `找不到 ${a._[0]}`);
+    need(sub !== "drop" || typeof a.note === "string", "不做要寫理由：--note \"…\"");
+    const status = sub === "done" ? "done" : sub === "drop" ? "dropped" : "open";
+    const tag = sub === "done" ? "✅ 完成" : sub === "drop" ? "不做的理由" : "重新打開";
+    const detail = typeof a.note === "string" ? `${t.detail}\n**${tag}（${tw(now).slice(0, 10)}）**：${a.note.replace(/\\n/g, "\n")}`.trim() : t.detail;
+    db.prepare("UPDATE todos SET status = ?, detail = ?, done_at = ?, updated_at = ? WHERE id = ?").run(status, detail, status === "open" ? null : now, now, t.id);
+    log(`todo.${sub}`, `${t.id} ${t.title}`);
+    console.log(`${t.id} → ${status}`);
+  } else {
+    console.log("用法見 scripts/admin-db.js 開頭的說明");
+    process.exitCode = 1;
+  }
 } else {
-  console.log("用法：node scripts/admin-db.js [decisions|log]");
+  console.log("用法：node scripts/admin-db.js [todo|decisions|log]（詳見檔案開頭）");
   process.exitCode = 1;
 }
 db.close();

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Choice, Decision } from "@/lib/admin/db";
 import type { TodoItem } from "@/lib/admin/todo";
+import MiniMarkdown from "@/components/admin/MiniMarkdown";
 
 // 後台的決策表（TODO G1）：TODO.md 每一項選「先做／之後／不做」＋備註，存進 data/admin.db。
 // 2026-11-26 改版（使用者：「手機版有一堆奇怪的空白」「可以用點不同顏色」「已存好醜」）：
@@ -19,7 +20,7 @@ const FILLED: Record<Choice, string> = {
 };
 const BAR: Record<Choice | "none", string> = { now: "bg-(--ok)", later: "bg-(--later)", skip: "bg-(--muted)", none: "bg-(--border)" };
 
-type Filter = "all" | "none" | Choice;
+type Filter = "all" | "none" | Choice | "done" | "dropped";
 type Value = { choice: Choice | null; note: string };
 type State = Record<string, Value>;
 type Toast = { kind: "ok" | "error"; text: string } | null;
@@ -56,11 +57,14 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
     if (t.kind === "ok") toastTimer.current = setTimeout(() => setToast(null), 1800);
   };
 
+  // items 含完成／不做的；決策只對還沒做的（open）
   const ids = new Set(items.map((i) => i.id));
   const orphans = Object.entries(state).filter(([id]) => !ids.has(id));
+  const open = items.filter((i) => i.status === "open");
+  const closed = { done: items.filter((i) => i.status === "done"), dropped: items.filter((i) => i.status === "dropped") };
   const choiceOf = (id: string) => state[id]?.choice ?? null;
-  const counts = { all: items.length, none: 0, now: 0, later: 0, skip: 0 };
-  for (const i of items) counts[choiceOf(i.id) ?? "none"]++;
+  const counts = { all: open.length, none: 0, now: 0, later: 0, skip: 0, done: closed.done.length, dropped: closed.dropped.length };
+  for (const i of open) counts[choiceOf(i.id) ?? "none"]++;
 
   async function save(id: string, title: string, next: Value) {
     const prev = state[id];
@@ -76,7 +80,8 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
     }
   }
 
-  const visible = items.filter((i) => match(filter, choiceOf(i.id)));
+  const isClosed = filter === "done" || filter === "dropped";
+  const visible = isClosed ? closed[filter as "done" | "dropped"] : open.filter((i) => match(filter, choiceOf(i.id)));
   const groups = Map.groupBy(visible, (i) => i.group ?? i.section);
 
   return (
@@ -84,12 +89,12 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
       {/* 比例條：一眼看出決定了多少 */}
       <div className="flex h-1.5 rounded-full overflow-hidden bg-(--border) mb-3" aria-hidden>
         {(["now", "later", "skip"] as const).map((c) => (
-          <span key={c} className={BAR[c]} style={{ width: `${(counts[c] / Math.max(1, items.length)) * 100}%` }} />
+          <span key={c} className={BAR[c]} style={{ width: `${(counts[c] / Math.max(1, open.length)) * 100}%` }} />
         ))}
       </div>
 
       <div role="group" aria-label="篩選" className="flex gap-1.5 overflow-x-auto -mx-6 px-6 pb-1 mb-5 [scrollbar-width:none] sm:flex-wrap sm:mx-0 sm:px-0">
-        {(["all", "none", "now", "later", "skip"] as const).map((f) => (
+        {(["all", "none", "now", "later", "skip", "done", "dropped"] as const).filter((f) => counts[f] > 0 || f === "all").map((f) => (
           <button
             key={f}
             type="button"
@@ -99,8 +104,8 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
               filter === f ? "border-(--text) text-(--text) bg-(--surface)" : "border-(--border) text-(--muted) hover:text-(--text)"
             }`}
           >
-            {f !== "all" && <span aria-hidden className={`size-2 rounded-full ${BAR[f]}`} />}
-            {f === "all" ? "全部" : f === "none" ? "還沒決定" : LABEL[f]}
+            {f !== "all" && f !== "done" && f !== "dropped" && <span aria-hidden className={`size-2 rounded-full ${BAR[f]}`} />}
+            {f === "all" ? "全部" : f === "none" ? "還沒決定" : f === "done" ? "✓ 已完成" : f === "dropped" ? "評估過不做" : LABEL[f]}
             <span className="font-mono tabular-nums">{counts[f]}</span>
           </button>
         ))}
@@ -117,12 +122,12 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
                 <span aria-hidden className="text-(--muted) text-xs transition-transform group-open/sec:rotate-90">▸</span>
                 <span className="text-sm text-(--text) truncate">{name}</span>
                 <span className="ml-auto shrink-0 font-mono text-[11px] text-(--muted)">
-                  {decided}/{list.length}
+                  {isClosed ? list.length : `${decided}/${list.length}`}
                 </span>
               </summary>
               <ul className="divide-y divide-(--border)">
                 {list.map((item) => (
-                  <Row key={item.id} item={item} value={state[item.id]} onSave={(v) => save(item.id, item.title, v)} />
+                  <Row key={item.id} item={item} value={state[item.id]} readOnly={isClosed} onSave={(v) => save(item.id, item.title, v)} />
                 ))}
               </ul>
             </details>
@@ -132,8 +137,8 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
 
       {orphans.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-sm text-(--text) mb-1">TODO.md 裡已經找不到的</h2>
-          <p className="text-xs font-light text-(--muted) mb-2">做完搬到 DONE.md、或改了標題的項目。確認不需要就清掉。</p>
+          <h2 className="text-sm text-(--text) mb-1">待辦裡已經找不到的決定</h2>
+          <p className="text-xs font-light text-(--muted) mb-2">待辦被刪掉或改了編號，留下的選擇跟備註。確認不需要就清掉。</p>
           <ul className="border-y border-(--border) divide-y divide-(--border)">
             {orphans.map(([id, v]) => (
               <li key={id} className="py-2.5 flex items-center justify-between gap-4 text-sm font-light">
@@ -176,11 +181,14 @@ function match(f: Filter, c: Choice | null) {
   return f === "all" || (f === "none" ? c === null : c === f);
 }
 
-function Row({ item, value, onSave }: { item: TodoItem; value: Value | undefined; onSave: (v: Value) => void }) {
+function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value | undefined; readOnly?: boolean; onSave: (v: Value) => void }) {
   const choice = value?.choice ?? null;
   const note = value?.note ?? "";
   const [draft, setDraft] = useState(note);
   const [editing, setEditing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  // 說明比摘要多（有子項目、或第一行被截斷）才給「說明」按鈕
+  const hasMore = item.detail.includes("\n") || item.summary.endsWith("…") || item.detail.replace(/\s/g, "").length > item.summary.replace(/\s/g, "").length + 12;
   const titleId = `todo-${item.id.replace(/[^\w-]/g, "_")}`;
   const commitNote = () => {
     setEditing(false);
@@ -198,7 +206,28 @@ function Row({ item, value, onSave }: { item: TodoItem; value: Value | undefined
           {item.needsYou && <span className="ml-1.5 align-[1px] rounded-full px-1.5 py-px text-[10px] bg-(--warn-lt) text-(--warn)">要你</span>}
           {item.recommended && <span className="ml-1.5 align-[1px] rounded-full px-1.5 py-px text-[10px] bg-(--accent-lt) text-(--accent)">推薦</span>}
         </p>
-        {item.summary && <p className="mt-1 text-[11px] font-light text-(--muted) line-clamp-1 sm:line-clamp-2">{item.summary}</p>}
+        {item.summary && !expanded && (
+          <p className="mt-1 text-[11px] font-light text-(--muted) line-clamp-2">{item.summary}</p>
+        )}
+        {hasMore && (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((v) => !v)}
+            className="mt-1 inline-flex items-center gap-1 text-[11px] text-(--accent) hover:underline underline-offset-2"
+          >
+            <span aria-hidden className={`inline-block transition-transform ${expanded ? "rotate-90" : ""}`}>▸</span>
+            {expanded ? "收起說明" : "完整說明"}
+          </button>
+        )}
+        {expanded && (
+          <div className="mt-2 rounded-sm bg-(--surface) px-3 py-2.5">
+            <MiniMarkdown text={item.detail} />
+          </div>
+        )}
+        {readOnly && item.doneAt && (
+          <p className="mt-1 font-mono text-[10px] text-(--muted)">完成於 {new Date(item.doneAt + 8 * 3600_000).toISOString().slice(0, 10)}</p>
+        )}
         {note && !editing && (
           <button type="button" onClick={() => setEditing(true)} className="mt-1.5 text-left text-xs text-(--text) bg-(--surface) rounded-sm px-2 py-1">
             📝 {note}
@@ -222,7 +251,7 @@ function Row({ item, value, onSave }: { item: TodoItem; value: Value | undefined
           />
         )}
       </div>
-      <div role="group" aria-labelledby={titleId} className="mt-2.5 sm:mt-0 grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5 sm:flex sm:self-start">
+      {!readOnly && <div role="group" aria-labelledby={titleId} className="mt-2.5 sm:mt-0 grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5 sm:flex sm:self-start">
         {(["now", "later", "skip"] as const).map((c) => (
           <button
             key={c}
@@ -247,7 +276,7 @@ function Row({ item, value, onSave }: { item: TodoItem; value: Value | undefined
         >
           備註
         </button>
-      </div>
+      </div>}
     </li>
   );
 }

@@ -31,6 +31,24 @@ const MIGRATIONS = [
      detail TEXT NOT NULL DEFAULT ''
    );
    CREATE INDEX admin_log_at ON admin_log (at DESC);`,
+  // 2：待辦本身搬進資料庫（2026-11-26 晚，使用者：「以後 todo 直接寫進網站後台，不用讀 MD」）
+  `CREATE TABLE todos (
+     id          TEXT PRIMARY KEY,
+     code        TEXT,
+     title       TEXT NOT NULL,
+     detail      TEXT NOT NULL DEFAULT '',
+     section     TEXT NOT NULL,
+     grp         TEXT,
+     size        TEXT CHECK (size IN ('L', 'M', 'S')),
+     needs_you   INTEGER NOT NULL DEFAULT 0,
+     recommended INTEGER NOT NULL DEFAULT 0,
+     status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'done', 'dropped')),
+     sort        INTEGER NOT NULL,
+     created_at  INTEGER NOT NULL,
+     updated_at  INTEGER NOT NULL,
+     done_at     INTEGER
+   );
+   CREATE INDEX todos_status_sort ON todos (status, sort);`,
 ];
 
 let db: { file: string; conn: DatabaseSync } | null = null;
@@ -97,6 +115,61 @@ export function logEvent(action: string, detail = "", now = Date.now()) {
 
 export function recentEvents(limit = 20): AdminEvent[] {
   return getDb().prepare("SELECT id, at, action, detail FROM admin_log ORDER BY id DESC LIMIT ?").all(limit) as AdminEvent[];
+}
+
+// ── 待辦 ────────────────────────────────────────────────
+export type TodoRow = {
+  id: string;
+  code: string | null;
+  title: string;
+  detail: string;
+  section: string;
+  grp: string | null;
+  size: "L" | "M" | "S" | null;
+  needs_you: number;
+  recommended: number;
+  status: "open" | "done" | "dropped";
+  sort: number;
+  created_at: number;
+  updated_at: number;
+  done_at: number | null;
+};
+
+export type TodoInput = {
+  id: string;
+  code: string | null;
+  title: string;
+  detail: string;
+  section: string;
+  group: string | null;
+  size: "L" | "M" | "S" | null;
+  needsYou: boolean;
+  recommended: boolean;
+  status: "open" | "done" | "dropped";
+};
+
+/** 全部待辦（含完成、不做），照 sort 排 */
+export function listTodos(): TodoRow[] {
+  return getDb().prepare("SELECT * FROM todos ORDER BY sort").all() as TodoRow[];
+}
+
+/** 從 TODO.md 一次匯入（只在 todos 表是空的時候呼叫）。照原本順序，sort 每項間隔 10，之後插隊有空間 */
+export function importTodos(items: TodoInput[], now = Date.now()) {
+  const conn = getDb();
+  const stmt = conn.prepare(
+    `INSERT OR IGNORE INTO todos (id, code, title, detail, section, grp, size, needs_you, recommended, status, sort, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  conn.exec("BEGIN");
+  try {
+    items.forEach((t, i) =>
+      stmt.run(t.id, t.code, t.title, t.detail, t.section, t.group, t.size, t.needsYou ? 1 : 0, t.recommended ? 1 : 0, t.status, (i + 1) * 10, now, now),
+    );
+    conn.exec("COMMIT");
+  } catch (e) {
+    conn.exec("ROLLBACK");
+    throw e;
+  }
 }
 
 /** 只給測試用 */
