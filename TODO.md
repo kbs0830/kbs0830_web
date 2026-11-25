@@ -36,8 +36,8 @@
   現在寫的「學習 React Three Fiber 進階、WebGL Shader」可能要改成 WebGPU／TSL（首頁剛做了 compute shader 版）——你說了才改
 - [ ] **試玩首頁 WebGPU 版給回饋**（11/22 上線）：桌機 Chrome 開首頁按住／拖曳／雙擊。想調的跟 Claude 說：
   粒子太多／太少、聚集太快／太慢、形狀要換（例如換成高雄↔福岡、某個作品的圖示）、左下角提示字要不要留
-- [ ] **FoodLens 截圖**：課程専題 11/09 全部有截圖了，個人專案只剩 FoodLens 沒有。它的網頁版只是「測試 BFF 連線」的空殼、
-  真正的 App 是 Android，後端也沒有 Gemini 金鑰——要你手機截一張分析結果（不要有真人臉），或給 Claude 金鑰＋一張食物照片
+- [ ] **FoodLens 換成真機截圖**（可選）：11/25 所有作品都有圖了，FoodLens 那張是照 Android 程式碼重繪的**示意圖**（圖上有標）。
+  想換成真的：手機截一張分析結果（不要有真人臉）給 Claude，或給 Gemini 金鑰＋一張食物照片讓 Claude 跑
 - [ ] **均線回測修好了，要你 push school repo** 🙋：11/25 三個 bug 都修了（0 張賣出、賣出費用改扣、本金不夠不買），
   已在本機 `Desktop\school` commit（`0d871c3`），Claude 這邊 push 會跳 GitHub 登入視窗（school repo 沒設推送用的金鑰）——你連回桌機在那個資料夾 `git push` 就好。
   修完後股價高到一張超過本金時（聯發科）會跳過不買，結果多一行「本金不足 N 次」（真資料還沒跑：桌機沒裝 yfinance／rich）；網站要補報酬率的話跟 Claude 說
