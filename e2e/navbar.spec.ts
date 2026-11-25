@@ -48,17 +48,20 @@ test.describe("手機選單（TODO F4）", () => {
 test.describe("手機版：重點顯示、其他收進右上角選單（2026-11-24）", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("作品卡片是精簡版；課程專題先顯示 2 個，按了才展開", async ({ page }) => {
+  test("作品卡片是精簡版；個人専案只露出精選 2 個、課程專題先顯示 2 個，按了才展開", async ({ page }) => {
     await gotoReady(page, "/");
-    const card = page.locator("#portfolio a[aria-label^='查看']").first().locator("..");
-    expect((await card.boundingBox())!.height).toBeLessThan(220);
+    const visible = page.locator("#portfolio a[aria-label^='查看']:visible");
+    expect((await visible.first().locator("..").boundingBox())!.height).toBeLessThan(220);
+    // 2026-11-25：手機上個人専案先露出「個人網站」跟「FR24 雷達站」兩個精選，排在最前面
+    await expect(visible.nth(0)).toHaveAttribute("aria-label", /個人網站|FR24/);
+    await expect(visible.nth(1)).toHaveAttribute("aria-label", /個人網站|FR24/);
 
-    const visibleCards = () => page.locator("#portfolio a[aria-label^='查看']:visible").count();
-    const before = await visibleCards();
+    const before = await visible.count();
     const more = page.getByRole("button", { name: /顯示全部 \d+ 個/ });
-    await more.click();
-    await expect(more).toBeHidden();
-    expect(await visibleCards()).toBeGreaterThan(before);
+    await expect(more).toHaveCount(2);
+    await more.first().click();
+    await expect(more).toHaveCount(1);
+    expect(await visible.count()).toBeGreaterThan(before);
   });
 
   test("手機頁尾不列頁面；首頁選單裡有全站目錄", async ({ page }) => {

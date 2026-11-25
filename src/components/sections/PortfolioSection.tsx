@@ -72,7 +72,8 @@ function ProjectCard({
                 <StatusBadge status={project.status} />
               </div>
               {/* 跟 /projects/[slug] 的 <h1> 同名，點進詳細頁時標題會 morph 過去 */}
-              <div className="flex items-start gap-2">
+              {/* items-baseline：狀態標籤對齊標題第一行的文字（2026-11-25 使用者：「藍底的完成飄掉了，沒有對齊」，原本 items-start＋mt-0.5 偏下） */}
+              <div className="flex items-baseline gap-2">
                 <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
                   <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
                     {project.titleZh}
@@ -80,7 +81,7 @@ function ProjectCard({
                 </ViewTransition>
                 {/* 手機：狀態跟中文標題同一行；課程專題那一區的標題已經寫了，不再重複「課程専題」（會把標題擠成兩行） */}
                 {project.status !== "課程専題" && (
-                  <span className="sm:hidden shrink-0 mt-0.5">
+                  <span className="sm:hidden shrink-0">
                     <StatusBadge status={project.status} />
                   </span>
                 )}
@@ -148,8 +149,12 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   );
 }
 
+// 手機上個人専案只先露出這兩個（2026-11-25 使用者：「自架 FR24 雷達站跟個人網站（本站）精選，剩下的照課程專題」收起來）。
+// 只影響 640px 以下：精選排到最前、其他收進「顯示全部」；桌機的順序跟顯示都不變
+const MOBILE_FEATURED = ["fr24-receiver", "kbs0830-web"];
+
 const toItems = (list: typeof projects) =>
-  list.map((p, i) => ({ slug: p.slug, tags: p.tags, card: <ProjectCard project={p} index={i} /> }));
+  list.map((p, i) => ({ slug: p.slug, tags: p.tags, mobileFeatured: MOBILE_FEATURED.includes(p.slug), card: <ProjectCard project={p} index={i} /> }));
 
 // grid-cols-1 要明確寫：沒寫的話手機那一欄是 auto，會被卡片裡不換行的「英文 · 日文」撐寬，
 // 整頁變得比螢幕寬（2026-11-24 在 360px 實測 401px，固定在頂端的導覽列跟著變寬、選單按鈕被擠出畫面）
@@ -160,6 +165,7 @@ const groups: FilterGroup[] = [
     gridClassName: "grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5",
     label: <SectionLabel label="Personal Projects" labelZh="個人専案" />,
     items: toItems(personalProjects),
+    mobileLimit: MOBILE_FEATURED.length,
   },
   {
     key: "course",

@@ -10,7 +10,8 @@ export type FilterGroup = {
   className: string;
   gridClassName: string;
   label: ReactNode;
-  items: { slug: string; tags: string[]; card: ReactNode }[];
+  /** mobileFeatured：手機上排到最前面、收起來時也露出（2026-11-25 個人専案的精選） */
+  items: { slug: string; tags: string[]; mobileFeatured?: boolean; card: ReactNode }[];
   /** 手機（640px 以下）先顯示前幾張，其他按「顯示全部」才展開；有選 tag 篩選時全部顯示（2026-11-24 手機「重點顯示，剩下收起來」） */
   mobileLimit?: number;
 };
@@ -96,12 +97,18 @@ export default function ProjectFilter({
         // 收起來的卡片還在 HTML 裡（只是手機上 display:none），搜尋引擎、Ctrl+F 照樣看得到；桌機用 contents 不影響格線
         const limit = !activeTag && g.mobileLimit && !expanded.includes(g.key) ? g.mobileLimit : Infinity;
         const hiddenCount = Math.max(0, g.items.length - limit);
+        // 手機上的排名：精選在前、其他照原本順序；排名超過 limit 的先收起來（桌機不看這個）
+        const mobileRank = new Map([...g.items.filter((i) => i.mobileFeatured), ...g.items.filter((i) => !i.mobileFeatured)].map((i, n) => [i.slug, n]));
         return (
           <div key={g.key} className={g.className}>
             {g.label}
             <div className={g.gridClassName}>
-              {g.items.map((i, n) => (
-                <div key={i.slug} className={n >= limit ? "hidden sm:contents" : "contents"}>
+              {g.items.map((i) => (
+                // 精選：手機上變成真的格子（max-sm:block）才能用 order 排到最前；桌機照舊 contents、順序不變
+                <div
+                  key={i.slug}
+                  className={mobileRank.get(i.slug)! >= limit ? "hidden sm:contents" : i.mobileFeatured ? "contents max-sm:block max-sm:order-first" : "contents"}
+                >
                   {i.card}
                 </div>
               ))}
