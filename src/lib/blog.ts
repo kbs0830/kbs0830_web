@@ -5,6 +5,8 @@ import matter from "gray-matter";
 export interface BlogPost {
   slug: string;
   title: string;
+  /** 只給 <title>（搜尋結果）用的標題：照大家實際會搜的字寫（TODO I5，2026-11-25）。畫面上的標題、分享卡片還是用 title */
+  seoTitle?: string;
   titleEn: string;
   date: string;
   description: string;
@@ -29,6 +31,7 @@ export function getAllPosts(): BlogPost[] {
       return {
         slug: file.replace(/\.mdx$/, ""),
         title: data.title as string,
+        ...(data.seoTitle ? { seoTitle: String(data.seoTitle) } : {}),
         titleEn: data.titleEn as string,
         date: data.date as string,
         description: data.description as string,

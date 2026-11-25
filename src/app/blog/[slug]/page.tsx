@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   if (!post) return {};
 
   return {
-    title: `${post.title} — PINGWEI LI`,
+    title: `${post.seoTitle ?? post.title} — PINGWEI LI`,
     description: post.description,
     alternates: {
       canonical: `/blog/${post.slug}`,

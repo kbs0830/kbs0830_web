@@ -12,8 +12,9 @@ for (const path of ["/blog/task-scheduler-72-hours", "/projects/foodlens-advisor
     const ogTitle = meta(html, "og:title");
     expect(ogTitle).toBeTruthy();
     expect(ogTitle).not.toBe("PINGWEI LI — Portfolio");
-    // 文章頁的 og:title 是純文章標題，其他頁跟 <title> 一樣
-    expect(title).toContain(ogTitle!.replace(/&amp;/g, "&"));
+    // 文章頁的 og:title 是畫面上的文章標題；<title> 可能是照搜尋字寫的 seoTitle（2026-11-25 I5），兩個刻意不同。其他頁跟 <title> 一樣
+    if (path.startsWith("/blog/")) expect(title).toMatch(/ — PINGWEI LI$/);
+    else expect(title).toContain(ogTitle!.replace(/&amp;/g, "&"));
     expect(meta(html, "og:url")).toContain(path);
     expect(meta(html, "og:image")).toBeTruthy();
     expect(meta(html, "twitter:title")).toBe(ogTitle);
