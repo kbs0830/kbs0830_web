@@ -1,10 +1,11 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { __closeDb, listDecisions, listTodos, recentEvents, saveDecision } from "@/lib/admin/db";
 import { parseTodo, readTodo } from "@/lib/admin/todo";
 
-describe("parseTodo", () => {
-  const md = [
+const md = [
     "# TODO",
     "## 🙋 你要動手的",
     "- [ ] **登入 `gh`**（11/25）：桌機跑 `gh auth login`",
@@ -26,6 +27,8 @@ describe("parseTodo", () => {
     "- **I3. 轉貼到別的平台**（11/25）：不做，理由在這",
     "  補充理由",
   ].join("\r\n");
+
+describe("parseTodo", () => {
 
   it("編號、大小、🙋、⭐、分區都抓對", () => {
     const items = parseTodo(md);
@@ -49,10 +52,8 @@ describe("parseTodo", () => {
     expect(items.find((i) => i.id === "I3")).toMatchObject({ status: "dropped", detail: "（11/25）：不做，理由在這\n補充理由" });
   });
 
-  it("真的 TODO.md 解析得出東西，而且 id 不重複", () => {
-    const items = parseTodo(fs.readFileSync("TODO.md", "utf8"));
-    expect(items.length).toBeGreaterThan(30);
-    expect(new Set(items.map((i) => i.id)).size).toBe(items.length);
+  it("TODO.md 已經搬進資料庫：現在的檔案解析不出待辦（不會被誤匯入）", () => {
+    expect(parseTodo(fs.readFileSync("TODO.md", "utf8"))).toEqual([]);
   });
 });
 
@@ -72,9 +73,12 @@ describe("admin db", () => {
   });
 
   it("todos 表是空的 → 從 TODO_FILE 匯入一次，之後讀資料庫", () => {
-    vi.stubEnv("TODO_FILE", "TODO.md");
+    const file = path.join(os.tmpdir(), `todo-import-${process.pid}.md`);
+    fs.writeFileSync(file, md);
+    vi.stubEnv("TODO_FILE", file);
     const first = readTodo();
-    expect(first.length).toBeGreaterThan(30);
+    fs.rmSync(file);
+    expect(first.map((i) => i.id)).toEqual(["t:登入 gh", "B16", "E1", "A2", "A9"]);
     expect(first.every((i) => i.status === "open")).toBe(true);
     expect(readTodo({ all: true }).some((i) => i.status === "dropped")).toBe(true);
     vi.stubEnv("TODO_FILE", "不存在.md");

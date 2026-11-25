@@ -49,7 +49,7 @@
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 16（App Router、Turbopack）、React 19.3 + React Compiler、TypeScript 6.0（TS 7 暫不升，見 TODO） |
+| Framework | Next.js 16（App Router、Turbopack）、React 19.3 + React Compiler、TypeScript 6.0（TS 7 暫不升，見後台待辦） |
 | 渲染 | **Cache Components**（`cacheComponents`＋`partialPrefetching`）：靜態外殼＋`<Suspense>` 串流即時資料，規則見下方 |
 | 路由 | `typedRoutes: true`：路徑型別用 `Route` 不要 `string`；新增路由後 `next typegen` |
 | 3D | Three.js + React Three Fiber + Drei |
@@ -135,6 +135,8 @@
 - 以上大多已由 `.claude/hookify.*.local.md` 自動擋下（`/hookify:list`）
 
 **兩台都適用**：
+- **待辦在站長後台資料庫，不是 TODO.md**（2026-11-26）：`node scripts/admin-db.js todo`（列出）／`decisions`（使用者選的先做）／`todo add|done|drop`，用法在那支檔案開頭；
+  說明要寫完整（背景、使用者原話、做法）。資料庫 `data/admin.db` 只在桌機——在 A14 上讀不到，請使用者看 `/admin/todo` 或回桌機再寫
 - 找 port 的 PID **不要加 `-State Listen`**（dual-stack socket 會顯示 Closed）
 - E2E 每個測試用 `gotoReady(page, path)`，不要直接 `page.goto`
 - 改 Cloudflare 設定後要 `curl -sI` 實際看到結果才算數
