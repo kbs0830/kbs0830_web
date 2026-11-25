@@ -47,7 +47,10 @@ export interface Project {
   image?: string;
   /** 圖不是截圖時寫清楚是什麼（示意圖、封面）；沒寫就用「○○ 截圖」 */
   imageAlt?: string;
-  /** 手機作品卡片左邊的小圖示（2026-11-25 使用者：「換簡易版的，emoji 也可以」，截圖點進作品頁才看） */
+  /** 手機作品卡片左邊的小圖示（2026-11-25 使用者：「換簡易版的」「先畫，畫不出來再用 emoji」，截圖點進作品頁才看）。
+   *  thumb＝畫好的 480×480 圖示（public/image/projects/icons/，暖白底＋米色線＋靛藍），沒有才用 icon 的 emoji。
+   *  換圖要換檔名：同網址會被 next/image 跟 Cloudflare 快取住舊圖（FR24 雷達圓盤就卡過） */
+  thumb?: string;
   icon: string;
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
@@ -60,6 +63,7 @@ const allProjects: Project[] = [
   // ── 個人專案 ─────────────────────────────────
   {
     slug: "foodlens-advisor",
+    thumb: "/image/projects/icons/foodlens-advisor.jpg",
     icon: "🍱",
     title: "FoodLens Advisor",
     titleJa: "フードレンズ",
@@ -157,6 +161,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "ticketing-system",
+    thumb: "/image/projects/icons/ticketing-system.jpg",
     icon: "🎫",
     title: "Event Registration System",
     titleJa: "イベント受付システム",
@@ -323,6 +328,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "auto-following-robot",
+    thumb: "/image/projects/icons/auto-following-robot.jpg",
     icon: "🤖",
     title: "Auto-Following Robot",
     titleJa: "自動追従ロボット",
@@ -412,6 +418,7 @@ const allProjects: Project[] = [
   {
     // 數字全部有出處：CLAUDE.md（部署／監控／備份章節）、DONE.md、git log。改這裡之前先確認還是真的
     slug: "kbs0830-web",
+    thumb: "/image/projects/icons/kbs0830-web.jpg",
     icon: "🌐",
     title: "kbs0830.com — This Site",
     titleJa: "本サイト",
@@ -541,6 +548,7 @@ const allProjects: Project[] = [
     // 2026-11-20／21 實際除錯與上線的紀錄（DONE.md、CLAUDE.md「自家 FR24 雷達」）。
     // ⚠️ 接收器在使用者家：不寫位置、雷達代碼、涵蓋範圍、離機場多近（「收得到地面滑行的飛機」也不寫，那等於說住在機場旁）
     slug: "fr24-receiver",
+    thumb: "/image/projects/icons/fr24-receiver.jpg",
     icon: "📡",
     title: "Home ADS-B Receiver",
     titleJa: "自宅レーダー",
@@ -634,6 +642,7 @@ const allProjects: Project[] = [
   // ── 課程専題 ─────────────────────────────────
   {
     slug: "yen-rate-analyzer",
+    thumb: "/image/projects/icons/yen-rate-analyzer.jpg",
     icon: "💴",
     title: "JPY Rate Analyzer",
     titleJa: "円相場分析システム",
@@ -718,6 +727,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "expense-tracker",
+    thumb: "/image/projects/icons/expense-tracker.jpg",
     icon: "🧾",
     title: "Personal Finance Tracker",
     titleJa: "家計簿アプリ",
@@ -796,6 +806,7 @@ const allProjects: Project[] = [
   // 去識別化：不放學號、本名、班級組別、組員姓名；路口排雷的 GitHub repo README 有組員本名，所以不連過去。
   {
     slug: "lukou-pailei",
+    thumb: "/image/projects/icons/lukou-pailei.jpg",
     icon: "🚦",
     title: "Road Hazard Map",
     titleJa: "道路危険マップ",
@@ -881,6 +892,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "aqi-classification",
+    thumb: "/image/projects/icons/aqi-classification.jpg",
     icon: "🌫️",
     title: "Air Quality Classification",
     titleJa: "空気質分類",
@@ -954,6 +966,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "sql-analysis",
+    thumb: "/image/projects/icons/sql-analysis.jpg",
     icon: "🗃️",
     title: "SQL Business Queries",
     titleJa: "SQL 分析",
@@ -1016,6 +1029,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "churn-preprocessing",
+    thumb: "/image/projects/icons/churn-preprocessing.jpg",
     icon: "🛒",
     title: "Customer Churn Data Cleaning",
     titleJa: "データ前処理",
@@ -1097,6 +1111,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "ma-backtest",
+    thumb: "/image/projects/icons/ma-backtest.jpg",
     icon: "📈",
     title: "Moving-Average Backtest",
     titleJa: "移動平均バックテスト",
@@ -1173,6 +1188,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "school",
+    thumb: "/image/projects/icons/school.jpg",
     icon: "📚",
     title: "Learning Records",
     titleJa: "学習記録",
@@ -1321,6 +1337,7 @@ const allProjects: Project[] = [
   },
   {
     slug: "vocational-records",
+    thumb: "/image/projects/icons/vocational-records.jpg",
     icon: "🔧",
     title: "Vocational High School Records",
     titleJa: "高工学習記録",

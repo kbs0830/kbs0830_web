@@ -63,14 +63,20 @@ function ProjectCard({
               </div>
             </ViewTransition>
           )}
-          {/* 手機：左邊一個 emoji 小圖示，截圖點進作品頁才看（2026-11-25 使用者：「截圖好醜，點進去再顯示截圖」；
-              原本的正方形截圖縮圖 thumb 拿掉了，同網址換圖還會被圖片快取卡住舊圖） */}
-          <div
-            aria-hidden
-            className="sm:hidden w-14 h-14 shrink-0 grid place-items-center rounded-sm bg-(--surface) text-[28px] leading-none select-none"
-          >
-            {project.icon}
-          </div>
+          {/* 手機：左邊一個小圖示，截圖點進作品頁才看（2026-11-25 使用者：「截圖好醜，點進去再顯示截圖」
+              「先畫，畫不出來再用 emoji」）：有畫好的 thumb 用圖，沒有才用 emoji */}
+          {project.thumb ? (
+            <div aria-hidden className="sm:hidden relative w-16 h-16 shrink-0 overflow-hidden rounded-sm">
+              <Image src={project.thumb} alt="" fill className="object-cover" sizes="64px" />
+            </div>
+          ) : (
+            <div
+              aria-hidden
+              className="sm:hidden w-16 h-16 shrink-0 grid place-items-center rounded-sm bg-(--surface) text-[30px] leading-none select-none"
+            >
+              {project.icon}
+            </div>
+          )}
           <div className="flex flex-col flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-start justify-between mb-2 sm:mb-4">
