@@ -46,7 +46,7 @@
 - [ ] **FoodLens 換成真機截圖**（可選）：11/25 所有作品都有圖了，FoodLens 那張是照 Android 程式碼重繪的**示意圖**（圖上有標）。
   想換成真的：手機截一張分析結果（不要有真人臉）給 Claude，或給 Gemini 金鑰＋一張食物照片讓 Claude 跑
 - [ ] **均線回測修好了，要你 push school repo** 🙋：11/25 三個 bug 都修了（0 張賣出、賣出費用改扣、本金不夠不買），
-  已在本機 `Desktop\school` commit（`0d871c3`），Claude 這邊 push 會跳 GitHub 登入視窗（school repo 沒設推送用的金鑰）——你連回桌機在那個資料夾 `git push` 就好。
+  已在本機 `Desktop\02_課程專題・學習記錄\school` commit（`0d871c3`），Claude 這邊 push 會跳 GitHub 登入視窗（school repo 沒設推送用的金鑰）——你連回桌機在那個資料夾 `git push` 就好。
   修完後股價高到一張超過本金時（聯發科）會跳過不買，結果多一行「本金不足 N 次」（真資料還沒跑：桌機沒裝 yfinance／rich）；網站要補報酬率的話跟 Claude 說
 - [ ] **路口排雷「v2 重構版由我完成」對不對**：Claude 是看 git 紀錄（17 個 commit 都是你的信箱）寫的，不對就說
 - [ ] **作品量化成果**：購票系統處理過幾筆報名…**有真的數字才放**（匯率系統「6 家銀行、6 條執行緒並行」11/09 已從原始碼補上）
@@ -96,7 +96,7 @@
 ### 🟥 A1 站長後台 /admin（2026-11-25 設計好，下一個 session 實作；使用者：「把站長後台架構及前端入口先想好，等等實作」）
 
 **進度**：✅ 骨架上線（2026-11-25，commit 9f7881a）：`src/proxy.ts`、`lib/admin/auth.ts`（目前只放行本機）、五頁空殼、`/api/admin/me`、`e2e/admin.spec.ts`。
-✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。✅ `auth.ts` 的 JWT 驗證（11/26，WebCrypto、單元測試 `auth.test.ts`；env 沒設＝外部一律 404）。⬜ 下一步：使用者設 Cloudflare Access＋填 env → 各頁填資料 → 隱藏入口 → /reports 搬進來
+✅ 總覽、流量、維運、寄信 四頁接上真資料（唯讀）。✅ `auth.ts` 的 JWT 驗證（11/26，WebCrypto、單元測試 `auth.test.ts`；env 沒設＝外部一律 404）。✅ `/admin/todo` 決策表＋SQLite 資料庫 `data/admin.db`（11/26，見 G1「決策表」）。⬜ 下一步：使用者設 Cloudflare Access＋填 env → 各頁填資料 → 隱藏入口 → /reports 搬進來
 
 **目標**：把現在散在各處、只能在桌機看的東西（/reports、/stats 的細節、部署／watchdog／雷達狀態、寄信紀錄）集中到一個只有站長能進的地方，外出用手機也能看。
 
@@ -267,7 +267,9 @@
     → 現在只在桌機檔案或信箱裡的：watchdog 告警紀錄、log、未過濾流量、Search Console 週報、雷達的完整資料
       （位置、涵蓋範圍這些公開頁不放的東西，放後台也要你點頭）
     → 搞錢相關：實際收入、聯盟和 `/go/` 的點擊數（E10）、架站成本的實際金額（E11）——make-money.md 說不寫進 repo 的資料就放這裡（存在不進 git 的 `data/`）
-  - **決策表**（11/24 使用者：「這個決策表想法不錯，等後台用好直接加入後台」）：現在先放在 Claude Doc 的「決策表」分頁
+  - **決策表** ✅ 11/26 做好：`/admin/todo`，存在 `data/admin.db`（SQLite，`node:sqlite`），Claude 開工前跑 `node scripts/admin-db.js decisions`。
+    Claude Doc 那份停用。下面是原本的設計：
+  - ~~決策表~~（11/24 使用者：「這個決策表想法不錯，等後台用好直接加入後台」）：現在先放在 Claude Doc 的「決策表」分頁
     （https://claude.ai/artifact/EJ5NoHuYq3jGy9W5fEL2zH ），後台做好後搬進來：
     → build 時從 TODO.md 解析出每一項（編號、標題、大小、🙋、⭐），每列一個「先做／之後／不做」選擇，可以加備註
     → 選擇存在 `data/decisions.json`（不進 git）；Claude 開工前讀這份，照「先做」排順序、做完再從 TODO.md 搬到 DONE.md

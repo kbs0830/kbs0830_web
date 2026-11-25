@@ -91,5 +91,25 @@ export async function isAdmin(h: HeaderLike): Promise<boolean> {
 
 export const isAdminRequest = (req: NextRequest) => isAdmin(req.headers);
 
+/**
+ * 寫入類 API（POST /api/admin/*）的 CSRF 防護：Origin 一定要是自己的網站。
+ * 外部只認 kbs0830.com；本機請求另外認 localhost／127.0.0.1（桌機上直接開後台）。
+ * Sec-Fetch-Site 有帶就一定要是 same-origin。
+ */
+export function isSameOriginWrite(h: HeaderLike): boolean {
+  const site = h.get("sec-fetch-site");
+  if (site && site !== "same-origin") return false;
+  const origin = h.get("origin");
+  if (!origin) return false;
+  if (origin === "https://kbs0830.com") return true;
+  if (!isLocalRequest(h)) return false;
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === "http:" && (hostname === "localhost" || hostname === "127.0.0.1");
+  } catch {
+    return false;
+  }
+}
+
 /** 只給測試用：清掉公鑰快取 */
 export const __resetKeyCache = () => { keyCache = null; };

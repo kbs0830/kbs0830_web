@@ -5,6 +5,14 @@
 
 ---
 
+### 2026-11-26 站長後台：門禁 JWT、決策表、資料庫（使用者：「後台的 todo 互動的東西幫我寫好，順便寫寫資料庫存東西」）
+- [x] `lib/admin/auth.ts` 驗 Cloudflare Access JWT（WebCrypto，RS256／iss／aud／exp／email）；`CF_ACCESS_TEAM`／`CF_ACCESS_AUD`／`ADMIN_EMAIL` 沒設＝外部一律 404（2cfacaa）
+- [x] 後台資料庫 `lib/admin/db.ts`：SQLite（Node 24 內建 `node:sqlite`，不用裝套件），檔案 `data/admin.db`（不進 git，`ADMIN_DB_FILE` 可換），
+  表 `decisions`（決策表）、`admin_log`（後台操作紀錄，留 1000 筆）；`PRAGMA user_version` 做版本，加欄位就在 `MIGRATIONS` 後面加一段
+- [x] `/admin/todo` 決策表：解析 TODO.md（`lib/admin/todo.ts`），每項選先做／之後／不做＋備註，篩選、已不在 TODO.md 的舊紀錄可清掉；
+  寫入 `POST /api/admin/decisions` 檢查 Origin（`isSameOriginWrite`，防 CSRF）；CLI `node scripts/admin-db.js decisions|log`
+- [x] 手機版：後台分頁變 6 個後「維運」被擠成直排，`AdminNav` 的 li 加 `shrink-0`
+
 ### 2026-11-25 省 token、CI 誤報（使用者：「還有沒有省 token 的方法」「每次 fail 都會寄 mail」）
 - [x] CI 的 E2E 失敗信（09b4681、6b9b042、da466ba）是 Claude 本機驗證 `next build` 清空 `.next`，刪掉 CI `next dev` 正在用的 `.next/dev`——
   本機驗證改 build 到 `.next-test`（`.gitignore`、`kbs-test-3200` 技能都改了）

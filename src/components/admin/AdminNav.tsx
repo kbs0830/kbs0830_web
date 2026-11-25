@@ -12,7 +12,7 @@ export default function AdminNav() {
         {ADMIN_PAGES.map((p) => {
           const active = path === p.href;
           return (
-            <li key={p.href}>
+            <li key={p.href} className="shrink-0">
               <Link
                 href={p.href}
                 aria-current={active ? "page" : undefined}
