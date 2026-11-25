@@ -88,6 +88,9 @@
 
 ### 🟥 A1 站長後台 /admin（2026-11-25 設計好，下一個 session 實作；使用者：「把站長後台架構及前端入口先想好，等等實作」）
 
+**進度**：✅ 骨架上線（2026-11-25，commit 9f7881a）：`src/proxy.ts`、`lib/admin/auth.ts`（目前只放行本機）、五頁空殼、`/api/admin/me`、`e2e/admin.spec.ts`。
+⬜ 下一步：使用者設 Cloudflare Access → `auth.ts` 的 `isAdmin()` 補 JWT 驗證 → 各頁填資料 → 隱藏入口 → /reports 搬進來
+
 **目標**：把現在散在各處、只能在桌機看的東西（/reports、/stats 的細節、部署／watchdog／雷達狀態、寄信紀錄）集中到一個只有站長能進的地方，外出用手機也能看。
 
 **門禁（兩層，缺一不可）**
