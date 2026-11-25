@@ -672,7 +672,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
     重啟後立刻確認恢復正常，影響範圍很小
   → 目前架構（單一 process 給 Task Scheduler 直接管理）本來就無法完全避免這個
     空窗，要做到零停機需要雙 process 交替之類的架構改動，複雜度是否值得由你評估，
-    詳見 `LOG分析.md` 第 3 節
+    詳見 `docs/archive/2026-07-LOG分析.md` 第 3 節
 
 ---
 
@@ -838,7 +838,7 @@ FoodLens README 也沒提到 live demo。目前沒有安全可用的真實連結
 - [x] 訪客來源統計小工具（Footer，自己刻的，不用 Clustrmaps：讀 Cloudflare Tunnel 自動帶的
   `cf-ipcountry` header，只聚合國家層級次數存 `data/visitor-stats.json`，不記 IP；
   `/api/visitor-stats` 吐彙總資料，`VisitorStats.tsx` 顯示「共 N 次造訪 · 來自 M 國 + 前 5 名國旗」）
-- [x] LOG 分析（見 `LOG分析.md`）：10 天 log 顯示應用層 0 錯誤、20 次部署全成功；發現並修好
+- [x] LOG 分析（見 `docs/archive/2026-07-LOG分析.md`）：10 天 log 顯示應用層 0 錯誤、20 次部署全成功；發現並修好
   訪客統計被偽裝瀏覽器 UA 的掃描器污染的問題（改成前端執行 JS 後才 POST 回報計數，
   不執行 JS 的掃描器從根本上排除，不再只靠容易被繞過的 UA 黑名單）
   → 順帶一提：`/api/visitor-stats/route.ts` 的 Turbopack NFT over-trace build 警告當時
