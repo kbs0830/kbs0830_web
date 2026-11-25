@@ -5,6 +5,16 @@
 
 ---
 
+### 2026-11-25 TODO 一批：F5、F6、F9、B11、J14、J15
+- [x] **F5**：首頁導覽的區塊亮燈離開時會清掉（原本捲回 Hero「自己紹介」一直亮著），亮的那個加 `aria-current="location"`
+- [x] **F6**：每頁第一個 Tab 是「跳到主要內容」，Enter 直接跳到 `<main id="main">`
+- [x] **F9**：頁尾目錄裡目前這一頁換強調色＋`aria-current="page"`（`components/layout/FooterNavLink.tsx`，只有這顆在 client）
+- [x] **B11**：文章列印版——開頭印原文網址、程式碼自動換行不截斷、站內連結補完整網址、標籤／系列／目錄／上下篇／相關文章不印
+- [x] **J14** `/tools/tailwind-v4-vars`：貼 class 找出 v4 會失效的方括號變數寫法、一鍵改成小括號。比對邏輯在 `lib/tools/tailwind-vars.ts`，
+  globals.css 對那支加 `@source not`（範例長得像錯誤寫法，掃到會編出壞 CSS）；build 後確認 CSS 裡沒有壞掉的規則
+- [x] **J15** `/tools/ps1-encoding`：拖進 .ps1 看有沒有 BOM、PowerShell 5.1 會不會亂碼、一鍵下載補好 BOM 的版本（File API，不上傳）
+- [x] sitemap 的工具清單改成直接讀 `TOOL_PAGES`（原本另外手寫一份）；單元測試 216、E2E 131 全過
+
 ### 2026-11-25 補齊作品圖（使用者：「專案如果沒有圖就自己產一張，但要讀取內容再產」）
 - [x] 5 個沒圖的作品，能拍真實畫面的拍真的：個人網站＝正式站首頁、FR24＝/radar 的真實統計（雷達這幾天離線，所以拍歷史資料那段）、
   活動報名＝本機跑它的前端拍報名表單（客戶品牌、活動名稱、銀行帳號換成範例文字，沒用到它的 Google 憑證）
