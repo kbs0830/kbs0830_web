@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import SceneErrorBoundary from "@/components/canvas/SceneErrorBoundary";
 import { useMediaQuery, usePrefersReducedMotion } from "@/lib/client/hooks";
 import { isNotMe } from "@/lib/client/not-me";
+import { useSky } from "@/lib/client/sky";
 
 const HeroScene = dynamic(() => import("@/components/canvas/HeroScene"), {
   ssr: false,
@@ -28,12 +29,17 @@ const SceneFallback = () => (
 );
 
 // 稀疏細線骨架屏，呼應真正場景的視覺語言，避免載入期間是一片空白。
-const HeroSceneSkeleton = () => (
-  <div className="absolute inset-0 bg-(--bg) overflow-hidden">
+// 2026-11-26（使用者：「剛載入的動畫還是有線條」）：手機夜晚的場景是星空，骨架屏的線條在手機上只有「確定不是夜晚」才畫；
+// 伺服器 HTML／還沒 hydrate 時不知道時段（useSky 是 null），手機先不畫線（背景透出 HeroSky 夜晚那層淡星星）。桌機一律是線條版，照畫。
+function HeroSceneSkeleton() {
+  const sky = useSky();
+  const mobileLines = sky !== null && sky.phase !== "night";
+  return (
+  <div className={`absolute inset-0 overflow-hidden ${mobileLines ? "bg-(--bg)" : "md:bg-(--bg)"}`}>
     {Array.from({ length: 7 }).map((_, i) => (
       <span
         key={i}
-        className="absolute h-px bg-(--accent)"
+        className={`absolute h-px bg-(--accent) ${mobileLines ? "" : "max-md:hidden"}`}
         style={{
           width: `${18 + ((i * 11) % 34)}%`,
           left: `${(i * 19) % 70}%`,
@@ -46,7 +52,8 @@ const HeroSceneSkeleton = () => (
       />
     ))}
   </div>
-);
+  );
+}
 
 type Tier = "probe" | "gpu" | "gl";
 

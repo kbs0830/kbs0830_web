@@ -10,6 +10,7 @@
   （深色：白星＋淡黃月亮；淺色：強調色、月亮半透明）。天氣：多雲星星少一半、霧雨幾乎看不到、下雨不出流星。白天照舊線條，不畫太陽。桌機沒動
 - [x] `lib/client/sky.ts` 加 `moonPhase()`／`moonNow()`（平均朔望月推算，單元測試對 2024-01 新月、滿月），左下角那行夜晚多顯示月相（「夜晚 · 上弦」）
 - [x] 預覽：`/?phase=night&sky=clear&moon=<月齡 0～29.5>`；30fps 實測 5 秒 150 幀
+- [x] 載入中的骨架屏也照時段：手機夜晚（跟還不知道時段的時候）不畫線條，透出 HeroSky 夜晚那層淡星星（使用者：「剛載入的動畫還是有線條」）
 
 ### 2026-11-26 站長後台：門禁 JWT、決策表、資料庫（使用者：「後台的 todo 互動的東西幫我寫好，順便寫寫資料庫存東西」）
 - [x] `lib/admin/auth.ts` 驗 Cloudflare Access JWT（WebCrypto，RS256／iss／aud／exp／email）；`CF_ACCESS_TEAM`／`CF_ACCESS_AUD`／`ADMIN_EMAIL` 沒設＝外部一律 404（2cfacaa）
