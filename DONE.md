@@ -5,6 +5,14 @@
 
 ---
 
+### 2026-11-25 省 token、CI 誤報（使用者：「還有沒有省 token 的方法」「每次 fail 都會寄 mail」）
+- [x] CI 的 E2E 失敗信（09b4681、6b9b042、da466ba）是 Claude 本機驗證 `next build` 清空 `.next`，刪掉 CI `next dev` 正在用的 `.next/dev`——
+  本機驗證改 build 到 `.next-test`（`.gitignore`、`kbs-test-3200` 技能都改了）
+- [x] **B19** 這個專案關掉用不到的外掛（16 個：cloudflare、duckdb、data、engineering、desktop-commander、chrome-devtools、mattpocock…）
+  跟 claude.ai 連接器（`disableClaudeAiConnectors`：byAir、Canva、Gmail、Google 日曆／雲端、Claude Docs）。設在 `.claude/settings.local.json`（不進 git、只有桌機），
+  留著 hookify、playwright、typescript-lsp、context7、security-guidance、claude-md-management。要恢復：刪掉那兩個欄位
+- [x] **B20** kbs-site（46 KB）、kbs-ops（29 KB）、kbs-integrations（26 KB）拆成目錄＋`parts/NN.md`，觸發時先讀 1.4～2.2 KB 的目錄，只開需要的段落（內容一字未改）
+
 ### 2026-11-25 CLAUDE.md 瘦身、踩過的坑寫成文章（使用者：「有些你遇過的問題塞網站裡面做成 blog，不要 md 那麼肥」）
 - [x] **B18** CLAUDE.md 26 KB → 12 KB（每次對話都載入的部分砍一半）：規則全部留著、改成一行一條；背景故事跟完整對照表原文搬到
   `.claude/skills/kbs-site/details.md`（深色模式架構、Tailwind 地雷經過、Server/Client 分工表、動畫元件表、pnpm、PS1 編碼、Git hooks、Hero 滑鼠互動例外）
