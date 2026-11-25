@@ -153,12 +153,21 @@
 - [ ] **C9. Renovate PR 自動試跑** 🟧 🙋：PR 開出來就 build 到第三個槽＋跑 E2E，結果留言在 PR 上（要 fine-grained PAT，跟 TODO 那項同一組）
 - [ ] **C12. MCP 伺服器登記到公開目錄** 🟩 🙋（11/22 新）：`/mcp` 做好了但沒人知道。可以登記到官方 MCP Registry 之類的目錄，
   要用你的 GitHub 帳號驗證、會公開出現在別人的網站上，所以要你決定要不要
-- [ ] **C13. 改用 Cache Components（Next 16 的新快取模型）** 🟥（11/25 新，使用者：「我要創新」）：開 `cacheComponents: true`＋`partialPrefetching: true`，
-  頁面的固定部分在 build 時先畫好（靜態外殼），即時資料（雷達、訪客數、機場看板）用 `<Suspense>` 串流補進來，換頁可以「瞬間」出現外殼。
-  → 規模：35 個路由有 `dynamic`／`dynamicParams` 設定要拿掉、21 個檔案在畫面裡用 `Date.now()`／`new Date()`（開了之後 build 會直接報錯，要搬進 Suspense 或 client）、
-    `lib/live/live-cache.ts` 自己寫的記憶體快取可以換成 `"use cache"`＋`cacheLife`
-  → 做法：官方建議先全站加 `instant = false`（codemod）讓它能 build，再一頁一頁轉；本機 3200 驗證、E2E 全過才上
-  → 風險：GET 的 API route 也會被當成可預先產生（雷達、統計那幾支要確認還是每次即時）；Cloudflare 那層快取規則可能要跟著調
+- [ ] **C13. 改用 Cache Components（Next 16 的新快取模型）** 🟥（11/25 新，使用者：「我要創新」）：頁面拆成「build 時畫好的靜態外殼＋訪客打開後串流補進來的即時數字」，
+  快取從「整頁設定」改成元件／函式寫 `"use cache"`＋`cacheLife`。官方文件寫 Next 17 會預設開啟、拿掉開關，現在做等於先把 17 的升級做完。約一天
+  → **0. 設定**：`next.config.ts` 加 `cacheComponents: true`、`partialPrefetching: true`（官方要求兩個一起）
+  → **1. 即時頁 8 頁拆外殼**：/radar、/airports、/stats、/status、/colophon、/reports、/tools/fukuoka-weather、/tools/taiwan-fukuoka。
+    標題、說明先畫好，數字包 `<Suspense>`。其中 /radar、/airports、/colophon 在畫面裡直接用 `Date.now()`／`new Date()`，開了會 build 失敗，要搬進 Suspense 並先呼叫 `connection()`
+  → **2. API 28 支 GET**：固定內容 14 支（/api/v1/*、feed.xml、llms.txt…）刪 `force-static`；抓外部網路 5 支刪 `force-dynamic` 就好；
+    ⚠️ **同步讀資料檔的 6 支**（/api/radar、badge/uptime、visitor-stats、web-vitals、csp-report、presence）**一定要加 `await connection()`**，
+    不然 build 時會把當下的數字凍結、之後永遠回同一份（新模型只有「非同步」讀檔／網路／讀 request 才算即時）；
+    security.txt 的到期日改 `"use cache"`＋`cacheLife("days")`
+  → **3. `dynamicParams = false` 4 處**（/api/v1/posts/[slug]、/api/v1/projects/[slug]、/blog/tags/[tag]、/md）：新模型不支援，改成找不到就 `notFound()`
+  → **4. 匯率、天氣、空氣品質、機場看板**改 `"use cache"`＋`cacheLife`，可以刪掉一大段 `lib/live/live-cache.ts`。
+    (?) 現在外部 API 掛掉會繼續給上次的資料，官方的會不會一樣文件沒寫——先實測，不會就這四個留著自己的快取
+  → **不用改**：error.tsx／global-error.tsx（瀏覽器跑）、sitemap（固定日期）、延誤記錄器（背景）、其他本來就靜態的頁面
+  → **驗證**：3200 的 build 輸出逐條看 ○／◐／ƒ（沒有即時 API 被凍結）、單元測試＋全部 E2E、390／桌機截圖看載入中不跳版、上線後打 API 看數字會變
+  → 先做風險最高的第 2 項
 - [ ] **C10. 筆電當第二台主機** 🟥：Cloudflare Tunnel 可以同時接兩個來源。筆電開著時自動分擔、桌機掛了接手。
   但筆電不是一直開著，**A2 比較實際**，這個當備案
 
@@ -401,6 +410,33 @@ Ollama 已經裝好（`%LOCALAPPDATA%\Programs\Ollama`），但**沒有在跑**�
 - 公開頁用網站自己的設計系統畫，**不嵌 Grafana**（iframe／第三方 script，也跟設計不搭）；Grafana 只在後台用
 - 所有「即時狀態」只進後台；公開的一律是延遲過的統計
 - 控制類的功能（開空調、解鎖車門）**完全不做**，連後台都不做——API token 只申請讀取權限
+
+**L. 進階視覺：Shader 特效（11/25 使用者：「網頁設計與前端開始大量導入如 Paper Shaders、WebGL 著色器特效等高階視覺庫，打破傳統平面框架」）**
+
+*先講衝突*：設計原則是「間・引き算・動畫克制・唯一強調色」，而且 11/05 使用者試過全站特效後說「**只留頁首**」（CLAUDE.md 記著，不能自己加回其他區塊）。
+所以這區**每一項都先做一個樣品**（3200 截圖／錄影給你看），你點頭才上線、才往下一項；原則上選「靜態或很慢、跟紙感有關」的效果，不做爆炸、霓虹那種
+
+*工具*
+- **Paper Shaders**（`@paper-design/shaders-react`，11/25 查 npm）：Apache-2.0、零依賴、支援 React 19、壓縮後整包約 220 KB（用到哪個載哪個）。
+  31 種效果，跟這個網站搭的：`paper-texture`（紙張質感）、`grain-gradient`（顆粒漸層）、`halftone-dots`／`image-dithering`（網點、抖色）、
+  `dot-grid`、`static-mesh-gradient`、`waves`、`god-rays`。⚠️ 版本還是 0.0.82（還沒 1.0、11/24 還在更新），API 可能會變，要鎖版本
+- **自己寫**：首頁已經有 three.js＋WebGPU（TSL），簡單的效果用 `ShaderMaterial` 自己寫就好，不用多一個套件
+
+*共同規則*
+- 新套件**不能在桌機手動安裝**（會動到線上的 node_modules）：在 A14 加進 package.json＋lockfile、push，部署時 `deploy.ps1` 自己裝
+- 一頁最多一個 WebGL 畫布（首頁已經有 Hero；瀏覽器同時能開的 WebGL 數量有限，手機更少）；不在畫面裡就停、分頁在背景就停
+- 開了「減少動態」或不支援 WebGL：顯示一張靜態圖，不是空白
+- 只放在 client island、用 `dynamic import`，不能拖慢首屏（LCP）；淺色、深色都要配色，強調色照舊只用靛藍
+- 驗收：桌機＋A14 都要 60fps、Lighthouse 不退步、E2E（含 a11y）全過、390px 截圖
+
+*點子*（⭐＝Claude 推薦先做）
+- [ ] **L1. 紙感底紋** ⭐ 🟩：設計 token 的 Surface `#f0ede8` 本來就叫「紙感」，換成 `paper-texture`／`grain-gradient` 畫出來的**靜態**紙紋
+  （畫一幀就停，零動畫成本），深色模式換成墨色紙。最符合現有風格、風險最低
+- [ ] **L2. 作品縮圖網點化** 🟧：作品卡片平常是 `halftone-dots`（報紙網點感），桌機滑鼠移上去慢慢變回原圖；手機維持靜態網點。
+  ⚠️ 這算「頁首以外的滑鼠特效」，要你先看樣品決定
+- [ ] **L3. 雷達圓盤用 shader 畫** 🟧：`/radar` 的裝飾圓盤改成真的掃描線＋殘影，收到幾架就亮幾個點（不畫位置，照雷達隱私規則）
+- [ ] **L4. 404／維修頁玩大一點** 🟩：`waves`／`warp` 慢速流動，主要頁面不受影響，可以當試驗場
+- [ ] **L5. 手機版首頁背景** 🟧：現在是 Canvas 2D 精簡版，可以試 `dot-grid`／`static-mesh-gradient`（很便宜），但手機封面 11/24 才重做過，要你看過再換
 
 ## ⏳ 等別人更新
 
