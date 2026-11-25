@@ -1,27 +1,60 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
-import { ADMIN_PAGES } from "@/lib/admin/nav";
-import AdminShell, { Placeholder } from "@/components/admin/AdminShell";
+import AdminShell from "@/components/admin/AdminShell";
+import LogList from "@/components/admin/LogList";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
+import SectionHeading from "@/components/ui/SectionHeading";
+import { Tiles } from "@/components/ui/StatCharts";
+import { ADMIN_PAGES } from "@/lib/admin/nav";
+import { ALERT_TAGS, DEPLOY_RESULT, nextReportTimes, readWatchdog } from "@/lib/admin/data";
+import { readSiteFacts } from "@/lib/ops/colophon";
+import { readDeploys } from "@/lib/ops/status";
+import { presenceCount } from "@/lib/stats/presence";
+import { buildReport, resolveRange } from "@/lib/stats/reports";
+import { nf, twDateTime } from "@/lib/format";
 
-// 站長後台 · Overview（TODO A1，2026-11-25 先做空殼）
+// 站長後台 · 總覽（TODO A1）
 export const metadata: Metadata = { title: "總覽" };
 
-const intro = "網站現在的狀況一眼看完。內容還在做，下面是每一區之後會放什麼。";
+const intro = "網站現在的狀況一眼看完。";
 
 export default function Page() {
   return (
     <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="總覽" intro={intro}><LoadingBlock /></PageShell>}>
-      <AdminOverviewContent />
+      <AdminOverview />
     </Suspense>
   );
 }
 
-async function AdminOverviewContent() {
+async function AdminOverview() {
+  await connection();
+  const now = new Date();
+  const facts = readSiteFacts(now.getTime());
+  const today = buildReport(resolveRange("day", undefined, now), now);
+  const last = readDeploys().find((d) => d.result !== "running");
+  const alerts = readWatchdog().filter((l) => ALERT_TAGS.has(l.tag)).slice(0, 5);
+  const next = nextReportTimes(now);
   return (
     <AdminShell title="總覽" intro={intro}>
+      <Tiles
+        items={[
+          [nf.format(today.visitors.cur.sessions), "今天訪客"],
+          [nf.format(presenceCount()), "現在線上"],
+          [last ? `${DEPLOY_RESULT[last.result]} ${twDateTime(last.start)}` : "—", "上次部署"],
+          [facts.radar ? (facts.radar.online ? `在線 ${facts.radar.aircraftNow} 架` : "離線") : "—", "自家雷達"],
+          [facts.uptime30 === null ? "—" : `${(facts.uptime30 * 100).toFixed(2)}%`, "30 天可用率"],
+          [`${facts.memoryMB} MB`, "記憶體"],
+          [twDateTime(next.week), "下一封週報"],
+          [twDateTime(next.month), "下一封月報"],
+        ]}
+      />
+      <section className="mb-12">
+        <SectionHeading as="h2" en="Alerts">最近的告警</SectionHeading>
+        <LogList rows={alerts.map((a) => ({ time: a.time, text: a.text, warn: a.tag === "FAILED" || a.tag === "WARN" }))} />
+      </section>
       <ul className="grid gap-3 sm:grid-cols-2">
         {ADMIN_PAGES.filter((p) => p.href !== "/admin").map((p) => (
           <li key={p.href}>
@@ -35,9 +68,6 @@ async function AdminOverviewContent() {
           </li>
         ))}
       </ul>
-      <div className="mt-8">
-        <Placeholder items={["今天訪客／即時線上", "上次部署（成功或失敗＋時間）", "watchdog 最近告警", "雷達在不在線", "下一封週報／月報日期"]} />
-      </div>
     </AdminShell>
   );
 }

@@ -10,3 +10,7 @@ export const monthDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(
 const twClockFmt = new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false });
 /** 毫秒時間 → 台灣時間 "14:05" */
 export const twClock = (ms: number) => twClockFmt.format(ms);
+
+const twDateTimeFmt = new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+/** ISO／毫秒 → 台灣時間 "11/25 14:05" */
+export const twDateTime = (t: string | number) => twDateTimeFmt.format(new Date(t));
