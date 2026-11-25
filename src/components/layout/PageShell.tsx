@@ -19,6 +19,7 @@ export default function PageShell({
   backHref = "/",
   backLabel = "返回首頁",
   printable = false,
+  compact = false,
   eyebrow,
   title,
   intro,
@@ -27,6 +28,8 @@ export default function PageShell({
   backHref?: Route;
   backLabel?: string;
   printable?: boolean;
+  /** 站長後台用：上下留白、標題、說明都縮小（手機上一打開就看到內容） */
+  compact?: boolean;
   eyebrow?: string;
   title?: ReactNode;
   intro?: ReactNode;
@@ -34,9 +37,9 @@ export default function PageShell({
 }) {
   return (
     <>
-      <div className={`flex-1 bg-(--bg) px-6 py-20 ${printable ? "print:py-0 print:px-0" : ""}`}>
+      <div className={`flex-1 bg-(--bg) px-6 ${compact ? "py-6 sm:py-12" : "py-20"} ${printable ? "print:py-0 print:px-0" : ""}`}>
         <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
-        <main id="main" tabIndex={-1} className={`outline-none max-w-2xl mx-auto ${printable ? "print:max-w-none" : ""}`}>
+        <main id="main" tabIndex={-1} className={`outline-none ${compact ? "max-w-3xl" : "max-w-2xl"} mx-auto ${printable ? "print:max-w-none" : ""}`}>
           <div className="relative flex items-center justify-between gap-4 print:hidden">
             <Link
               href={backHref}
@@ -54,9 +57,9 @@ export default function PageShell({
               <PageMenu />
             </div>
           </div>
-          {eyebrow && <Eyebrow className="mt-10 mb-4">{eyebrow}</Eyebrow>}
-          {title && <h1 className="text-3xl sm:text-4xl font-light text-(--text) mb-4 font-serif">{title}</h1>}
-          {intro && <p className="text-sm font-light text-(--muted) mb-14 leading-relaxed">{intro}</p>}
+          {eyebrow && <Eyebrow className={compact ? "mt-6 mb-2" : "mt-10 mb-4"}>{eyebrow}</Eyebrow>}
+          {title && <h1 className={`font-light text-(--text) font-serif ${compact ? "text-2xl sm:text-3xl mb-1" : "text-3xl sm:text-4xl mb-4"}`}>{title}</h1>}
+          {intro && <p className={`text-sm font-light text-(--muted) leading-relaxed ${compact ? "mb-5" : "mb-14"}`}>{intro}</p>}
           {children}
         </main>
       </div>

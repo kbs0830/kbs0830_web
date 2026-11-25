@@ -41,20 +41,22 @@ export function parseTodo(md: string): TodoItem[] {
   for (const raw of md.split(/\r?\n/)) {
     const line = raw.replace(/^﻿/, "");
     const h2 = /^## (.+)/.exec(line);
-    if (h2) { section = cleanHeading(h2[1]); group = null; continue; }
+    if (h2) { section = cleanHeading(h2[1]).replace(/（.*$/, ""); group = null; continue; }
     const h3 = /^### (.+)/.exec(line);
     if (h3) { group = cleanHeading(h3[1]).replace(/（.*$/, ""); continue; }
     const bold = /^\*\*(.+)\*\*\s*$/.exec(line);
     if (bold) { group = cleanHeading(bold[1]).replace(/（.*$/, ""); continue; }
     const m = /^- \[ \] \*\*(.+?)\*\*(.*)$/.exec(line);
     if (!m || !section) continue;
-    const titleRaw = plain(m[1]);
+    // 有些標記寫在粗體裡（**A2. 停電也不斷線 ⭐ 🙋**）：拿出來當旗標，標題只留文字
+    const marks = m[1];
+    const titleRaw = plain(m[1]).replace(/[🟥🟧🟩⭐🙋]/gu, "").replace(/\s+/g, " ").trim();
     const rest = m[2];
     const codeMatch = /^([A-Z]\d+)\.\s*(.+)$/.exec(titleRaw);
     const code = codeMatch?.[1] ?? null;
     const title = codeMatch?.[2] ?? titleRaw;
     // 標記只看標題後、第一個「：」之前（說明裡提到 🙋 的不算）
-    const head = rest.split("：")[0];
+    const head = marks + rest.split("：")[0];
     const sizeEmoji = Object.keys(SIZE).find((e) => head.includes(e));
     let id = code ?? `t:${title}`;
     if (seen.has(id)) id = `${id}#${items.filter((i) => i.id.startsWith(id)).length + 1}`;
@@ -68,7 +70,7 @@ export function parseTodo(md: string): TodoItem[] {
       section,
       group,
       size: sizeEmoji ? SIZE[sizeEmoji] : null,
-      needsYou: head.includes("🙋") || section.startsWith("你要"),
+      needsYou: head.includes("🙋"),
       recommended: head.includes("⭐"),
     });
   }

@@ -11,7 +11,7 @@ const intro = "日報、週報、月報。";
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="報表" intro={intro}><LoadingBlock /></PageShell>}>
+    <Suspense fallback={<PageShell compact eyebrow="站長後台 · Admin" title="報表" intro={intro}><LoadingBlock /></PageShell>}>
       <AdminReportsContent />
     </Suspense>
   );

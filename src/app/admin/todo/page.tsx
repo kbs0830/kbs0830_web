@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import AdminShell from "@/components/admin/AdminShell";
+import AdminShell, { AdminSection } from "@/components/admin/AdminShell";
 import DecisionTable from "@/components/admin/DecisionTable";
 import LogList from "@/components/admin/LogList";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
-import SectionHeading from "@/components/ui/SectionHeading";
 import { listDecisions, recentEvents } from "@/lib/admin/db";
 import { readTodo } from "@/lib/admin/todo";
 
@@ -14,11 +13,11 @@ import { readTodo } from "@/lib/admin/todo";
 // Claude 開工前用 `node scripts/admin-db.js decisions` 讀「先做」的清單。
 export const metadata: Metadata = { title: "待辦" };
 
-const intro = "TODO.md 裡每一項選「先做／之後／不做」，可以加備註。Claude 開工前會照「先做」排順序。";
+const intro = "每一項選先做／之後／不做。Claude 開工前照「先做」排順序。";
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="待辦" intro={intro}><LoadingBlock /></PageShell>}>
+    <Suspense fallback={<PageShell compact eyebrow="站長後台 · Admin" title="待辦" intro={intro}><LoadingBlock /></PageShell>}>
       <AdminTodo />
     </Suspense>
   );
@@ -36,10 +35,11 @@ async function AdminTodo() {
       ) : (
         <DecisionTable items={items} decisions={decisions} />
       )}
-      <section>
-        <SectionHeading as="h2" en="Log">最近的操作</SectionHeading>
-        <LogList rows={events.map((e) => ({ time: new Date(e.at).toISOString(), text: `${e.action}：${e.detail}` }))} empty="還沒有操作。" />
-      </section>
+      <div className="mt-8">
+        <AdminSection title="最近的操作" en="Log">
+          <LogList limit={3} rows={events.map((e) => ({ time: new Date(e.at).toISOString(), text: e.detail }))} empty="還沒有操作。" />
+        </AdminSection>
+      </div>
     </AdminShell>
   );
 }

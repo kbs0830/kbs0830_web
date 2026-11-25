@@ -12,6 +12,10 @@
 - [x] `/admin/todo` 決策表：解析 TODO.md（`lib/admin/todo.ts`），每項選先做／之後／不做＋備註，篩選、已不在 TODO.md 的舊紀錄可清掉；
   寫入 `POST /api/admin/decisions` 檢查 Origin（`isSameOriginWrite`，防 CSRF）；CLI `node scripts/admin-db.js decisions|log`
 - [x] 手機版：後台分頁變 6 個後「維運」被擠成直排，`AdminNav` 的 li 加 `shrink-0`
+- [x] 後台手機版改版（使用者：「手機版有一堆奇怪的空白」「可以用點不同顏色」「已存好醜」）：PageShell 加 `compact`（上下留白縮小）、
+  分頁列改成黏在頂端的膠囊、數字格 `AdminTiles` 帶狀態色條、紀錄清單手機改上下排＋只先顯示幾筆（維運頁 5275px → 1975px）、
+  總覽拿掉跟分頁列重複的卡片；決策表：先做綠／之後藤紫／不做灰、比例條、分區可收起、備註按了才出現、存檔改成下方小提示。
+  後台專用色 `--ok`／`--later`（＋`-lt`）、`--warn-lt` 在 globals.css，**公開頁不要用**
 
 ### 2026-11-25 省 token、CI 誤報（使用者：「還有沒有省 token 的方法」「每次 fail 都會寄 mail」）
 - [x] CI 的 E2E 失敗信（09b4681、6b9b042、da466ba）是 Claude 本機驗證 `next build` 清空 `.next`，刪掉 CI `next dev` 正在用的 `.next/dev`——

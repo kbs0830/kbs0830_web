@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import AdminShell from "@/components/admin/AdminShell";
+import AdminShell, { AdminSection, AdminTiles } from "@/components/admin/AdminShell";
 import LogList from "@/components/admin/LogList";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
-import SectionHeading from "@/components/ui/SectionHeading";
-import { Tiles } from "@/components/ui/StatCharts";
 import { MAIL_TAGS, nextReportTimes, readMailState, readWatchdog } from "@/lib/admin/data";
 import { twDateTime } from "@/lib/format";
 
@@ -17,7 +15,7 @@ const intro = "週報、月報寄到通知信箱的紀錄。預覽、重寄之�
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="寄信" intro={intro}><LoadingBlock /></PageShell>}>
+    <Suspense fallback={<PageShell compact eyebrow="站長後台 · Admin" title="寄信" intro={intro}><LoadingBlock /></PageShell>}>
       <AdminMail />
     </Suspense>
   );
@@ -32,18 +30,17 @@ async function AdminMail() {
     .slice(0, 20);
   return (
     <AdminShell title="寄信" intro={intro}>
-      <Tiles
+      <AdminTiles
         items={[
-          [state?.week ?? "—", "最後寄出的週報（週一）"],
-          [state?.month ?? "—", "最後寄出的月報"],
-          [twDateTime(next.week), "下一封週報"],
-          [twDateTime(next.month), "下一封月報"],
+          { label: "最後寄出的週報", value: state?.week ?? "—", tone: state?.week ? "ok" : "muted" },
+          { label: "最後寄出的月報", value: state?.month ?? "—", tone: state?.month ? "ok" : "muted" },
+          { label: "下一封週報", value: twDateTime(next.week), tone: "info" },
+          { label: "下一封月報", value: twDateTime(next.month), tone: "info" },
         ]}
       />
-      <section>
-        <SectionHeading as="h2" en="History">寄送紀錄</SectionHeading>
-        <LogList rows={history.map((h) => ({ time: h.time, text: h.text, warn: h.tag === "WARN" }))} />
-      </section>
+      <AdminSection title="寄送紀錄" en="History" count={history.length}>
+        <LogList limit={8} rows={history.map((h) => ({ time: h.time, text: h.text, tone: h.tag === "WARN" ? "warn" : "ok" }))} />
+      </AdminSection>
     </AdminShell>
   );
 }

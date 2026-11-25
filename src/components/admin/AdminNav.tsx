@@ -3,12 +3,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ADMIN_PAGES } from "@/lib/admin/nav";
 
-// 後台分頁列：手機橫向捲動、桌機一排。目前所在頁加底線＋aria-current
+// 後台分頁列：捲動時黏在畫面頂端（手機切頁不用滑回最上面），一排膠囊按鈕，手機橫向捲動。
+// 目前所在頁＝實心強調色＋aria-current。
 export default function AdminNav() {
   const path = usePathname();
   return (
-    <nav aria-label="站長後台" className="-mx-6 px-6 overflow-x-auto mb-10 border-b border-(--border)">
-      <ul className="flex gap-6 whitespace-nowrap">
+    <nav
+      aria-label="站長後台"
+      className="sticky top-0 z-30 -mx-6 px-6 py-2 mb-6 bg-(--nav-bg) backdrop-blur-md border-b border-(--border)"
+    >
+      <ul className="flex gap-0.5 sm:gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
         {ADMIN_PAGES.map((p) => {
           const active = path === p.href;
           return (
@@ -16,10 +20,11 @@ export default function AdminNav() {
               <Link
                 href={p.href}
                 aria-current={active ? "page" : undefined}
-                className={`inline-block py-3 text-sm transition-colors border-b-2 -mb-px ${active ? "border-(--accent) text-(--accent)" : "border-transparent text-(--muted) hover:text-(--text)"}`}
+                className={`inline-flex items-center h-9 px-3 sm:px-3.5 rounded-full text-sm transition-colors ${
+                  active ? "bg-(--accent) text-(--bg)" : "text-(--muted) hover:text-(--text) hover:bg-(--surface)"
+                }`}
               >
                 {p.label}
-                <span className="ml-1.5 font-mono text-[10px] tracking-wide opacity-70">{p.en}</span>
               </Link>
             </li>
           );

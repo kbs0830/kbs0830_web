@@ -18,6 +18,12 @@
   --accent-lt: #e8f0f8;
   /* 「出事了」的狀態色（/status 的部署失敗、有中斷的日子），不是強調色，只用在狀態 */
   --warn:      #b45309;
+  /* 站長後台專用的狀態色（2026-11-26 使用者：「後台可以用點不同顏色」）。公開頁面不要用，公開頁還是只有 --accent */
+  --ok:        #3f7a4f;
+  --ok-lt:     #e6f1e8;
+  --later:     #7a5aa6;
+  --later-lt:  #efe9f7;
+  --warn-lt:   #fbeee0;
 
   --nav-bg:    rgb(250 250 248 / 0.88);
 
@@ -44,6 +50,11 @@
                             （2026-07 跑 Lighthouse 抓到），這個色差極小、肉眼幾乎看不出來 */
   --accent-lt: #1a2a3a;
   --warn:      #f0a54a; /* 淺色的 #b45309 在深色背景對比不夠（2026-11-22 a11y E2E 抓到） */
+  --ok:        #7cc28d;
+  --ok-lt:     #17271b;
+  --later:     #b9a2e0;
+  --later-lt:  #241d31;
+  --warn-lt:   #2e2112;
   --nav-bg:    rgb(15 15 13 / 0.9);
   color-scheme: dark;
 }

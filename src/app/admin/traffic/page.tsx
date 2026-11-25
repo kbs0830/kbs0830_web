@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import AdminShell from "@/components/admin/AdminShell";
+import AdminShell, { AdminSection, AdminTiles } from "@/components/admin/AdminShell";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
-import SectionHeading from "@/components/ui/SectionHeading";
-import { ShareList, Tiles } from "@/components/ui/StatCharts";
+import { ShareList } from "@/components/ui/StatCharts";
 import { buildReport, resolveRange } from "@/lib/stats/reports";
 import { pageTitle } from "@/lib/site/page-title";
 import { nf } from "@/lib/format";
@@ -18,7 +17,7 @@ const RAW: Record<string, string> = { browser: "瀏覽器", ai: "AI 爬蟲", sea
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="流量" intro={intro}><LoadingBlock /></PageShell>}>
+    <Suspense fallback={<PageShell compact eyebrow="站長後台 · Admin" title="流量" intro={intro}><LoadingBlock /></PageShell>}>
       <AdminTraffic />
     </Suspense>
   );
@@ -33,39 +32,35 @@ async function AdminTraffic() {
   const sum = (e: [string, number][]) => e.reduce((n, [, v]) => n + v, 0);
   return (
     <AdminShell title="流量" intro={intro}>
-      <Tiles
+      <AdminTiles
         items={[
-          [nf.format(r.visitors.cur.sessions), "真人造訪"],
-          [nf.format(r.visitors.cur.views), "瀏覽頁數"],
-          [nf.format(rawTotal), "全部請求（含機器人）"],
-          [nf.format(r.notFound?.total ?? 0), "404"],
+          { label: "真人造訪", value: nf.format(r.visitors.cur.sessions), tone: "info" },
+          { label: "瀏覽頁數", value: nf.format(r.visitors.cur.views), tone: "info" },
+          { label: "全部請求（含機器人）", value: nf.format(rawTotal) },
+          { label: "404", value: nf.format(r.notFound?.total ?? 0), tone: (r.notFound?.total ?? 0) > 0 ? "warn" : "ok" },
         ]}
       />
       {r.raw && (
-        <section className="mb-12">
-          <SectionHeading as="h2" en="Raw traffic">誰在打網站</SectionHeading>
+        <AdminSection title="誰在打網站" en="Raw traffic">
           <ShareList entries={rawEntries} total={rawTotal} />
           {r.raw.names.length > 0 && (
             <p className="mt-3 text-[13px] font-light text-(--muted) leading-relaxed">
               機器人前幾名：{r.raw.names.slice(0, 8).map(([n, v]) => `${n} ${nf.format(v)}`).join("、")}
             </p>
           )}
-        </section>
+        </AdminSection>
       )}
-      <section className="mb-12">
-        <SectionHeading as="h2" en="Pages">熱門頁面</SectionHeading>
+      <AdminSection title="熱門頁面" en="Pages">
         <ShareList entries={r.pages.slice(0, 10).map(([p, v]) => [pageTitle(p), v])} total={sum(r.pages)} />
-      </section>
-      <section className="mb-12">
-        <SectionHeading as="h2" en="Referrers">來源</SectionHeading>
+      </AdminSection>
+      <AdminSection title="來源" en="Referrers">
         <ShareList entries={r.refKinds} total={sum(r.refKinds)} />
-      </section>
+      </AdminSection>
       {r.notFound && r.notFound.paths.length > 0 && (
-        <section>
-          <SectionHeading as="h2" en="Not found">404 網址</SectionHeading>
+        <AdminSection title="404 網址" en="Not found">
           <ShareList entries={r.notFound.paths.slice(0, 15)} total={r.notFound.total} />
           <p className="mt-3 text-[13px] font-light text-(--muted)">其中掃描器（找 .env、wp-admin 這類）{nf.format(r.notFound.scanners)} 次。</p>
-        </section>
+        </AdminSection>
       )}
     </AdminShell>
   );

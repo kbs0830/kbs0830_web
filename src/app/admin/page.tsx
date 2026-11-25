@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import Link from "next/link";
-import AdminShell from "@/components/admin/AdminShell";
+import AdminShell, { AdminSection, AdminTiles } from "@/components/admin/AdminShell";
 import LogList from "@/components/admin/LogList";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
-import SectionHeading from "@/components/ui/SectionHeading";
-import { Tiles } from "@/components/ui/StatCharts";
-import { ADMIN_PAGES } from "@/lib/admin/nav";
 import { ALERT_TAGS, DEPLOY_RESULT, nextReportTimes, readWatchdog } from "@/lib/admin/data";
 import { readSiteFacts } from "@/lib/ops/colophon";
 import { readDeploys } from "@/lib/ops/status";
@@ -23,7 +19,7 @@ const intro = "網站現在的狀況一眼看完。";
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageShell eyebrow="站長後台 · Admin" title="總覽" intro={intro}><LoadingBlock /></PageShell>}>
+    <Suspense fallback={<PageShell compact eyebrow="站長後台 · Admin" title="總覽" intro={intro}><LoadingBlock /></PageShell>}>
       <AdminOverview />
     </Suspense>
   );
@@ -39,35 +35,34 @@ async function AdminOverview() {
   const next = nextReportTimes(now);
   return (
     <AdminShell title="總覽" intro={intro}>
-      <Tiles
+      <AdminTiles
         items={[
-          [nf.format(today.visitors.cur.sessions), "今天訪客"],
-          [nf.format(presenceCount()), "現在線上"],
-          [last ? `${DEPLOY_RESULT[last.result]} ${twDateTime(last.start)}` : "—", "上次部署"],
-          [facts.radar ? (facts.radar.online ? `在線 ${facts.radar.aircraftNow} 架` : "離線") : "—", "自家雷達"],
-          [facts.uptime30 === null ? "—" : `${(facts.uptime30 * 100).toFixed(2)}%`, "30 天可用率"],
-          [`${facts.memoryMB} MB`, "記憶體"],
-          [twDateTime(next.week), "下一封週報"],
-          [twDateTime(next.month), "下一封月報"],
+          { label: "今天訪客", value: nf.format(today.visitors.cur.sessions), tone: "info" },
+          { label: "現在線上", value: nf.format(presenceCount()), tone: "info" },
+          {
+            label: "上次部署",
+            value: last ? DEPLOY_RESULT[last.result] : "—",
+            sub: last ? twDateTime(last.start) : undefined,
+            tone: !last ? "muted" : last.result === "failed" || last.result === "rollback" ? "warn" : "ok",
+          },
+          {
+            label: "自家雷達",
+            value: facts.radar ? (facts.radar.online ? `在線・${facts.radar.aircraftNow} 架` : "離線") : "—",
+            tone: !facts.radar ? "muted" : facts.radar.online ? "ok" : "warn",
+          },
+          {
+            label: "30 天可用率",
+            value: facts.uptime30 === null ? "—" : `${(facts.uptime30 * 100).toFixed(2)}%`,
+            tone: facts.uptime30 === null ? "muted" : facts.uptime30 >= 0.995 ? "ok" : "warn",
+          },
+          { label: "記憶體", value: `${facts.memoryMB} MB` },
+          { label: "下一封週報", value: twDateTime(next.week) },
+          { label: "下一封月報", value: twDateTime(next.month) },
         ]}
       />
-      <section className="mb-12">
-        <SectionHeading as="h2" en="Alerts">最近的告警</SectionHeading>
-        <LogList rows={alerts.map((a) => ({ time: a.time, text: a.text, warn: a.tag === "FAILED" || a.tag === "WARN" }))} />
-      </section>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {ADMIN_PAGES.filter((p) => p.href !== "/admin").map((p) => (
-          <li key={p.href}>
-            <Link href={p.href} className="block h-full border border-(--border) rounded-sm p-5 hover:border-(--accent) transition-colors">
-              <p className="text-base font-light text-(--text)">
-                {p.label}
-                <span className="ml-2 font-mono text-[11px] tracking-wide text-(--muted)">{p.en}</span>
-              </p>
-              <p className="mt-1.5 text-[13px] font-light text-(--muted) leading-relaxed">{p.desc}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <AdminSection title="最近的告警" en="Alerts" count={alerts.length}>
+        <LogList rows={alerts.map((a) => ({ time: a.time, text: a.text, tone: a.tag === "FAILED" || a.tag === "WARN" ? "warn" : "ok" }))} empty="最近沒有告警。" />
+      </AdminSection>
     </AdminShell>
   );
 }

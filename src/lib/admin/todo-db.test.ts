@@ -14,12 +14,14 @@ describe("parseTodo", () => {
     "- [ ] **B16. 稀有機型首頁提示** 🟩：雷達收到 747 就提示，說明裡的 🙋 不算",
     "- [ ] **E1. `/hire` 接案頁** ⭐ 🟧 🙋：[make-money](make-money.md) 階段一",
     "- [x] **B1. 做完的不算**：x",
+    "- [ ] **A2. 停電也不斷線 ⭐ 🙋**（設計好了）：說明",
   ].join("\r\n");
 
   it("編號、大小、🙋、⭐、分區都抓對", () => {
     const items = parseTodo(md);
-    expect(items.map((i) => i.id)).toEqual(["t:登入 gh", "B16", "E1"]);
-    expect(items[0]).toMatchObject({ section: "你要動手的", needsYou: true, size: null });
+    expect(items.map((i) => i.id)).toEqual(["t:登入 gh", "B16", "E1", "A2"]);
+    expect(items[3]).toMatchObject({ title: "停電也不斷線", recommended: true, needsYou: true });
+    expect(items[0]).toMatchObject({ section: "你要動手的", needsYou: false, size: null });
     expect(items[1]).toMatchObject({ code: "B16", title: "稀有機型首頁提示", size: "S", needsYou: false, group: "B. 網站功能" });
     expect(items[2]).toMatchObject({ title: "/hire 接案頁", size: "M", needsYou: true, recommended: true, summary: "make-money 階段一" });
   });
