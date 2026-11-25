@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-11-25 CLAUDE.md 瘦身、踩過的坑寫成文章（使用者：「有些你遇過的問題塞網站裡面做成 blog，不要 md 那麼肥」）
+- [x] **B18** CLAUDE.md 26 KB → 12 KB（每次對話都載入的部分砍一半）：規則全部留著、改成一行一條；背景故事跟完整對照表原文搬到
+  `.claude/skills/kbs-site/details.md`（深色模式架構、Tailwind 地雷經過、Server/Client 分工表、動畫元件表、pnpm、PS1 編碼、Git hooks、Hero 滑鼠互動例外）
+- [x] 新文章 `/blog/tailwind-v4-bracket-var`（方括號變數讓按鈕透明＋Markdown 被當 class 來源）、`/blog/nextjs-cache-components-traps`（同步讀檔 API 凍結、軟 404、失敗被快取）
+- [x] `globals.css` 加 `@source not "../../content/**/*.mdx"`：文章裡的錯誤寫法反例不會被編譯進 CSS（build 後確認 CSS 裡沒有 `background-color:--accent`）
+
 ### 2026-11-25 有感的改動（使用者：「更有創意一點」「我要有感一點的改動」「尤其 3 的部分」）
 - [x] **首頁的天空跟高雄真的天空同步**（`lib/client/sky.ts`、`HeroSky.tsx`）：日出日落算時段（清晨／白天／黃昏／夜晚各一層漸層、夜晚有星星）、
   天氣（多雲有雲飄、雨／雷雨下雨絲、霧有霧氣）、福岡櫻花季飄花瓣、夜晚流星多白天少；左下角一行「高雄 22° · 雨 · 黃昏」。預覽：`?sky=rain&phase=dusk&sakura=1`

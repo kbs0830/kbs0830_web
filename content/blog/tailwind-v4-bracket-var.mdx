@@ -1,0 +1,69 @@
+---
+title: "Tailwind v4 的 bg-[--accent] 讓按鈕整個透明：方括號變數寫法被棄用了"
+seoTitle: "Tailwind v4 bg-[--var] 沒效果、顏色不見：改成 bg-(--var) 小括號寫法"
+titleEn: "Tailwind v4: why bg-[--accent] made my button invisible"
+date: "2026-11-25"
+description: "升級 Tailwind v4 之後，首頁按鈕在淺色模式整個看不見。原因是方括號加變數名稱的寫法被棄用，編譯出無效的 CSS；修好之後還發現 Markdown 文件本身也會被當成 class 來源。"
+tags: ["Tailwind", "CSS", "Debugging"]
+commits: ["4cdc057", "70bdbb0"]
+---
+
+首頁 Hero 的「查看作品」按鈕，在淺色模式下整個不見了：白色的字疊在幾乎白色的背景上，只剩游標移過去才知道那裡有東西。深色模式完全正常。
+
+## 寫法沒錯，CSS 卻是壞的
+
+按鈕的 class 長這樣，引用 `globals.css` 裡定義的主題變數：
+
+```tsx
+<a className="bg-[--accent] text-[--bg]">查看作品</a>
+```
+
+這是 Tailwind v3 時代很常見的簡寫：方括號裡直接放變數名稱，Tailwind 會自動包成 `var(--accent)`。`tsc`、ESLint、`next build` 全部通過，沒有任何警告。
+
+打開瀏覽器的 DevTools 看那個按鈕，答案就出來了：
+
+```css
+.bg-\[--accent\] {
+  background-color: --accent;
+}
+```
+
+不是 `var(--accent)`，是字面上的 `--accent`。這不是合法的顏色值，瀏覽器直接忽略這條宣告——等於按鈕**完全沒有背景色**。
+
+## 為什麼只有淺色模式出事
+
+Tailwind v4 把「方括號＋裸變數名稱」的簡寫**棄用**了，換成小括號：
+
+```tsx
+// v4 的寫法
+<a className="bg-(--accent) text-(--bg)">查看作品</a>
+```
+
+方括號在 v4 只代表「照抄這個值」，所以 `[--accent]` 被原封不動地寫進 CSS。
+
+兩個主題其實都壞了，只是深色模式的頁面背景本來就夠暗，透明的按鈕加上淺色的字，看起來剛好像正常的。這種「其中一個主題矇混過關」的 bug，只看一個主題的人一定抓不到。
+
+全站一查，**116 處**都是這種寫法，全部改成小括號。
+
+## 修好了，CSS 裡還是有壞的那條
+
+改完重新 build，打開編譯出來的 CSS，那條 `background-color:--accent` 居然還在。把 `.next` 整個刪掉重 build，還是在。
+
+最後發現來源是**專案的說明文件**。我在 `CLAUDE.md` 裡記錄這個 bug，寫了「不要用方括號」當反例——Tailwind v4 沒有設定檔時，會自動掃整個 repo 找 class 名稱，`.md` 檔也照掃。它看到文件裡的反例，就當成真的 class 編譯進去了。
+
+解法是在 CSS 裡排除 Markdown：
+
+```css
+@source not "../../**/*.md";
+```
+
+這篇文章本身是 `.mdx`，裡面也寫了錯誤寫法當反例，所以 `.mdx` 也一起排除了。
+
+## 學到的
+
+- **v4 引用 CSS 變數一律用小括號** `bg-(--accent)`；方括號只留給真正的字面值，例如 `w-[1px]`、`tracking-[0.2em]`
+- **「build 過了」不代表 CSS 對**：顏色類的錯誤，tsc、lint、build 都不會報。要嘛打開 DevTools 看實際的值，要嘛靠自動化的對比度檢查（之後我在瀏覽器測試裡加了 axe 掃描，淺色、深色各掃一次）
+- **兩個主題都要看**
+- **Tailwind 會掃你的文件**：在 Markdown 裡示範錯誤寫法，記得排除
+
+懶得一個一個找的話，我做了一個[小工具](/tools/tailwind-v4-vars)：貼上程式碼，標出所有方括號變數寫法，一鍵改成小括號。

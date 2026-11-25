@@ -3,6 +3,8 @@
 /* Tailwind v4 掃描整個 repo（含 .md）找 class candidate，CLAUDE.md 裡拿 `bg-[--accent]`
    當反例說明會被誤判成真的 class、生出一條垃圾規則。文件不該是 utility class 來源，全部排除。 */
 @source not "../../**/*.md";
+/* 部落格文章（.mdx）也排除：文章裡會拿錯的 Tailwind 寫法當反例（2026-11-25「Tailwind v4 變數」那篇），不能被當成 class 編譯進來；文章本身沒用 class */
+@source not "../../content/**/*.mdx";
 /* Tailwind v4 變數寫法檢查工具的範例跟正規式長得像錯誤寫法（TODO J14），掃到會編出壞掉的 CSS */
 @source not "../lib/tools/tailwind-vars.ts";
 

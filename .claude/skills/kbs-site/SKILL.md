@@ -3,6 +3,8 @@ name: kbs-site
 description: kbs0830_web 各頁面與區塊的設計紀錄全文：NavBar／Footer／彩蛋、Hero（3D、WebGPU、流星）、About、作品集、Contact、/blog、/changelog、/status、/colophon、/api/v1 與 /mcp、/developers、/airports、/resume，以及完整專案目錄結構。要改或新增任何頁面、區塊、元件，或找某個功能的檔案在哪時先讀。
 ---
 
+> 從 CLAUDE.md 搬出來的細節（深色模式架構、Tailwind v4 地雷經過、Server/Client 分工表、動畫元件對照表、pnpm、PS1 編碼、Git hooks、Hero 滑鼠互動例外）在同資料夾的 **`details.md`**（2026-11-25）。
+
 ## Site Sections
 
 ### 0. 全站共用（NavBar / Footer / 彩蛋）

@@ -1,0 +1,96 @@
+---
+title: "開了 Next.js 16 的 Cache Components：三個不會報錯、但會讓資料凍住的坑"
+seoTitle: "Next.js 16 Cache Components 踩坑：readFileSync API 被凍結、軟 404、失敗被快取"
+titleEn: "Three silent traps after enabling Next.js 16 Cache Components"
+date: "2026-11-25"
+description: "Next.js 16 的 Cache Components 讓頁面變成「靜態外殼＋串流即時資料」。開了之後 build 過、測試過，但有一支 API 的數字永遠停在 build 那一刻；還有不存在的網址回 200、失敗的結果被快取起來。"
+tags: ["Next.js", "Caching", "Debugging"]
+commits: ["c626c86"]
+---
+
+Next.js 16 的 **Cache Components**（`next.config.ts` 的 `cacheComponents: true`）把頁面拆成兩塊：build 時就畫好的靜態外殼，加上用 `<Suspense>` 串流補進來的即時資料。訪客一點進來就看到外殼，資料隨後到，首頁快很多。
+
+這個網站有很多「即時」的東西：自家雷達收到幾架飛機、訪客統計、匯率。開這個功能前我列了一張清單，一個一個改。改完 build 過、單元測試過、瀏覽器測試也過——然後還是踩了三個坑。共同點是**都不會報錯**。
+
+## 坑一：同步讀檔的 API，數字凍結在 build 那一刻
+
+`/api/radar` 回傳雷達的即時數字，資料是另一支程式每 30 秒寫進 `data/radar.json` 的：
+
+```ts
+export function GET() {
+  const state = JSON.parse(readFileSync("data/radar.json", "utf8"));
+  return Response.json(summarize(state));
+}
+```
+
+開了 Cache Components 之後，這支 API 打出來的數字**永遠一樣**。
+
+原因是新模型判斷「這是不是即時的」，看的是你有沒有做「非同步的、跟請求有關的事」：讀 request、`fetch`、非同步的檔案讀取。`readFileSync` 是同步的，Next 判斷這個 GET 沒用到任何即時資料，就在 build 時執行一次、把結果存起來，之後每個請求都回那一份。
+
+**不會報錯、不會警告**，build 輸出裡那條路由前面標著 `○`（靜態）而不是 `ƒ`（每次執行）——不特別去看就不會發現。
+
+解法是在開頭明確告訴 Next「這裡要即時」：
+
+```ts
+import { connection } from "next/server";
+
+export async function GET() {
+  await connection(); // 之後的東西每個請求都重新執行
+  const state = JSON.parse(readFileSync("data/radar.json", "utf8"));
+  return Response.json(summarize(state));
+}
+```
+
+驗證方法很土但有效：**手動改資料檔，再打一次 API，數字要跟著變**。我把測試用的資料從 382 改成 1,382，改之前 API 回 382，加了 `connection()` 之後才回 1,382。
+
+## 坑二：不存在的網址回 200
+
+`/blog/[slug]` 這種動態路由，以前 slug 不存在時呼叫 `notFound()`，就會回 404。
+
+開了 Cache Components 之後，**外殼會先串流出去**——HTTP 狀態碼在送第一個位元組時就決定了，是 200。等到內容那一段跑到 `notFound()`，畫面雖然顯示 404 頁，狀態碼已經是 200 了。這叫「軟 404」，搜尋引擎會把一堆不存在的網址當成正常頁面收錄。
+
+解法是在動態路由加一行，讓 Next 在串流前先確認這個網址存不存在：
+
+```ts
+export const ensureStatic = "navigation";
+```
+
+檢查方法：`curl -o /dev/null -w "%{http_code}" https://你的網站/blog/不存在`，要看到 404。
+
+## 坑三：失敗的結果被快取住
+
+OG 分享圖要用的字型是從 Google Fonts 抓的，我用 `"use cache"` 把它快取起來：
+
+```ts
+async function loadFont() {
+  "use cache";
+  try {
+    return await fetchFont();
+  } catch {
+    return null; // 抓不到就用預設字型
+  }
+}
+```
+
+看起來很合理：抓不到就退回預設。問題是 `null` 也是一個「成功的回傳值」，**會被快取**。只要某一次剛好網路不穩，之後很長一段時間，所有分享圖都用預設字型，直到快取過期。
+
+要讓失敗不被快取，就**丟例外，不要回 null**，在呼叫的地方再接：
+
+```ts
+async function loadFont() {
+  "use cache";
+  return await fetchFont(); // 失敗就丟出去，不會被快取
+}
+
+const font = await loadFont().catch(() => null);
+```
+
+## 學到的
+
+- 開 Cache Components 之後，**每一條路由都看一下 build 輸出的符號**：○ 靜態、◐ 外殼＋串流、ƒ 每次執行、● 預先產生。即時 API 一定要是 ƒ
+- 同步讀檔的 API，開頭加 `await connection()`
+- 動態路由加 `ensureStatic = "navigation"`，用 curl 確認不存在的網址真的回 404
+- `"use cache"` 裡失敗要丟例外，不要回 null
+- 這三個坑都**不會報錯**，只能靠「改資料、打 API、看狀態碼」這種實際去碰一下的檢查抓出來
+
+另外，單元測試直接呼叫 route 的 `GET` 時，`connection()` 跟 `after()` 會因為不在請求環境裡而出錯，要在測試裡把 `next/server` mock 掉。
