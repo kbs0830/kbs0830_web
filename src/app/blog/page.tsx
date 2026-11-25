@@ -18,12 +18,9 @@ export default function BlogIndexPage() {
   return (
     <PageShell eyebrow="Blog" title={<>技術部落格 &nbsp;·&nbsp; 筆記</>} intro="踩過的坑、學到的東西、對某個技術的想法。">
 
-      <p className="-mt-10 mb-12 text-xs text-(--muted) font-mono tracking-wide">
-        {/* 一般 <a>：/feed.xml 是 route handler 回的 XML，不是頁面，不要讓 Link 去 prefetch／client 換頁 */}
-        <a href="/feed.xml" className="hover:text-(--accent) transition-colors">RSS 訂閱 · Feed</a>
-      </p>
-
-      <nav aria-label="依標籤瀏覽" className="flex flex-wrap gap-x-4 gap-y-2 mb-12 -mt-6 text-xs font-mono">
+      {/* 2026-11-25 拿掉「RSS 訂閱 · Feed」連結（使用者沒有要做訂閱功能）。/feed.xml 還在，只寫在 <head> 給搜尋引擎、AI 抓；
+          原本這行 -mt-10＋mb-12 跟下面的 -mt-6 剛好抵銷，拿掉後下面改 mt-0，位置不變 */}
+      <nav aria-label="依標籤瀏覽" className="flex flex-wrap gap-x-4 gap-y-2 mb-12 text-xs font-mono">
         {getAllTags().map((t) => (
           <Link key={t.slug} href={`/blog/tags/${t.slug}`} className="text-(--muted) hover:text-(--accent) transition-colors">
             #{t.tag} <span>{t.count}</span>

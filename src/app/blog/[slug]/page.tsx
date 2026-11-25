@@ -220,7 +220,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </p>
       )}
 
-      {/* 讀完的下一步（TODO I8）：系列文直接接下一篇；最後一行 RSS 訂閱 */}
+      {/* 讀完的下一步（TODO I8）：系列文直接接下一篇。2026-11-25 拿掉底下的「想收到新文章？RSS 訂閱」：使用者沒有要做訂閱功能 */}
       {seriesNext && (
         <Link
           href={`/blog/${seriesNext.slug}`}
@@ -239,13 +239,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
         {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
       </nav>
-
-      <p className="mt-10 text-xs text-(--muted) font-mono tracking-wide">
-        想收到新文章？{" "}
-        <a href="/feed.xml" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">
-          RSS 訂閱 · Feed
-        </a>
-      </p>
 
       <Comments slug={post.slug} />
 
