@@ -20,6 +20,7 @@
 /.next/
 /.next-a/
 /.next-b/
+/.next-test/
 /tsconfig.deploy.json
 /out/
 
