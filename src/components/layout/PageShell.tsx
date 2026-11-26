@@ -3,6 +3,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import Eyebrow from "@/components/ui/Eyebrow";
 import QuickJumpButton from "@/components/layout/QuickJumpButton";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 import SiteFooter from "@/components/layout/SiteFooter";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import BackToTop from "@/components/layout/BackToTop";
@@ -39,8 +40,9 @@ export default function PageShell({
 }) {
   // 2026-11-26（TODO M2，使用者：「首頁滿版有張力，其他頁面擴一點」）：子頁 2xl→3xl、後台 3xl→4xl
   // 後台（compact）依螢幕加寬（2026-11-26 使用者：「2K 螢幕看了好擠」）：表格多，不是閱讀頁，可以用滿
-  const adminWidth = "max-w-4xl xl:max-w-6xl 3xl:max-w-7xl 4xl:max-w-[88rem]";
-  const width = `${compact ? adminWidth : "max-w-3xl"} ${printable ? "print:max-w-none" : ""}`;
+  // 2026-11-26 使用者：「全部頁面跟首頁一樣的寬度（電腦版）」→ 子頁面也用 HOME_WIDTH（手機本來就滿版，不受影響）
+  const pageWidth = HOME_WIDTH;
+  const width = `${pageWidth} ${printable ? "print:max-w-none" : ""}`;
   return (
     <>
       <div className={`flex-1 bg-(--bg) px-6 ${compact ? "pb-6 sm:pb-12" : "pb-20"} ${printable ? "print:py-0 print:px-0" : ""}`}>
@@ -70,7 +72,7 @@ export default function PageShell({
         </main>
       </div>
       {/* 頁尾跟內文同寬（不含 print:max-w-none，頁尾本來就 print:hidden） */}
-      <SiteFooter width={compact ? adminWidth : "max-w-3xl"} />
+      <SiteFooter width={pageWidth} />
       {/* 2026-11-24：子頁面在手機上也有右下角 ↑（桌機維持原樣，不加） */}
       <div className="print:hidden sm:hidden">
         <BackToTop />
