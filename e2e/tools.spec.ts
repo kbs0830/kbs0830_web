@@ -69,3 +69,11 @@ test("PowerShell 亂碼檢查：沒有 BOM 的中文 .ps1 → 要修、可以下
   await expect(page.getByText("要修")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("button", { name: "下載加好 BOM 的版本" })).toBeVisible();
 });
+
+test("CSP 標頭解讀：預設範例找到高風險、逐條解讀", async ({ page }) => {
+  await page.goto("/tools/csp");
+  await expect(page.getByText(/共 \d+ 條指令/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("高風險").first()).toBeVisible();
+  await page.getByRole("textbox").fill("script-src 'nonce-abc' 'strict-dynamic'; object-src 'none'; base-uri 'self'");
+  await expect(page.getByText("嚴格 CSP")).toBeVisible();
+});
