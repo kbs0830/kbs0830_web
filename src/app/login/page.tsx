@@ -43,7 +43,6 @@ export default function LoginPage() {
           >
             登入後台 →
           </a>
-          <p className="mt-2 text-[11px] font-light text-(--muted)">登入交給 Cloudflare Access，本站不碰密碼。登入後，後台每頁最上面可以登出、切換「維持登入」。</p>
         </section>
 
         <section className={card}>
