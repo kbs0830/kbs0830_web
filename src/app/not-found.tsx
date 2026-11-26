@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
 import LostPlane from "@/components/fun/LostPlane";
+import FlowLines from "@/components/fun/FlowLines";
 
 export default function NotFound() {
   return (
@@ -15,6 +16,7 @@ export default function NotFound() {
         </>
       }
     >
+      <FlowLines />
       <LostPlane />
       <Link
         href="/"

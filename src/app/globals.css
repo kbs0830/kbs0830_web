@@ -308,6 +308,15 @@ details.disclosure[open]::details-content {
     animation: radar-blip 8s linear infinite;
   }
 }
+/* 404／維修頁的波浪線（TODO L4，components/fun/FlowLines.tsx）：寬度是 200%，往左移 50%＝剛好一個週期，無縫循環。reduced-motion 停住 */
+@media (prefers-reduced-motion: no-preference) {
+  .flow-line {
+    animation: flow-drift 90s linear infinite;
+  }
+}
+@keyframes flow-drift {
+  to { transform: translate3d(-50%, 0, 0); }
+}
 @keyframes radar-blip {
   0% { opacity: 1; }
   75% { opacity: 0.08; }
