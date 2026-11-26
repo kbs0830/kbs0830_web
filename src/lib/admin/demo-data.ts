@@ -150,7 +150,7 @@ const piStart = Date.UTC(2026, 10, 25, 8); // 11/25 16:00（台灣）
 const piHist = Array.from({ length: 288 }, (_, i) => {
   const hour = (16 + i / 12) % 24;
   const day = Math.sin(((hour - 8) / 24) * Math.PI * 2);
-  const wobble = Math.sin(i * 1.7) * 0.8;
+  const wobble = Math.sin(i / 7) * 0.6 + Math.sin(i / 2.3) * 0.2;
   return { t: piStart + i * 300_000, c: +(57 + day * 4 + wobble).toFixed(1), cpu: Math.round(22 + day * 8 + wobble * 3), mem: Math.round(17 + wobble) };
 });
 

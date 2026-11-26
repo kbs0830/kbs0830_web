@@ -183,7 +183,7 @@ app
       startRadarPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_FILE, log });
       log(`radar poller started (${process.env.RADAR_FILE})`);
       // 樹莓派本身的健康（溫度、供電、記憶卡），每 5 分鐘 SSH 讀一次，只給後台看（lib/radar-health.js）
-      if (startRadarHealthPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_HEALTH_FILE, log }))
+      if (startRadarHealthPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_HEALTH_FILE, radarFile: process.env.RADAR_FILE, log }))
         log(`radar health poller started (${process.env.RADAR_HEALTH_FILE})`);
     }
 

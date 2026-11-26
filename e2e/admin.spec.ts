@@ -27,7 +27,7 @@ test("決策表 POST：外部 404、沒帶 Origin 403、格式錯 400、不存�
 
 // 訪客參觀（TODO G4）：公開、不用登入，資料是範例；決策表按了不打 API
 test("訪客參觀 /demo/admin：外部也是 200、有範例提示、不進 sitemap", async ({ request }) => {
-  for (const p of ["/demo/admin", "/demo/admin/ops", "/demo/admin/mail", "/demo/admin/traffic", "/demo/admin/todo", "/demo/admin/reports"]) {
+  for (const p of ["/demo/admin", "/demo/admin/ops", "/demo/admin/pi", "/demo/admin/mail", "/demo/admin/traffic", "/demo/admin/todo", "/demo/admin/reports"]) {
     const res = await request.get(p, { headers: { "cf-connecting-ip": "203.0.113.9" } });
     expect(res.status(), p).toBe(200);
     expect(await res.text(), p).toContain("範例資料");

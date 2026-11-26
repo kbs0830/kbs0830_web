@@ -3,7 +3,7 @@ import type { ViewModel } from "@/components/admin/AdminView";
 import { ALERT_TAGS, DEPLOY_RESULT, MAIL_TAGS, nextReportTimes, readMailState, readWatchdog } from "@/lib/admin/data";
 import { recentLogins } from "@/lib/admin/db";
 import { VIA_LABEL } from "@/lib/admin/login-log";
-import { piHealthTiles } from "@/lib/admin/pi-health";
+import { piHealthLine } from "@/lib/admin/pi-health";
 import { readSiteFacts } from "@/lib/ops/colophon";
 import { readDeploys, readRestarts } from "@/lib/ops/status";
 import { presenceCount } from "@/lib/stats/presence";
@@ -22,6 +22,7 @@ export function overviewModel(now = new Date()): ViewModel {
   const last = readDeploys().find((d) => d.result !== "running");
   const alerts = readWatchdog().filter((l) => ALERT_TAGS.has(l.tag)).slice(0, 5);
   const next = nextReportTimes(now);
+  const pi = piHealthLine(now.getTime());
   let logins: ReturnType<typeof recentLogins> = [];
   try {
     logins = recentLogins(8);
@@ -39,7 +40,8 @@ export function overviewModel(now = new Date()): ViewModel {
       {
         label: "自家雷達",
         value: facts.radar ? (facts.radar.online ? `在線・${facts.radar.aircraftNow} 架` : "離線") : "—",
-        tone: !facts.radar ? "muted" : facts.radar.online ? "ok" : "warn",
+        sub: pi?.text,
+        tone: !facts.radar ? "muted" : facts.radar.online && !pi?.bad ? "ok" : "warn",
       },
       {
         label: "30 天可用率",
@@ -97,7 +99,6 @@ export function opsModel(): ViewModel {
       { label: "這次啟動多久", value: days > 0 ? `${days} 天` : `${Math.round(facts.processUptime / 3600)} 小時` },
       { label: "上次備份", value: facts.lastBackup ? twDateTime(facts.lastBackup) : "—", tone: facts.lastBackup ? "ok" : "warn" },
       { label: "90 天部署／退回", value: `${facts.deploys90}／${facts.rollbacks90}`, tone: facts.rollbacks90 > 0 ? "warn" : "ok" },
-      ...(piHealthTiles() ?? []),
     ],
     blocks: [
       {
