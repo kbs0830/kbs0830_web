@@ -110,7 +110,12 @@ function nodes(f: SiteFacts): NodeDef[] {
         "不是 next start，是包了一層的自訂 server：每個請求寫 log、統計訪客國家跟爬蟲（只存次數）、維修模式回維修頁、每 30 秒在區網讀一次自家雷達。",
         "Windows 工作排程器開機就啟動它，而且直接執行 node.exe、中間不經過任何腳本——多一層的話，停止工作時殺不到真正的 node.exe，舊版會一直活著。",
       ],
-      facts: [`這次啟動已經跑了 ${span(f.processUptime)}`, `記憶體 ${f.memoryMB} MB`],
+      facts: [
+        `這次啟動已經跑了 ${span(f.processUptime)}`,
+        `記憶體 ${f.memoryMB} MB`,
+        // H7：網站就跑在這張顯卡旁邊（每 30 秒讀一次 nvidia-smi）
+        f.gpu ? `旁邊的 ${f.gpu.name}：使用率 ${f.gpu.utilization}%、${f.gpu.tempC}°C、${f.gpu.powerW} W、顯存 ${nf.format(f.gpu.memUsedMB)}／${nf.format(f.gpu.memTotalMB)} MB` : "",
+      ].filter(Boolean),
     },
     {
       id: "next",

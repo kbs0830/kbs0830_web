@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { dataFile, logFile } from "@/lib/data-file";
 import { availability, readDeploys, readRestarts, readUptime } from "@/lib/ops/status";
 import { readCloudflareSummary } from "@/lib/stats/cloudflare-analytics";
+import { readGpu, type GpuFacts } from "@/lib/ops/gpu";
 import { readCountryCounts } from "@/lib/stats/site-stats";
 import { readState, summarize as summarizeRadar } from "../../../scripts/lib/radar.js";
 
@@ -22,6 +23,8 @@ export interface SiteFacts {
   visitors: number; // 真人造訪累計
   lastBackup: string | null; // ISO
   radar: { online: boolean; aircraftNow: number } | null;
+  /** 桌機顯卡現況（H7）；沒有 nvidia-smi 就是 null */
+  gpu: GpuFacts | null;
 }
 
 const radarFile = () => dataFile("RADAR_FILE", "radar.json");
@@ -56,6 +59,7 @@ export function readSiteFacts(now = Date.now()): SiteFacts {
     cloudflare30: cf ? { uniques: cf.last30.uniques, requests: cf.last30.requests } : null,
     visitors: readCountryCounts().reduce((n, [, v]) => n + v, 0),
     lastBackup: lastBackupTime(backupRaw),
+    gpu: readGpu(now),
     radar: radar.configured ? { online: Boolean(radar.online), aircraftNow: radar.aircraftNow ?? 0 } : null,
   };
 }
