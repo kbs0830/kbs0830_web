@@ -12,7 +12,7 @@
 // 沒設 GSC_KEY_FILE → 印 {"skipped": …}，週報照寄、不顯示這段。
 // 為什麼用 Node 不用 PowerShell：JWT 要用 RSA 私鑰簽章，Windows PowerShell 5.1（.NET Framework）讀不了 PEM 格式的私鑰。
 //
-// 搜尋字詞只寄進 otemon 的週報信，不存檔（可能有人搜本名，那是給自己看的）。
+// 搜尋字詞寄進 otemon 的週報信；2026-11-26（TODO G9）起另外存一份 28 天快取 data/search-console.json（不進 git），只在站長後台 /admin/reports 顯示（可能有人搜本名，那是給站長看的）。
 // 手動跑：node scripts\lib\search-console.js
 
 const crypto = require("node:crypto");
@@ -109,7 +109,7 @@ function summarizeInspections(results) {
   return { total: results.length, indexed, states, notIndexed };
 }
 
-async function run() {
+async function run({ inspect = true } = {}) {
   const env = readEnv(path.join(REPO, ".env.local"));
   const keyFile = process.env.GSC_KEY_FILE || env.GSC_KEY_FILE;
   if (!keyFile) return { skipped: ".env.local 沒有 GSC_KEY_FILE" };
@@ -156,6 +156,22 @@ async function run() {
     q(w.cur, { dimensions: ["query"], rowLimit: 100 }),
     q(w.cur, { dimensions: ["page"], rowLimit: 100 }),
   ]);
+
+  if (!inspect) {
+    // 只要搜尋成效（後台報表的快取用）：不逐網址查索引，幾秒就好
+    return {
+      site,
+      analytics: {
+        range: `${w.cur.startDate.slice(5).replace("-", "/")}–${w.cur.endDate.slice(5).replace("-", "/")}`,
+        days: n,
+        cur: totals(cur),
+        prev: totals(prev),
+        queries: topRows(queries, 20),
+        pages: topRows(pages, 20).map((p) => ({ ...p, key: p.key.replace(SITE, "") || "/" })),
+      },
+      index: null,
+    };
+  }
 
   // sitemap 每個網址查一次索引狀態（6 個一起查，不要一次全部打出去；一次約 3 秒，3 個一起時 29 個網址要 90 秒）
   const xml = await (await fetch(`${SITE}/sitemap.xml`, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15000) })).text();
@@ -219,7 +235,24 @@ async function submitSitemap() {
   return { ok: true, feed };
 }
 
-if (require.main === module && process.argv.includes("--submit-sitemap")) {
+if (require.main === module && process.argv.includes("--cache")) {
+  // 後台報表的快取（2026-11-26，TODO G9，使用者要把搜尋字詞放進後台）：只抓搜尋成效（近 28 天），寫 data/search-console.json。
+  // 這份檔案不進 git；搜尋字詞只在站長後台（/admin/reports）顯示。由 scripts/search-console-cache.ps1 每天一次呼叫（watchdog）。
+  const out = process.env.GSC_CACHE_FILE || path.join(REPO, "data", "search-console.json");
+  if (!process.argv.includes("--days")) process.argv.push("--days", "28");
+  run({ inspect: false })
+    .catch((e) => ({ error: e.message }))
+    .then((r) => {
+      if (r.error || r.skipped || !r.analytics) {
+        process.stdout.write(JSON.stringify(r));
+        process.exitCode = 1;
+        return;
+      }
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, JSON.stringify({ fetchedAt: new Date().toISOString(), site: r.site, analytics: r.analytics }, null, 2));
+      process.stdout.write(JSON.stringify({ ok: true, queries: r.analytics.queries.length, pages: r.analytics.pages.length }));
+    });
+} else if (require.main === module && process.argv.includes("--submit-sitemap")) {
   submitSitemap()
     .catch((e) => ({ error: e.message }))
     .then((out) => process.stdout.write(JSON.stringify(out)));
@@ -229,4 +262,4 @@ if (require.main === module && process.argv.includes("--submit-sitemap")) {
     .then((out) => process.stdout.write(JSON.stringify(out)));
 }
 
-module.exports = { readEnv, signJwt, pickSite, weekRanges, totals, topRows, summarizeInspections };
+module.exports = { run, readEnv, signJwt, pickSite, weekRanges, totals, topRows, summarizeInspections };

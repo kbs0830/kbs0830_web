@@ -259,6 +259,9 @@ try { & (Join-Path $PSScriptRoot "restore-drill.ps1") -IfOlderThanDays 90 | Out-
 # --- 每月外部連結檢查（超過 30 天沒檢查才真的跑；有壞連結才寄信，沒壞就只記 logs\link-check.log）---
 try { & (Join-Path $PSScriptRoot "link-check.ps1") -IfOlderThanDays 30 | Out-Null } catch { Log "[WARN] link-check.ps1 失敗：$($_.Exception.Message)" }
 
+# --- Search Console 搜尋成效快取（後台報表用；超過 24 小時沒更新才抓，失敗只記 logs\search-console.log）---
+try { & (Join-Path $PSScriptRoot "search-console-cache.ps1") -IfOlderThanHours 24 | Out-Null } catch { Log "[WARN] search-console-cache.ps1 失敗：$($_.Exception.Message)" }
+
 # --- 提醒信（reminders.json 排的日期到了就寄，每則只寄一次；失敗不影響監控結果）---
 try { & (Join-Path $PSScriptRoot "reminders.ps1") | Out-Null } catch { Log "[WARN] reminders.ps1 失敗：$($_.Exception.Message)" }
 

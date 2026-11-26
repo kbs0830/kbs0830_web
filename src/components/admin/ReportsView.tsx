@@ -5,6 +5,7 @@ import { BarChart, ShareList } from "@/components/ui/StatCharts";
 import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period } from "@/lib/stats/reports";
 import { nf, monthDay as md, regionName } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
+import { readSearchConsole } from "@/lib/stats/search-console";
 import { connection } from "next/server";
 
 // 日報／週報／月報的內容（2026-11-26 從公開的 /reports 搬進站長後台，TODO G8；使用者 11/25：「我之後再挪到私人的管理者裡面」）。
@@ -66,6 +67,7 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
   const v = r.visitors;
   const cmpLabel = period === "day" ? "前一天" : period === "week" ? "上週" : "上個月";
   const cmp = (cur: number, prev: number) => `${cmpLabel} ${N(prev)}${delta(cur, prev)}`;
+  const gsc = readSearchConsole();
   const sessionsTotal = r.direct != null ? r.direct + r.refKinds.reduce((n, [, c]) => n + c, 0) : undefined;
 
   return (
@@ -328,6 +330,25 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
           <Empty>這段期間還沒有紀錄。</Empty>
         )}
       </Block>
+
+      {gsc && (
+        <Block
+          title="Google 搜尋"
+          en="Search Console"
+          note={`近 ${gsc.analytics.days} 天（${gsc.analytics.range}，Google 的資料晚 2～3 天），不隨上面的期間切換；更新於 ${twTime(gsc.fetchedAt)}。搜尋字詞太冷門的 Google 會隱藏，所以通常只有幾個。搜尋字詞只在後台看。`}
+        >
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-8">
+            <Kpi label="點擊" value={N(gsc.analytics.cur.clicks)} cmp={cmp(gsc.analytics.cur.clicks, gsc.analytics.prev.clicks).replace(cmpLabel, "前 28 天")} />
+            <Kpi label="曝光" value={N(gsc.analytics.cur.impressions)} cmp={cmp(gsc.analytics.cur.impressions, gsc.analytics.prev.impressions).replace(cmpLabel, "前 28 天")} />
+            <Kpi label="點擊率" value={`${(gsc.analytics.cur.ctr * 100).toFixed(1)}%`} />
+            <Kpi label="平均排名" value={gsc.analytics.cur.position ? gsc.analytics.cur.position.toFixed(1) : "–"} />
+          </dl>
+          <div className="space-y-8">
+            <Shares label="搜尋字詞（曝光次數）" entries={gsc.analytics.queries.map((q): Entry => [q.key, q.impressions])} />
+            <Shares label="被搜尋到的頁面（曝光次數）" entries={gsc.analytics.pages.slice(0, 10).map((q): Entry => [pageTitle(q.key), q.impressions])} />
+          </div>
+        </Block>
+      )}
 
       <Block title="網站更新" en="Changes">
         {r.posts.length > 0 && (
