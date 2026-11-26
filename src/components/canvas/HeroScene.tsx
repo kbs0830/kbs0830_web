@@ -10,7 +10,6 @@ import {
   Color,
   EdgesGeometry,
   Group,
-  IcosahedronGeometry,
   LineSegments,
   Matrix4,
   OctahedronGeometry,
@@ -211,36 +210,26 @@ function Lines({ color, reduced }: { color: string; reduced: boolean }) {
   );
 }
 
-// 背景深處兩個很淡的線框幾何體（測地球面、八面體），跟線條反方向慢慢轉 → 前後兩層轉速不同，立體感從視差出來。
-// 放在標題旁邊的空白處（右後方、左下），不壓標題。
+// 背景深處很淡的線框八面體，跟線條反方向慢慢轉 → 前後兩層轉速不同，立體感從視差出來。放在左下，不壓標題。
+// 2026-11-26 使用者：「球球不要」→ 右後方的測地球面拿掉（右上角改給夜晚的月亮）。
 function Structures({ color, reduced }: { color: string; reduced: boolean }) {
-  const a = useRef<Group>(null);
   const b = useRef<Group>(null);
   const geos = useMemo(() => {
-    const ico = new IcosahedronGeometry(2.6, 1);
     const oct = new OctahedronGeometry(0.9);
-    const out = [new EdgesGeometry(ico), new EdgesGeometry(oct)];
-    ico.dispose();
+    const out = [new EdgesGeometry(oct)];
     oct.dispose();
     return out;
   }, []);
   useEffect(() => () => geos.forEach((g) => g.dispose()), [geos]);
   useFrame((_, delta) => {
-    if (reduced || !a.current || !b.current) return;
-    a.current.rotation.y -= delta * 0.035;
-    a.current.rotation.x += delta * 0.012;
+    if (reduced || !b.current) return;
     b.current.rotation.y += delta * 0.09;
     b.current.rotation.z += delta * 0.04;
   });
   return (
     <>
-      <group ref={a} position={[4.8, 0.6, -4.5]}>
-        <lineSegments geometry={geos[0]}>
-          <lineBasicMaterial color={color} transparent opacity={0.09} depthWrite={false} />
-        </lineSegments>
-      </group>
       <group ref={b} position={[-5.2, -2.2, -2]}>
-        <lineSegments geometry={geos[1]}>
+        <lineSegments geometry={geos[0]}>
           <lineBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
         </lineSegments>
       </group>

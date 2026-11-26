@@ -108,6 +108,38 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 首頁 NavBar 的半透明底（TODO F7，2026-11-26）：底色、模糊、細線畫在 ::before，跟著捲動（0～60px）慢慢出現。
+   支援 animation-timeline: scroll() 的瀏覽器純 CSS（不用 JS 逐次判斷捲動位置，跟頁頂的捲動進度條同一套）；
+   不支援的瀏覽器退回 NavBar 的 useScrolledPast（捲過 60px 加 .is-solid），0.5 秒淡入。 */
+.nav-fade::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-ma);
+}
+.nav-fade.is-solid::before {
+  opacity: 1;
+}
+@supports (animation-timeline: scroll()) {
+  .nav-fade::before {
+    transition: none;
+    animation: nav-fade-in linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 60px;
+  }
+}
+@keyframes nav-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* 紙感底紋（TODO L1，2026-11-26）：Surface 本來就叫「紙感」，整頁蓋一層**靜態**的細紙纖維顆粒（SVG feTurbulence，畫一次就停，零動畫、零 JS）。
    用固定在視窗的偽元素蓋在最上面（很多容器自己有 bg，畫在 body 背景會被蓋住），pointer-events: none、不吃點擊；
    只有淺色（暖褐色纖維）；深色原本是淡灰顆粒，使用者覺得不好看，11-26 拿掉。列印、「降低透明度」偏好、ForcedColors 都不畫。 */
@@ -153,6 +185,12 @@ body::after {
 @layer base {
   h1, h2, h3 { text-wrap: balance; }
   p, li, figcaption { text-wrap: pretty; }
+  /* 中文標題只在標點、空格換行，不會斷成「智慧商／務系」（TODO M7，2026-11-26）；
+     break-word：真的有一長串放不下時才硬斷，不會撐破版面 */
+  h1, h2, h3, h4 { word-break: keep-all; overflow-wrap: break-word; }
+  /* 中英混排自動留 1/8 字寬的間隙（TODO M9）。實測（Chromium 156）：只補在「中文緊貼英數」的地方，
+     已經手打半形空格的不會變兩倍。標點擠壓 text-spacing-trim 瀏覽器預設就是 normal，不用另外設 */
+  html { text-autospace: normal; }
 }
 
 :focus-visible {
@@ -331,12 +369,28 @@ details.disclosure[open]::details-content {
 }
 
 /* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
+/* 2026-11-26（TODO M13）：淡出跟著捲動走——還沒滑時左邊不淡（第一個「全部」不會被吃掉一半），滑到最右邊時右邊的淡出消失。
+   純 CSS scroll-driven animation（捲動軸是篩選列自己），不支援的瀏覽器維持原本左右都淡出 */
+@property --fade-l { syntax: "<length>"; inherits: false; initial-value: 24px; }
+@property --fade-r { syntax: "<length>"; inherits: false; initial-value: 40px; }
+@keyframes filter-fade {
+  0% { --fade-l: 0px; --fade-r: 40px; }
+  8% { --fade-l: 24px; }
+  92% { --fade-r: 40px; }
+  100% { --fade-l: 24px; --fade-r: 0px; }
+}
 @media (width < 640px) {
   .filter-scroll {
     scrollbar-width: none;
-    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
   }
   .filter-scroll::-webkit-scrollbar { display: none; }
+  @supports (animation-timeline: scroll()) {
+    .filter-scroll {
+      animation: filter-fade linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
 }
 
 /* 原生 <dialog>（<Modal>）：@starting-style 做進場、allow-discrete 讓 display/overlay
@@ -587,10 +641,10 @@ details.disclosure[open]::details-content {
 /* 桌機夜晚的月亮（HeroSky 的 MoonSvg）；手機由 HeroSceneLite 畫 */
 .hero-moon {
   position: absolute;
-  top: 6%;
-  right: 7%;
-  width: 120px;
-  height: 120px;
+  top: 7%;
+  right: 9%;
+  width: 200px;
+  height: 200px;
   color: var(--accent);
   --moon-glow: 0.06;
   animation: enter-fade 2s var(--ease-ma) both;
