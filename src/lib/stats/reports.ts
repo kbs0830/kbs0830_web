@@ -447,6 +447,6 @@ export function reportText(r: Report): string {
     if (r.changes.length > 15) L.push(`  …還有 ${r.changes.length - 15} 項`);
     L.push("");
   }
-  L.push(`網頁版：https://kbs0830.com/reports?p=${range.period}&d=${range.from}`);
+  L.push(`網頁版（要登入後台）：https://kbs0830.com/admin/reports?p=${range.period}&d=${range.from}`);
   return L.join("\n");
 }
