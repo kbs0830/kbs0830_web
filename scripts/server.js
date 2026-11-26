@@ -119,6 +119,35 @@ p{color:#6b6b6b;line-height:1.8;margin:0 0 6px;font-size:15px}.en{font-size:13px
   return true;
 }
 
+// 預熱（2026-11-26）：重啟／部署後第一個請求要載入該頁的程式碼，實測首頁 5 秒、後台 /admin/mail 7 秒，暖機後只要 40～120ms。
+// 開機後自己依序打一輪（一次一個，不跟真人搶 CPU）。UA 用 kbs0830- 開頭、也沒有 cf-ipcountry：
+// 不會算進未過濾流量（raw-traffic.js）；後台登入紀錄也認這個 UA 略過（lib/admin/login-log.ts）
+const WARM_PATHS = [
+  "/", "/blog", "/radar", "/status", "/stats", "/resume",
+  "/admin", "/admin/ops", "/admin/traffic", "/admin/todo", "/admin/mail", "/admin/reports", "/admin/done",
+];
+function warmUp(port, log) {
+  if (process.env.KBS_NO_WARMUP) return;
+  (async () => {
+    const t0 = Date.now();
+    for (const p of WARM_PATHS) {
+      await new Promise((resolve) => {
+        const req = http.get(
+          { host: "127.0.0.1", port, path: p, headers: { "user-agent": "kbs0830-warmup" }, timeout: 20000 },
+          (res) => {
+            res.resume();
+            res.on("end", resolve);
+            res.on("error", resolve);
+          },
+        );
+        req.on("timeout", () => req.destroy());
+        req.on("error", resolve);
+      });
+    }
+    log(`warmup done ${WARM_PATHS.length} paths ${Date.now() - t0}ms`);
+  })().catch(() => {});
+}
+
 const port = Number(process.env.PORT) || 3000;
 const app = next({ dev: false, dir: projectDir });
 const handle = app.getRequestHandler();
@@ -145,6 +174,7 @@ app
 
     server.listen(port, () => {
       log(`server ready on http://localhost:${port} (pid ${process.pid})`);
+      warmUp(port, log);
     });
 
     // 自家雷達：.env.local 的 RADAR_HOST（Next 在 prepare 時才把 .env.local 載進 process.env，所以放這裡）。

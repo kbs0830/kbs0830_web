@@ -22,6 +22,8 @@ export function deviceSummary(ua: string): string {
 }
 
 export function logAdminVisit(id: AdminIdentity, h: HeaderLike, now = Date.now()) {
+  // scripts/server.js 開機預熱打的後台頁面，不是人登入
+  if ((h.get("user-agent") ?? "").startsWith("kbs0830-warmup")) return;
   try {
     recordLogin(
       {
