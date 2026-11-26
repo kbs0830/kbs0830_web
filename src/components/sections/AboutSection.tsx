@@ -14,6 +14,7 @@ import { flightStats } from "@/lib/travel/flights";
 import { hotelStats } from "@/lib/travel/hotels";
 import { planningCountries, skills, statusLines, timeline, visitedCountries } from "@/lib/content/about";
 import { projectCountForTag, tagForSkill } from "@/lib/content/projects";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 
 // 技能 chip、到訪城市共用的小膠囊樣式
 const pill = "px-3 py-1 text-xs font-light text-(--muted) border border-(--border) rounded-sm bg-(--surface) tracking-wide";
@@ -233,7 +234,7 @@ function FootprintPanel() {
 export default function AboutSection() {
   return (
     <section id="about" className="py-20 md:py-32 bg-(--surface)">
-      <div className="max-w-6xl mx-auto px-6">
+      <div className={`${HOME_WIDTH} mx-auto px-6`}>
         <Reveal>
           <Eyebrow className="mb-4">01 — About</Eyebrow>
           <RevealHeading text="自己紹介 · 關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />

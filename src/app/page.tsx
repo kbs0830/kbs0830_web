@@ -18,6 +18,7 @@ import { getAllPosts } from "@/lib/content/blog";
 import { PERSON_ID, SITE_URL } from "@/lib/site/site";
 import JsonLd from "@/components/ui/JsonLd";
 import SiteFooter from "@/components/layout/SiteFooter";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
@@ -41,7 +42,7 @@ export default function Home() {
         <ContactSection />
       </main>
       <SiteFooter
-        width="max-w-6xl"
+        width={HOME_WIDTH}
         inset="inner"
         extra={
           <>

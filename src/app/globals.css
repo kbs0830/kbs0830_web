@@ -69,6 +69,13 @@
   display: none;
 }
 
+/* 大螢幕斷點（2026-11-26，使用者：「看是什麼螢幕來改變畫面大小」「首頁（封面）刷出來最重要」）：
+   3xl＝1920 以上（FHD 以上的寬螢幕）、4xl＝2400 以上（2K／2560）。純 CSS，第一次畫出來就是對的大小，不靠 JS 判斷、封面不會跳 */
+@theme {
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 150rem;
+}
+
 @theme inline {
   --color-bg:        var(--bg);
   --color-surface:   var(--surface);

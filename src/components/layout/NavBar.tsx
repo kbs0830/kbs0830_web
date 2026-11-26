@@ -8,6 +8,7 @@ import { useMenuDismiss } from "@/components/layout/useMenuDismiss";
 import QuickJumpButton from "@/components/layout/QuickJumpButton";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { useMediaQuery, useScrolledPast } from "@/lib/client/hooks";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 
 const links = [
   { href: "#about",     label: "自己紹介", id: "about" },
@@ -61,7 +62,7 @@ export default function NavBar() {
     >
       <div className="scroll-progress absolute top-0 left-0 right-0 h-[2px] bg-(--accent)" />
 
-      <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className={`${HOME_WIDTH} mx-auto px-6 py-4 flex items-center justify-between`}>
         <Link
           href="#top"
           className="text-sm font-light tracking-[0.2em] text-(--text) hover:text-(--accent) transition-colors font-mono"

@@ -8,6 +8,7 @@ import HeroSky from "@/components/sections/HeroSky";
 import Typewriter from "@/components/sections/Typewriter";
 import HeroNameScramble from "@/components/sections/HeroNameScramble";
 import HeroTwoCities from "@/components/sections/HeroTwoCities";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 
 const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProperties;
 
@@ -30,7 +31,7 @@ export default function HeroSection() {
       <HeroNameScramble />
 
       {/* hero-parallax：往下捲時文字往上飄、慢慢淡出（globals.css，CSS scroll-driven，只有桌機） */}
-      <div className="hero-parallax relative z-10 w-full max-w-6xl mx-auto px-6 flex-1 flex flex-col pt-24 pb-8 sm:flex-none sm:block sm:py-32">
+      <div className={`hero-parallax relative z-10 w-full ${HOME_WIDTH} mx-auto px-6 flex-1 flex flex-col pt-24 pb-8 sm:flex-none sm:block sm:py-32`}>
         <div className="relative flex-1 flex flex-col justify-center sm:block">
         {/* 手機：直書片假名，貼在右側邊緣、跟文字區塊垂直置中（名字最寬到 14vw×約 5.7 ≈ 80% 螢幕寬，不會疊到） */}
         <span
@@ -40,14 +41,14 @@ export default function HeroSection() {
         >
           リー ビンウェイ
         </span>
-        <p className="enter-up text-xs tracking-[0.2em] sm:tracking-[0.35em] text-(--muted) mb-6 uppercase font-mono" style={enter(0.1)}>
+        <p className="enter-up text-xs 3xl:text-sm tracking-[0.2em] sm:tracking-[0.35em] text-(--muted) mb-6 3xl:mb-8 uppercase font-mono" style={enter(0.1)}>
           高雄・福岡 &nbsp;/&nbsp; Kaohsiung · Fukuoka
         </p>
 
         {/* data-scramble="hover"：桌機滑鼠移上去時解碼一次（HeroNameScramble）。不在載入時播——這是 LCP 元素 */}
         <h1
           data-scramble="hover"
-          className="enter-up whitespace-nowrap text-[min(14vw,4rem)] leading-[1.05] sm:text-6xl sm:leading-[1.1] lg:text-7xl font-light tracking-[0.04em] text-(--text) mb-5 sm:mb-4"
+          className="enter-up whitespace-nowrap text-[min(14vw,4rem)] leading-[1.05] sm:text-6xl sm:leading-[1.1] lg:text-7xl 3xl:text-8xl 4xl:text-[7rem] font-light tracking-[0.04em] text-(--text) mb-5 sm:mb-4"
           style={enter(0.25)}
         >
           PINGWEI LI
@@ -55,7 +56,7 @@ export default function HeroSection() {
 
 
         <p
-          className="enter-up text-sm sm:text-base font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-6 sm:mb-8 min-h-[1.5em] font-mono"
+          className="enter-up text-sm sm:text-base 3xl:text-lg font-light text-(--accent) tracking-[0.12em] sm:tracking-[0.25em] mb-6 sm:mb-8 3xl:mb-10 min-h-[1.5em] font-mono"
           style={enter(0.35)}
         >
           {/* 螢幕閱讀器讀完整文字、不逐字念。<p> 不能放 aria-label（axe：aria-prohibited-attr），改用隱藏文字 */}
@@ -69,11 +70,11 @@ export default function HeroSection() {
         <span aria-hidden className="enter-up sm:hidden block w-8 h-px bg-(--accent) mb-6" style={enter(0.4)} />
 
         {/* 手機 pr-6：右側有直書片假名，標語剛好一行會貼上去；break-keep 讓中文只在標點換行（balance 會斷在「從／畫面」中間） */}
-        <p className="enter-up text-lg sm:text-xl font-light text-(--text) sm:text-(--muted) max-w-lg leading-relaxed text-balance break-keep mb-2 sm:mb-3 pr-6 sm:pr-0" style={enter(0.45)}>
+        <p className="enter-up text-lg sm:text-xl 3xl:text-2xl font-light text-(--text) sm:text-(--muted) max-w-lg 3xl:max-w-2xl leading-relaxed text-balance break-keep mb-2 sm:mb-3 pr-6 sm:pr-0" style={enter(0.45)}>
           做小而完整的系統，從畫面一路到伺服器。
         </p>
 
-        <p className="enter-up text-sm sm:text-base font-light text-(--muted) max-w-lg leading-relaxed text-balance sm:mb-12 pr-6 sm:pr-0" style={enter(0.5)}>
+        <p className="enter-up text-sm sm:text-base 3xl:text-lg font-light text-(--muted) max-w-lg 3xl:max-w-2xl leading-relaxed text-balance sm:mb-12 3xl:mb-16 pr-6 sm:pr-0" style={enter(0.5)}>
           Small, complete systems — from the screen down to the server.
         </p>
         </div>
@@ -93,13 +94,13 @@ export default function HeroSection() {
 
         <div className="enter-up hidden sm:flex flex-row gap-10 items-center" style={enter(0.6)}>
           <Magnetic>
-            <a href="#portfolio" className={`${underlineLinkClass} text-(--text)`}>
+            <a href="#portfolio" className={`${underlineLinkClass} 3xl:text-base text-(--text)`}>
               查看作品 · View Work
               <Underline />
             </a>
           </Magnetic>
           <Magnetic>
-            <a href="#contact" className={`${underlineLinkClass} text-(--muted) hover:text-(--text)`}>
+            <a href="#contact" className={`${underlineLinkClass} 3xl:text-base text-(--muted) hover:text-(--text)`}>
               聯絡我 · Contact
               <Underline />
             </a>

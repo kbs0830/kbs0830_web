@@ -12,6 +12,7 @@ import TagBadge from "@/components/ui/TagBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
 import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
+import { HOME_WIDTH } from "@/components/layout/home-width";
 
 // 篩選列：2 個以上作品用到的 tag 直接列出（多的排前面），只出現一次的收進「更多」。
 // 2026-11-09 作品加到 13 個、tag 變 42 個，全部攤開桌機要排 5 行。
@@ -196,7 +197,7 @@ export default function PortfolioSection() {
   return (
     <section id="portfolio" className="pt-20 pb-12 sm:pb-20 md:py-32">
       {/* 手機底部留白縮小：下面「最新文章」自己有一條分隔線＋上方留白，兩個加起來之前快 130px */}
-      <div className="max-w-6xl mx-auto px-6">
+      <div className={`${HOME_WIDTH} mx-auto px-6`}>
 
         {/* Title */}
         <Reveal className="mb-10 md:mb-16">
