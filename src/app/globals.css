@@ -101,6 +101,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 紙感底紋（TODO L1，2026-11-26）：Surface 本來就叫「紙感」，整頁蓋一層**靜態**的細紙纖維顆粒（SVG feTurbulence，畫一次就停，零動畫、零 JS）。
+   用固定在視窗的偽元素蓋在最上面（很多容器自己有 bg，畫在 body 背景會被蓋住），pointer-events: none、不吃點擊；
+   淺色＝暖褐色纖維，深色＝淡灰顆粒（墨色紙）。列印、「降低透明度」偏好、ForcedColors 都不畫。 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 1.6 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: 0.2;
+}
+[data-theme="dark"] body::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .82 1.6 0 0 0 -.68'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.09;
+}
+@media print, (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  body::after {
+    display: none;
+  }
+}
+
 ::selection {
   background: var(--accent-lt);
   color: var(--accent);
