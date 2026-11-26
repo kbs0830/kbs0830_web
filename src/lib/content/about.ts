@@ -11,6 +11,7 @@ export const skills = [
       { name: "ONNX Runtime Web", level: 3 },
       { name: "TensorFlow.js", level: 3 },
       { name: "Gemini API", level: 4 },
+      { name: "高科 iAI API（校內，學校專案用）", level: 2 },
       { name: "Ultralytics", level: 4 },
       { name: "Pydantic v2", level: 3 },
       { name: "Jetson Nano", level: 3 },
@@ -129,8 +130,8 @@ export const timeline = [
   },
   {
     year: "2026", zh: "持續建構中 · 仕事在進行",                       en: "Continuously building",
-    detailZh: "持續打磨個人網站與新專案，同時準備日本語 N5 検定。",
-    detailEn: "Continuing to refine this site and new projects while preparing for the JLPT N5.",
+    detailZh: "持續打磨個人網站與新專案，同時準備日本語 N5 検定。11 月開始用學校的 iAI（OpenAI 相容 API）輔助學校專案。",
+    detailEn: "Continuing to refine this site and new projects while preparing for the JLPT N5. Since November, using the university's iAI (OpenAI-compatible API) to support school projects.",
   },
 ];
 
