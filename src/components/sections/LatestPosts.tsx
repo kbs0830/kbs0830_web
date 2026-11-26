@@ -16,7 +16,7 @@ export default function LatestPosts() {
         <Reveal className="flex items-baseline justify-between gap-4 mb-8 border-t border-(--border) pt-12">
           <div>
             <Eyebrow className="mb-3">Blog</Eyebrow>
-            <h2 id="latest-posts" className="text-xl sm:text-2xl font-light text-(--text) font-serif whitespace-nowrap">
+            <h2 id="latest-posts" className="text-xl sm:text-2xl 3xl:text-3xl font-light text-(--text) font-serif whitespace-nowrap">
               最新記事 · Latest Notes
             </h2>
           </div>
@@ -38,10 +38,10 @@ export default function LatestPosts() {
                   className="group flex-1 flex flex-col border border-(--border) rounded-sm p-5 bg-(--bg) hover:border-(--accent) transition-colors"
                 >
                   <span className="text-xs text-(--muted) font-mono tracking-wide mb-2">{post.date}</span>
-                  <span className="text-[15px] font-light text-(--text) leading-relaxed group-hover:text-(--accent) transition-colors mb-2">
+                  <span className="text-[15px] 3xl:text-[17px] font-light text-(--text) leading-relaxed group-hover:text-(--accent) transition-colors mb-2">
                     {post.title}
                   </span>
-                  <span className="text-xs text-(--muted) font-light leading-relaxed line-clamp-3">{post.description}</span>
+                  <span className="text-xs 3xl:text-[13px] text-(--muted) font-light leading-relaxed line-clamp-3">{post.description}</span>
                 </Link>
               </div>
             </Reveal>

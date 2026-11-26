@@ -28,11 +28,11 @@ export default function ContactSection() {
       <div className={`${HOME_WIDTH} mx-auto px-6`}>
         <Reveal>
           <Eyebrow className="mb-4">03 — Contact</Eyebrow>
-          <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl font-light text-(--text) mb-6 font-serif" />
-          <p className="text-(--text) font-light text-[15px] max-w-md leading-relaxed mb-3">
+          <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl 3xl:text-5xl font-light text-(--text) mb-6 font-serif" />
+          <p className="text-(--text) font-light text-[15px] 3xl:text-[17px] max-w-md 3xl:max-w-lg leading-relaxed mb-3">
             想合作、聊技術，或只是聊聊 AI、網頁跟飛機——都歡迎寫信來。
           </p>
-          <p className="text-(--muted) font-light text-sm max-w-md leading-relaxed mb-12">
+          <p className="text-(--muted) font-light text-sm 3xl:text-[15px] max-w-md 3xl:max-w-lg leading-relaxed mb-12">
             Collaborations, tech talk, or just a chat about AI, the web, or planes —
             my inbox is open.
           </p>

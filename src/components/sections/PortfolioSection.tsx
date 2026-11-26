@@ -91,7 +91,7 @@ function ProjectCard({
               {/* items-baseline：狀態標籤對齊標題第一行的文字（2026-11-25 使用者：「藍底的完成飄掉了，沒有對齊」，原本 items-start＋mt-0.5 偏下） */}
               <div className="flex items-baseline gap-2">
                 <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none">
-                  <h3 className="text-base font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
+                  <h3 className="text-base 3xl:text-lg font-light text-(--text) leading-snug group-hover:text-(--accent) transition-colors">
                     {project.titleZh}
                   </h3>
                 </ViewTransition>
@@ -124,10 +124,10 @@ function ProjectCard({
           </div>
 
           {/* 中文說明（主） */}
-          <p className="text-sm sm:text-[13px] font-light text-(--text) leading-relaxed mb-2 line-clamp-2 sm:line-clamp-none">
+          <p className="text-sm sm:text-[13px] 3xl:text-sm font-light text-(--text) leading-relaxed mb-2 line-clamp-2 sm:line-clamp-none">
             {project.descriptionZh}
           </p>
-          <p className="hidden sm:block text-[12px] font-light text-(--muted) leading-relaxed mb-4">
+          <p className="hidden sm:block text-[12px] 3xl:text-[13px] font-light text-(--muted) leading-relaxed mb-4">
             {project.description}
           </p>
 
@@ -204,9 +204,9 @@ export default function PortfolioSection() {
           <Eyebrow className="mb-4">02 — Work</Eyebrow>
           <RevealHeading
             text="製作物 · Portfolio"
-            className="text-3xl sm:text-4xl font-light text-(--text) mb-3 font-serif"
+            className="text-3xl sm:text-4xl 3xl:text-5xl font-light text-(--text) mb-3 font-serif"
           />
-          <p className="text-sm font-light text-(--muted)">
+          <p className="text-sm 3xl:text-[15px] font-light text-(--muted)">
             自己做的作品，和課堂上的專題。
             {/* 英文只在桌機同一行；手機一行中文就好（2026-11-24「一行中文一行日文有點浪費」） */}
             <span className="hidden sm:inline"> Things I built on my own, and projects from class.</span>

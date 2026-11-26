@@ -85,15 +85,15 @@ function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: numb
           className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg) scale-0 transition-[scale] duration-300 group-data-shown/tl:scale-100"
           style={{ transitionDelay: `${index * 0.08 + 0.15}s` }}
         />
-        <p className="text-sm font-light text-(--text) leading-snug transition-colors group-hover/item:text-(--accent) group-focus/item:text-(--accent)">
+        <p className="text-sm 3xl:text-[15px] font-light text-(--text) leading-snug transition-colors group-hover/item:text-(--accent) group-focus/item:text-(--accent)">
           {item.zh}
         </p>
-        <p className="text-xs font-light text-(--muted) mt-0.5">{item.en}</p>
+        <p className="text-xs 3xl:text-[13px] font-light text-(--muted) mt-0.5">{item.en}</p>
         <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-(--ease-ma) group-hover/item:grid-rows-[1fr] group-hover/item:opacity-100 group-focus/item:grid-rows-[1fr] group-focus/item:opacity-100">
           <div className="overflow-hidden">
             <div className="pt-2 mt-2 border-t border-(--border) space-y-0.5">
-              <p className="text-xs font-light text-(--muted)">{item.detailZh}</p>
-              <p className="text-[11px] font-light text-(--muted)">{item.detailEn}</p>
+              <p className="text-xs 3xl:text-[13px] font-light text-(--muted)">{item.detailZh}</p>
+              <p className="text-[11px] 3xl:text-xs font-light text-(--muted)">{item.detailEn}</p>
             </div>
           </div>
         </div>
@@ -237,12 +237,12 @@ export default function AboutSection() {
       <div className={`${HOME_WIDTH} mx-auto px-6`}>
         <Reveal>
           <Eyebrow className="mb-4">01 — About</Eyebrow>
-          <RevealHeading text="自己紹介 · 關於我" className="text-3xl sm:text-4xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
+          <RevealHeading text="自己紹介 · 關於我" className="text-3xl sm:text-4xl 3xl:text-5xl font-light text-(--text) mb-10 md:mb-16 font-serif" />
         </Reveal>
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-14 md:mb-20">
           <Reveal delay={0.1}>
-            <div className="space-y-5 font-light leading-relaxed text-[15px] break-keep">
+            <div className="space-y-5 font-light leading-relaxed text-[15px] 3xl:text-[17px] break-keep">
               <div className="mb-6">
                 <Image
                   src="/image/大頭貼.jpg"
@@ -264,7 +264,7 @@ export default function AboutSection() {
                 這個網站就是例子——自己寫、架在家裡的桌機上，出問題會自己寄信通知我。
               </p>
               <div className="pt-2 border-t border-(--border)">
-                <p className="text-(--muted) text-sm">
+                <p className="text-(--muted) text-sm 3xl:text-[15px]">
                   Student developer between Kaohsiung and Fukuoka. I work where AI meets the web —
                   and I host what I build: this site runs on a desktop at home.
                 </p>
@@ -275,7 +275,7 @@ export default function AboutSection() {
           <Reveal delay={0.15}>
             <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
-              <ul className="space-y-3 text-sm font-light">
+              <ul className="space-y-3 text-sm 3xl:text-[15px] font-light">
                 {/* 每行「標籤＋全形空格＋值」：標籤固定一欄，值換行時對齊值的開頭（手機上就讀那行會換行） */}
                 {statusLines.map((line) => {
                   const [key, value] = line.split("　");
