@@ -1,5 +1,5 @@
 import { NextResponse, after, connection, type NextRequest } from "next/server";
-import { GO_LINKS, isGoCode } from "@/lib/site/go-links";
+import { goTarget } from "@/lib/site/go-links";
 import { recordGoClick } from "@/lib/stats/go-clicks";
 import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 
@@ -8,7 +8,7 @@ import { isBrowserUA } from "../../../../scripts/lib/bot-patterns.js";
 export async function GET(req: NextRequest, ctx: { params: Promise<{ code: string }> }) {
   await connection();
   const { code } = await ctx.params;
-  const target = isGoCode(code) ? GO_LINKS[code] : undefined;
+  const target = goTarget(code);
   if (!target) return new NextResponse(null, { status: 404 });
   if (isBrowserUA(req.headers.get("user-agent") ?? "")) after(() => recordGoClick(code));
   return new NextResponse(null, {

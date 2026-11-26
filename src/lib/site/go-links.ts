@@ -9,3 +9,8 @@ export const GO_LINKS: Record<string, string> = {
 };
 
 export const isGoCode = (s: string) => /^[a-z0-9-]{1,32}$/.test(s);
+
+/** 代號 → 轉址網址；只認 GO_LINKS 自己的欄位（Object.hasOwn），不會取到 constructor、toString 這類原型上的東西 */
+export function goTarget(code: string): string | undefined {
+  return isGoCode(code) && Object.hasOwn(GO_LINKS, code) ? GO_LINKS[code] : undefined;
+}

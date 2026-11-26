@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readGoClicks, recordGoClick } from "@/lib/stats/go-clicks";
-import { GO_LINKS, isGoCode } from "@/lib/site/go-links";
+import { GO_LINKS, goTarget, isGoCode } from "@/lib/site/go-links";
 
 describe("go-clicks", () => {
   let file: string;
@@ -39,5 +39,11 @@ describe("go-links", () => {
     expect(isGoCode("../etc")).toBe(false);
     expect(isGoCode("GitHub")).toBe(false);
     for (const url of Object.values(GO_LINKS)) expect(url).toMatch(/^https:\/\//);
+  });
+
+  it("goTarget：只認表上的代號；constructor、toString、__proto__ 這類原型上的名字不能當代號", () => {
+    expect(goTarget("github")).toBe(GO_LINKS.github);
+    for (const bad of ["constructor", "tostring", "valueof", "hasownproperty", "nope", "../x", "GitHub"]) expect(goTarget(bad)).toBeUndefined();
+    expect(goTarget("__proto__")).toBeUndefined();
   });
 });
