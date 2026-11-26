@@ -3,6 +3,7 @@ import type { ViewModel } from "@/components/admin/AdminView";
 import { ALERT_TAGS, DEPLOY_RESULT, MAIL_TAGS, nextReportTimes, readMailState, readWatchdog } from "@/lib/admin/data";
 import { recentLogins } from "@/lib/admin/db";
 import { VIA_LABEL } from "@/lib/admin/login-log";
+import { piHealthTiles } from "@/lib/admin/pi-health";
 import { readSiteFacts } from "@/lib/ops/colophon";
 import { readDeploys, readRestarts } from "@/lib/ops/status";
 import { presenceCount } from "@/lib/stats/presence";
@@ -96,6 +97,7 @@ export function opsModel(): ViewModel {
       { label: "這次啟動多久", value: days > 0 ? `${days} 天` : `${Math.round(facts.processUptime / 3600)} 小時` },
       { label: "上次備份", value: facts.lastBackup ? twDateTime(facts.lastBackup) : "—", tone: facts.lastBackup ? "ok" : "warn" },
       { label: "90 天部署／退回", value: `${facts.deploys90}／${facts.rollbacks90}`, tone: facts.rollbacks90 > 0 ? "warn" : "ok" },
+      ...(piHealthTiles() ?? []),
     ],
     blocks: [
       {

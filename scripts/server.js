@@ -17,6 +17,7 @@ const next = require("next");
 const { recordRawHit } = require("./lib/raw-traffic");
 const { recordNotFound } = require("./lib/not-found");
 const { startRadarPoller } = require("./lib/radar");
+const { startRadarHealthPoller } = require("./lib/radar-health");
 
 const projectDir = path.join(__dirname, "..");
 // Task Scheduler 的工作沒有設「開始位置」，process.cwd() 會是 C:\Windows\System32。
@@ -56,6 +57,7 @@ process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
 process.env.FEATURE_RELEASE_FILE = path.join(dataDir, "feature-release.json");
 // 自家 FR24 雷達的彙總（lib/radar.js；下面 prepare 之後開始每 30 秒讀，.env.local 要有 RADAR_HOST）
 process.env.RADAR_FILE = process.env.RADAR_FILE || path.join(dataDir, "radar.json");
+process.env.RADAR_HEALTH_FILE = process.env.RADAR_HEALTH_FILE || path.join(dataDir, "radar-health.json");
 // 維運狀態頁 /status（src/lib/ops/status.ts）：watchdog 每 5 分鐘一行的可用率、deploy.log、watchdog.log
 process.env.UPTIME_FILE = process.env.UPTIME_FILE || path.join(dataDir, "uptime.log");
 process.env.LOGS_DIR = process.env.LOGS_DIR || path.join(projectDir, "logs");
@@ -150,6 +152,9 @@ app
     if (process.env.RADAR_HOST) {
       startRadarPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_FILE, log });
       log(`radar poller started (${process.env.RADAR_FILE})`);
+      // 樹莓派本身的健康（溫度、供電、記憶卡），每 5 分鐘 SSH 讀一次，只給後台看（lib/radar-health.js）
+      if (startRadarHealthPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_HEALTH_FILE, log }))
+        log(`radar health poller started (${process.env.RADAR_HEALTH_FILE})`);
     }
 
     // 2026-08 發現整站每隔約 3 天會完全沒回應一次（watchdog 自動重啟恢復，見

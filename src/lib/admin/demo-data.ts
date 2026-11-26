@@ -50,6 +50,10 @@ export const demoOps: ViewModel = {
     { label: "這次啟動多久", value: "3 天" },
     { label: "上次備份", value: "11/26 03:00", tone: "ok" },
     { label: "90 天部署／退回", value: "228／1", tone: "warn" },
+    { label: "樹莓派", value: "開機 3 天", sub: "Wi-Fi -60 dBm", tone: "ok" },
+    { label: "供電", value: "正常", sub: "get_throttled 0x0", tone: "ok" },
+    { label: "樹莓派溫度", value: "58.0°C", sub: "24 小時最高 63.5°C", tone: "ok" },
+    { label: "記憶卡", value: "正常・用了 23%", sub: "範例卡（10/2025）・累計寫入 41 GB", tone: "ok" },
   ],
   blocks: [
     {
