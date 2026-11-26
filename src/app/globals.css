@@ -301,6 +301,18 @@ details.disclosure[open]::details-content {
 @keyframes radar-sweep {
   to { rotate: 360deg; }
 }
+/* 光點（TODO L3）：掃描線掃過的瞬間最亮，之後約 6 秒淡到幾乎看不見；週期同 radar-sweep（8s）。animation-delay 由元件依角度算 */
+.radar-blip { opacity: 0.55; }
+@media (prefers-reduced-motion: no-preference) {
+  .radar-blip {
+    animation: radar-blip 8s linear infinite;
+  }
+}
+@keyframes radar-blip {
+  0% { opacity: 1; }
+  75% { opacity: 0.08; }
+  100% { opacity: 0.08; }
+}
 
 /* 作品篩選列：手機是一列橫向滑動（ProjectFilter），藏捲軸、左右邊緣淡出提示還能滑。sm 以上換行排滿，不套 */
 @media (width < 640px) {
