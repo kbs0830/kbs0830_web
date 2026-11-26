@@ -15,7 +15,7 @@ export function generateStaticParams() {
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = projects.find((p) => p.slug === slug);
-  const kind = project?.isPersonal ? "個人専案" : "課程専題";
+  const kind = project?.isPersonal ? "個人專案" : "課程專題";
   const eyebrow = `製作物 · ${kind}`;
   const tags = (project?.tags ?? []).slice(0, 4);
   const font = await loadSubsetFont(

@@ -10,9 +10,9 @@ export default function NotFound() {
       title={<>迷子 &nbsp;·&nbsp; Page Not Found</>}
       intro={
         <>
-          這個頁面不存在，或已經被移動了。
-          <br />
-          This page doesn&apos;t exist, or has been moved.
+          {/* 中英各自 balance，不會剩「飛過。」一行 */}
+          <span className="block text-balance break-keep">這個航班不存在——可能換了登機門，或從來沒有起飛過。</span>
+          <span className="block text-balance">This flight doesn&apos;t exist — the gate may have changed, or it never took off.</span>
         </>
       }
     >

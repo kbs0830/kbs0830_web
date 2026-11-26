@@ -189,7 +189,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       backLabel="返回飛行紀錄"
       eyebrow="My Radar"
       title={<>自家雷達 &nbsp;·&nbsp; My Radar</>}
-      intro="家裡自己架的 ADS-B 接收器。飛機會一直在 1090 MHz 廣播自己的位置、高度跟航班代碼，這台把訊號收下來、解碼，同時分享給 Flightradar24。"
+      intro="家裡自己架的 ADS-B 接收器：收下飛機在 1090 MHz 廣播的位置和高度，解碼後畫在這裡，也分享給 Flightradar24。"
     >
       {children}
     </PageShell>

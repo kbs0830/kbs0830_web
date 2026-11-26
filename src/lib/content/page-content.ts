@@ -4,7 +4,8 @@
 
 export const nowItems = [
   "就讀國立高科大 智慧商務系 三年級（燕巢）",
-  "持續建構這個個人網站，累積 side project",
+  "持續打磨這個個人網站，累積 side project",
+  "11 月開始用學校的 iAI（OpenAI 相容 API）輔助學校專案",
   "學習 React Three Fiber 進階、WebGL Shader",
   "研究本地端 ML 推理（edge AI）與 Electron 打包部署",
   "日本語 N5 学習中",

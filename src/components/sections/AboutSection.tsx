@@ -241,7 +241,7 @@ export default function AboutSection() {
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-14 md:mb-20">
           <Reveal delay={0.1}>
-            <div className="space-y-5 font-light leading-relaxed text-[15px]">
+            <div className="space-y-5 font-light leading-relaxed text-[15px] break-keep">
               <div className="mb-6">
                 <Image
                   src="/image/大頭貼.jpg"
@@ -251,22 +251,21 @@ export default function AboutSection() {
                   className="rounded-sm object-cover object-top grayscale-[15%]"
                 />
               </div>
+              {/* 2026-11-26 文案重寫（TODO N10，使用者選 1B＋2＋3）：一段一個具體事實，不用「深深」「探索…的可能性」這類空泛詞 */}
+              {/* 中文句子在 JSX 裡不要換行：換行會變成一個半形空格（「福岡； 一半」）。外層 break-keep：只在標點、空格換行，不會斷成「靈／感」「程式／碼」 */}
               <p className="text-(--text)">
-                在<span className="text-(--accent)">台灣高雄</span>與<span className="text-(--accent)">日本福岡</span>之間生活——
-                兩座城市的節奏與細節，深深影響了我對軟體設計的思考方式。
+                我在<span className="text-(--accent)">高雄</span>念書，常往返<span className="text-(--accent)">福岡</span>；一半的靈感來自這兩座城市之間的那段航程。
               </p>
               <p className="text-(--muted)">
-                我的工作落在 AI 與網頁的交叉點：讓模型做它該做的事，
-                讓介面不妨礙使用者，讓程式碼能被下一個人讀懂。
+                我做的東西落在 AI 跟網頁之間：模型負責判斷，介面負責好用，程式碼負責讓下一個人看得懂。
               </p>
               <p className="text-(--muted)">
-                目前仍在學習中，持續建構 side project，
-                探索本地端 ML 推理與精緻 UI 之間的可能性。
+                這個網站就是例子——自己寫、架在家裡的桌機上，出問題會自己寄信通知我。
               </p>
               <div className="pt-2 border-t border-(--border)">
                 <p className="text-(--muted) text-sm">
-                  I&apos;m a developer based between Kaohsiung and Fukuoka, exploring the
-                  intersection of AI inference, web interfaces, and thoughtful system design.
+                  Student developer between Kaohsiung and Fukuoka. I work where AI meets the web —
+                  and I host what I build: this site runs on a desktop at home.
                 </p>
               </div>
             </div>
@@ -276,12 +275,23 @@ export default function AboutSection() {
             <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
               <ul className="space-y-3 text-sm font-light">
-                {statusLines.map((line) => (
-                  <li key={line} className="flex items-start gap-3">
-                    <span className="text-(--accent) mt-0.5" aria-hidden>▸</span>
-                    <span className="text-(--muted)">{line}</span>
-                  </li>
-                ))}
+                {/* 每行「標籤＋全形空格＋值」：標籤固定一欄，值換行時對齊值的開頭（手機上就讀那行會換行） */}
+                {statusLines.map((line) => {
+                  const [key, value] = line.split("　");
+                  return (
+                    <li key={line} className="flex items-start gap-3">
+                      <span className="text-(--accent) mt-0.5" aria-hidden>▸</span>
+                      {value ? (
+                        <span className="flex gap-3 text-(--muted)">
+                          <span className="shrink-0">{key}</span>
+                          <span>{value}</span>
+                        </span>
+                      ) : (
+                        <span className="text-(--muted)">{line}</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
             <div className="mt-4 space-y-3">

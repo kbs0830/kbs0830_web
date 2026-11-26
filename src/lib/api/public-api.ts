@@ -116,7 +116,7 @@ export function apiPost(slug: string): (ApiPost & { content: string }) | null {
 export function apiProfile() {
   return {
     name: "PINGWEI LI",
-    role: "學生開発者 · Student developer",
+    role: "學生開發者 · Student developer",
     base: "高雄，台灣 ↔ 福岡，日本",
     focus: ["AI 工具應用（YOLOv8、ONNX、Gemini）", "後端（FastAPI、Flask）", "前端（Next.js、React、TypeScript）"],
     status: statusLines,

@@ -17,7 +17,7 @@ import { travelPlaces, travelStats } from "@/lib/travel/travel";
 import { TOOLS } from "@/lib/api/mcp";
 
 const SITE_DESCRIPTION =
-  "高雄出身的學生開発者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 構建 AI × Web 専案。";
+  "高雄出身的學生開發者，專注於 AI 工具應用與網頁開發。就讀國立高科大智慧商務系，使用 Claude & Gemini 打造 AI × Web 專案。";
 
 const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
 const mdUrl = (path: string) => `${SITE_URL}/${path || "index"}.md`;
@@ -56,11 +56,11 @@ ${timeline.map((t) => `- **${t.year}**：${t.zh}——${t.detailZh}`).join("\n")
 
 ## 製作物 · Projects
 
-### 個人専案
+### 個人專案
 
 ${personal.map(projectLine).join("\n")}
 
-### 課程専題
+### 課程專題
 
 ${course.map(projectLine).join("\n")}
 
@@ -171,7 +171,7 @@ ${footer("resume")}`;
 function now() {
   return `# 現在 · What I'm doing
 
-這個頁面記錄我當下的狀態，會不定期更新（nownownow.com 的傳統）。
+這頁寫我最近在忙什麼，想到就更新（點子來自 nownownow.com）。
 
 ${list(nowItems)}
 ${footer("now")}`;
@@ -243,7 +243,7 @@ function changelog() {
     .join("\n\n");
   return `# 更新紀錄 · Changelog
 
-這個網站加過哪些功能。從 git 紀錄自動產生（只列新功能），每次部署更新。
+這個網站長出了哪些功能。從 git 紀錄自動產生，每次部署更新。
 
 ${months}
 ${footer("changelog")}`;

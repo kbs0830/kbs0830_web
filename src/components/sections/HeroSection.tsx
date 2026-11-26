@@ -11,7 +11,7 @@ import HeroTwoCities from "@/components/sections/HeroTwoCities";
 
 const enter = (delay: number) => ({ "--enter-delay": `${delay}s` }) as CSSProperties;
 
-const SUBTITLE_TEXT = "学生開発者  ·  Claude × Gemini";
+const SUBTITLE_TEXT = "学生開発者  ·  AI × Web";
 
 // 2026-11-24 手機版封面（使用者：「封面專門為手機版改良，畢竟第一印象」）——640px 以下才套用，桌機不動：
 //   - 名字一行、字級跟著螢幕寬度（14vw，最大 4rem）：剛好撐滿版面寬度又不換行
@@ -68,12 +68,13 @@ export default function HeroSection() {
         {/* 手機：一條短的強調色細線隔開名字跟標語（日式的「間」） */}
         <span aria-hidden className="enter-up sm:hidden block w-8 h-px bg-(--accent) mb-6" style={enter(0.4)} />
 
-        <p className="enter-up text-lg sm:text-xl font-light text-(--text) sm:text-(--muted) max-w-lg leading-relaxed text-balance mb-2 sm:mb-3" style={enter(0.45)}>
-          在瀏覽器與模型層之間，構建有意義的系統。
+        {/* 手機 pr-6：右側有直書片假名，標語剛好一行會貼上去；break-keep 讓中文只在標點換行（balance 會斷在「從／畫面」中間） */}
+        <p className="enter-up text-lg sm:text-xl font-light text-(--text) sm:text-(--muted) max-w-lg leading-relaxed text-balance break-keep mb-2 sm:mb-3 pr-6 sm:pr-0" style={enter(0.45)}>
+          做小而完整的系統，從畫面一路到伺服器。
         </p>
 
-        <p className="enter-up text-sm sm:text-base font-light text-(--muted) max-w-lg leading-relaxed text-balance sm:mb-12" style={enter(0.5)}>
-          Building thoughtful systems — from the browser to the model layer.
+        <p className="enter-up text-sm sm:text-base font-light text-(--muted) max-w-lg leading-relaxed text-balance sm:mb-12 pr-6 sm:pr-0" style={enter(0.5)}>
+          Small, complete systems — from the screen down to the server.
         </p>
         </div>
 

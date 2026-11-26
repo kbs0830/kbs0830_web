@@ -16,7 +16,7 @@ export default function LatestPosts() {
           <div>
             <Eyebrow className="mb-3">Blog</Eyebrow>
             <h2 id="latest-posts" className="text-xl sm:text-2xl font-light text-(--text) font-serif whitespace-nowrap">
-              最新文章 · Latest Posts
+              最新記事 · Latest Notes
             </h2>
           </div>
           <Link

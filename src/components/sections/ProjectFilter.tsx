@@ -10,7 +10,7 @@ export type FilterGroup = {
   className: string;
   gridClassName: string;
   label: ReactNode;
-  /** mobileFeatured：手機上排到最前面、收起來時也露出（2026-11-25 個人専案的精選） */
+  /** mobileFeatured：手機上排到最前面、收起來時也露出（2026-11-25 個人專案的精選） */
   items: { slug: string; tags: string[]; mobileFeatured?: boolean; card: ReactNode }[];
   /** 手機（640px 以下）先顯示前幾張，其他按「顯示全部」才展開；有選 tag 篩選時全部顯示（2026-11-24 手機「重點顯示，剩下收起來」） */
   mobileLimit?: number;

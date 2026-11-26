@@ -26,7 +26,7 @@ export default function TravelPage() {
     <PageShell
       eyebrow="Travel"
       title={<>旅行地球 &nbsp;·&nbsp; Travel</>}
-      intro="飛行紀錄跟住宿紀錄放在同一顆地球上：線是搭過的航線，點是去過的地方，越大的點住過越多間。只記機場跟城市，不記日期。"
+      intro="搭過的航線和住過的城市，放在同一顆地球上：線是航線，點越大住過越多間。只記地點，不記日期。"
     >
       <Tiles
         items={[

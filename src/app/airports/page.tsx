@@ -220,7 +220,7 @@ export default function AirportsPage() {
       backLabel="返回飛行紀錄"
       eyebrow="Airport Boards"
       title={<>機場時刻表 &nbsp;·&nbsp; Airport Boards</>}
-      intro="高雄小港跟福岡兩個機場的即時航班——我在兩地之間跑，這兩個機場的看板最常看。資料每 3 分鐘更新，開著這頁也會自己刷新。"
+      intro="小港和福岡的即時航班看板——我最常在這兩個機場之間跑。每 3 分鐘更新，開著會自己刷新。"
     >
       <AutoRefresh everyMs={3 * 60_000} />
 

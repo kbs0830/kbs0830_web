@@ -17,9 +17,9 @@ export default function NowPage() {
       title={<>現在 &nbsp;·&nbsp; What I&apos;m doing</>}
       intro={
         <>
-          這個頁面記錄我當下的狀態，會不定期更新。
+          這頁寫我最近在忙什麼，想到就更新。
           <br />
-          靈感來自{" "}
+          點子來自{" "}
           <a
             href="https://nownownow.com"
             target="_blank"
@@ -27,8 +27,8 @@ export default function NowPage() {
             className="text-(--accent) hover:opacity-70 transition-opacity"
           >
             nownownow.com
-          </a>{" "}
-          的傳統。
+          </a>
+          。
         </>
       }
     >

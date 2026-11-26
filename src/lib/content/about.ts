@@ -114,7 +114,7 @@ export const timeline = [
     detailEn: "Learned CNC machining and control wiring.",
   },
   {
-    year: "2023", zh: "自動跟隨機器人 · 全國専題競賽動力機械群佳作",    en: "Auto-following robot · National competition Excellence Award",
+    year: "2023", zh: "自動跟隨機器人 · 全國專題競賽動力機械群佳作",    en: "Won Excellence Award at the national project competition (auto-following robot)",
     detailZh: "以 Jetson Nano ＋ Arduino 打造即時視覺追蹤系統。",
     detailEn: "Built a Jetson Nano + Arduino real-time vision-tracking system.",
   },
@@ -129,18 +129,20 @@ export const timeline = [
     detailEn: "Shipped FoodLens Advisor (YOLOv8 + Gemini) and a Flask + LINE Pay event registration system.",
   },
   {
-    year: "2026", zh: "持續建構中 · 仕事在進行",                       en: "Continuously building",
-    detailZh: "持續打磨個人網站與新專案，同時準備日本語 N5 検定。11 月開始用學校的 iAI（OpenAI 相容 API）輔助學校專案。",
-    detailEn: "Continuing to refine this site and new projects while preparing for the JLPT N5. Since November, using the university's iAI (OpenAI-compatible API) to support school projects.",
+    year: "2026", zh: "持續製作中",                                  en: "Still building",
+    detailZh: "打磨這個網站、開新專案，同時準備日本語 N5。",
+    detailEn: "Polishing this site and starting new projects while preparing for the JLPT N5.",
   },
 ];
 
+// 2026-11-26 文案統一（TODO N11）：標籤一律兩個中文字＋全形空格，值裡才放日文點綴、分隔一律「 · 」。
+// 開發環境那行使用者要拿掉（/uses 有完整清單）；Claude Code 是主力工具，放這裡（TODO N2：副標不放工具名）
 export const statusLines = [
-  "就讀：國立高科大 · 智慧商務系 三年級（燕巢）· 20 歲",
-  "開放合作・技術交流・有趣對話",
-  "居住地：高雄 🇹🇼 ↔ 福岡 🇯🇵",
-  "日本語 N5 学習中",
-  "得意分野：AI × Web 統合",
-  "開発環境：Zenbook A14 ARM　＋　RTX 3070 Desktop",
-  "興趣：交通運輸 · 鐵道研究",
+  "就讀　國立高科大 智慧商務系 · 三年級（燕巢）· 20 歲",
+  "所在　高雄 🇹🇼 ⇄ 福岡 🇯🇵",
+  "專長　AI × Web",
+  "工具　Claude Code",
+  "日語　N5 学習中",
+  "興趣　交通運輸 · 鐵道",
+  "歡迎　合作 · 技術交流 · 閒聊",
 ];

@@ -23,7 +23,7 @@ export default function DevelopersPage() {
     <PageShell
       eyebrow="Developers"
       title={<>開發者 &nbsp;·&nbsp; API &amp; MCP</>}
-      intro="網站上的作品、文章、現況，也可以用程式讀：一組公開的 JSON API，跟一個給 AI 助理用的 MCP 伺服器。全部唯讀、不用金鑰，內容就是網站上公開的那些。"
+      intro="網站內容也能用程式讀：公開的 JSON API，加上給 AI 助理用的 MCP 伺服器。唯讀、免金鑰。"
     >
       <section className="mb-14">
         <SectionHeading en="JSON API">公開 API</SectionHeading>

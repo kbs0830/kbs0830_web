@@ -16,7 +16,7 @@ export default function ToolsPage() {
     <PageShell
       eyebrow="Tools"
       title={<>道具 &nbsp;·&nbsp; 小工具</>}
-      intro="旅行跟開發時自己會用到的小工具。能在瀏覽器算的都在瀏覽器算，你輸入的東西不會傳到伺服器、也不會被記錄。"
+      intro="旅行跟寫程式時自己會用的小工具。"
     >
       <ul className="divide-y divide-(--border) border-y border-(--border)">
         {tools.map((t) => (

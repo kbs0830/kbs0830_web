@@ -356,7 +356,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <PageShell
       eyebrow="Colophon"
       title={<>本站構造 &nbsp;·&nbsp; Colophon</>}
-      intro="這個網站沒有租雲端主機，跑在我家的桌機上。下面是一個請求從你的瀏覽器到這台桌機、再回去的路，以及旁邊讓它一個人也能維運的那些東西。點方塊看說明，數字都是現在的值。"
+      intro="這個網站沒有租雲端主機，跑在我家的桌機上。下面是一個請求從你的瀏覽器到桌機、再回去的路；點方塊看說明，數字都是現在的值。"
     >
       {children}
     </PageShell>

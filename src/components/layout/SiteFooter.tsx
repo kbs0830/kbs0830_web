@@ -80,6 +80,10 @@ export default function SiteFooter({
             <Link href="/" className="hover:text-(--accent) transition-colors">kbs0830</Link>
           </p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
+          {/* 落款（TODO N8，使用者選 B）：這個網站架在自己的桌機上，連到 /colophon 看怎麼架的。只寫到城市 */}
+          <Link href="/colophon" className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`}>
+            自架於高雄 · Self-hosted in Kaohsiung
+          </Link>
         </div>
       </div>
     </footer>

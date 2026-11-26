@@ -14,7 +14,7 @@ interface SitePage {
 const HOME_SECTIONS: SitePage[] = [
   { href: "/", zh: "首頁", en: "Home", desc: "PINGWEI LI 個人網站首頁" },
   { href: "/#about", zh: "自己紹介", en: "About", desc: "關於我、歷程、技能、足跡" },
-  { href: "/#portfolio", zh: "製作物", en: "Work", desc: "作品集：個人専案、課程専題" },
+  { href: "/#portfolio", zh: "製作物", en: "Work", desc: "作品集：個人專案、課程專題" },
   { href: "/#contact", zh: "連絡先", en: "Contact", desc: "Email、GitHub" },
 ];
 
@@ -22,7 +22,7 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
   {
     label: "文章 · Writing",
     pages: [
-      { href: "/blog", zh: "技術部落格", en: "Blog", desc: "真的踩過的坑跟修法" },
+      { href: "/blog", zh: "記事", en: "Notes", desc: "技術部落格：真的踩過的坑跟修法" },
       { href: "/now", zh: "近況", en: "Now", desc: "現在在做什麼、在學什麼" },
       { href: "/uses", zh: "開発環境", en: "Uses", desc: "硬體、軟體、工具" },
       { href: "/resume", zh: "履歷", en: "Resume", desc: "教育、技能、作品、證照" },

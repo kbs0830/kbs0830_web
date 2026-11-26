@@ -30,7 +30,7 @@ test.describe("手機選單（TODO F4）", () => {
 
     await menuButton.click();
     await expect(menuButton).toHaveAttribute("aria-expanded", "true");
-    await expect(page.locator("header").getByRole("link", { name: /技術部落格/ })).toBeVisible();
+    await expect(page.locator("header").getByRole("link", { name: /^記事/ }).first()).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(menuButton).toHaveAttribute("aria-expanded", "false");
     await expect(menuButton).toBeFocused();
@@ -48,11 +48,11 @@ test.describe("手機選單（TODO F4）", () => {
 test.describe("手機版：重點顯示、其他收進右上角選單（2026-11-24）", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("作品卡片是精簡版；個人専案只露出精選 2 個、課程專題先顯示 2 個，按了才展開", async ({ page }) => {
+  test("作品卡片是精簡版；個人專案只露出精選 2 個、課程專題先顯示 2 個，按了才展開", async ({ page }) => {
     await gotoReady(page, "/");
     const visible = page.locator("#portfolio a[aria-label^='查看']:visible");
     expect((await visible.first().locator("..").boundingBox())!.height).toBeLessThan(220);
-    // 2026-11-25：手機上個人専案先露出「個人網站」跟「FR24 雷達站」兩個精選，排在最前面
+    // 2026-11-25：手機上個人專案先露出「個人網站」跟「FR24 雷達站」兩個精選，排在最前面
     await expect(visible.nth(0)).toHaveAttribute("aria-label", /個人網站|FR24/);
     await expect(visible.nth(1)).toHaveAttribute("aria-label", /個人網站|FR24/);
 

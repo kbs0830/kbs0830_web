@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const found = getPostsByTagSlug(tag);
   if (!found) return {};
   return withShare({
-    title: `${found.tag} · 技術部落格 — PINGWEI LI`,
+    title: `${found.tag} · 記事 — PINGWEI LI`,
     description: `標記「${found.tag}」的 ${found.posts.length} 篇文章：踩過的坑跟解法。`,
     alternates: { canonical: `/blog/tags/${tag}`, types: { "text/markdown": `/blog/tags/${tag}.md` } },
     // 不建立索引、但連結照跟（2026-11-12 看 Search Console）：tag 頁只是文章清單的子集，內容跟 /blog 重複，

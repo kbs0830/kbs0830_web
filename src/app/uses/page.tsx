@@ -14,7 +14,7 @@ export const metadata: Metadata = withShare({
 
 export default function UsesPage() {
   return (
-    <PageShell eyebrow="Uses" title={<>開発環境 &nbsp;·&nbsp; 我用的工具</>} intro="硬體、軟體與日常開發用的工具清單。">
+    <PageShell eyebrow="Uses" title={<>開発環境 &nbsp;·&nbsp; 我用的工具</>} intro="寫程式、旅行時真的每天在用的東西。">
       <div className="space-y-10">
         {usesGroups.map((group) => (
           <div key={group.title}>

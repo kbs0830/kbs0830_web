@@ -38,7 +38,7 @@ export interface Project {
   github?: string;
   highlight: string;
   highlightZh: string;
-  status: "完成" | "製作中" | "學習記録" | "課程専題";
+  status: "完成" | "製作中" | "學習記錄" | "課程專題";
   isPersonal?: boolean;
   /** 整個作品先隱藏：頁面 404、不進作品集／sitemap／API（資料留著，拿掉這行就恢復） */
   hidden?: boolean;
@@ -260,7 +260,7 @@ const allProjects: Project[] = [
   {
     slug: "frc-robot",
     icon: "🏆",
-    // 2026-11-25 使用者：「frc 的專門頁面先隱藏，稍微提到就好」——高工學習記録、自動跟隨機器人頁、About 時間軸裡有提
+    // 2026-11-25 使用者：「frc 的專門頁面先隱藏，稍微提到就好」——高工學習記錄、自動跟隨機器人頁、About 時間軸裡有提
     hidden: true,
     title: "FRC Robot Team",
     titleJa: "ロボット競技団",
@@ -639,7 +639,7 @@ const allProjects: Project[] = [
     },
   },
 
-  // ── 課程専題 ─────────────────────────────────
+  // ── 課程專題 ─────────────────────────────────
   {
     slug: "yen-rate-analyzer",
     thumb: "/image/projects/icons/yen-rate-analyzer.jpg",
@@ -655,7 +655,7 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "LKG fallback + purchase decision engine (actionable insight)",
     highlightZh: "LKG 容錯回退 ＋ 可執行購買建議（非僅資料展示）",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/yen-rate-analyzer.jpg",
     liveWidget: "jpy-rate",
     detail: {
@@ -693,7 +693,7 @@ const allProjects: Project[] = [
         ]
       },
       intro:
-        "基於 Python 的即時日圓匯率監控與分析平台，採用配置驅動架構整合多家銀行匯率資訊，透過並行爬蟲抓取最新匯率、SQLite 落盤保存，Flask 提供介面與 REST API，並附商品換算與歷史趨勢圖。「大數據倉儲」課程期末専題。",
+        "基於 Python 的即時日圓匯率監控與分析平台，採用配置驅動架構整合多家銀行匯率資訊，透過並行爬蟲抓取最新匯率、SQLite 落盤保存，Flask 提供介面與 REST API，並附商品換算與歷史趨勢圖。「大數據倉儲」課程期末專題。",
       sections: [
         {
           heading: "架構重點",
@@ -714,7 +714,7 @@ const allProjects: Project[] = [
           ],
         },
       ],
-      context: "「大數據倉儲」課程期末専題。",
+      context: "「大數據倉儲」課程期末專題。",
       architectureDiagram: `flowchart TD
   C["並行爬蟲<br/>crawler.py"] -->|"多家銀行"| D[("SQLite<br/>db_manager.py")]
   Y["Yahoo Finance API"] -->|"歷史資料回補"| D
@@ -735,12 +735,12 @@ const allProjects: Project[] = [
     description:
       "Desktop expense tracker built with PyQt5, storing records in CSV files. Budget monitoring with 3-level alerts, live pie chart by category. Group project for 程式設計(三).",
     descriptionZh:
-      "PyQt5 桌機記帳應用，資料存在 CSV 檔。支援預算監控（三段警示）、類別圓餅圖即時更新。程式設計（三）小組期末専題。",
+      "PyQt5 桌機記帳應用，資料存在 CSV 檔。支援預算監控（三段警示）、類別圓餅圖即時更新。程式設計（三）小組期末專題。",
     tags: ["Python", "PyQt5", "CSV", "Matplotlib", "資料視覺化"],
     github: "https://github.com/kbs0830/school",
     highlight: "Desktop GUI with live pie chart and 3-level budget alerts",
     highlightZh: "桌機 GUI ＋ 即時圓餅圖，預算超支三段警示",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/expense-tracker.jpg",
     detail: {
       caseStudy: {
@@ -768,7 +768,7 @@ const allProjects: Project[] = [
         ]
       },
       intro:
-        "專為大學生設計的桌面端記帳應用：大多數大學生經濟來源依賴每月固定生活費，卻常因聚餐、娛樂課金、通勤等瑣碎開銷導致月底透支。本系統用 PyQt5 圖形介面搭配 CSV 檔案儲存與 Matplotlib 視覺化，提供無廣告、輕量化、啟動快速的記帳方案。「程式設計(三)」小組期末専題。",
+        "專為大學生設計的桌面端記帳應用：大多數大學生經濟來源依賴每月固定生活費，卻常因聚餐、娛樂課金、通勤等瑣碎開銷導致月底透支。本系統用 PyQt5 圖形介面搭配 CSV 檔案儲存與 Matplotlib 視覺化，提供無廣告、輕量化、啟動快速的記帳方案。「程式設計(三)」小組期末專題。",
       sections: [
         {
           heading: "核心理念",
@@ -785,12 +785,12 @@ const allProjects: Project[] = [
           body: [
             "記帳管理：新增／刪除消費記錄（日期、項目、類別、金額），表格化顯示",
             "預算設定：設定本月預算上限，即時顯示總花費／預算",
-            "數據視覺化：圓餅圖即時顯示類別分布，沒有資料時也能正常顯示",
+            "資料視覺化：圓餅圖即時顯示類別分布，沒有資料時也能正常顯示",
             "不卡畫面：讀取資料放在背景執行緒（QThread），表格跟圖表讀完才一起更新",
           ],
         },
       ],
-      context: "「程式設計(三)」小組期末専題，與組員共同完成。截圖為示範資料。",
+      context: "「程式設計(三)」小組期末專題，與組員共同完成。截圖為示範資料。",
       architectureDiagram: `flowchart TD
   UI["PyQt5 主視窗"] -->|"新增／刪除紀錄"| DM["data_manager.py"]
   DM --> DB[("CSV 檔<br/>expenses.csv／budget.txt")]
@@ -814,11 +814,11 @@ const allProjects: Project[] = [
     description:
       "Community road-hazard map: report potholes and dangerous intersections on a Leaflet map, upvote, earn badges. Express + SQLite backend with a separate demo database and an admin review dashboard. Group project; I rebuilt v2.",
     descriptionZh:
-      "社群道路危險點地圖：在地圖上回報坑洞、危險路口，大家附議驗證，回報累積積分與徽章。Express ＋ SQLite 後端，展示帳號走獨立資料庫，管理後台審核狀態。小組専題，v2 重構版由我完成。",
+      "社群道路危險點地圖：在地圖上回報坑洞、危險路口，大家附議驗證，回報累積積分與徽章。Express ＋ SQLite 後端，展示帳號走獨立資料庫，管理後台審核狀態。小組專題，v2 重構版由我完成。",
     tags: ["JavaScript", "Node.js", "Express", "SQLite", "Leaflet", "PWA"],
     highlight: "Demo accounts run on a separate database — real data is never touched",
     highlightZh: "展示帳號自動切到獨立資料庫，真實資料不會被動到",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/lukou-pailei.jpg",
     detail: {
       caseStudy: {
@@ -865,7 +865,7 @@ const allProjects: Project[] = [
             "快速回報：GPS 自動定位，瀏覽器拒絕定位時改成在地圖上點選；可附現場照片",
             "社群附議：每人每篇限投一票（資料表用複合主鍵擋重複），可留言",
             "成就系統：6 枚徽章由後端在回報時自動計算發放，例如晚上 6 點到早上 6 點回報 5 次的「夜鷹」",
-            "管理後台：審核狀態、置頂／下架貼文、用戶管理、統計圖表、匯出 CSV",
+            "管理後台：審核狀態、置頂／下架貼文、使用者管理、統計圖表、匯出 CSV",
           ],
         },
         {
@@ -873,14 +873,14 @@ const allProjects: Project[] = [
           headingEn: "Backend",
           body: [
             "雙資料庫：真實資料跟展示資料各一個 SQLite 檔，middleware 依登入帳號切換，展示帳號怎麼操作都不會污染真實資料",
-            "展示資料每次啟動重建：虛構用戶＋ 20 個高雄地點（座標用 OpenStreetMap Nominatim 查過）",
+            "展示資料每次啟動重建：虛構使用者＋ 20 個高雄地點（座標用 OpenStreetMap Nominatim 查過）",
             "密碼用 PBKDF2-SHA256（10 萬次迭代、每人隨機 salt），Session 用 192-bit 隨機 token 存在 HttpOnly cookie",
             "所有 SQL 都是參數化查詢；字串長度、數值範圍、上傳檔案大小與類型都有驗證",
             "程式拆成 routes／middleware／db 三層，Express 只負責組裝",
           ],
         },
       ],
-      context: "「系統分析與設計」小組専題。v2 重構版（模組化、雙資料庫、Render 部署）由我完成。截圖是展示帳號的虛構資料。",
+      context: "「系統分析與設計」小組專題。v2 重構版（模組化、雙資料庫、Render 部署）由我完成。截圖是展示帳號的虛構資料。",
       architectureDiagram: `flowchart TD
   FE["Vanilla JS 單頁應用<br/>Leaflet 地圖＋PWA"] -->|"fetch /api"| APP["Express app.js"]
   ADMIN["管理後台 admin.html"] -->|"Basic Auth"| APP
@@ -905,7 +905,7 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "Decision tree & random forest: 17/17 correct on the held-out test set",
     highlightZh: "決策樹、隨機森林在測試集 17 筆全對",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/aqi-classification.jpg",
     liveWidget: "air-quality",
     detail: {
@@ -979,7 +979,7 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "Caught a missing JOIN in the reference answer — sales inflated 18–27×",
     highlightZh: "抓到參考答案少一個 JOIN，業績被灌大 18～27 倍",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/sql-analysis.jpg",
     detail: {
       caseStudy: {
@@ -1042,7 +1042,7 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "50,000 × 25 → 49,832 × 44, only 168 rows dropped",
     highlightZh: "5 萬筆只刪 168 列，其餘全部補值或縮尾保留",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/churn-preprocessing.jpg",
     detail: {
       caseStudy: {
@@ -1124,7 +1124,7 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "One engine object per stock, run in parallel threads",
     highlightZh: "每支股票一個回測物件，多執行緒並行",
-    status: "課程専題",
+    status: "課程專題",
     image: "/image/projects/ma-backtest.jpg",
     detail: {
       caseStudy: {
@@ -1192,7 +1192,7 @@ const allProjects: Project[] = [
     icon: "📚",
     title: "Learning Records",
     titleJa: "学習記録",
-    titleZh: "課程學習記録",
+    titleZh: "課程學習記錄",
     description:
       "Coursework spanning HTML/CSS/PHP, Python, databases, big data, AI & deep learning, and investment analysis — organised by semester.",
     descriptionZh:
@@ -1201,13 +1201,13 @@ const allProjects: Project[] = [
     github: "https://github.com/kbs0830/school",
     highlight: "Organised learning journey from web basics to AI applications",
     highlightZh: "從網頁基礎到 AI 應用的完整學習歷程記録",
-    status: "學習記録",
+    status: "學習記錄",
     // 2026-11-25 圖：school repo 實際的課程資料夾跟檔案數做的封面（不放學號、姓名、報告內容）
     image: "/image/projects/school.jpg",
-    imageAlt: "課程學習記録的封面：school repo 的課程資料夾跟檔案數",
+    imageAlt: "課程學習記錄的封面：school repo 的課程資料夾跟檔案數",
     detail: {
       intro:
-        "大學課程的作業、考試練習跟期末報告，依課程分資料夾整理。比較完整的已經獨立成上面的課程専題（日圓匯率、記帳系統、空氣品質分類、SQL 分析、顧客流失預處理、均線回測），這裡是其餘的練習。",
+        "大學課程的作業、考試練習跟期末報告，依課程分資料夾整理。比較完整的已經獨立成上面的課程專題（日圓匯率、記帳系統、空氣品質分類、SQL 分析、顧客流失預處理、均線回測），這裡是其餘的練習。",
       sections: [
         {
           heading: "網頁設計（HTML／CSS／PHP）",
@@ -1257,7 +1257,7 @@ const allProjects: Project[] = [
   {
     slug: "trash-collector",
     icon: "🗑️",
-    // 2026-11-25 使用者：「不要放太明顯的地方」——不進作品集卡片，只從高工學習記録連過來
+    // 2026-11-25 使用者：「不要放太明顯的地方」——不進作品集卡片，只從高工學習記錄連過來
     unlisted: true,
     title: "Auto Trash Collector",
     titleJa: "自動ゴミ回収機",
@@ -1270,7 +1270,7 @@ const allProjects: Project[] = [
     github: "",
     highlight: "Team lead · obstacle avoidance + litter gathering, demoed on video",
     highlightZh: "組長 · 自動避障＋集中垃圾，實機錄影展示",
-    status: "課程専題",
+    status: "課程專題",
     // 圖：專題報告書裡的實機照片（報告裡其他圖是零件的商品圖跟新聞照片，不是自己的，不用）
     image: "/image/projects/trash-collector.jpg",
     detail: {
@@ -1341,7 +1341,7 @@ const allProjects: Project[] = [
     icon: "🔧",
     title: "Vocational High School Records",
     titleJa: "高工学習記録",
-    titleZh: "高工學習記録",
+    titleZh: "高工學習記錄",
     description:
       "Lab reports from the information technology program at Kaohsiung Municipal Chung-Cheng Industrial High School: App Inventor, VB.NET, Arduino, CPLD with Verilog, CMOS circuits, ESP32 IoT and a soldered interface card for the Level B hardware certification.",
     descriptionZh:
@@ -1350,9 +1350,9 @@ const allProjects: Project[] = [
     github: "",
     highlight: "From visual blocks to Verilog and IoT in three years",
     highlightZh: "三年從積木程式到 Verilog、物聯網",
-    status: "學習記録",
+    status: "學習記錄",
     image: "/image/projects/vocational-records.jpg",
-    imageAlt: "高工學習記録的封面：各科實習做出來的東西",
+    imageAlt: "高工學習記錄的封面：各科實習做出來的東西",
     detail: {
       intro:
         "高雄市立中正高工資訊科三年的實習報告，整理自四技甄選時繳交的學習歷程。從一年級的積木式程式（App Inventor）、文字式程式（VB.NET、Arduino 的 C），到二年級的數位邏輯、電子學跟物聯網；專題另外獨立成作品（自動垃圾撿拾機、自動跟隨機器人），課外是 FRC 機器人隊。",

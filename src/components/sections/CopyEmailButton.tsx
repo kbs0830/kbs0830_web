@@ -5,7 +5,7 @@ import Magnetic from "@/components/ui/Magnetic";
 import Underline from "@/components/ui/Underline";
 import { MailIcon } from "@/components/ui/icons";
 
-// 點了把 Email 複製到剪貼簿，上方跳「已複製！」1.8 秒
+// 點了把 Email 複製到剪貼簿，上方跳「已複製」（2026-11-26 拿掉驚嘆號，跟其他複製按鈕一致）1.8 秒
 export default function CopyEmailButton({ email, className }: { email: string; className: string }) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -40,7 +40,7 @@ export default function CopyEmailButton({ email, className }: { email: string; c
           copied ? "opacity-100 translate-y-0" : "invisible opacity-0 translate-y-1.5"
         }`}
       >
-        已複製！
+        已複製
       </span>
     </div>
   );

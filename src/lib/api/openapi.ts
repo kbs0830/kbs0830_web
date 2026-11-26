@@ -28,7 +28,7 @@ export const schemas = {
       descriptionZh: str,
       highlightZh: { ...str, description: "一句話成果" },
       tags: strArr,
-      status: { type: "string", enum: ["完成", "製作中", "學習記録", "課程専題"] },
+      status: { type: "string", enum: ["完成", "製作中", "學習記錄", "課程專題"] },
       kind: { type: "string", enum: ["personal", "course"] },
       url: { ...str, format: "uri" },
       github: nullableStr,

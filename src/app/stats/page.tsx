@@ -297,7 +297,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <PageShell
       eyebrow="Analytics"
       title={<>訪客分析 &nbsp;·&nbsp; Analytics</>}
-      intro="這個網站跑在自己的桌機上，透過 Cloudflare 對外。下面是它的訪客：每天多少人、看哪些頁、從哪裡來、用什麼裝置。只有彙總數字，不記 IP、不記完整網址、不用 cookie。"
+      intro="這個網站的真人訪客：每天多少人、看哪些頁、從哪裡來。只有彙總數字，不記 IP、不記完整網址、不用 cookie。"
     >
       {children}
     </PageShell>

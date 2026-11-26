@@ -29,11 +29,11 @@ export default function ContactSection() {
           <Eyebrow className="mb-4">03 — Contact</Eyebrow>
           <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl font-light text-(--text) mb-6 font-serif" />
           <p className="text-(--text) font-light text-[15px] max-w-md leading-relaxed mb-3">
-            合作・技術交流、或只是一段有趣的対話——關於 AI、網頁、或任何好奇的事。
+            想合作、聊技術，或只是聊聊 AI、網頁跟飛機——都歡迎寫信來。
           </p>
           <p className="text-(--muted) font-light text-sm max-w-md leading-relaxed mb-12">
-            Open to collaborations, technical discussions, or just a conversation
-            about AI, the web, or anything that sparks curiosity.
+            Collaborations, tech talk, or just a chat about AI, the web, or planes —
+            my inbox is open.
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-5 sm:gap-8">

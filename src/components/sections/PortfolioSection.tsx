@@ -94,8 +94,8 @@ function ProjectCard({
                     {project.titleZh}
                   </h3>
                 </ViewTransition>
-                {/* 手機：狀態跟中文標題同一行；課程專題那一區的標題已經寫了，不再重複「課程専題」（會把標題擠成兩行） */}
-                {project.status !== "課程専題" && (
+                {/* 手機：狀態跟中文標題同一行；課程專題那一區的標題已經寫了，不再重複「課程專題」（會把標題擠成兩行） */}
+                {project.status !== "課程專題" && (
                   <span className="sm:hidden shrink-0">
                     <StatusBadge status={project.status} />
                   </span>
@@ -155,7 +155,7 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   return (
     <Reveal from="left" duration={0.5} margin={60} className="flex items-center gap-4 mb-6">
       <div className="w-5 h-[1px] bg-(--accent)" />
-      {/* 手機只放中文（英文太長會把「· 課程専題」擠到第二行）；桌機維持原本「英文 · 中文」 */}
+      {/* 手機只放中文（英文太長會把「· 課程專題」擠到第二行）；桌機維持原本「英文 · 中文」 */}
       <p className="text-xs tracking-[0.18em] sm:tracking-[0.3em] text-(--accent) uppercase font-mono">
         <span className="hidden sm:inline">{label} &nbsp;·&nbsp; </span>
         <span className="whitespace-nowrap">{labelZh}</span>
@@ -164,7 +164,7 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
   );
 }
 
-// 手機上個人専案只先露出這兩個（2026-11-25 使用者：「自架 FR24 雷達站跟個人網站（本站）精選，剩下的照課程專題」收起來）。
+// 手機上個人專案只先露出這兩個（2026-11-25 使用者：「自架 FR24 雷達站跟個人網站（本站）精選，剩下的照課程專題」收起來）。
 // 只影響 640px 以下：精選排到最前、其他收進「顯示全部」；桌機的順序跟顯示都不變
 const MOBILE_FEATURED = ["fr24-receiver", "kbs0830-web"];
 
@@ -178,7 +178,7 @@ const groups: FilterGroup[] = [
     key: "personal",
     className: "mb-10 md:mb-16",
     gridClassName: "grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5",
-    label: <SectionLabel label="Personal Projects" labelZh="個人専案" />,
+    label: <SectionLabel label="Personal Projects" labelZh="個人專案" />,
     items: toItems(personalProjects),
     mobileLimit: MOBILE_FEATURED.length,
   },
@@ -186,7 +186,7 @@ const groups: FilterGroup[] = [
     key: "course",
     className: "",
     gridClassName: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5",
-    label: <SectionLabel label="Course Projects" labelZh="課程専題 · 学習記録" />,
+    label: <SectionLabel label="Course Projects" labelZh="課程專題" />,
     items: toItems(courseProjects),
     mobileLimit: 2,
   },
@@ -206,7 +206,9 @@ export default function PortfolioSection() {
             className="text-3xl sm:text-4xl font-light text-(--text) mb-3 font-serif"
           />
           <p className="text-sm font-light text-(--muted)">
-            自分で開発した作品と、課程中の学習専題。
+            自己做的作品，和課堂上的專題。
+            {/* 英文只在桌機同一行；手機一行中文就好（2026-11-24「一行中文一行日文有點浪費」） */}
+            <span className="hidden sm:inline"> Things I built on my own, and projects from class.</span>
           </p>
         </Reveal>
 
@@ -214,7 +216,7 @@ export default function PortfolioSection() {
 
         <Reveal delay={0.3} distance={0}>
           <p className="text-xs text-(--muted) font-light mt-10 text-center tracking-wide font-mono">
-            学習記録は非公開リポジトリに保存されています。
+            課堂練習放在私人 repo，沒有公開 · Coursework lives in a private repo.
           </p>
         </Reveal>
       </div>

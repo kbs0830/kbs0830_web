@@ -23,7 +23,7 @@ export default function ChangelogPage() {
     <PageShell
       eyebrow="Changelog"
       title={<>更新紀錄 &nbsp;·&nbsp; Changelog</>}
-      intro="這個網站加過哪些功能。從 git 紀錄自動產生（只列新功能，不列修 bug），每次部署更新；點右邊的代碼看那次改了什麼。"
+      intro="這個網站長出了哪些功能。從 git 紀錄自動產生，每次部署更新；點右邊的代碼看那次改了什麼。"
     >
       {months.length === 0 ? (
         <p className="text-sm font-light text-(--muted)">目前讀不到更新紀錄。</p>

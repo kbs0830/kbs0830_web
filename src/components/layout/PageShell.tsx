@@ -37,11 +37,13 @@ export default function PageShell({
   intro?: ReactNode;
   children: ReactNode;
 }) {
+  // 2026-11-26（TODO M2，使用者：「首頁滿版有張力，其他頁面擴一點」）：子頁 2xl→3xl、後台 3xl→4xl
+  const width = `${compact ? "max-w-4xl" : "max-w-3xl"} ${printable ? "print:max-w-none" : ""}`;
   return (
     <>
       <div className={`flex-1 bg-(--bg) px-6 ${compact ? "pb-6 sm:pb-12" : "pb-20"} ${printable ? "print:py-0 print:px-0" : ""}`}>
         <div aria-hidden className="scroll-progress fixed top-0 left-0 right-0 z-50 h-[2px] bg-(--accent) print:hidden" />
-        <PageTopBar width={`${compact ? "max-w-3xl" : "max-w-2xl"} ${printable ? "print:max-w-none" : ""}`} sticky={!compact}>
+        <PageTopBar width={width} sticky={!compact}>
             <Link
               href={backHref}
               className="inline-block py-3 -my-3 text-xs tracking-[0.2em] text-(--muted) hover:text-(--accent) transition-colors font-mono"
@@ -58,14 +60,15 @@ export default function PageShell({
               <PageMenu />
             </div>
         </PageTopBar>
-        <main id="main" tabIndex={-1} className={`outline-none ${compact ? "max-w-3xl" : "max-w-2xl"} mx-auto ${printable ? "print:max-w-none" : ""}`}>
+        <main id="main" tabIndex={-1} className={`outline-none ${width} mx-auto`}>
           {eyebrow && <Eyebrow className={compact ? "mt-2 mb-2" : "mt-8 mb-4"}>{eyebrow}</Eyebrow>}
           {title && <h1 className={`font-light text-(--text) font-serif ${compact ? "text-2xl sm:text-3xl mb-1" : "text-3xl sm:text-4xl mb-4"}`}>{title}</h1>}
           {intro && <p className={`text-sm font-light text-(--muted) leading-relaxed ${compact ? "mb-5" : "mb-14"}`}>{intro}</p>}
           {children}
         </main>
       </div>
-      <SiteFooter />
+      {/* 頁尾跟內文同寬（不含 print:max-w-none，頁尾本來就 print:hidden） */}
+      <SiteFooter width={compact ? "max-w-4xl" : "max-w-3xl"} />
       {/* 2026-11-24：子頁面在手機上也有右下角 ↑（桌機維持原樣，不加） */}
       <div className="print:hidden sm:hidden">
         <BackToTop />

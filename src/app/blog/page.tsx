@@ -7,16 +7,17 @@ import PageShell from "@/components/layout/PageShell";
 import BlogSearch from "@/components/content/BlogSearch";
 
 export const metadata: Metadata = withShare({
-  title: "技術部落格 · Blog — PINGWEI LI",
-  description: "踩過的坑、學到的東西、對某個技術的想法。",
+  title: "記事 · 技術部落格 — PINGWEI LI",
+  description: "踩過的坑都寫下來，下次就不用再踩一次。",
   alternates: { canonical: "/blog", types: { "text/markdown": "/blog.md", "application/rss+xml": "/feed.xml" } },
 });
 
 export default function BlogIndexPage() {
   const posts = getAllPosts();
+  // 2026-11-26（TODO N6）：導覽列、首頁區塊、這頁統一叫「記事 · Notes」；<title> 留「技術部落格」給搜尋
 
   return (
-    <PageShell eyebrow="Blog" title={<>技術部落格 &nbsp;·&nbsp; 筆記</>} intro="踩過的坑、學到的東西、對某個技術的想法。">
+    <PageShell eyebrow="Blog" title={<>記事 &nbsp;·&nbsp; Notes</>} intro="踩過的坑都寫下來，下次就不用再踩一次。">
 
       {/* 2026-11-25 拿掉「RSS 訂閱 · Feed」連結（使用者沒有要做訂閱功能）。/feed.xml 還在，只寫在 <head> 給搜尋引擎、AI 抓；
           原本這行 -mt-10＋mb-12 跟下面的 -mt-6 剛好抵銷，拿掉後下面改 mt-0，位置不變 */}

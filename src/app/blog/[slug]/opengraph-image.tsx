@@ -16,8 +16,8 @@ export function generateStaticParams() {
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
-  const title = post?.title ?? "技術部落格";
-  const eyebrow = "技術部落格 · Blog";
+  const title = post?.title ?? "記事";
+  const eyebrow = "記事 · Notes";
   const font = await loadSubsetFont(title + eyebrow + (post?.tags ?? []).join(""));
   const mainTitle = font ? title : (post?.titleEn ?? "PINGWEI LI · Blog");
   const subTitle = font ? post?.titleEn : undefined;
