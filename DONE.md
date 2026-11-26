@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-26 終端機加指令（B2，使用者在後台選「先做」）
+- [x] `TerminalMode`：`neofetch`、`uptime`、`status`（打新的 `/api/terminal`，只回 /colophon 已公開的數字）、`blog`（最新 8 篇，server 排好傳進來）、
+  `open <站內路徑>`（擋 `//別的網站`）、`history`、`hero webgpu|gl|name|routes|icon|cities|stars`（形狀用 `kbs:hero-shape` 事件叫 `HeroSceneGPU`，線條版會提示要換）；
+  Tab 自動補完（多個候選補到共同開頭、再按列出）、↑↓ 叫回指令。E2E 加在 `terminal-mode.spec.ts`，真顯卡實測 `hero name` 粒子排成名字
+
 ### 2026-11-26 待辦搬進後台資料庫（使用者：「以後 todo 直接寫進網站後台，不用讀 MD，直接看資料庫變化」「說明會被 … 截掉，要能點開、要完整」）
 - [x] `data/admin.db` 加 `todos` 表（migration 2）：第一次開 `/admin/todo` 從 TODO.md 匯入一次（每項底下的子項目、### 大段設計、表格都收進說明；「評估過、先不做」標成 dropped），之後不再讀 TODO.md
 - [x] `/admin/todo`：每項「完整說明」點開看全文（`MiniMarkdown`：清單分層、粗體小標、表格、行內程式碼、連結）；多了「已完成」「評估過不做」兩個分頁；操作紀錄標出動作

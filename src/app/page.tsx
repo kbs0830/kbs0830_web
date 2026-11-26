@@ -12,12 +12,18 @@ import PortfolioSection from "@/components/sections/PortfolioSection";
 import ContactSection from "@/components/sections/ContactSection";
 import LatestPosts from "@/components/sections/LatestPosts";
 import { listedProjects as projects } from "@/lib/content/projects";
+import { getAllPosts } from "@/lib/content/blog";
 import { PERSON_ID, SITE_URL } from "@/lib/site/site";
 import JsonLd from "@/components/ui/JsonLd";
 import SiteFooter from "@/components/layout/SiteFooter";
 
 // 終端機 `ls projects` 的輸出，在 server 排好再傳給 client 元件
 const projectListing = projects.map((p) => `${p.slug.padEnd(24)} ${p.status}`).join("\n");
+// 終端機 `blog` 的輸出：最新 8 篇（日期＋標題＋網址），一樣在 server 排好
+const blogListing = getAllPosts()
+  .slice(0, 8)
+  .map((p) => `${p.date}  ${p.title}\n            /blog/${p.slug}`)
+  .join("\n");
 
 export default function Home() {
   return (
@@ -46,7 +52,7 @@ export default function Home() {
       <BackToTop />
       <KeyboardShortcuts />
       <KonamiEgg />
-      <TerminalMode projectListing={projectListing} />
+      <TerminalMode projectListing={projectListing} blogListing={blogListing} />
     </>
   );
 }

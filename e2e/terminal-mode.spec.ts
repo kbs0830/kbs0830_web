@@ -49,3 +49,53 @@ test("clear 指令清空輸出，exit 指令關閉終端機", async ({ page }) =
   await input.press("Enter");
   await expect(input).not.toBeVisible();
 });
+
+// TODO B2（2026-11-26）：neofetch／uptime／status 打 /api/terminal、blog、history、Tab 補完、↑ 叫回、open 換頁、hero 形狀
+test("B2 新指令：neofetch、status、blog、history、Tab、↑、open", async ({ page }) => {
+  await gotoReady(page, "/");
+  await page.keyboard.press("`");
+  const input = page.locator('input[aria-label="終端機指令輸入"]');
+  const output = page.getByTestId("terminal-output");
+  const run = async (cmd: string) => {
+    await input.fill(cmd);
+    await input.press("Enter");
+  };
+
+  await input.fill("neo");
+  await input.press("Tab");
+  await expect(input).toHaveValue("neofetch");
+  await input.press("Enter");
+  await expect(output).toContainText("i7-12700");
+  await expect(output).toContainText(/Uptime: +\d/);
+
+  await run("status");
+  await expect(output).toContainText("近 30 天");
+
+  await run("blog");
+  await expect(output).toContainText("/blog/");
+
+  await run("hero name");
+  await expect(output).toContainText("hero webgpu"); // 測試環境是線條版，會提示要換 WebGPU 版
+
+  await run("history");
+  await expect(output).toContainText("neofetch");
+  await expect(output).toContainText("hero name");
+
+  await input.press("ArrowUp");
+  await expect(input).toHaveValue("history");
+  await input.press("ArrowUp");
+  await expect(input).toHaveValue("hero name");
+
+  await run("open //evil.example");
+  await expect(output).toContainText("只能打開站內頁面");
+
+  await run("open /blog");
+  await expect(page).toHaveURL(/\/blog$/);
+});
+
+test("/api/terminal 只回公開的數字", async ({ request }) => {
+  const res = await request.get("/api/terminal");
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(Object.keys(body).sort()).toEqual(["deploys90", "lastDeploy", "memoryMB", "node", "radar", "rollbacks90", "uptime30", "uptimeSec"]);
+});

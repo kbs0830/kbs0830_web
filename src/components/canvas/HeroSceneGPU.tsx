@@ -265,15 +265,25 @@ export default function HeroSceneGPU({ onFallback, noFallback = false }: { onFal
         setShape((shapeIndex + 1) % SHAPES.length);
         window.getSelection()?.removeAllRanges();
       };
+      // 終端機 `hero name` 這類指令（TODO B2，TerminalMode）：直接排某個形狀，處理了就把 handled 設成 true 讓終端機知道
+      const onShapeCmd = (e: Event) => {
+        const detail = (e as CustomEvent<{ shape: string; handled: boolean }>).detail;
+        const i = SHAPES.indexOf(detail.shape as ShapeName);
+        if (i < 0) return;
+        setShape(i);
+        detail.handled = true;
+      };
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("pointerdown", onDown, { passive: true });
       window.addEventListener("pointerup", onUp, { passive: true });
       window.addEventListener("dblclick", onDbl);
+      window.addEventListener("kbs:hero-shape", onShapeCmd);
       cleanups.push(() => {
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerdown", onDown);
         window.removeEventListener("pointerup", onUp);
         window.removeEventListener("dblclick", onDbl);
+        window.removeEventListener("kbs:hero-shape", onShapeCmd);
       });
 
       // ── 畫面迴圈 ─────────────────────────────────────────────────────
