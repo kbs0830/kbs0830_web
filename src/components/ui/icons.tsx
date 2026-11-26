@@ -59,3 +59,12 @@ export const SearchIcon = ({ size = 14, className }: IconProps) => (
     <path d="M20 20l-4.2-4.2" />
   </Stroke>
 );
+
+// 機頭朝右的飛機剪影（連絡先底部的高雄 → 福岡航線，TODO M16）
+export const PlaneIcon = ({ size = 16, className }: IconProps) => (
+  <Fill
+    size={size}
+    className={className}
+    d="M21 12c0-.8-.7-1.5-1.5-1.5H15L10 3H8l2.5 7.5H6L4.5 8.5H3l1 3.5-1 3.5h1.5L6 13.5h4.5L8 21h2l5-7.5h4.5c.8 0 1.5-.7 1.5-1.5Z"
+  />
+);

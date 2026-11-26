@@ -802,3 +802,76 @@ details[open]::details-content {
     }
   }
 }
+
+/* ── 連絡先：深墨滿版＋捲動展開（ContactSection，TODO M16，2026-11-27）──────────────
+   section 有 data-theme="dark"（沿用深色調色盤，淺色模式也反白），這裡再把底色換成偏藍的墨色：
+   深色模式的頁面底色 #0f0f0d 跟深色調色盤一樣，不換的話卡片的邊看不出來。 */
+.contact-stage {
+  --bg: #11141b;
+  --surface: #181c25;
+  --border: #2a303c;
+  --card-x: max(1rem, calc((100vw - 72rem) / 2));
+}
+/* 航線虛線（ContactRoute） */
+.contact-route { container-type: inline-size; }
+.contact-route-line {
+  background: repeating-linear-gradient(to right, var(--muted) 0 6px, transparent 6px 12px);
+  opacity: 0.6;
+}
+.contact-route-plane { translate: calc(100cqw - 16px) 0; }
+
+/* 捲動展開：區塊頂端從視窗底部進來時是內縮的圓角卡片（左右對齊首頁內容寬度、上方留一點），
+   捲到區塊填滿螢幕（entry 100%）剛好推成滿版；內容跟著淡入上浮、標題從 92% 放大到定位。
+   航線在最後一段畫出來，小飛機一路滑到捲進頁尾為止。不支援／減少動態效果：直接是滿版、線畫好、飛機在終點 */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .contact-stage {
+      view-timeline: --contact block;
+      animation: contact-expand linear both;
+      animation-timeline: --contact;
+      animation-range: entry 0% entry 100%;
+    }
+    .contact-inner {
+      animation: contact-rise linear both;
+      animation-timeline: --contact;
+      animation-range: entry 35% entry 100%;
+    }
+    .contact-title {
+      transform-origin: left bottom;
+      animation: contact-title linear both;
+      animation-timeline: --contact;
+      animation-range: entry 40% entry 100%;
+    }
+    .contact-route-line {
+      transform-origin: left center;
+      animation: contact-route-draw linear both;
+      animation-timeline: --contact;
+      animation-range: entry 60% entry 100%;
+    }
+    .contact-route-plane {
+      animation: contact-route-fly linear both;
+      animation-timeline: --contact;
+      animation-range: entry 70% exit 15%;
+    }
+  }
+}
+@keyframes contact-expand {
+  from { clip-path: inset(3rem var(--card-x) 0 round 16px); }
+  to { clip-path: inset(0 0 0 round 0); }
+}
+@keyframes contact-rise {
+  from { opacity: 0; translate: 0 48px; }
+  to { opacity: 1; translate: none; }
+}
+@keyframes contact-title {
+  from { scale: 0.92; }
+  to { scale: 1; }
+}
+@keyframes contact-route-draw {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
+}
+@keyframes contact-route-fly {
+  from { translate: 0 0; }
+  to { translate: calc(100cqw - 16px) 0; }
+}

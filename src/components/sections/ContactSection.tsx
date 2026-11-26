@@ -1,12 +1,18 @@
-// Server Component；互動只有複製 Email（CopyEmailButton）跟磁吸效果（Magnetic）
+// Server Component；互動只有複製 Email（CopyEmailButton）跟磁吸效果（Magnetic），兩地時刻在 ContactRoute
+//
+// 2026-11-27（TODO M16，使用者：「按下連絡先的時候頁面自動往下以外還要放大滿版有視覺衝擊」；決定「1 保留 2 做」）：
+//   - 整區是一整個螢幕高的深墨色（淺色模式也反白）：section 加 data-theme="dark" 沿用深色調色盤，再用 .contact-stage 換成偏藍的墨色，
+//     深色模式下才分得出跟頁面底色的邊界
+//   - 捲到時從內縮的圓角卡片推成滿版（globals.css .contact-stage，CSS 捲動動畫，區塊填滿螢幕時剛好展開完）。
+//     NavBar／封面的「聯絡我」只負責捲下來，展開是捲動自己播的；用滾輪捲的人也看得到
+//   - 標題保留「連絡先 · Get in Touch」（決定 1），放大；Email 當主角；最底下高雄 → 福岡的航線收尾
 import type { ReactNode } from "react";
 import Magnetic from "@/components/ui/Magnetic";
-import Reveal from "@/components/ui/Reveal";
-import RevealHeading from "@/components/ui/RevealHeading";
 import Underline, { underlineLinkClass } from "@/components/ui/Underline";
 import { GitHubIcon, InstagramIcon } from "@/components/ui/icons";
 import Eyebrow from "@/components/ui/Eyebrow";
 import CopyEmailButton from "@/components/sections/CopyEmailButton";
+import ContactRoute from "@/components/sections/ContactRoute";
 import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site/site";
 import { HOME_WIDTH } from "@/components/layout/home-width";
 
@@ -24,21 +30,28 @@ const links: { href: string; label: string; icon: ReactNode; download?: boolean 
 
 export default function ContactSection() {
   return (
-    <section id="contact" className="py-20 md:py-32 bg-(--surface)">
-      <div className={`${HOME_WIDTH} mx-auto px-6`}>
-        <Reveal>
-          <Eyebrow className="mb-4">03 — Contact</Eyebrow>
-          <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl 3xl:text-5xl font-light text-(--text) mb-6 font-serif" />
-          <p className="text-(--text) font-light text-[15px] 3xl:text-[17px] max-w-md 3xl:max-w-lg leading-relaxed mb-3">
+    <section id="contact" data-theme="dark" className="contact-stage relative min-h-svh flex bg-(--bg) text-(--text)">
+      <div className={`contact-inner ${HOME_WIDTH} w-full mx-auto px-6 pt-28 pb-10 sm:pb-14 flex flex-col`}>
+        <div className="flex-1 flex flex-col justify-center">
+          <Eyebrow className="mb-6 sm:mb-8">03 — Contact</Eyebrow>
+          <h2 className="contact-title font-serif font-light leading-[1.1] text-[clamp(2.75rem,11vw,6rem)] tracking-[0.01em] mb-8 sm:mb-10">
+            <span className="block sm:inline">連絡先</span>
+            <span aria-hidden className="hidden sm:inline text-(--muted)"> · </span>
+            <span className="block sm:inline">Get in Touch</span>
+          </h2>
+          <p className="font-light text-[15px] sm:text-base 3xl:text-lg max-w-xl leading-relaxed break-keep mb-2">
             想合作、聊技術，或只是聊聊 AI、網頁跟飛機——都歡迎寫信來。
           </p>
-          <p className="text-(--muted) font-light text-sm 3xl:text-[15px] max-w-md 3xl:max-w-lg leading-relaxed mb-12">
-            Collaborations, tech talk, or just a chat about AI, the web, or planes —
-            my inbox is open.
+          <p className="text-(--muted) font-light text-sm 3xl:text-[15px] max-w-xl leading-relaxed mb-12 sm:mb-16">
+            Collaborations, tech talk, or just a chat about AI, the web, or planes — my inbox is open.
           </p>
 
-          <div className="flex flex-col sm:flex-row flex-wrap gap-5 sm:gap-8">
-            <CopyEmailButton email={EMAIL} className={linkClass} />
+          {/* Email 是主角：大字，點一下複製；其他連結小字放下面 */}
+          <CopyEmailButton
+            email={EMAIL}
+            className="group relative inline-flex items-center gap-3 sm:gap-4 pb-2 text-[clamp(1.375rem,6.5vw,3rem)] font-light tracking-wide text-(--text) hover:text-(--accent) transition-colors whitespace-nowrap [&>svg]:size-[0.7em]"
+          />
+          <div className="flex flex-wrap gap-x-8 gap-y-3 mt-8">
             {links.map(({ href, label, icon, download }) => (
               <Magnetic key={href}>
                 <a
@@ -53,7 +66,11 @@ export default function ContactSection() {
               </Magnetic>
             ))}
           </div>
-        </Reveal>
+        </div>
+
+        <div className="mt-16">
+          <ContactRoute />
+        </div>
       </div>
     </section>
   );

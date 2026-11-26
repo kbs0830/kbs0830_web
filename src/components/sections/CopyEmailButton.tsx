@@ -26,7 +26,8 @@ export default function CopyEmailButton({ email, className }: { email: string; c
   };
 
   return (
-    <div className="relative">
+    // w-fit：「已複製」對齊按鈕中間（連絡先 2026-11-27 改直排之後，外層會被拉成整行寬）
+    <div className="relative w-fit">
       <Magnetic>
         <button onClick={copy} className={className}>
           <MailIcon />

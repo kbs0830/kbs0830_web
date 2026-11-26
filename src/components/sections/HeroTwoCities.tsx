@@ -23,8 +23,14 @@ const subscribe = (onChange: () => void) => {
 // 回傳字串（不是物件）：snapshot 要穩定，分鐘沒變就不重畫
 const read = () => `${fmt("Asia/Taipei")}|${fmt("Asia/Tokyo")}`;
 
-export default function HeroTwoCities() {
+/** 高雄、福岡現在的時刻（"HH:MM"）。server 端是 "--:--"。連絡先底部的航線（ContactRoute）也用這個 */
+export function useTwoCityTimes(): [string, string] {
   const [kh, fk] = useSyncExternalStore(subscribe, read, () => "--:--|--:--").split("|");
+  return [kh, fk];
+}
+
+export default function HeroTwoCities() {
+  const [kh, fk] = useTwoCityTimes();
   return (
     <p className="flex items-baseline justify-center gap-3 text-xs text-(--muted) font-mono tracking-[0.15em]">
       <span>
