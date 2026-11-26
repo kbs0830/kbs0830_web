@@ -61,7 +61,7 @@ export default function NavBar() {
     >
       <div className="scroll-progress absolute top-0 left-0 right-0 h-[2px] bg-(--accent)" />
 
-      <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
           href="#top"
           className="text-sm font-light tracking-[0.2em] text-(--text) hover:text-(--accent) transition-colors font-mono"

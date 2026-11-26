@@ -30,7 +30,7 @@ export default function HeroSection() {
       <HeroNameScramble />
 
       {/* hero-parallax：往下捲時文字往上飄、慢慢淡出（globals.css，CSS scroll-driven，只有桌機） */}
-      <div className="hero-parallax relative z-10 w-full max-w-5xl mx-auto px-6 flex-1 flex flex-col pt-24 pb-8 sm:flex-none sm:block sm:py-32">
+      <div className="hero-parallax relative z-10 w-full max-w-6xl mx-auto px-6 flex-1 flex flex-col pt-24 pb-8 sm:flex-none sm:block sm:py-32">
         <div className="relative flex-1 flex flex-col justify-center sm:block">
         {/* 手機：直書片假名，貼在右側邊緣、跟文字區塊垂直置中（名字最寬到 14vw×約 5.7 ≈ 80% 螢幕寬，不會疊到） */}
         <span

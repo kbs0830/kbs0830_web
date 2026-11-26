@@ -28,6 +28,8 @@ export type TodoItem = {
   doneAt?: number | null;
   /** 有比摘要更多的說明（列表頁不帶 detail 時，用這個決定要不要顯示「完整說明」） */
   more?: boolean;
+  /** Claude 在說明裡留了問題要使用者回答（`> **Claude 問…` 的引用行），列表上用紫色標籤提醒 */
+  asked?: boolean;
 };
 
 const SIZE: Record<string, Size> = { "🟥": "L", "🟧": "M", "🟩": "S" };
@@ -206,4 +208,5 @@ export const hasMoreDetail = (i: Pick<TodoItem, "detail" | "summary">) =>
  * 列表頁用：拿掉完整說明，只留 more 旗標（2026-11-26 使用者：「admin 後台開始卡了」——90 項的完整說明一起塞進頁面，一頁 370 KB）。
  * 點「完整說明」時才打 GET /api/admin/decisions?detail=<id> 拿全文
  */
-export const withoutDetail = (items: TodoItem[]): TodoItem[] => items.map((i) => ({ ...i, detail: "", more: hasMoreDetail(i) }));
+export const withoutDetail = (items: TodoItem[]): TodoItem[] =>
+  items.map((i) => ({ ...i, detail: "", more: hasMoreDetail(i), asked: i.status === "open" && /^>\s*\*\*Claude 問/m.test(i.detail) }));

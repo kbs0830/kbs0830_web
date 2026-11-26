@@ -196,7 +196,7 @@ export default function PortfolioSection() {
   return (
     <section id="portfolio" className="pt-20 pb-12 sm:pb-20 md:py-32">
       {/* 手機底部留白縮小：下面「最新文章」自己有一條分隔線＋上方留白，兩個加起來之前快 130px */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
 
         {/* Title */}
         <Reveal className="mb-10 md:mb-16">

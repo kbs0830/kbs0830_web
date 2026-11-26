@@ -11,7 +11,7 @@ export default function LatestPosts() {
 
   return (
     <section aria-labelledby="latest-posts" className="pb-20 md:pb-32">
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
         <Reveal className="flex items-baseline justify-between gap-4 mb-8 border-t border-(--border) pt-12">
           <div>
             <Eyebrow className="mb-3">Blog</Eyebrow>

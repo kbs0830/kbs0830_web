@@ -14,6 +14,9 @@
 //   node scripts/admin-db.js todo done <id> [--note "做了什麼"]   完成（--note 會接在說明最後，並自動補一筆完成紀錄到 done_log；多項合併成一筆敘述時再另外 done add）
 //   node scripts/admin-db.js todo drop <id> --note "理由"        評估過、不做
 //   node scripts/admin-db.js todo reopen <id>
+//   node scripts/admin-db.js todo ask <id> "問題"                Claude 有問題要使用者回答：接在說明最後一行「> **Claude 問（日期）**：…」，後台用紫色顯示、列表出現「Claude 有問題」標籤
+//   node scripts/admin-db.js todo say <id> "備註"                Claude 的一般備註／回覆（同樣紫色，不加標籤）；使用者回答後，用 say 記下「使用者答：…」並處理掉問題（edit 把那行改成 say 的格式）
+// 問題要寫成使用者一眼能回答的樣子（選項 A／B、要提供什麼）；使用者在後台的備註欄回答，讀到就處理。
 // 完成紀錄（2026-11-26 起 DONE.md 的正本也在資料庫，done_log 表）：
 //   node scripts/admin-db.js done [--limit 20]      最近的完成紀錄（日期、標題、字數）
 //   node scripts/admin-db.js done show <id>         一筆的全文
@@ -52,7 +55,7 @@ if (!fs.existsSync(file)) {
   process.exit(0);
 }
 const writing =
-  (cmd === "todo" && ["add", "edit", "done", "drop", "reopen"].includes(rest[0])) || (cmd === "done" && ["add", "import"].includes(rest[0]));
+  (cmd === "todo" && ["add", "edit", "done", "drop", "reopen", "ask", "say"].includes(rest[0])) || (cmd === "done" && ["add", "import"].includes(rest[0]));
 const db = new DatabaseSync(file, { readOnly: !writing });
 db.exec("PRAGMA busy_timeout = 3000");
 const version = db.prepare("PRAGMA user_version").get().user_version;
@@ -115,7 +118,7 @@ if (cmd === "decisions") {
       const g = `${t.section}${t.grp ? ` · ${t.grp}` : ""}`;
       if (g !== lastGroup) { console.log(`\n## ${g}`); lastGroup = g; }
       const d = dec.get(t.id);
-      const tags = [t.size && SIZE[t.size], t.needs_you && "要你", t.recommended && "推薦", t.status !== "open" && (t.status === "done" ? "✓完成" : "不做")].filter(Boolean).join("・");
+      const tags = [t.size && SIZE[t.size], t.needs_you && "要你", t.recommended && "推薦", t.status !== "open" && (t.status === "done" ? "✓完成" : "不做"), t.status === "open" && /^>\s*\*\*Claude 問/m.test(t.detail) && "❓Claude 有問題"].filter(Boolean).join("・");
       const decision = d ? `  ← ${d.choice ? LABEL[d.choice] : ""}${d.note ? `「${d.note}」` : ""}` : "";
       console.log(`- [${t.id}] ${t.title}${tags ? `（${tags}）` : ""}${decision}`);
     }
@@ -159,6 +162,17 @@ if (cmd === "decisions") {
     );
     log("todo.edit", t.id);
     console.log(`改好 ${t.id}`);
+  } else if (sub === "ask" || sub === "say") {
+    const t = getTodo(a._[0]);
+    need(t, `找不到 ${a._[0]}`);
+    const text = a._.slice(1).join(" ").replace(/\n/g, " ").trim();
+    need(text, `要寫內容：todo ${sub} <id> "…"`);
+    const label = sub === "ask" ? "Claude 問" : "Claude 備註";
+    const line = `> **${label}（${tw(now).slice(0, 10)}）**：${text}`;
+    db.prepare("UPDATE todos SET detail = ?, updated_at = ? WHERE id = ?").run(`${t.detail}
+${line}`.trim(), now, t.id);
+    log(`todo.${sub}`, `${t.id} ${text.slice(0, 120)}`);
+    console.log(`${t.id} ← ${label}`);
   } else if (sub === "done" || sub === "drop" || sub === "reopen") {
     const t = getTodo(a._[0]);
     need(t, `找不到 ${a._[0]}`);

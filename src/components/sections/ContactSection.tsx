@@ -24,7 +24,7 @@ const links: { href: string; label: string; icon: ReactNode; download?: boolean 
 export default function ContactSection() {
   return (
     <section id="contact" className="py-20 md:py-32 bg-(--surface)">
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
         <Reveal>
           <Eyebrow className="mb-4">03 — Contact</Eyebrow>
           <RevealHeading text="連絡先 · Get in Touch" className="text-3xl sm:text-4xl font-light text-(--text) mb-6 font-serif" />

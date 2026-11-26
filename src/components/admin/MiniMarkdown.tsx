@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
 // 後台待辦說明用的極簡 markdown（2026-11-26，使用者：「說明會被 … 截掉，要設計可以點開，說明要完整」）。
-// 只支援 TODO 實際會用到的：`- ` 清單（看縮排分層）、`→` 續行、整行粗體小標、表格（| a | b |）、
+// 只支援 TODO 實際會用到的：`> ` 引用（Claude 的問題／備註，紫色）、`- ` 清單（看縮排分層）、`→` 續行、整行粗體小標、表格（| a | b |）、
 // 行內 `code`、**粗體**、[文字](https://…)。不支援的語法照原文顯示，不會吃掉內容。沒有 dangerouslySetInnerHTML。
 
 function inline(text: string, key: string): ReactNode[] {
@@ -74,7 +74,15 @@ export default function MiniMarkdown({ text }: { text: string }) {
     const body = raw.trim();
     const pad = { marginLeft: `${Math.min(indent, 8) * 0.45}rem` }; // 用 margin：清單的 pl-3 是留給圓點的，不能被蓋掉
     const bullet = /^[-*]\s+(.*)$/.exec(body);
-    if (bullet) {
+    // `> …`：Claude 留的問題／備註（scripts/admin-db.js todo ask／say 寫的）。用後台專用的藤紫色（--later），跟使用者自己寫的灰字分開
+    const quote = /^>\s?(.*)$/.exec(body);
+    if (quote) {
+      blocks.push(
+        <p key={key} style={pad} className="rounded-sm border-l-2 border-(--later) bg-(--later-lt) px-2.5 py-1.5 text-(--later)">
+          {inline(quote[1], key)}
+        </p>,
+      );
+    } else if (bullet) {
       blocks.push(
         <p key={key} style={pad} className="relative pl-3 before:absolute before:left-0 before:top-[0.6em] before:size-1 before:rounded-full before:bg-(--muted)">
           {inline(bullet[1], key)}

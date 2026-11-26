@@ -223,6 +223,9 @@ function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value |
           {item.size && <span className="ml-1.5 font-mono text-[10px] text-(--muted)">{SIZE_LABEL[item.size]}</span>}
           {item.needsYou && <span className="ml-1.5 align-[1px] rounded-full px-1.5 py-px text-[10px] bg-(--warn-lt) text-(--warn)">要你</span>}
           {item.recommended && <span className="ml-1.5 align-[1px] rounded-full px-1.5 py-px text-[10px] bg-(--accent-lt) text-(--accent)">推薦</span>}
+          {(item.asked ?? /^>\s*\*\*Claude 問/m.test(item.detail)) && item.status === "open" && (
+            <span className="ml-1.5 align-[1px] rounded-full px-1.5 py-px text-[10px] bg-(--later-lt) text-(--later)">Claude 有問題</span>
+          )}
         </p>
         {item.summary && !expanded && (
           <p className="mt-1 text-[11px] font-light text-(--muted) line-clamp-2">{item.summary}</p>

@@ -18,7 +18,7 @@ const years = buildYear > FIRST_YEAR ? `${FIRST_YEAR}–${buildYear}` : String(F
 //   - 頁面索引只在 640px 以上顯示（三欄）；手機收進右上角選單（SiteIndex，使用者：「多利用右上角選單做收納」）
 //   - 首頁即時資訊（時鐘／人數／造訪／Cloudflare）在手機自成一塊、放在版權上面，每一項各自一行，不擠成一團
 //   - 版權＋最後更新永遠在最底下
-// inset：首頁的區塊是「max-w-5xl 裡面 px-6」，子頁面（PageShell）是「外層 px-6、裡面 max-w-2xl」——
+// inset：首頁的區塊是「max-w-6xl 裡面 px-6」（2026-11-26 從 5xl 放寬），子頁面（PageShell）是「外層 px-6、裡面 max-w-2xl」——
 //   頁尾照各自的頁面走，左緣才會跟內文對齊（之前子頁面一律用首頁那種，頁尾比內文多縮 24px，TODO F3）
 export default function SiteFooter({
   width = "max-w-2xl",

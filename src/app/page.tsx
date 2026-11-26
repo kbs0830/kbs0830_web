@@ -41,7 +41,7 @@ export default function Home() {
         <ContactSection />
       </main>
       <SiteFooter
-        width="max-w-5xl"
+        width="max-w-6xl"
         inset="inner"
         extra={
           <>
