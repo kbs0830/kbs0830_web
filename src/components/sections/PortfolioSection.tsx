@@ -29,12 +29,9 @@ const moreTags = sortedTags
 function ProjectCard({
   project,
   index,
-  featured = false,
 }: {
   project: (typeof projects)[0];
   index: number;
-  /** 精選大卡（TODO M6）：md 以上橫跨兩欄，卡片夠寬時（container query @2xl＝672px）改成圖左文右 */
-  featured?: boolean;
 }) {
   // 淡入（Reveal 的 translate）跟 hover 上浮（卡片本身的 translate）分在兩層，互不覆蓋
   // min-w-0（Reveal、卡片兩層都要）：讓卡片能縮到螢幕寬，裡面不換行的「英文 · 日文」才會截斷，
@@ -43,8 +40,8 @@ function ProjectCard({
   // 640px 以下改成「左邊小縮圖＋右邊標題、兩行說明、前 3 個 tag」，英文說明、成果、「查看詳情」只在 sm 以上顯示。
   // 整張卡片本來就是連結，點了進詳細頁看完整內容
   return (
-    <Reveal distance={28} delay={index * 0.1} margin={60} className={`flex min-w-0 ${featured ? "md:col-span-2" : ""}`}>
-      <div className="@container group relative flex-1 min-w-0 border border-(--border) bg-(--bg) rounded-sm p-4 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <Reveal distance={28} delay={index * 0.1} margin={60} className="flex min-w-0">
+      <div className="group relative flex-1 min-w-0 border border-(--border) bg-(--bg) rounded-sm p-4 sm:p-7 hover:border-(--accent) hover:-translate-y-1 transition-all duration-300 flex flex-col">
         <Link
           href={`/projects/${project.slug}`}
           className="absolute inset-0 z-0 rounded-sm"
@@ -52,21 +49,17 @@ function ProjectCard({
         />
         <div className="absolute top-0 left-0 h-[2px] w-0 bg-(--accent) group-hover:w-full transition-all duration-500 rounded-t-sm" />
 
-        <div className={`relative z-10 flex flex-row items-start gap-4 sm:flex-col sm:items-stretch sm:gap-0 flex-1 pointer-events-none ${featured ? "@2xl:flex-row @2xl:gap-8" : ""}`}>
+        <div className="relative z-10 flex flex-row items-start gap-4 sm:flex-col sm:items-stretch sm:gap-0 flex-1 pointer-events-none">
           {project.image && (
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
               {/* 桌機的大圖（使用者：桌機不用改）。手機 display:none，lazy 圖不會下載 */}
-              <div
-                className={`relative hidden sm:block overflow-hidden rounded-sm bg-(--surface) -mx-7 -mt-7 mb-5 aspect-video rounded-b-none ${
-                  featured ? "@2xl:mr-0 @2xl:-mb-7 @2xl:w-[52%] @2xl:shrink-0 @2xl:aspect-auto @2xl:min-h-80 @2xl:rounded-r-none @2xl:rounded-bl-sm" : ""
-                }`}
-              >
+              <div className="relative hidden sm:block overflow-hidden rounded-sm bg-(--surface) -mx-7 -mt-7 mb-5 aspect-video rounded-b-none">
                 <Image
                   src={project.image}
                   alt={project.imageAlt ?? `${project.titleZh} 截圖`}
                   fill
                   className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
-                  sizes={featured ? "(max-width: 768px) 100vw, 60vw" : "(max-width: 768px) 100vw, 50vw"}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </ViewTransition>
@@ -176,21 +169,8 @@ function SectionLabel({ label, labelZh }: { label: string; labelZh: string }) {
 // 只影響 640px 以下：精選排到最前、其他收進「顯示全部」；桌機的順序跟顯示都不變
 const MOBILE_FEATURED = ["fr24-receiver", "kbs0830-web"];
 
-// 桌機的精選大卡（TODO M6，2026-11-26 使用者：「做你的 M」）：個人專案 5 個排 2 欄時最後一張落單、右邊空一格。
-// 雷達站放最前面、橫跨兩欄，本站接著，剩下照原本順序 → 1 大＋2×2，沒有空格。作品變成偶數個時把這個拿掉就好
-const DESKTOP_FEATURED = "fr24-receiver";
-const personalOrdered = [
-  ...MOBILE_FEATURED.flatMap((slug) => personalProjects.filter((p) => p.slug === slug)),
-  ...personalProjects.filter((p) => !MOBILE_FEATURED.includes(p.slug)),
-];
-
 const toItems = (list: typeof projects) =>
-  list.map((p, i) => ({
-    slug: p.slug,
-    tags: p.tags,
-    mobileFeatured: MOBILE_FEATURED.includes(p.slug),
-    card: <ProjectCard project={p} index={i} featured={p.slug === DESKTOP_FEATURED} />,
-  }));
+  list.map((p, i) => ({ slug: p.slug, tags: p.tags, mobileFeatured: MOBILE_FEATURED.includes(p.slug), card: <ProjectCard project={p} index={i} /> }));
 
 // grid-cols-1 要明確寫：沒寫的話手機那一欄是 auto，會被卡片裡不換行的「英文 · 日文」撐寬，
 // 整頁變得比螢幕寬（2026-11-24 在 360px 實測 401px，固定在頂端的導覽列跟著變寬、選單按鈕被擠出畫面）
@@ -200,7 +180,7 @@ const groups: FilterGroup[] = [
     className: "mb-10 md:mb-16",
     gridClassName: "grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5",
     label: <SectionLabel label="Personal Projects" labelZh="個人專案" />,
-    items: toItems(personalOrdered),
+    items: toItems(personalProjects),
     mobileLimit: MOBILE_FEATURED.length,
   },
   {

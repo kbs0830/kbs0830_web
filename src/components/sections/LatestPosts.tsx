@@ -1,6 +1,7 @@
 // 首頁的最新文章（TODO「首頁顯示最新文章」，2026-11-09）：部落格原本只靠頁尾一個小連結。
 // Server Component，零 JS。不編號、不進 NavBar——它是作品集的延伸，不是新的一區。
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { getAllPosts } from "@/lib/content/blog";
 import Reveal from "@/components/ui/Reveal";
 import Eyebrow from "@/components/ui/Eyebrow";
@@ -38,9 +39,12 @@ export default function LatestPosts() {
                   className="group flex-1 flex flex-col border border-(--border) rounded-sm p-5 bg-(--bg) hover:border-(--accent) transition-colors"
                 >
                   <span className="text-xs text-(--muted) font-mono tracking-wide mb-2">{post.date}</span>
-                  <span className="text-[15px] 3xl:text-[17px] font-light text-(--text) leading-relaxed group-hover:text-(--accent) transition-colors mb-2">
-                    {post.title}
-                  </span>
+                  {/* 跟文章頁的 <h1> 同名，點進去標題會 morph 過去（TODO O3） */}
+                  <ViewTransition name={`post-title-${post.slug}`} share="morph" default="none">
+                    <span className="text-[15px] 3xl:text-[17px] font-light text-(--text) leading-relaxed group-hover:text-(--accent) transition-colors mb-2">
+                      {post.title}
+                    </span>
+                  </ViewTransition>
                   <span className="text-xs 3xl:text-[13px] text-(--muted) font-light leading-relaxed line-clamp-3">{post.description}</span>
                 </Link>
               </div>

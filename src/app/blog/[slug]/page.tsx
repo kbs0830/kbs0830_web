@@ -153,6 +153,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <PageShell backHref="/blog" backLabel="返回部落格" printable>
+      {/* 上一篇／下一篇的方向動畫（TODO O3 後半，2026-11-26）：按「下一篇 →」內容往左淡出、新的從右邊進來，「← 上一篇」反過來。
+          只有帶 transitionTypes 的連結會觸發（PostLink），其他導覽（瀏覽器上一頁、從列表點進來）照舊。位移 24px、--ease-ma，不跳不彈 */}
+      <ViewTransition
+        enter={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "none" }}
+        exit={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "none" }}
+        default="none"
+      >
+      <div>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -243,8 +251,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       )}
 
       <nav aria-label="上一篇／下一篇" className={`print:hidden grid sm:grid-cols-2 gap-4 ${seriesNext ? "mt-10 sm:mt-16" : "mt-16"} pt-8 border-t border-(--border)`}>
-        {older ? <PostLink post={older} label="← 上一篇" /> : <span />}
-        {newer && <PostLink post={newer} label="下一篇 →" className="sm:text-right" />}
+        {older ? <PostLink post={older} label="← 上一篇" direction="nav-back" /> : <span />}
+        {newer && <PostLink post={newer} label="下一篇 →" direction="nav-forward" className="sm:text-right" />}
       </nav>
 
       <div className="print:hidden">
@@ -268,13 +276,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </ul>
         </section>
       )}
+      </div>
+      </ViewTransition>
     </PageShell>
   );
 }
 
-function PostLink({ post, label, className = "" }: { post: BlogPost; label: string; className?: string }) {
+function PostLink({ post, label, direction, className = "" }: { post: BlogPost; label: string; direction: "nav-forward" | "nav-back"; className?: string }) {
   return (
-    <Link href={`/blog/${post.slug}`} className={`group block ${className}`}>
+    <Link href={`/blog/${post.slug}`} transitionTypes={[direction]} className={`group block ${className}`}>
       <span className="block text-xs text-(--muted) font-mono tracking-wide mb-1">{label}</span>
       <span className="text-[15px] sm:text-sm font-light text-(--text) group-hover:text-(--accent) transition-colors leading-relaxed">
         {post.title}

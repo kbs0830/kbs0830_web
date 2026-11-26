@@ -54,6 +54,13 @@ describe("系列文、上一篇／下一篇、相關文章、tag、目錄（2026
     expect(s[0].slug).toBe("task-scheduler-72-hours");
   });
 
+  it("列表裡同一天的同系列文章，系列號大的在前（TODO M10：之前顯示成 2、5、3、4）", () => {
+    const orders = getAllPosts()
+      .filter((p) => p.series === "自架網站維運")
+      .map((p) => p.seriesOrder);
+    expect(orders).toEqual([5, 4, 3, 2, 1]);
+  });
+
   it("上一篇＝比較舊、下一篇＝比較新；最新那篇沒有下一篇", async () => {
     const { getAdjacentPosts } = await import("@/lib/content/blog");
     const posts = getAllPosts();

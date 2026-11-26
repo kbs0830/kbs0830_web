@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
 // 網址只在載入時讀一次（篩選改變不回寫網址），所以不用真的訂閱
 const noopSubscribe = () => () => {};
@@ -43,6 +43,14 @@ export default function ProjectFilter({
   const activeTag = choice === undefined ? fromUrl : choice;
   const [showMore, setShowMore] = useState(false);
   const [expanded, setExpanded] = useState<string[]>([]);
+  // 「顯示全部」之後把焦點移到第一張新出現的卡片（TODO O5）：鍵盤、讀屏的使用者才知道新內容出現在哪
+  const focusAfterExpand = useRef<{ key: string; rank: number } | null>(null);
+  useEffect(() => {
+    const target = focusAfterExpand.current;
+    if (!target) return;
+    focusAfterExpand.current = null;
+    document.querySelector<HTMLElement>(`[data-filter-group="${target.key}"] [data-rank="${target.rank}"] a`)?.focus();
+  }, [expanded]);
   // 再點一次目前選中的 tag = 取消篩選
   const select = (tag: string | null) => setChoice(activeTag === tag ? null : tag);
 
@@ -100,13 +108,14 @@ export default function ProjectFilter({
         // 手機上的排名：精選在前、其他照原本順序；排名超過 limit 的先收起來（桌機不看這個）
         const mobileRank = new Map([...g.items.filter((i) => i.mobileFeatured), ...g.items.filter((i) => !i.mobileFeatured)].map((i, n) => [i.slug, n]));
         return (
-          <div key={g.key} className={g.className}>
+          <div key={g.key} className={g.className} data-filter-group={g.key}>
             {g.label}
             <div className={g.gridClassName}>
               {g.items.map((i) => (
                 // 精選：手機上變成真的格子（max-sm:block）才能用 order 排到最前；桌機照舊 contents、順序不變
                 <div
                   key={i.slug}
+                  data-rank={mobileRank.get(i.slug)}
                   className={mobileRank.get(i.slug)! >= limit ? "hidden sm:contents" : i.mobileFeatured ? "contents max-sm:block max-sm:order-first" : "contents"}
                 >
                   {i.card}
@@ -116,7 +125,10 @@ export default function ProjectFilter({
             {hiddenCount > 0 && (
               <button
                 type="button"
-                onClick={() => setExpanded((e) => [...e, g.key])}
+                onClick={() => {
+                  focusAfterExpand.current = { key: g.key, rank: limit };
+                  setExpanded((e) => [...e, g.key]);
+                }}
                 className="sm:hidden mt-3 w-full py-3 border border-dashed border-(--border) rounded-sm text-sm font-light text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors"
               >
                 顯示全部 {g.items.length} 個 · 還有 {hiddenCount} 個 ▾

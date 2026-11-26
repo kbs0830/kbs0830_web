@@ -18,6 +18,7 @@ import BulletList from "@/components/ui/BulletList";
 import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/layout/PageShell";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
+import RadarSnapshot from "@/components/live/RadarSnapshot";
 import CaseStudy from "@/components/content/CaseStudy";
 
 type ProjectPageProps = { params: Promise<{ slug: string }> };
@@ -110,7 +111,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
       )}
 
-      {project.image && (
+      {/* 雷達站：首圖換成真的數字跟長條圖（TODO M14），其他作品照舊放截圖 */}
+      {project.slug === "fr24-receiver" ? (
+        <RadarSnapshot />
+      ) : project.image && (
         <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
           <div className="mb-10 border border-(--border) rounded-sm overflow-hidden">
             <Image

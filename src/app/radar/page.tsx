@@ -43,14 +43,14 @@ async function RadarContent() {
         <p className="text-sm text-(--muted) font-light">雷達資料暫時讀不到，晚點再來看看。</p>
       ) : (
         <>
-          <RadarLive initial={{ online: Boolean(d.online), aircraftNow: d.aircraftNow ?? 0 }} />
+          <RadarLive initial={{ online: Boolean(d.online), aircraftNow: d.aircraftNow ?? 0, lastAircraftAt: d.lastAircraftAt ?? null }} />
 
           <Tiles
             items={[
               [`${nf.format(d.today?.unique ?? 0)} 架`, "今天收到 · Today"],
               [`${nf.format(d.today?.peak ?? 0)} 架`, "今天最多同時 · Peak"],
-              [`${nf.format(d.week?.unique ?? 0)} 架次`, "近 7 天 · 7 days"],
-              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime"],
+              [`${nf.format(d.week?.unique ?? 0)} 架次`, "近 7 天 · 7 days", "每天收到幾架不同的飛機，7 天加起來。同一架飛機隔天又飛過會再算一次，所以叫「架次」。"],
+              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 30 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
             ]}
           />
 

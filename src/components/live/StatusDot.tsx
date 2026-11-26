@@ -11,7 +11,7 @@ export default async function StatusDot({ className = "" }: { className?: string
   const down = (today.checks - today.up) * 5;
   const ok = down === 0;
   return (
-    <Link href="/status" className={`${className} inline-flex items-center gap-1.5 transition-colors hover:text-(--accent)`} title="維運狀態 · Status">
+    <Link href="/status" className={`${className} inline-flex items-center gap-1.5 py-1 -my-1 transition-colors hover:text-(--accent)`} title="維運狀態 · Status">
       <span aria-hidden className={`size-1.5 rounded-full ${ok ? "bg-(--ok)" : "bg-(--warn)"}`} />
       <span className={ok ? "" : "text-(--warn)"}>{ok ? "正常運作" : `今天有約 ${down} 分鐘中斷`}</span>
     </Link>

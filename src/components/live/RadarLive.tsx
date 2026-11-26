@@ -12,7 +12,12 @@ import { nf } from "@/lib/format";
 interface Live {
   online: boolean;
   aircraftNow: number;
+  /** 最後一次收到飛機的時間（ms），0 架時顯示「上一架 HH:MM 經過」 */
+  lastAircraftAt?: number | null;
 }
+
+// 固定台灣時區：server、client 算出來一樣，不會 hydration 不一致
+const hhmm = new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false });
 
 
 const MAX_BLIPS = 24;
@@ -66,6 +71,7 @@ function RadarScope({ active, count }: { active: boolean; count: number }) {
 
 export default function RadarLive({ initial }: { initial: Live }) {
   const [live, setLive] = useState<Live>(initial);
+  const empty = live.online && live.aircraftNow === 0;
 
   useEffect(() => {
     const ac = new AbortController();
@@ -74,7 +80,7 @@ export default function RadarLive({ initial }: { initial: Live }) {
       try {
         const res = await fetch("/api/radar", { signal: ac.signal });
         const d = (await res.json()) as Partial<Live> & { configured?: boolean };
-        if (d.configured) setLive({ online: Boolean(d.online), aircraftNow: d.aircraftNow ?? 0 });
+        if (d.configured) setLive({ online: Boolean(d.online), aircraftNow: d.aircraftNow ?? 0, lastAircraftAt: d.lastAircraftAt ?? null });
       } catch {
         // abort 或網路錯誤：維持原本顯示
       }
@@ -94,10 +100,19 @@ export default function RadarLive({ initial }: { initial: Live }) {
           <span aria-hidden className={`inline-block w-1.5 h-1.5 rounded-full ${live.online ? "bg-(--accent)" : "bg-(--border)"}`} />
           {live.online ? "收訊中 · Live" : "暫時離線 · Offline"}
         </p>
-        <p className="font-mono font-light text-(--text) leading-none" aria-live="polite">
+        {/* 0 架（2026-11-26，TODO M11）：深夜常常 0 架，一個超大的黑色「0」加空圓盤很像壞掉——
+            數字改淡色，旁邊說明上一架幾點經過；「收訊中」燈號照舊，看得出接收器是正常的 */}
+        <p className={`font-mono font-light leading-none ${empty ? "text-(--muted)" : "text-(--text)"}`} aria-live="polite">
           <span className="text-7xl sm:text-8xl">{live.online ? nf.format(live.aircraftNow) : "–"}</span>
           <span className="text-base text-(--muted) ml-2">架</span>
         </p>
+        {empty ? (
+          <p className="text-sm font-light text-(--text) mt-4">
+            目前上空沒有飛機
+            {live.lastAircraftAt ? <span className="text-(--muted)"> · 上一架 {hhmm.format(live.lastAircraftAt)} 經過</span> : null}
+            <span className="block text-xs text-(--muted) mt-1">深夜跟清晨航班比較少，白天再來看看。</span>
+          </p>
+        ) : null}
         <p className="text-xs text-(--muted) font-mono mt-4">現在收到的飛機 · Aircraft in range now</p>
         <p className="text-[11px] text-(--muted) font-mono mt-1">每 30 秒更新 · Updates every 30 s</p>
       </div>

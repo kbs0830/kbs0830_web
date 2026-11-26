@@ -26,6 +26,8 @@ export default function Reveal({
   const ref = useRevealOnce<HTMLDivElement>(margin);
   const style = {
     "--reveal-delay": `${delay}s`,
+    // CSS 捲動版（globals.css，TODO O1）用的錯開量：delay 秒數當倍數，換算成多捲幾 px 才開始淡入
+    "--reveal-stagger": delay,
     ...(distance !== undefined && { "--reveal-distance": `${distance}px` }),
     ...(duration !== undefined && { "--reveal-duration": `${duration}s` }),
   } as CSSProperties;

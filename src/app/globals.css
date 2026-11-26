@@ -185,9 +185,6 @@ body::after {
 @layer base {
   h1, h2, h3 { text-wrap: balance; }
   p, li, figcaption { text-wrap: pretty; }
-  /* 中文標題只在標點、空格換行，不會斷成「智慧商／務系」（TODO M7，2026-11-26）；
-     break-word：真的有一長串放不下時才硬斷，不會撐破版面 */
-  h1, h2, h3, h4 { word-break: keep-all; overflow-wrap: break-word; }
   /* 中英混排自動留 1/8 字寬的間隙（TODO M9）。實測（Chromium 156）：只補在「中文緊貼英數」的地方，
      已經手打半形空格的不會變兩倍。標點擠壓 text-spacing-trim 瀏覽器預設就是 normal，不用另外設 */
   html { text-autospace: normal; }
@@ -206,6 +203,8 @@ body::after {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* <details> 的展開內容（::details-content）也不在 * 的範圍內 */
+  details::details-content { transition: none !important; }
   /* View Transitions 的偽元素不在 * 的範圍內，要另外關 */
   ::view-transition-group(*),
   ::view-transition-old(*),
@@ -227,6 +226,29 @@ body::after {
 @keyframes vt-soften {
   30% { filter: blur(2px); }
 }
+/* 深色模式切換（ThemeToggle，TODO O4）：新畫面用 JS 的 clip-path 圓形擴散蓋上去，舊畫面不動、不做預設的交叉淡化 */
+html[data-theme-vt]::view-transition-old(root),
+html[data-theme-vt]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* 記事的上一篇／下一篇（blog/[slug]，TODO O3）：舊內容往反方向淡出、新內容從前進方向滑入 24px */
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back) {
+  animation: 180ms var(--ease-ma) both vt-fade-out, 360ms var(--ease-ma) both vt-slide-out;
+}
+::view-transition-new(.nav-forward),
+::view-transition-new(.nav-back) {
+  animation: 240ms var(--ease-ma) 120ms both vt-fade-in, 360ms var(--ease-ma) both vt-slide-in;
+}
+::view-transition-old(.nav-forward) { --vt-out: -24px; }
+::view-transition-new(.nav-forward) { --vt-in: 24px; }
+::view-transition-old(.nav-back) { --vt-out: 24px; }
+::view-transition-new(.nav-back) { --vt-in: -24px; }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+@keyframes vt-slide-out { to { translate: var(--vt-out) 0; } }
+@keyframes vt-slide-in { from { translate: var(--vt-in) 0; } }
 ::view-transition-new(.page-enter) {
   animation: vt-fade-up 450ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
 }
@@ -285,13 +307,40 @@ body::after {
   translate: none;
 }
 
+/* 2026-11-26（TODO O1）：支援 scroll-driven animation 的瀏覽器改用純 CSS——淡入跟著捲動走（元件頂端進入視窗後
+   捲 160px 完成），在合成執行緒跑；而且不用等 JS hydrate，慢網路時內容不會一直是透明的。
+   錯開：--reveal-stagger（Reveal 的 delay 秒數）× 80px，同一排的卡片左到右依序出現。
+   跟 JS 版的差別：往回捲時會反向淡出（純 CSS 做不到「只播一次」）。
+   不支援的瀏覽器照舊用 useRevealOnce 加 data-shown；時間軸圓點等靠 data-shown 的效果兩邊都照舊。 */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      transition: none;
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--reveal-stagger, 0) * 80px) entry calc(160px + var(--reveal-stagger, 0) * 80px);
+    }
+    [data-reveal="left"] { animation-name: reveal-left; }
+  }
+}
+@keyframes reveal-up {
+  from { opacity: 0; translate: 0 var(--reveal-distance, 20px); }
+  to { opacity: 1; translate: none; }
+}
+@keyframes reveal-left {
+  from { opacity: 0; translate: calc(var(--reveal-distance, 12px) * -1) 0; }
+  to { opacity: 1; translate: none; }
+}
+
 /* 原生 <details> 展開/收合動畫（About 技能分類）：零 JS。
    interpolate-size 讓 block-size 可以從 0 transition 到 auto；::details-content 是
    <details> 內容區的偽元素。不支援的瀏覽器照樣能開合，只是沒有動畫。 */
-details.disclosure {
+/* 2026-11-26（TODO O5）：從 details.disclosure 擴大到全站所有 <details>——/flights 的航線、/status 的事件、
+   文章目錄原本沒有加 class，展開是瞬間跳出來的 */
+details {
   interpolate-size: allow-keywords;
 }
-details.disclosure::details-content {
+details::details-content {
   block-size: 0;
   overflow-y: clip;
   opacity: 0;
@@ -300,7 +349,7 @@ details.disclosure::details-content {
     opacity 0.3s var(--ease-ma),
     content-visibility 0.3s allow-discrete;
 }
-details.disclosure[open]::details-content {
+details[open]::details-content {
   block-size: auto;
   opacity: 1;
 }
@@ -719,4 +768,37 @@ details.disclosure[open]::details-content {
 @keyframes star-breathe {
   from { opacity: 0.35; }
   to { opacity: 0.9; }
+}
+
+/* 說明泡泡（<Hint>，TODO O2）：原生 popover＋anchor positioning。打開的「?」本身就是錨點（popoverTarget 的隱含錨點），
+   泡泡放在上方、放不下就翻到下方；淡入 150ms。不支援 anchor 的瀏覽器用瀏覽器預設的置中彈出 */
+@layer components {
+  .hint-pop {
+    max-width: min(18rem, calc(100vw - 2rem));
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.6;
+    letter-spacing: normal;
+    text-transform: none;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease-ma), display 0.15s allow-discrete, overlay 0.15s allow-discrete;
+  }
+  .hint-pop:popover-open { opacity: 1; }
+  @starting-style {
+    .hint-pop:popover-open { opacity: 0; }
+  }
+  @supports (position-area: top) {
+    .hint-pop {
+      inset: auto;
+      margin: 0 0 6px;
+      position-area: top;
+      position-try-fallbacks: flip-block;
+    }
+  }
 }

@@ -193,6 +193,8 @@ function summarize(state, now) {
     configured: true,
     online,
     aircraftNow: online ? s.aircraftNow : 0,
+    // 最後一次收到飛機的時間（只有時間，沒有位置）：/radar 0 架時寫「上一架 HH:MM 經過」，不會看起來像壞掉（TODO M11）
+    lastAircraftAt: s.lastAircraftAt || null,
     today: {
       unique: today.unique,
       peak: today.peak,

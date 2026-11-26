@@ -6,6 +6,8 @@ import { CONTACT_LINKS, SITE_GROUPS } from "@/lib/site/site-map";
 
 const contactLink = "inline-flex items-baseline gap-2 py-1 text-sm font-light text-(--text) hover:text-(--accent) transition-colors";
 const small = "text-xs text-(--muted) font-light font-mono";
+// 點擊範圍往上下各擴 4px、外觀不變：手機實測這幾個連結只有 16px 高（WCAG 2.2 最小 24px，TODO M12）
+const tap = "py-1 -my-1";
 
 // 版權年份（TODO F10）：網站 2026 年開站；之後用 build 時那個 commit 的年份，明年自動變「2026–2027」
 const FIRST_YEAR = 2026;
@@ -84,13 +86,10 @@ export default function SiteFooter({
         <div className="pr-12 sm:pr-0 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
           <p className={`${small} tracking-[0.2em]`}>
             © {years} PINGWEI LI ·{" "}
-            <Link href="/" className="hover:text-(--accent) transition-colors">kbs0830</Link>
+            <Link href="/" className="inline-block py-1 -my-1 hover:text-(--accent) transition-colors">kbs0830</Link>
           </p>
-          <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
-          {/* 落款（TODO N8，使用者選 B）：這個網站架在自己的桌機上，連到 /colophon 看怎麼架的。只寫到城市 */}
-          <Link href="/colophon" className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`}>
-            自架於高雄<span className="hidden sm:inline"> · Self-hosted in Kaohsiung</span>
-          </Link>
+          <BuildInfo className={`${small} ${tap} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
+          {/* 落款「自架於高雄」2026-11-26 拿掉（TODO M15 使用者備註：「自架於高雄拿掉」）；/colophon 還在頁面索引「本站」欄 */}
         </div>
       </div>
     </footer>

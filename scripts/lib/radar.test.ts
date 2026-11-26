@@ -72,6 +72,12 @@ describe("summarize", () => {
     expect(json).not.toMatch(/8990f2|x9|192\.168|fr24key|lat|lon/i);
   });
 
+  it("lastAircraftAt：最後一次有飛機的時間，之後 0 架也保留（TODO M11）", () => {
+    let s = applySample(null, ok([{ hex: "a1", seen: 0 }]), T0);
+    s = applySample(s, ok([]), T0 + 30_000);
+    expect(summarize(s, T0 + 40_000)).toMatchObject({ aircraftNow: 0, lastAircraftAt: T0 });
+  });
+
   it("資料超過 3 分鐘沒更新就算離線（server 沒在讀）", () => {
     const s = applySample(null, ok([{ hex: "a1", seen: 0 }]), T0);
     expect(summarize(s, T0 + 4 * 60_000)).toMatchObject({ online: false, aircraftNow: 0 });
