@@ -20,6 +20,8 @@ const ACTION: Record<string, string> = {
   "todo.drop": "不做",
   "todo.reopen": "重開",
   "todo.import": "匯入",
+  "todo.ask": "Claude 提問",
+  "todo.say": "Claude 備註",
 };
 
 export const metadata: Metadata = { title: "待辦" };
