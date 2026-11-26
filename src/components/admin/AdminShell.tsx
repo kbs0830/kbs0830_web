@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import PageShell from "@/components/layout/PageShell";
 import AdminNav from "@/components/admin/AdminNav";
+import KeepLoginToggle from "@/components/admin/KeepLoginToggle";
 import { whoIsAdmin, type AdminIdentity } from "@/lib/admin/auth";
 import { logAdminVisit } from "@/lib/admin/login-log";
 
@@ -37,12 +38,15 @@ function LoginBar({ who }: { who: AdminIdentity }) {
       {who.via === "access" ? (
         <>
           <span>已登入 {who.email}</span>
+          <span className="ml-auto inline-flex flex-wrap items-center gap-2">
+          <KeepLoginToggle />
           <a
             href="/cdn-cgi/access/logout"
-            className="ml-auto inline-flex items-center h-8 px-3 rounded-full border border-(--border) text-(--text) hover:border-(--warn) hover:text-(--warn) transition-colors"
+            className="inline-flex items-center h-8 px-3 rounded-full border border-(--border) text-(--text) hover:border-(--warn) hover:text-(--warn) transition-colors"
           >
             登出
           </a>
+          </span>
         </>
       ) : (
         <span>{who.via === "ip" ? "家裡網路（免登入）" : "桌機本機（免登入）"}，不用登出</span>

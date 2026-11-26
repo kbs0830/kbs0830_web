@@ -5,6 +5,11 @@
 
 ---
 
+### 2026-11-26 後台入口、維持登入（G5、G6；使用者：「首頁加一格登入後台的按鈕，分成訪客參觀跟登入……記得加一個維持登入的按鈕」）
+- [x] G5 首頁導覽列加「登入」→ `/login`：站長登入（Google、Gmail 驗證碼、內網）／訪客參觀（`/demo/admin`）
+- [x] G6 後台登入狀態列的「維持登入」開關：改 Cloudflare Access app 的登入有效期（30 天／1 天，`lib/admin/cf-access.ts`、`/api/admin/session`），下次登入生效
+- [ ] G7 多人權限管控：設計寫在後台待辦，等使用者決定要給誰、什麼角色
+
 ### 2026-11-26 後台登入紀錄、訪客參觀（G3、G4；使用者：「紀錄登錄過的狀態，並多一個訪客參觀按鈕（裡面只有參考的 DATA）」）
 - [x] G3 登入紀錄：`whoIsAdmin()` 回傳身分（Cloudflare 登入／家裡網路／桌機本機），`AdminShell` 用 `after()` 記進 `data/admin.db` 的 `logins` 表；總覽顯示最近幾筆（裝置摘要、國家、看了幾頁）。不存 IP、完整 UA
 - [x] G4 訪客參觀：`/demo/admin` 六頁，範例資料在 `lib/admin/demo-data.ts`，決策表按了不存；後台拆成 `lib/admin/views.ts`（資料）＋`AdminView`（畫面）共用。

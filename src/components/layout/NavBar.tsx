@@ -87,6 +87,10 @@ export default function NavBar() {
           <li className="flex items-center gap-2">
             <QuickJumpButton icon className={iconButton} />
             <ThemeToggle className={iconButton} />
+            {/* 站長後台入口（2026-11-26 G5，使用者：「首頁上加一格登入後台的按鈕」）→ /login 再分訪客參觀／站長登入 */}
+            <Link href="/login" className="inline-flex items-center h-8 px-3 rounded-full border border-(--border) text-xs text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors">
+              登入
+            </Link>
           </li>
         </ul>
 
@@ -94,6 +98,9 @@ export default function NavBar() {
         <div className="flex sm:hidden items-center gap-2">
           <QuickJumpButton icon className={iconButton} />
           <ThemeToggle className={iconButton} />
+          <Link href="/login" className="inline-flex items-center h-8 px-3 rounded-full border border-(--border) text-xs text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors">
+            登入
+          </Link>
           <button
             ref={buttonRef}
             onClick={() => setMenuOpen((v) => !v)}

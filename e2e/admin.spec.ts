@@ -46,3 +46,18 @@ test("訪客參觀的決策表：按了有變、但不送出", async ({ page }) 
   await expect(page.getByRole("status")).toContainText("示範，不會存");
   expect(posts).toEqual([]);
 });
+
+// 登入入口（TODO G5）＋維持登入 API 的門禁（G6）
+test("/login 分成站長登入跟訪客參觀，首頁有登入按鈕", async ({ page, request }) => {
+  await page.goto("/login");
+  await expect(page.getByRole("link", { name: "登入後台 →" })).toHaveAttribute("href", "/admin");
+  await expect(page.getByRole("link", { name: "訪客參觀 →" })).toHaveAttribute("href", "/demo/admin");
+  await expect(page.getByText("內網")).toBeVisible();
+  const home = await (await request.get("/")).text();
+  expect(home).toContain('href="/login"');
+});
+
+test("/api/admin/session：外部 404、沒帶 Origin 的 POST 403", async ({ request }) => {
+  expect((await request.get("/api/admin/session", { headers: { "cf-connecting-ip": "203.0.113.9" } })).status()).toBe(404);
+  expect((await request.post("/api/admin/session", { data: { keep: true }, headers: { origin: "https://evil.example" } })).status()).toBe(403);
+});
