@@ -49,6 +49,19 @@ const MIGRATIONS = [
      done_at     INTEGER
    );
    CREATE INDEX todos_status_sort ON todos (status, sort);`,
+  // 3：登入紀錄（2026-11-26，使用者：「紀錄登錄過的狀態」）。session：同一次 Cloudflare 登入（7 天內）／同一天的本機、家裡 IP 算一筆
+  //    不存 IP、不存完整 User-Agent，只存「iPhone · Safari」這種摘要跟國家
+  `CREATE TABLE logins (
+     session  TEXT PRIMARY KEY,
+     via      TEXT NOT NULL CHECK (via IN ('access', 'ip', 'local')),
+     email    TEXT,
+     country  TEXT,
+     device   TEXT NOT NULL DEFAULT '',
+     first_at INTEGER NOT NULL,
+     last_at  INTEGER NOT NULL,
+     views    INTEGER NOT NULL DEFAULT 1
+   );
+   CREATE INDEX logins_last ON logins (last_at DESC);`,
 ];
 
 let db: { file: string; conn: DatabaseSync } | null = null;
@@ -170,6 +183,33 @@ export function importTodos(items: TodoInput[], now = Date.now()) {
     conn.exec("ROLLBACK");
     throw e;
   }
+}
+
+// ── 登入紀錄 ────────────────────────────────────────────
+export type LoginRow = {
+  session: string;
+  via: "access" | "ip" | "local";
+  email: string | null;
+  country: string | null;
+  device: string;
+  first_at: number;
+  last_at: number;
+  views: number;
+};
+
+/** 記一次後台瀏覽：同一個 session 只更新最後時間、頁數＋1 */
+export function recordLogin(row: { session: string; via: LoginRow["via"]; email?: string | null; country?: string | null; device: string }, now = Date.now()) {
+  getDb()
+    .prepare(
+      `INSERT INTO logins (session, via, email, country, device, first_at, last_at, views) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+       ON CONFLICT (session) DO UPDATE SET last_at = excluded.last_at, views = views + 1, device = excluded.device,
+         country = COALESCE(excluded.country, country)`,
+    )
+    .run(row.session, row.via, row.email ?? null, row.country ?? null, row.device, now, now);
+}
+
+export function recentLogins(limit = 10): LoginRow[] {
+  return getDb().prepare("SELECT * FROM logins ORDER BY last_at DESC LIMIT ?").all(limit) as LoginRow[];
 }
 
 /** 只給測試用 */

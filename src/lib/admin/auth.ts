@@ -57,29 +57,43 @@ const b64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(
 const decodeJson = (s: string) => JSON.parse(new TextDecoder().decode(b64url(s))) as Record<string, unknown>;
 
 /** 驗 Cloudflare Access 的 JWT。任何一步不對都回 false（不丟例外）。 */
-export async function verifyAccessJwt(token: string, cfg: AccessConfig, now = Date.now()): Promise<boolean> {
+/** 驗過的 JWT 內容（登入紀錄用）：sub＝Cloudflare 的使用者 id、iat＝這次登入的時間（秒） */
+export type AccessClaims = { email: string; sub: string; iat: number; country?: string };
+
+/** 驗 Cloudflare Access 的 JWT，過了回 claims、任何一步不對回 null（不丟例外） */
+export async function verifyAccessClaims(token: string, cfg: AccessConfig, now = Date.now()): Promise<AccessClaims | null> {
   try {
     const [h, p, sig] = token.split(".");
-    if (!h || !p || !sig) return false;
+    if (!h || !p || !sig) return null;
     const header = decodeJson(h);
-    if (header.alg !== "RS256" || typeof header.kid !== "string") return false;
+    if (header.alg !== "RS256" || typeof header.kid !== "string") return null;
     const key = await getKey(cfg.team, header.kid, now);
-    if (!key) return false;
+    if (!key) return null;
     const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64url(sig), new TextEncoder().encode(`${h}.${p}`));
-    if (!ok) return false;
+    if (!ok) return null;
     const claims = decodeJson(p);
     const sec = now / 1000;
     const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-    return (
+    const valid =
       claims.iss === `https://${cfg.team}.cloudflareaccess.com` &&
       aud.includes(cfg.aud) &&
       typeof claims.exp === "number" && claims.exp > sec &&
       (typeof claims.nbf !== "number" || claims.nbf <= sec + 60) &&
-      typeof claims.email === "string" && claims.email.toLowerCase() === cfg.email
-    );
+      typeof claims.email === "string" && claims.email.toLowerCase() === cfg.email;
+    if (!valid) return null;
+    return {
+      email: (claims.email as string).toLowerCase(),
+      sub: typeof claims.sub === "string" ? claims.sub : "",
+      iat: typeof claims.iat === "number" ? claims.iat : Math.floor(sec),
+      country: typeof claims.country === "string" ? claims.country : undefined,
+    };
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function verifyAccessJwt(token: string, cfg: AccessConfig, now = Date.now()): Promise<boolean> {
+  return (await verifyAccessClaims(token, cfg, now)) !== null;
 }
 
 /**
@@ -95,12 +109,27 @@ function isAllowedIp(h: HeaderLike): boolean {
   return list.includes(ip);
 }
 
-export async function isAdmin(h: HeaderLike): Promise<boolean> {
-  if (isLocalRequest(h)) return true;
-  if (isAllowedIp(h)) return true;
+/** 站長是怎麼進來的（登入紀錄用）。access＝Cloudflare 登入（有信箱）、ip＝家裡 IP、local＝桌機本機／Tailscale 直連 */
+export type AdminIdentity =
+  | { via: "access"; email: string; session: string; country?: string }
+  | { via: "ip"; ip: string }
+  | { via: "local" };
+
+/** 是站長就回身分、不是回 null。有 Cloudflare 登入的優先（才知道是誰），再看本機、家裡 IP */
+export async function whoIsAdmin(h: HeaderLike): Promise<AdminIdentity | null> {
   const cfg = envConfig();
   const token = h.get("cf-access-jwt-assertion");
-  return !!cfg && !!token && verifyAccessJwt(token, cfg);
+  if (cfg && token) {
+    const c = await verifyAccessClaims(token, cfg);
+    if (c) return { via: "access", email: c.email, session: `${c.sub}:${c.iat}`, country: c.country ?? h.get("cf-ipcountry") ?? undefined };
+  }
+  if (isLocalRequest(h)) return { via: "local" };
+  if (isAllowedIp(h)) return { via: "ip", ip: h.get("cf-connecting-ip")!.trim() };
+  return null;
+}
+
+export async function isAdmin(h: HeaderLike): Promise<boolean> {
+  return (await whoIsAdmin(h)) !== null;
 }
 
 export const isAdminRequest = (req: NextRequest) => isAdmin(req.headers);

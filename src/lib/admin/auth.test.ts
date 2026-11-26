@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { __resetKeyCache, isAdmin, verifyAccessJwt, type AccessConfig } from "@/lib/admin/auth";
+import { __resetKeyCache, isAdmin, verifyAccessJwt, whoIsAdmin, type AccessConfig } from "@/lib/admin/auth";
 
 const cfg: AccessConfig = { team: "example", aud: "aud-123", email: "owner@example.com" };
 const NOW = 1_800_000_000_000;
@@ -99,6 +99,20 @@ describe("isAdmin", () => {
     expect(await isAdmin(new Headers({ "cf-ipcountry": "TW" }))).toBe(false);
     vi.stubEnv("ADMIN_ALLOW_IPS", "");
     expect(await isAdmin(new Headers({ "cf-connecting-ip": "198.51.100.7" }))).toBe(false);
+  });
+
+  it("whoIsAdmin：有效 JWT 優先回信箱（就算也在家裡 IP），不然本機／家裡 IP", async () => {
+    vi.stubEnv("CF_ACCESS_TEAM", cfg.team);
+    vi.stubEnv("CF_ACCESS_AUD", cfg.aud);
+    vi.stubEnv("ADMIN_EMAIL", cfg.email);
+    vi.stubEnv("ADMIN_ALLOW_IPS", "198.51.100.7");
+    mockCerts();
+    const token = await sign({ ...good(), sub: "u1", iat: 1234, exp: Date.now() / 1000 + 600, nbf: Date.now() / 1000 - 10 });
+    expect(await whoIsAdmin(new Headers({ "cf-connecting-ip": "198.51.100.7", "cf-ipcountry": "TW", "cf-access-jwt-assertion": token })))
+      .toEqual({ via: "access", email: "owner@example.com", session: "u1:1234", country: "TW" });
+    expect(await whoIsAdmin(new Headers({ "cf-connecting-ip": "198.51.100.7" }))).toEqual({ via: "ip", ip: "198.51.100.7" });
+    expect(await whoIsAdmin(new Headers())).toEqual({ via: "local" });
+    expect(await whoIsAdmin(new Headers({ "cf-connecting-ip": "203.0.113.1" }))).toBeNull();
   });
 
   it("外部帶有效 JWT 且 env 有設 → 放行", async () => {

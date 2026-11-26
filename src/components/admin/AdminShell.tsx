@@ -1,14 +1,20 @@
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import PageShell from "@/components/layout/PageShell";
 import AdminNav from "@/components/admin/AdminNav";
-import { isAdmin } from "@/lib/admin/auth";
+import { whoIsAdmin } from "@/lib/admin/auth";
+import { logAdminVisit } from "@/lib/admin/login-log";
 
 // 後台每一頁的外框：PageShell（compact：手機一打開就看到內容）＋分頁列。頁面裡再驗一次門禁（proxy.ts 是第一道）。
 // 讀 headers() 是即時資料，所以呼叫端要包在 <Suspense> 裡（照 /radar 的寫法）；fallback 用 <PageShell compact …>。
 export default async function AdminShell({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
-  if (!(await isAdmin(await headers()))) notFound();
+  const h = await headers();
+  const who = await whoIsAdmin(h);
+  if (!who) notFound();
+  // 登入紀錄（TODO G3）：回應送出去之後才寫資料庫
+  after(() => logAdminVisit(who, h));
   return (
     <PageShell compact backHref="/" backLabel="回網站" eyebrow="站長後台 · Admin" title={title} intro={intro}>
       <AdminNav />

@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-11-26 後台登入紀錄、訪客參觀（G3、G4；使用者：「紀錄登錄過的狀態，並多一個訪客參觀按鈕（裡面只有參考的 DATA）」）
+- [x] G3 登入紀錄：`whoIsAdmin()` 回傳身分（Cloudflare 登入／家裡網路／桌機本機），`AdminShell` 用 `after()` 記進 `data/admin.db` 的 `logins` 表；總覽顯示最近幾筆（裝置摘要、國家、看了幾頁）。不存 IP、完整 UA
+- [x] G4 訪客參觀：`/demo/admin` 六頁，範例資料在 `lib/admin/demo-data.ts`，決策表按了不存；後台拆成 `lib/admin/views.ts`（資料）＋`AdminView`（畫面）共用。
+  入口：`/colophon` 的「訪客參觀 →」、Cloudflare 登入頁下方一行字（API 改 Access 組織的 login_design）
+- [ ] G2 Google 登入：等使用者建 Google OAuth client 並加進 Zero Trust 登入方式
+
 ### 2026-11-26 站長後台登入：Cloudflare Access（使用者：「後台開始做登入」）
 - [x] 使用者補了 `kbs0830-config` 金鑰的兩個 Access 權限（應用程式與原則、組織／識別提供者／群組：編輯）、開通 Zero Trust 免費版（team `kbs0830`）
 - [x] Claude 用 API 建：登入方式「Email 驗證碼」（One-time PIN）、Access app「kbs0830 站長後台」保護 `/admin`、`/admin/*`、`/api/admin`、`/api/admin/*`，

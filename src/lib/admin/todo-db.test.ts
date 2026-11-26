@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { __closeDb, listDecisions, listTodos, recentEvents, saveDecision } from "@/lib/admin/db";
+import { __closeDb, listDecisions, listTodos, recentEvents, recentLogins, recordLogin, saveDecision } from "@/lib/admin/db";
 import { parseTodo, readTodo } from "@/lib/admin/todo";
 
 const md = [
@@ -89,5 +89,19 @@ describe("admin db", () => {
 
   it("choice 不是三種之一 → 資料庫擋下", () => {
     expect(() => saveDecision("B16", "maybe" as never, "", 1)).toThrow();
+  });
+});
+
+describe("登入紀錄（G3）", () => {
+  beforeEach(() => vi.stubEnv("ADMIN_DB_FILE", ":memory:"));
+  afterEach(() => { __closeDb(); vi.unstubAllEnvs(); });
+
+  it("同一個 session 只算一筆，頁數累加、最後時間更新", () => {
+    recordLogin({ session: "access:u1:100", via: "access", email: "a@b.c", country: "TW", device: "手機 · iOS · Safari" }, 1000);
+    recordLogin({ session: "access:u1:100", via: "access", email: "a@b.c", country: null, device: "手機 · iOS · Safari" }, 5000);
+    recordLogin({ session: "local:2026-11-26", via: "local", device: "桌機 · Windows · Chrome" }, 3000);
+    const rows = recentLogins();
+    expect(rows.map((r) => r.session)).toEqual(["access:u1:100", "local:2026-11-26"]);
+    expect(rows[0]).toMatchObject({ views: 2, first_at: 1000, last_at: 5000, country: "TW" });
   });
 });

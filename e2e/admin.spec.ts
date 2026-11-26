@@ -24,3 +24,25 @@ test("決策表 POST：外部 404、沒帶 Origin 403、格式錯 400、不存�
   expect((await request.post(url, { data: { ...ok, choice: "maybe" }, headers: local })).status()).toBe(400);
   expect((await request.post(url, { data: ok, headers: local })).status()).toBe(404);
 });
+
+// 訪客參觀（TODO G4）：公開、不用登入，資料是範例；決策表按了不打 API
+test("訪客參觀 /demo/admin：外部也是 200、有範例提示、不進 sitemap", async ({ request }) => {
+  for (const p of ["/demo/admin", "/demo/admin/ops", "/demo/admin/mail", "/demo/admin/traffic", "/demo/admin/todo", "/demo/admin/reports"]) {
+    const res = await request.get(p, { headers: { "cf-connecting-ip": "203.0.113.9" } });
+    expect(res.status(), p).toBe(200);
+    expect(await res.text(), p).toContain("範例資料");
+  }
+  expect(await (await request.get("/sitemap.xml")).text()).not.toContain("/demo/admin");
+});
+
+test("訪客參觀的決策表：按了有變、但不送出", async ({ page }) => {
+  const posts: string[] = [];
+  page.on("request", (r) => { if (r.method() === "POST" && r.url().includes("/api/admin")) posts.push(r.url()); });
+  await page.goto("/demo/admin/todo"); // gotoReady 的 data-hydrated 只有首頁有（KeyboardShortcuts）
+  await page.waitForLoadState("networkidle");
+  const group = page.getByRole("group", { name: /作品頁加「技術選擇的理由」/ });
+  await group.getByRole("button", { name: "先做" }).click();
+  await expect(group.getByRole("button", { name: "先做" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("status")).toContainText("示範，不會存");
+  expect(posts).toEqual([]);
+});

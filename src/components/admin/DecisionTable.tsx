@@ -42,7 +42,8 @@ async function post(itemId: string, choice: Choice | null, note: string) {
   }
 }
 
-export default function DecisionTable({ items, decisions }: { items: TodoItem[]; decisions: Decision[] }) {
+// demo：訪客參觀（/demo/admin/todo，TODO G4）——按了只在瀏覽器裡變，不打 API、不存
+export default function DecisionTable({ items, decisions, demo = false }: { items: TodoItem[]; decisions: Decision[]; demo?: boolean }) {
   const [state, setState] = useState<State>(() =>
     Object.fromEntries(decisions.map((d) => [d.itemId, { choice: d.choice, note: d.note }])),
   );
@@ -70,10 +71,10 @@ export default function DecisionTable({ items, decisions }: { items: TodoItem[];
     const prev = state[id];
     setState((s) => ({ ...s, [id]: next }));
     try {
-      await post(id, next.choice, next.note);
+      if (!demo) await post(id, next.choice, next.note);
       if (!next.choice && !next.note.trim()) setState((s) => without(s, id));
       const what = next.choice ? LABEL[next.choice] : next.note.trim() ? "備註" : "取消";
-      showToast({ kind: "ok", text: `${title} → ${what}` });
+      showToast({ kind: "ok", text: demo ? `${title} → ${what}（示範，不會存）` : `${title} → ${what}` });
     } catch (e) {
       setState((s) => (prev ? { ...s, [id]: prev } : without(s, id)));
       showToast({ kind: "error", text: `沒存到（${e instanceof Error ? e.message : "連線失敗"}），已退回` });

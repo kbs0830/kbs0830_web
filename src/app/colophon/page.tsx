@@ -322,6 +322,22 @@ async function ColophonContent() {
         ))}
       </div>
 
+      {/* 站長後台的訪客參觀（TODO G4，2026-11-26）：真的後台要登入，這裡看範例資料版 */}
+      <div className="mt-12 border border-(--border) rounded-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <div>
+          <p className="text-[15px] font-serif text-(--text)">站長後台 · Admin</p>
+          <p className="mt-1 text-[13px] font-light text-(--muted) leading-relaxed">
+            部署、告警、流量、待辦都集中在一個只有我能登入的後台。想看長什麼樣，可以用範例資料參觀。
+          </p>
+        </div>
+        <Link
+          href="/demo/admin"
+          className="shrink-0 inline-flex items-center justify-center h-10 px-4 rounded-sm border border-(--accent) text-sm text-(--accent) hover:bg-(--accent-lt) transition-colors"
+        >
+          訪客參觀 →
+        </Link>
+      </div>
+
       <p className="text-xs text-(--muted) font-light mt-12 leading-relaxed">
         原始碼都在 GitHub（網站本身、部署腳本、watchdog）。字體：Noto Serif JP、Geist、Geist Mono。
       </p>
