@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ViewTransition } from "react";
 import { withShare } from "@/lib/site/share-meta";
 import Link from "next/link";
 import { getAllPosts, getAllTags } from "@/lib/content/blog";
@@ -38,9 +39,10 @@ export default function BlogIndexPage() {
               {post.date}
               {post.series && <span className="text-(--accent)"> · 系列「{post.series}」{post.seriesOrder}</span>}
             </p>
-            <h2 className="text-lg font-light text-(--text) group-hover:text-(--accent) transition-colors mb-2">
-              {post.title}
-            </h2>
+            {/* O3（2026-11-26）：點進文章時標題 morph 到文章頁的 <h1>，跟作品卡→作品頁同一套 */}
+            <ViewTransition name={`post-title-${post.slug}`} share="morph" default="none">
+              <h2 className="text-lg font-light text-(--text) group-hover:text-(--accent) transition-colors mb-2">{post.title}</h2>
+            </ViewTransition>
             <p className="text-sm font-light text-(--muted) leading-relaxed mb-3">
               {post.description}
             </p>

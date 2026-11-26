@@ -1,15 +1,17 @@
 import { test, expect } from "@playwright/test";
 import { gotoReady } from "./helpers";
 
-test("NavBar 從透明變成半透明背景（捲動超過 60px 後）", async ({ page }) => {
+test("NavBar 從透明變成半透明背景（捲動 0～60px 慢慢出現，TODO F7）", async ({ page }) => {
   await gotoReady(page, "/");
-  const header = page.locator("header");
+  // 底色、模糊、細線畫在 header::before：用它的 opacity 看（0＝透明，1＝全出現）。
+  // 支援 animation-timeline: scroll() 的瀏覽器純 CSS 跟著捲動；不支援的退回 JS（捲過 60px 加 .is-solid）
+  const opacity = () => page.evaluate(() => Number(getComputedStyle(document.querySelector("header.nav-fade")!, "::before").opacity));
 
   // gotoReady 已經等過 hydration，scroll 監聽一定掛好了
-  await expect(header).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect.poll(opacity).toBe(0);
 
   await page.evaluate(() => window.scrollTo(0, 400));
-  await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect.poll(opacity).toBeGreaterThan(0.9);
 });
 
 test("NavBar 桌機版連結可以錨點跳轉到對應 section", async ({ page }) => {

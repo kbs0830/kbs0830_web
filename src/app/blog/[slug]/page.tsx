@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { ViewTransition, type ReactNode } from "react";
 import {
   getAdjacentPosts,
   getAllPosts,
@@ -183,9 +183,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </p>
       {/* 列印版（TODO B11）：紙上看不到網址列，開頭印一行原文網址；文章底下的導覽、相關文章、留言不印 */}
       <p className="hidden print:block text-xs font-mono mb-2">原文：{`${SITE_URL}/blog/${post.slug}`}</p>
-      <h1 className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug font-serif">
-        {post.title}
-      </h1>
+      <ViewTransition name={`post-title-${post.slug}`} share="morph" default="none">
+        <h1 className="text-2xl sm:text-3xl font-light text-(--text) mb-4 leading-snug font-serif">{post.title}</h1>
+      </ViewTransition>
       <p className="text-sm font-light text-(--muted) mb-6">{post.titleEn}</p>
 
       <div className="flex flex-wrap gap-1.5 mb-12 print:hidden">

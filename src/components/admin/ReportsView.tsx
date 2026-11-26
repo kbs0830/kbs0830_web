@@ -201,6 +201,7 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
               {!r.notFound.total && <Empty>沒有 404（掃描器的不算）。</Empty>}
             </div>
           )}
+          {r.go && <Shares label="外部連結點擊（/go/ 代號，真人）" entries={r.go} />}
           {r.hero && <Shares label="首頁 3D 背景拿到哪一版（分頁）" entries={r.hero} />}
           {r.vitals && (
             <div>

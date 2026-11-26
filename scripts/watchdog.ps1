@@ -256,6 +256,9 @@ foreach ($rp in "week", "month") {
 # --- 每季備份還原演練（超過 90 天沒演練才真的跑：從 GitHub 下載、解密、跟 D: 逐檔比，結果寄信）---
 try { & (Join-Path $PSScriptRoot "restore-drill.ps1") -IfOlderThanDays 90 | Out-Null } catch { Log "[WARN] restore-drill.ps1 失敗：$($_.Exception.Message)" }
 
+# --- 每月外部連結檢查（超過 30 天沒檢查才真的跑；有壞連結才寄信，沒壞就只記 logs\link-check.log）---
+try { & (Join-Path $PSScriptRoot "link-check.ps1") -IfOlderThanDays 30 | Out-Null } catch { Log "[WARN] link-check.ps1 失敗：$($_.Exception.Message)" }
+
 # --- 提醒信（reminders.json 排的日期到了就寄，每則只寄一次；失敗不影響監控結果）---
 try { & (Join-Path $PSScriptRoot "reminders.ps1") | Out-Null } catch { Log "[WARN] reminders.ps1 失敗：$($_.Exception.Message)" }
 

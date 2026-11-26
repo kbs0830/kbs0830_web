@@ -41,7 +41,13 @@ export function getAllPosts(): BlogPost[] {
         content,
       };
     })
-    .sort((a, b) => b.date.localeCompare(a.date));
+    // 同一天的同系列文章，系列號大的在前（跟「新的在前」同方向）。2026-11-26（TODO M10）之前同一天的順序取決於檔名，
+    // 列表上「自架網站維運」顯示成 2、5、3、4，上一篇／下一篇也跟著亂跳
+    .sort(
+      (a, b) =>
+        b.date.localeCompare(a.date) ||
+        (a.series && a.series === b.series ? (b.seriesOrder ?? 0) - (a.seriesOrder ?? 0) : 0),
+    );
 }
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

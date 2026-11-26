@@ -9,6 +9,7 @@ import { readChangelog, type ChangelogEntry } from "@/lib/ops/changelog";
 import { getAllPosts } from "@/lib/content/blog";
 import { readDelays } from "@/lib/travel/airport-delay-recorder";
 import { summarizeDelaysRange, type DelaySummary } from "@/lib/travel/airport-delays";
+import { readGoClicks } from "@/lib/stats/go-clicks";
 import { readHeroStats, VARIANT_NAMES, type HeroVariant } from "@/lib/stats/hero-stats";
 import { AIRLINE_NAMES, TYPE_NAMES, readState as readRadar } from "../../../scripts/lib/radar.js";
 import { nf, monthDay as md } from "@/lib/format";
@@ -147,6 +148,8 @@ export interface Report {
   radar: { unique: number; peak: number; onlinePct: number | null; airlines: Entry[]; types: Entry[]; days: number } | null;
   delays: DelaySummary;
   hero: Entry[] | null;
+  /** /go/<代號> 的點擊（E10）：站內推薦連結、外部連結有沒有人點 */
+  go: Entry[] | null;
   vitals: { metric: string; p75: number; n: number }[] | null;
   disk: { drive: string; freeGb: number; pct: number }[];
   changes: ChangelogEntry[];
@@ -302,6 +305,8 @@ export function buildReport(range: Range, now = new Date()): Report {
     ? top(heroDays, 10).map(([k, n]): Entry => [VARIANT_NAMES[k as HeroVariant] ?? k, n])
     : null;
 
+  const go = readGoClicks(from, end);
+
   const minFlights = range.period === "day" ? 1 : range.period === "week" ? 2 : 4;
 
   return {
@@ -340,6 +345,7 @@ export function buildReport(range: Range, now = new Date()): Report {
     radar,
     delays: summarizeDelaysRange(readDelays(), from, end, 8, minFlights),
     hero,
+    go,
     vitals: webVitals(),
     disk: diskFree(),
     changes: readChangelog().filter((c) => inRange(c.date, from, end)),
@@ -404,6 +410,10 @@ export function reportText(r: Report): string {
   if (r.notFound && (r.notFound.total || r.notFound.scanners)) {
     L.push(`【404】${N(r.notFound.total)} 次（掃描器亂試另外 ${N(r.notFound.scanners)} 次，不列）`);
     if (r.notFound.paths.length) L.push(`  ${list(r.notFound.paths.slice(0, 10))}`);
+    L.push("");
+  }
+  if (r.go) {
+    L.push(`【外部連結點擊（/go/）】${list(r.go)}`);
     L.push("");
   }
   if (r.hero) {

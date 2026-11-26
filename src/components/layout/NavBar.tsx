@@ -55,9 +55,7 @@ export default function NavBar() {
   return (
     <header
       ref={headerRef}
-      className={`fixed top-0 left-0 right-0 z-50 enter-up transition-colors duration-500 border-b ${
-        solid ? "bg-(--nav-bg) backdrop-blur-md border-(--border)" : "border-transparent"
-      }`}
+      className={`nav-fade fixed top-0 left-0 right-0 z-50 enter-up ${solid ? "is-solid" : ""}`}
       style={{ "--enter-duration": "0.6s", "--enter-distance": "-16px" } as React.CSSProperties}
     >
       <div className="scroll-progress absolute top-0 left-0 right-0 h-[2px] bg-(--accent)" />
