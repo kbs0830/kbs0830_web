@@ -36,6 +36,8 @@ export default function Typewriter({ text, startDelay = 0, speed = 42 }: { text:
         aria-hidden
         className={`inline-block w-[2px] h-[0.9em] bg-(--accent) ml-0.5 align-middle ${done ? "opacity-0" : "animate-pulse"}`}
       />
+      {/* 還沒打出來的字先隱形佔位：整行寬度從頭到尾固定，桌機 Hero 置中時（2026-11-26）才不會每打一個字整行往左挪 */}
+      <span aria-hidden className="invisible">{text.slice(count)}</span>
     </>
   );
 }
