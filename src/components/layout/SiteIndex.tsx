@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_GROUPS } from "@/lib/site/site-map";
+import { CONTACT_LINKS, SITE_GROUPS } from "@/lib/site/site-map";
 
 // 全站頁面目錄（手機選單用）：每組「小標＋連結橫排換行」，點擊高度約 40px。
 // 2026-11-24 使用者：「手機版多利用右上角選單做收納，重點顯示，剩下收起來」——
@@ -21,6 +21,18 @@ export default function SiteIndex({ onNavigate }: { onNavigate?: () => void }) {
           </ul>
         </div>
       ))}
+      <div>
+        <p className="mb-0.5 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">找我 · Find me</p>
+        <ul className="flex flex-wrap gap-x-5">
+          {CONTACT_LINKS.filter((c) => !c.href.startsWith("/")).map((c) => (
+            <li key={c.label}>
+              <a href={c.href} {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="inline-block py-2 text-[15px] font-light text-(--text) hover:text-(--accent) transition-colors">
+                {c.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

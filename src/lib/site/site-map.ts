@@ -1,4 +1,5 @@
 import type { Route } from "next";
+import { EMAIL, GITHUB_URL } from "@/lib/site/site";
 
 // 全站頁面索引（2026-11-23，「頁面瀏覽方便程度」）：頁尾的頁面清單（SiteFooter）跟 Ctrl+K 快速跳轉（QuickJump）共用這一份。
 // 新增獨立頁面時加進對應的分組，兩邊就都找得到（還是要另外加進 sitemap.ts）。
@@ -97,3 +98,10 @@ export function matchItems(items: JumpItem[], query: string): JumpItem[] {
   }
   return scored.sort((a, b) => a.score - b.score).map((s) => s.item);
 }
+
+// 頁尾「找我」一欄（TODO F8，2026-11-26）：外部連結跟 mailto 不是站內 Route，獨立一份；之後 /hire、贊助連結也加在這。
+export const CONTACT_LINKS: { label: string; en: string; href: string; external?: boolean }[] = [
+  { label: "GitHub", en: "kbs0830", href: GITHUB_URL, external: true },
+  { label: "Email", en: "寫信", href: `mailto:${EMAIL}` },
+  { label: "API", en: "/developers", href: "/developers" },
+];

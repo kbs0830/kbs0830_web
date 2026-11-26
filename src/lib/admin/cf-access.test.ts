@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { KEEP_ON, getSessionDuration, setSessionDuration } from "@/lib/admin/cf-access";
+import { KEEP_ON, __resetSessionCache, getSessionDuration, setSessionDuration } from "@/lib/admin/cf-access";
 
 const app = {
   id: "app1", aud: "aud-123", name: "kbs0830 站長後台", type: "self_hosted", domain: "kbs0830.com/admin",
@@ -20,7 +20,7 @@ function mockCf() {
   return calls;
 }
 
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); __resetSessionCache(); });
 
 describe("cf-access（維持登入）", () => {
   it("用 CF_ACCESS_AUD 找到後台的 app，讀登入有效期", async () => {

@@ -26,6 +26,8 @@ export type TodoItem = {
   recommended: boolean;
   status: TodoStatus;
   doneAt?: number | null;
+  /** 有比摘要更多的說明（列表頁不帶 detail 時，用這個決定要不要顯示「完整說明」） */
+  more?: boolean;
 };
 
 const SIZE: Record<string, Size> = { "🟥": "L", "🟧": "M", "🟩": "S" };
@@ -195,3 +197,13 @@ export function readTodo({ all = false }: { all?: boolean } = {}): TodoItem[] {
     return [];
   }
 }
+
+/** 說明比摘要多：有子項目、或第一行被截斷 */
+export const hasMoreDetail = (i: Pick<TodoItem, "detail" | "summary">) =>
+  i.detail.includes("\n") || i.summary.endsWith("…") || i.detail.replace(/\s/g, "").length > i.summary.replace(/\s/g, "").length + 12;
+
+/**
+ * 列表頁用：拿掉完整說明，只留 more 旗標（2026-11-26 使用者：「admin 後台開始卡了」——90 項的完整說明一起塞進頁面，一頁 370 KB）。
+ * 點「完整說明」時才打 GET /api/admin/decisions?detail=<id> 拿全文
+ */
+export const withoutDetail = (items: TodoItem[]): TodoItem[] => items.map((i) => ({ ...i, detail: "", more: hasMoreDetail(i) }));

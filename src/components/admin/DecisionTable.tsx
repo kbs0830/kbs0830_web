@@ -188,8 +188,24 @@ function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value |
   const [draft, setDraft] = useState(note);
   const [editing, setEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  // 說明比摘要多（有子項目、或第一行被截斷）才給「說明」按鈕
-  const hasMore = item.detail.includes("\n") || item.summary.endsWith("…") || item.detail.replace(/\s/g, "").length > item.summary.replace(/\s/g, "").length + 12;
+  // 真後台的列表不帶全文（item.detail 是空的、item.more 說有沒有更多），點開才抓；訪客參觀的範例資料直接帶全文
+  const [detail, setDetail] = useState(item.detail);
+  const [loading, setLoading] = useState(false);
+  const hasMore = item.more ?? (item.detail.includes("\n") || item.summary.endsWith("…") || item.detail.replace(/\s/g, "").length > item.summary.replace(/\s/g, "").length + 12);
+  const toggleDetail = async () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (!next || detail) return;
+    setLoading(true);
+    try {
+      const r = await fetch(`/api/admin/decisions?detail=${encodeURIComponent(item.id)}`);
+      setDetail(r.ok ? ((await r.json()) as { detail: string }).detail : "讀不到說明，重新整理再試一次。");
+    } catch {
+      setDetail("讀不到說明，重新整理再試一次。");
+    } finally {
+      setLoading(false);
+    }
+  };
   const titleId = `todo-${item.id.replace(/[^\w-]/g, "_")}`;
   const commitNote = () => {
     setEditing(false);
@@ -214,7 +230,7 @@ function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value |
           <button
             type="button"
             aria-expanded={expanded}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={toggleDetail}
             className="mt-1 inline-flex items-center gap-1 text-[11px] text-(--accent) hover:underline underline-offset-2"
           >
             <span aria-hidden className={`inline-block transition-transform ${expanded ? "rotate-90" : ""}`}>▸</span>
@@ -223,7 +239,7 @@ function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value |
         )}
         {expanded && (
           <div className="mt-2 rounded-sm bg-(--surface) px-3 py-2.5">
-            <MiniMarkdown text={item.detail} />
+            {loading ? <p className="text-[12px] font-light text-(--muted)">讀取中…</p> : <MiniMarkdown text={detail} />}
           </div>
         )}
         {readOnly && item.doneAt && (

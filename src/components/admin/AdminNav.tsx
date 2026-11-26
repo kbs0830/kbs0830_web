@@ -20,7 +20,10 @@ export default function AdminNav({ base = "/admin" }: { base?: "/admin" | "/demo
           const active = path === href;
           return (
             <li key={p.href} className="shrink-0">
+              {/* prefetch 關掉（2026-11-26 使用者：「admin 後台開始卡了」）：每頁都是即時資料、待辦／完成頁一頁三五百 KB，
+                  一打開後台就把 7 個分頁全部預先抓一次，手機經過 Cloudflare 要等很久。改成按了才抓 */}
               <Link
+                prefetch={false}
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`inline-flex items-center h-9 px-3 sm:px-3.5 rounded-full text-sm transition-colors ${

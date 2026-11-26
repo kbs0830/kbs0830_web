@@ -60,9 +60,19 @@ async function findApp(): Promise<App> {
   return app;
 }
 
-export async function getSessionDuration(): Promise<string> {
-  return (await findApp()).session_duration ?? "24h";
+// 讀到的值記 10 分鐘（後台每換一頁開關都會問一次，每次打 Cloudflare 要 0.4～1.5 秒）；自己改了就直接換成新值
+let cached: { value: string; at: number } | null = null;
+const CACHE_MS = 10 * 60_000;
+
+export async function getSessionDuration(now = Date.now()): Promise<string> {
+  if (cached && now - cached.at < CACHE_MS) return cached.value;
+  const value = (await findApp()).session_duration ?? "24h";
+  cached = { value, at: now };
+  return value;
 }
+
+/** 只給測試用 */
+export const __resetSessionCache = () => { cached = null; };
 
 /** 改登入有效期。PUT 要整份設定，所以先讀再把原本的欄位原樣送回去，只換 session_duration */
 export async function setSessionDuration(duration: typeof KEEP_ON | typeof KEEP_OFF): Promise<string> {
@@ -79,5 +89,7 @@ export async function setSessionDuration(duration: typeof KEEP_ON | typeof KEEP_
     session_duration: duration,
   };
   const updated = await cf<App>(`/accounts/${await account()}/access/apps/${app.id}`, { method: "PUT", body: JSON.stringify(body) });
-  return updated.session_duration ?? duration;
+  const value = updated.session_duration ?? duration;
+  cached = { value, at: Date.now() };
+  return value;
 }

@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import FooterNavLink from "@/components/layout/FooterNavLink";
 import BuildInfo from "@/components/live/BuildInfo";
-import { SITE_GROUPS } from "@/lib/site/site-map";
+import Link from "next/link";
+import { CONTACT_LINKS, SITE_GROUPS } from "@/lib/site/site-map";
 
+const contactLink = "inline-flex items-baseline gap-2 py-1 text-sm font-light text-(--text) hover:text-(--accent) transition-colors";
 const small = "text-xs text-(--muted) font-light font-mono";
 
 // 版權年份（TODO F10）：網站 2026 年開站；之後用 build 時那個 commit 的年份，明年自動變「2026–2027」
@@ -32,7 +34,7 @@ export default function SiteFooter({
   const box = inset === "inner" ? `${width} mx-auto px-6` : `${width} mx-auto`;
   return (
     <footer className={`border-t border-(--border) print:hidden ${inset === "outer" ? "px-6" : ""} ${className}`}>
-      <nav aria-label="網站頁面" className={`${box} hidden sm:grid pt-12 pb-8 grid-cols-3 gap-x-6 gap-y-10`}>
+      <nav aria-label="網站頁面" className={`${box} hidden sm:grid pt-12 pb-8 grid-cols-4 gap-x-6 gap-y-10`}>
         {SITE_GROUPS.map((g) => (
           <div key={g.label}>
             <p className="mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">{g.label}</p>
@@ -48,6 +50,22 @@ export default function SiteFooter({
             </ul>
           </div>
         ))}
+        <div>
+          <p className="mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">找我 · Find me</p>
+          <ul className="space-y-1">
+            {CONTACT_LINKS.map((c) => (
+              <li key={c.label}>
+                {c.href.startsWith("/") ? (
+                  <Link href={c.href as never} className={contactLink}>{c.label}<span className="text-[10px] tracking-wider text-(--muted) font-mono">{c.en}</span></Link>
+                ) : (
+                  <a href={c.href} {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className={contactLink}>
+                    {c.label}<span className="text-[10px] tracking-wider text-(--muted) font-mono">{c.en}</span>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
       {/* 右下角固定的 ↑ 按鈕會壓到最後幾行——xl 以下右側多留按鈕的寬度，寬螢幕時按鈕在欄位外面 */}
       <div className={`${box} ${inset === "inner" ? "sm:pr-20 xl:pr-6" : "sm:pr-14 xl:pr-0"} pt-8 sm:pt-0 pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
@@ -57,7 +75,10 @@ export default function SiteFooter({
           </div>
         )}
         <div className="pr-12 sm:pr-0 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
-          <p className={`${small} tracking-[0.2em]`}>© {years} PINGWEI LI</p>
+          <p className={`${small} tracking-[0.2em]`}>
+            © {years} PINGWEI LI ·{" "}
+            <Link href="/" className="hover:text-(--accent) transition-colors">kbs0830</Link>
+          </p>
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
         </div>
       </div>

@@ -7,7 +7,7 @@ import LogList from "@/components/admin/LogList";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
 import { listDecisions, recentEvents } from "@/lib/admin/db";
-import { readTodo } from "@/lib/admin/todo";
+import { readTodo, withoutDetail } from "@/lib/admin/todo";
 
 // 站長後台 · 待辦決策表（TODO G1「決策表」）：TODO.md 每一項選先做／之後／不做，存在 data/admin.db。
 // Claude 開工前用 `node scripts/admin-db.js decisions` 讀「先做」的清單。
@@ -44,7 +44,7 @@ async function AdminTodo() {
       {items.length === 0 ? (
         <p className="text-sm font-light text-(--warn) mb-12">還沒有待辦（data/admin.db 的 todos 表是空的，TODO.md 也讀不到）。</p>
       ) : (
-        <DecisionTable items={items} decisions={decisions} />
+        <DecisionTable items={withoutDetail(items)} decisions={decisions} />
       )}
       <div className="mt-8">
         <AdminSection title="最近的操作" en="Log">

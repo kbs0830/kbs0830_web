@@ -802,7 +802,7 @@ const allProjects: Project[] = [
     },
   },
   // ── 2026-11-09 使用者：「全部都放，能放的都放，記得去識別化」──
-  // 以下內容全部對過原始碼／報告（C:\Users\user\Desktop\school、road-refactor）。
+  // 以下內容全部對過原始碼／報告（C:\Users\user\Desktop\02_課程專題・學習記錄\school、road-refactor）。
   // 去識別化：不放學號、本名、班級組別、組員姓名；路口排雷的 GitHub repo README 有組員本名，所以不連過去。
   {
     slug: "lukou-pailei",

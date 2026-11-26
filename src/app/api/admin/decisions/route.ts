@@ -12,6 +12,13 @@ const noStore = { "cache-control": "private, no-store" };
 export async function GET(req: NextRequest) {
   await connection();
   if (!(await isAdminRequest(req))) return notFound();
+  // ?detail=<id>：只回一項的完整說明（列表頁點「完整說明」時才抓，列表本身不帶全文）
+  const detailId = req.nextUrl.searchParams.get("detail");
+  if (detailId !== null) {
+    const item = readTodo({ all: true }).find((i) => i.id === detailId);
+    if (!item) return NextResponse.json({ error: "not found" }, { status: 404, headers: noStore });
+    return NextResponse.json({ id: item.id, detail: item.detail }, { headers: noStore });
+  }
   return NextResponse.json({ items: readTodo(), decisions: listDecisions() }, { headers: noStore });
 }
 

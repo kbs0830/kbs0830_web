@@ -84,6 +84,12 @@ export default function NavBar() {
               </a>
             </li>
           ))}
+          <li>
+            {/* F12（2026-11-26 使用者選「先做」）：從首頁直接到部落格 */}
+            <Link href="/blog" className="text-sm font-light tracking-wide text-(--muted) hover:text-(--accent) transition-colors">
+              記事
+            </Link>
+          </li>
           <li className="flex items-center gap-2">
             <QuickJumpButton icon className={iconButton} />
             <ThemeToggle className={iconButton} />
@@ -133,6 +139,11 @@ export default function NavBar() {
                 </a>
               </li>
             ))}
+            <li>
+              <Link href="/blog" onClick={() => setMenuOpen(false)} className="block py-2 text-[15px] font-light tracking-wide text-(--muted)">
+                記事
+              </Link>
+            </li>
           </ul>
           {/* 全站頁面（2026-11-24：手機上頁尾不再列頁面，全部收在這裡） */}
           <div className="mt-3 pt-4 border-t border-(--border) max-h-[60svh] overflow-y-auto overscroll-contain">

@@ -4,12 +4,20 @@ import { useEffect, useState } from "react";
 // 「維持登入」開關（TODO G6，2026-11-26，使用者：「記得加一個維持登入的按鈕」）。
 // 開＝登入維持 30 天、關＝1 天；改的是 Cloudflare Access 的設定，下次登入才生效（現在這次登入不會被踢出去）。
 // 打開頁面時才去問現在的值（不拖慢後台頁面），讀不到就整個不顯示。
+// 換分頁時這個元件會重新掛載：問過一次就記在 module 裡，同一個分頁內不再重問（伺服器那邊也記 10 分鐘）
+let known: boolean | null = null;
+
 export default function KeepLoginToggle() {
-  const [keep, setKeep] = useState<boolean | null>(null);
+  const [keep, setKeepState] = useState<boolean | null>(known);
+  const setKeep = (v: boolean) => {
+    known = v;
+    setKeepState(v);
+  };
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
+    if (known !== null) return;
     const ac = new AbortController();
     (async () => {
       try {
