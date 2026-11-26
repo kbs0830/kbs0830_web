@@ -5,6 +5,13 @@
 
 ---
 
+### 2026-11-26 站長後台登入：Cloudflare Access（使用者：「後台開始做登入」）
+- [x] 使用者補了 `kbs0830-config` 金鑰的兩個 Access 權限（應用程式與原則、組織／識別提供者／群組：編輯）、開通 Zero Trust 免費版（team `kbs0830`）
+- [x] Claude 用 API 建：登入方式「Email 驗證碼」（One-time PIN）、Access app「kbs0830 站長後台」保護 `/admin`、`/admin/*`、`/api/admin`、`/api/admin/*`，
+  規則只放行站長信箱、登入有效 7 天；`.env.local` 填 `CF_ACCESS_TEAM`／`CF_ACCESS_AUD`／`ADMIN_EMAIL`，重啟網站讓 origin 也驗 JWT
+- [x] 驗證：沒登入的外網請求 302 到 `kbs0830.cloudflareaccess.com` 登入頁；本機 200；帶假 IP（沒 JWT／假 JWT）404。家裡 IP 白名單先留著當備用
+- 要改設定：Zero Trust → Access → Applications →「kbs0830 站長後台」；或用 `kbs0830-config` 金鑰打 API（`/accounts/{id}/access/apps`）
+
 ### 2026-11-26 終端機加指令（B2，使用者在後台選「先做」）
 - [x] `TerminalMode`：`neofetch`、`uptime`、`status`（打新的 `/api/terminal`，只回 /colophon 已公開的數字）、`blog`（最新 8 篇，server 排好傳進來）、
   `open <站內路徑>`（擋 `//別的網站`）、`history`、`hero webgpu|gl|name|routes|icon|cities|stars`（形狀用 `kbs:hero-shape` 事件叫 `HeroSceneGPU`，線條版會提示要換）；
