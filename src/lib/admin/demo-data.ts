@@ -13,7 +13,7 @@ export const demoOverview: ViewModel = {
     { label: "今天訪客", value: "37", tone: "info" },
     { label: "現在線上", value: "2", tone: "info" },
     { label: "上次部署", value: "成功", sub: "11/26 16:20", tone: "ok" },
-    { label: "自家雷達", value: "在線・6 架", tone: "ok" },
+    { label: "自家雷達", value: "在線・6 架", sub: "樹莓派 58.2°C", tone: "ok" },
     { label: "30 天可用率", value: "99.98%", tone: "ok" },
     { label: "記憶體", value: "168 MB" },
     { label: "下一封週報", value: "11/30 09:00" },
@@ -50,10 +50,6 @@ export const demoOps: ViewModel = {
     { label: "這次啟動多久", value: "3 天" },
     { label: "上次備份", value: "11/26 03:00", tone: "ok" },
     { label: "90 天部署／退回", value: "228／1", tone: "warn" },
-    { label: "樹莓派", value: "開機 3 天", sub: "Wi-Fi -60 dBm", tone: "ok" },
-    { label: "供電", value: "正常", sub: "get_throttled 0x0", tone: "ok" },
-    { label: "樹莓派溫度", value: "58.0°C", sub: "24 小時最高 63.5°C", tone: "ok" },
-    { label: "記憶卡", value: "正常・用了 23%", sub: "範例卡（10/2025）・累計寫入 41 GB", tone: "ok" },
   ],
   blocks: [
     {
@@ -148,3 +144,44 @@ export const demoDecisions: Decision[] = [
   { itemId: "D1", choice: "now", note: "", updatedAt: Date.UTC(2026, 10, 26, 6) },
   { itemId: "D2", choice: "later", note: "等期末後", updatedAt: Date.UTC(2026, 10, 26, 6) },
 ];
+
+// 樹莓派分頁的範例：24 小時、每 5 分鐘一筆，溫度白天高晚上低、CPU 跟著飛機量起伏（數字是編的）
+const piStart = Date.UTC(2026, 10, 25, 8); // 11/25 16:00（台灣）
+const piHist = Array.from({ length: 288 }, (_, i) => {
+  const hour = (16 + i / 12) % 24;
+  const day = Math.sin(((hour - 8) / 24) * Math.PI * 2);
+  const wobble = Math.sin(i * 1.7) * 0.8;
+  return { t: piStart + i * 300_000, c: +(57 + day * 4 + wobble).toFixed(1), cpu: Math.round(22 + day * 8 + wobble * 3), mem: Math.round(17 + wobble) };
+});
+
+export const demoPi: ViewModel = {
+  tiles: [
+    { label: "狀態", value: "開機 3 天", sub: "更新 11/26 16:00", tone: "ok" },
+    { label: "溫度", value: "58.2°C", sub: "24 小時最高 61.4°C", tone: "ok" },
+    { label: "CPU 使用率", value: "24%", sub: "負載 0.98 / 1.02 / 0.95（4 核）", tone: "info" },
+    { label: "記憶體", value: "17%", sub: "用 152／906 MB", tone: "info" },
+    { label: "供電", value: "正常", sub: "get_throttled 0x0・核心 1.34 V", tone: "ok" },
+    { label: "記憶卡", value: "正常", sub: "檔案系統 clean・累計寫入 41 GB", tone: "ok" },
+    { label: "儲存空間", value: "23%", sub: "用 3.1 GB／14.0 GB", tone: "info" },
+    { label: "Wi-Fi 訊號", value: "-62 dBm", sub: "普通", tone: "info" },
+  ],
+  blocks: [
+    { kind: "log", title: "現在的問題", en: "Alerts", rows: [], empty: "沒有問題。溫度 75°C 以上、供電不足、記憶卡錯誤、空間 90% 以上、記憶體剩不到 80 MB、SSH 一小時連不上，會寄信通知。" },
+    { kind: "series", title: "溫度", en: "Temperature", unit: "°C", warn: 75, min: 30, max: 85, points: piHist.map((p) => [p.t, p.c]) },
+    { kind: "series", title: "CPU 使用率", en: "CPU", unit: "%", min: 0, max: 100, points: piHist.map((p) => [p.t, p.cpu]) },
+    { kind: "series", title: "記憶體使用率", en: "Memory", unit: "%", min: 0, max: 100, points: piHist.map((p) => [p.t, p.mem]) },
+    {
+      kind: "facts",
+      title: "硬體與系統",
+      en: "System",
+      rows: [
+        ["型號", "Raspberry Pi 3 Model B（範例）"],
+        ["系統", "Debian GNU/Linux 12 (bookworm)"],
+        ["CPU 時脈", "1200 MHz"],
+        ["記憶卡", "16 GB（範例）"],
+        ["接收程式", "fr24feed 執行中"],
+        ["多久讀一次", "每 5 分鐘（SSH，唯讀）"],
+      ],
+    },
+  ],
+};

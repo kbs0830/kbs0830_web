@@ -16,7 +16,9 @@ const years = buildYear > FIRST_YEAR ? `${FIRST_YEAR}–${buildYear}` : String(F
 //
 // 2026-11-24 手機重新設計（使用者：「頁尾排版要再想想，手機版 UI 設計很重要」）：
 //   - 頁面索引只在 640px 以上顯示（三欄）；手機收進右上角選單（SiteIndex，使用者：「多利用右上角選單做收納」）
-//   - 首頁即時資訊（時鐘／人數／造訪／Cloudflare）在手機自成一塊、放在版權上面，每一項各自一行，不擠成一團
+//   - 首頁即時資訊（時鐘／人數／造訪／Cloudflare）在手機自成一塊、放在版權上面
+//     2026-11-26 改成短的項目並排、放不下才換行（使用者：「頁尾在手機版上是不是有點冗長」，一項一行時共 10 行）；
+//     每一項自己 whitespace-nowrap，只會在項目之間換行
 //   - 版權＋最後更新永遠在最底下
 // inset：首頁的區塊是「max-w-6xl 裡面 px-6」（2026-11-26 從 5xl 放寬），子頁面（PageShell）是「外層 px-6、裡面 max-w-2xl」——
 //   頁尾照各自的頁面走，左緣才會跟內文對齊（之前子頁面一律用首頁那種，頁尾比內文多縮 24px，TODO F3）
@@ -24,17 +26,20 @@ export default function SiteFooter({
   width = "max-w-2xl",
   inset = "outer",
   extra,
+  findMe = true,
   className = "",
 }: {
   width?: string;
   inset?: "inner" | "outer";
   extra?: ReactNode;
+  /** 「找我」欄。首頁傳 false：正上方就是 Contact 區，同樣三個連結不用再列一次（2026-11-26 使用者：「連絡先跟找我是不是互相重複了」） */
+  findMe?: boolean;
   className?: string;
 }) {
   const box = inset === "inner" ? `${width} mx-auto px-6` : `${width} mx-auto`;
   return (
     <footer className={`border-t border-(--border) print:hidden ${inset === "outer" ? "px-6" : ""} ${className}`}>
-      <nav aria-label="網站頁面" className={`${box} hidden sm:grid pt-12 pb-8 grid-cols-4 gap-x-6 gap-y-10`}>
+      <nav aria-label="網站頁面" className={`${box} hidden sm:grid pt-12 pb-8 ${findMe ? "grid-cols-4" : "grid-cols-3"} gap-x-6 gap-y-10`}>
         {SITE_GROUPS.map((g) => (
           <div key={g.label}>
             <p className="mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">{g.label}</p>
@@ -50,6 +55,7 @@ export default function SiteFooter({
             </ul>
           </div>
         ))}
+        {findMe && (
         <div>
           <p className="mb-4 text-[10px] tracking-[0.25em] uppercase text-(--muted) font-mono">找我 · Find me</p>
           <ul className="space-y-1">
@@ -66,11 +72,12 @@ export default function SiteFooter({
             ))}
           </ul>
         </div>
+        )}
       </nav>
       {/* 右下角固定的 ↑ 按鈕會壓到最後幾行——xl 以下右側多留按鈕的寬度，寬螢幕時按鈕在欄位外面 */}
       <div className={`${box} ${inset === "inner" ? "sm:pr-20 xl:pr-6" : "sm:pr-14 xl:pr-0"} pt-8 sm:pt-0 pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
         {extra && (
-          <div className="flex flex-col gap-2 pb-5 mb-3 border-b border-(--border) sm:order-last sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
+          <div className="flex flex-row flex-wrap items-center gap-x-4 gap-y-1.5 pb-4 mb-2 border-b border-(--border) sm:order-last sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
             {extra}
           </div>
         )}
@@ -82,7 +89,7 @@ export default function SiteFooter({
           <BuildInfo className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`} />
           {/* 落款（TODO N8，使用者選 B）：這個網站架在自己的桌機上，連到 /colophon 看怎麼架的。只寫到城市 */}
           <Link href="/colophon" className={`${small} tracking-[0.1em] hover:text-(--accent) transition-colors`}>
-            自架於高雄 · Self-hosted in Kaohsiung
+            自架於高雄<span className="hidden sm:inline"> · Self-hosted in Kaohsiung</span>
           </Link>
         </div>
       </div>

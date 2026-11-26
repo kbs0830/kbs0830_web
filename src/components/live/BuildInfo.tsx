@@ -29,7 +29,8 @@ export default function BuildInfo({ className = "" }: { className?: string }) {
   return (
     <Link href="/changelog" className={className} title="更新紀錄 · Changelog">
       最後更新 <time dateTime={time}>{formatTaipei(time)}</time>
-      {sha && <span className="ml-2">· {sha}</span>}
+      {/* commit 代號只在 640px 以上顯示：手機頁尾右邊要讓位給 ↑ 按鈕，360px 會被擠成兩行（2026-11-26） */}
+      {sha && <span className="hidden sm:inline ml-2">· {sha}</span>}
     </Link>
   );
 }

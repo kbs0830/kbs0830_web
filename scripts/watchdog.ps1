@@ -189,6 +189,30 @@ if (Test-Path $radarFile) {
     }
 }
 
+# --- 雷達樹莓派的健康（2026-11-26，scripts/lib/radar-health.js）---
+# server.js 每 5 分鐘 SSH 讀一次寫 data\radar-health.json，裡面的 problems 已經算好要不要通知（門檻、遲滯、信件內容都在 JS 那邊，有單元測試）：
+#   pi-hot 溫度 75°C 以上（降到 70 以下才算恢復）、pi-power 供電不足／降頻、pi-sd 記憶卡唯讀／讀寫錯誤、pi-disk 空間 90%、
+#   pi-mem 記憶體剩不到 80 MB、pi-ssh 雷達在線但 SSH 一小時連不上。
+# 這裡只照 active 寄信（各自的冷卻）或寄恢復信。檔案超過 15 分鐘沒更新＝server.js 沒在讀，網站本身的檢查已經處理，這裡不判斷。
+$piFile = Join-Path $repo "data\radar-health.json"
+if (Test-Path $piFile) {
+    $pi = $null
+    try { $pi = [IO.File]::ReadAllText($piFile, [Text.Encoding]::UTF8) | ConvertFrom-Json } catch { }
+    $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    if ($pi -and $pi.problems -and ($nowMs - [double]$pi.checkedAt -lt 15 * 60000)) {
+        foreach ($p in $pi.problems) {
+            if ($p.active) {
+                $result = Send-Alert -Key $p.key -CooldownMinutes ([int]$p.cooldown) -Subject $p.subject `
+                    -Body "$($p.body)`n`n後台：https://kbs0830.com/admin/pi"
+                if ($result -notlike "cooldown*") { Log "[PI] $($p.subject)"; Notify $result }
+            } else {
+                $result = Clear-Alert -Key $p.key -Subject $p.recover
+                if ($result) { Log "[PI] $($p.recover)"; Notify $result }
+            }
+        }
+    }
+}
+
 # --- GitHub Actions self-hosted runner 存活檢查 ---
 if (-not (Get-Process -Name $runnerProcessName -ErrorAction SilentlyContinue)) {
     Log "[WARN] GitHub Actions runner（$runnerProcessName.exe）沒有偵測到在跑"

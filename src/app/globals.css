@@ -110,7 +110,7 @@ body {
 
 /* 紙感底紋（TODO L1，2026-11-26）：Surface 本來就叫「紙感」，整頁蓋一層**靜態**的細紙纖維顆粒（SVG feTurbulence，畫一次就停，零動畫、零 JS）。
    用固定在視窗的偽元素蓋在最上面（很多容器自己有 bg，畫在 body 背景會被蓋住），pointer-events: none、不吃點擊；
-   淺色＝暖褐色纖維，深色＝淡灰顆粒（墨色紙）。列印、「降低透明度」偏好、ForcedColors 都不畫。 */
+   只有淺色（暖褐色纖維）；深色原本是淡灰顆粒，使用者覺得不好看，11-26 拿掉。列印、「降低透明度」偏好、ForcedColors 都不畫。 */
 body::after {
   content: "";
   position: fixed;
@@ -121,9 +121,9 @@ body::after {
   background-size: 240px 240px;
   opacity: 0.2;
 }
+/* 2026-11-26 使用者：深色模式的紙紋不好看 → 只留淺色 */
 [data-theme="dark"] body::after {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .82 1.6 0 0 0 -.68'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.09;
+  display: none;
 }
 @media print, (prefers-reduced-transparency: reduce), (forced-colors: active) {
   body::after {
@@ -584,6 +584,29 @@ details.disclosure[open]::details-content {
 }
 
 /* 霧：整片往下越來越白（深色主題是灰） */
+/* 桌機夜晚的月亮（HeroSky 的 MoonSvg）；手機由 HeroSceneLite 畫 */
+.hero-moon {
+  position: absolute;
+  top: 6%;
+  right: 7%;
+  width: 120px;
+  height: 120px;
+  color: var(--accent);
+  --moon-glow: 0.06;
+  animation: enter-fade 2s var(--ease-ma) both;
+}
+.hero-moon-dark { opacity: 0.06; }
+.hero-moon-lit { opacity: 0.45; }
+[data-theme="dark"] .hero-moon { color: #f3e9c6; --moon-glow: 0.16; }
+[data-theme="dark"] .hero-moon-dark { opacity: 0.08; }
+[data-theme="dark"] .hero-moon-lit { opacity: 0.92; }
+.hero-sky[data-weather="cloud"] .hero-moon > g { opacity: 0.6; }
+.hero-sky[data-weather="fog"] .hero-moon > g { opacity: 0.35; }
+.hero-sky[data-weather="rain"] .hero-moon > g { opacity: 0.25; }
+.hero-sky[data-weather="storm"] .hero-moon > g { opacity: 0.1; }
+@media (width < 768px) {
+  .hero-moon { display: none; }
+}
 .hero-sky-haze {
   position: absolute;
   inset: 0;

@@ -44,6 +44,7 @@ export default function Home() {
       <SiteFooter
         width={HOME_WIDTH}
         inset="inner"
+        findMe={false}
         extra={
           <>
             <LocalClock />

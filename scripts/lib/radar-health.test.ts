@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyHealth, decodeThrottled, parseHealth } from "./radar-health.js";
+import { applyHealth, decodeThrottled, nextState, parseHealth } from "./radar-health.js";
 
 // 2026-11-26 換完電源後實際讀到的輸出
 const SAMPLE = `up=186
@@ -70,5 +70,39 @@ describe("applyHealth", () => {
     expect(s.error).toBe("SSH 連不上");
     expect(s.lastOkAt).toBe(t0);
     expect(s.health?.tempC).toBe(66);
+  });
+});
+
+describe("problems（watchdog 寄信用）", () => {
+  const t0 = Date.UTC(2026, 10, 26);
+  const state = (txt: string) => nextState(null, { ok: true, health: parseHealth(txt) }, t0, true);
+  const active = (s: ReturnType<typeof nextState>) => s.problems.filter((p) => p.active).map((p) => p.key);
+
+  it("正常的樣本沒有問題", () => {
+    expect(active(state(SAMPLE))).toEqual([]);
+  });
+  it("75°C 以上寄、降到 70–75 之間還不算恢復、70 以下才恢復（遲滯）", () => {
+    const hot = nextState(null, { ok: true, health: { ...parseHealth(SAMPLE), tempC: 76 } }, t0, true);
+    expect(active(hot)).toEqual(["pi-hot"]);
+    const warm = nextState(hot, { ok: true, health: { ...parseHealth(SAMPLE), tempC: 72 } }, t0 + 300_000, true);
+    expect(active(warm)).toEqual(["pi-hot"]);
+    const cool = nextState(warm, { ok: true, health: { ...parseHealth(SAMPLE), tempC: 69 } }, t0 + 600_000, true);
+    expect(active(cool)).toEqual([]);
+    // 沒寄過的話 72 不會觸發
+    expect(active(nextState(null, { ok: true, health: { ...parseHealth(SAMPLE), tempC: 72 } }, t0, true))).toEqual([]);
+  });
+  it("欠壓（現在或開機後曾經）、記憶卡錯誤、空間、記憶體", () => {
+    expect(active(state(SAMPLE.replace("thr=0x0", "thr=0x50000")))).toEqual(["pi-power"]);
+    expect(active(state(SAMPLE.replace("ioerr=0", "ioerr=3")))).toEqual(["pi-sd"]);
+    expect(active(state(SAMPLE.replace("mount=rw", "mount=ro")))).toEqual(["pi-sd"]);
+    expect(active(state(SAMPLE.replace("disk=23", "disk=93")))).toEqual(["pi-disk"]);
+    expect(active(state(SAMPLE.replace("mem=758", "mem=50")))).toEqual(["pi-mem"]);
+  });
+  it("SSH 一小時連不上才寄；雷達本身也讀不到時不寄（雷達離線信已經會寄）", () => {
+    const ok = state(SAMPLE);
+    const fail = (dt: number, reach: boolean) => nextState(ok, { ok: false, error: "SSH 連不上" }, t0 + dt, reach);
+    expect(active(fail(30 * 60_000, true))).toEqual([]);
+    expect(active(fail(61 * 60_000, true))).toEqual(["pi-ssh"]);
+    expect(active(fail(61 * 60_000, false))).toEqual([]);
   });
 });
