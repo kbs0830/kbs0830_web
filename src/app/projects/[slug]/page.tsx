@@ -161,7 +161,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   {section.images.map((img) => (
                     <figure key={img.src} className={section.images!.length === 3 && img === section.images![0] ? "sm:col-span-2" : ""}>
                       <Image src={img.src} alt={img.alt} width={img.width} height={img.height} className="w-full h-auto rounded-sm border border-(--border)" sizes="(max-width: 639px) 100vw, 640px" />
-                      {img.caption && <figcaption className="mt-1.5 text-[11px] text-(--muted) font-mono">{img.caption}</figcaption>}
+                      {img.caption && <figcaption className="mt-1.5 text-xs text-(--muted) font-light">{img.caption}</figcaption>}
                     </figure>
                   ))}
                 </div>

@@ -38,7 +38,9 @@ export default function PageShell({
   children: ReactNode;
 }) {
   // 2026-11-26（TODO M2，使用者：「首頁滿版有張力，其他頁面擴一點」）：子頁 2xl→3xl、後台 3xl→4xl
-  const width = `${compact ? "max-w-4xl" : "max-w-3xl"} ${printable ? "print:max-w-none" : ""}`;
+  // 後台（compact）依螢幕加寬（2026-11-26 使用者：「2K 螢幕看了好擠」）：表格多，不是閱讀頁，可以用滿
+  const adminWidth = "max-w-4xl xl:max-w-6xl 3xl:max-w-7xl 4xl:max-w-[88rem]";
+  const width = `${compact ? adminWidth : "max-w-3xl"} ${printable ? "print:max-w-none" : ""}`;
   return (
     <>
       <div className={`flex-1 bg-(--bg) px-6 ${compact ? "pb-6 sm:pb-12" : "pb-20"} ${printable ? "print:py-0 print:px-0" : ""}`}>
@@ -68,7 +70,7 @@ export default function PageShell({
         </main>
       </div>
       {/* 頁尾跟內文同寬（不含 print:max-w-none，頁尾本來就 print:hidden） */}
-      <SiteFooter width={compact ? "max-w-4xl" : "max-w-3xl"} />
+      <SiteFooter width={compact ? adminWidth : "max-w-3xl"} />
       {/* 2026-11-24：子頁面在手機上也有右下角 ↑（桌機維持原樣，不加） */}
       <div className="print:hidden sm:hidden">
         <BackToTop />
