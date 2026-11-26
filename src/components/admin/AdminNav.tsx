@@ -15,7 +15,7 @@ export default function AdminNav({ base = "/admin" }: { base?: "/admin" | "/demo
       className="sticky top-0 z-30 -mx-6 px-6 py-2 mb-6 bg-(--nav-bg) backdrop-blur-md border-b border-(--border)"
     >
       <ul className="flex gap-0.5 sm:gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
-        {ADMIN_PAGES.map((p) => {
+        {ADMIN_PAGES.filter((p) => base === "/admin" || !p.private).map((p) => {
           const href = (base === "/admin" ? p.href : p.href.replace(/^\/admin/, base)) as Route;
           const active = path === href;
           return (

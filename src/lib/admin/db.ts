@@ -62,6 +62,16 @@ const MIGRATIONS = [
      views    INTEGER NOT NULL DEFAULT 1
    );
    CREATE INDEX logins_last ON logins (last_at DESC);`,
+  // 4：完成紀錄（2026-11-26，使用者：「done.md 收進資料庫搬家」）。原本的 DONE.md 一段一筆；day 是標題裡的日期（舊的分類段落沒有＝null）
+  `CREATE TABLE done_log (
+     id         INTEGER PRIMARY KEY AUTOINCREMENT,
+     day        TEXT,
+     title      TEXT NOT NULL,
+     body       TEXT NOT NULL DEFAULT '',
+     sort       INTEGER NOT NULL,
+     created_at INTEGER NOT NULL
+   );
+   CREATE INDEX done_log_sort ON done_log (sort);`,
 ];
 
 let db: { file: string; conn: DatabaseSync } | null = null;
@@ -210,6 +220,24 @@ export function recordLogin(row: { session: string; via: LoginRow["via"]; email?
 
 export function recentLogins(limit = 10): LoginRow[] {
   return getDb().prepare("SELECT * FROM logins ORDER BY last_at DESC LIMIT ?").all(limit) as LoginRow[];
+}
+
+// ── 完成紀錄 ────────────────────────────────────────────
+export type DoneRow = { id: number; day: string | null; title: string; body: string; sort: number; created_at: number };
+
+/** 完成紀錄，新的在前（sort 小的在前；新增的 sort 比現有最小的還小） */
+export function listDone(): DoneRow[] {
+  return getDb().prepare("SELECT * FROM done_log ORDER BY sort, id").all() as DoneRow[];
+}
+
+/** 新增一筆完成紀錄（放最前面）。day 預設今天（台灣） */
+export function addDone(title: string, body: string, day: string | null = null, now = Date.now()): number {
+  const conn = getDb();
+  const sort = ((conn.prepare("SELECT MIN(sort) m FROM done_log").get() as { m: number | null }).m ?? 10) - 10;
+  const d = day ?? new Date(now + 8 * 3600_000).toISOString().slice(0, 10);
+  const r = conn.prepare("INSERT INTO done_log (day, title, body, sort, created_at) VALUES (?, ?, ?, ?, ?)").run(d, title, body, sort, now);
+  logEvent("done.add", title, now);
+  return Number(r.lastInsertRowid);
 }
 
 /** 只給測試用 */

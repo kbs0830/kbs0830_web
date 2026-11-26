@@ -14,11 +14,18 @@
 //   node scripts/admin-db.js todo done <id> [--note "做了什麼"]   完成（--note 會接在說明最後）
 //   node scripts/admin-db.js todo drop <id> --note "理由"        評估過、不做
 //   node scripts/admin-db.js todo reopen <id>
+// 完成紀錄（2026-11-26 起 DONE.md 的正本也在資料庫，done_log 表）：
+//   node scripts/admin-db.js done [--limit 20]      最近的完成紀錄（日期、標題、字數）
+//   node scripts/admin-db.js done show <id>         一筆的全文
+//   node scripts/admin-db.js done search <關鍵字>   標題＋內文搜尋
+//   node scripts/admin-db.js done add --title "…" [--day 2026-11-26] [--detail "…" | --detail-file <檔案>]   新增（放最前面；說明寫完整：使用者原話、做了什麼、怎麼驗證）
+//   node scripts/admin-db.js done import [DONE.md]  只在 done_log 是空的時候，把舊的 DONE.md 一次匯入
 // id：有編號就是編號（B16），沒有就是 "t:標題"。ADMIN_DB_FILE 可以換檔案（跟網站同一個環境變數）。
 // 資料庫要網站先開過一次後台（建表、從 TODO.md 匯入）；表還沒建會提示。
 const path = require("node:path");
 const fs = require("node:fs");
 const { DatabaseSync } = require("node:sqlite");
+const { parseDone } = require("./lib/parse-done");
 
 const file = process.env.ADMIN_DB_FILE || path.join(__dirname, "..", "data", "admin.db");
 const [cmd = "todo", ...rest] = process.argv.slice(2);
@@ -44,13 +51,28 @@ if (!fs.existsSync(file)) {
   console.log(`還沒有資料庫（${file}）：先開一次 /admin/todo（網站會建表、從 TODO.md 匯入）。`);
   process.exit(0);
 }
-const writing = cmd === "todo" && ["add", "edit", "done", "drop", "reopen"].includes(rest[0]);
+const writing =
+  (cmd === "todo" && ["add", "edit", "done", "drop", "reopen"].includes(rest[0])) || (cmd === "done" && ["add", "import"].includes(rest[0]));
 const db = new DatabaseSync(file, { readOnly: !writing });
 db.exec("PRAGMA busy_timeout = 3000");
 const version = db.prepare("PRAGMA user_version").get().user_version;
 if ((cmd === "todo") && version < 2) {
   console.log("資料庫還沒有 todos 表：先開一次 /admin/todo（網站會升級資料庫、從 TODO.md 匯入）。");
   process.exit(1);
+}
+
+if (cmd === "done" && version < 4) {
+  if (rest[0] === "import" || rest[0] === "add") {
+    // 同 src/lib/admin/db.ts 的 migration 4（網站還沒重啟過、表還沒建的時候先建起來）
+    db.exec(`CREATE TABLE done_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT, title TEXT NOT NULL, body TEXT NOT NULL DEFAULT '',
+      sort INTEGER NOT NULL, created_at INTEGER NOT NULL);
+      CREATE INDEX done_log_sort ON done_log (sort);
+      PRAGMA user_version = 4;`);
+  } else {
+    console.log("資料庫還沒有 done_log 表：網站升級重啟後開一次 /admin/done，或先跑 done import。");
+    process.exit(1);
+  }
 }
 
 const decisionsMap = () => new Map(db.prepare("SELECT item_id, choice, note FROM decisions").all().map((d) => [d.item_id, d]));
@@ -151,8 +173,61 @@ if (cmd === "decisions") {
     console.log("用法見 scripts/admin-db.js 開頭的說明");
     process.exitCode = 1;
   }
+} else if (cmd === "done") {
+  const sub = rest[0] && !rest[0].startsWith("--") ? rest[0] : "list";
+  const a = parseArgs(sub === "list" ? rest : rest.slice(1));
+  const getDone = (id) => db.prepare("SELECT * FROM done_log WHERE id = ?").get(Number(id));
+  const line = (r) => `[${r.id}] ${r.day ?? "（無日期）"}　${r.title}　(${r.body.length} 字)`;
+
+  if (sub === "list") {
+    const rows = db.prepare("SELECT * FROM done_log ORDER BY sort, id LIMIT ?").all(Number(a.limit) || 20);
+    for (const r of rows) console.log(line(r));
+    console.log(`
+共 ${db.prepare("SELECT COUNT(*) n FROM done_log").get().n} 筆。全文：node scripts/admin-db.js done show <id>`);
+  } else if (sub === "show") {
+    const r = getDone(a._[0]);
+    need(r, `找不到 ${a._[0]}`);
+    console.log(`${line(r)}
+
+${r.body}`);
+  } else if (sub === "search") {
+    need(a._[0], "要給關鍵字");
+    const like = `%${a._[0].replace(/[%_]/g, "")}%`;
+    const rows = db.prepare("SELECT * FROM done_log WHERE title LIKE ? OR body LIKE ? ORDER BY sort, id").all(like, like);
+    for (const r of rows) console.log(line(r));
+    console.log(`
+${rows.length} 筆符合。`);
+  } else if (sub === "add") {
+    need(typeof a.title === "string", "要 --title");
+    need(!a.day || /^\d{4}-\d{2}-\d{2}$/.test(a.day), "--day 格式 YYYY-MM-DD");
+    const sort = (db.prepare("SELECT MIN(sort) m FROM done_log").get().m ?? 10) - 10;
+    const day = a.day || new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
+    const r = db.prepare("INSERT INTO done_log (day, title, body, sort, created_at) VALUES (?, ?, ?, ?, ?)").run(day, a.title, readDetail(a) ?? "", sort, Date.now());
+    log("done.add", a.title);
+    console.log(`新增 [${r.lastInsertRowid}] ${a.title}`);
+  } else if (sub === "import") {
+    need(db.prepare("SELECT COUNT(*) n FROM done_log").get().n === 0, "done_log 已經有資料了，不重複匯入");
+    const src = a._[0] || path.join(__dirname, "..", "DONE.md");
+    const entries = parseDone(fs.readFileSync(src, "utf8"));
+    need(entries.length > 0, `${src} 解析不出任何一筆`);
+    const stmt = db.prepare("INSERT INTO done_log (day, title, body, sort, created_at) VALUES (?, ?, ?, ?, ?)");
+    const now = Date.now();
+    db.exec("BEGIN");
+    try {
+      for (const e of entries) stmt.run(e.day, e.title, e.body, e.sort, now);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+    log("done.import", `從 ${path.basename(src)} 匯入 ${entries.length} 筆`);
+    console.log(`匯入 ${entries.length} 筆`);
+  } else {
+    console.log("用法見 scripts/admin-db.js 開頭的說明");
+    process.exitCode = 1;
+  }
 } else {
-  console.log("用法：node scripts/admin-db.js [todo|decisions|log]（詳見檔案開頭）");
+  console.log("用法：node scripts/admin-db.js [todo|done|decisions|log]（詳見檔案開頭）");
   process.exitCode = 1;
 }
 db.close();
