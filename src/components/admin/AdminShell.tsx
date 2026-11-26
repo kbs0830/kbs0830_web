@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import PageShell from "@/components/layout/PageShell";
 import AdminNav from "@/components/admin/AdminNav";
-import { whoIsAdmin } from "@/lib/admin/auth";
+import { whoIsAdmin, type AdminIdentity } from "@/lib/admin/auth";
 import { logAdminVisit } from "@/lib/admin/login-log";
 
 // 後台每一頁的外框：PageShell（compact：手機一打開就看到內容）＋分頁列。頁面裡再驗一次門禁（proxy.ts 是第一道）。
@@ -17,9 +17,37 @@ export default async function AdminShell({ title, intro, children }: { title: st
   after(() => logAdminVisit(who, h));
   return (
     <PageShell compact backHref="/" backLabel="回網站" eyebrow="站長後台 · Admin" title={title} intro={intro}>
+      <LoginBar who={who} />
       <AdminNav />
       {children}
     </PageShell>
+  );
+}
+
+/**
+ * 現在是怎麼登入的＋登出（2026-11-26，使用者：「我沒辦法登出呀」）。
+ * Cloudflare 登入：/cdn-cgi/access/logout（Cloudflare 自己的網址，會撤銷整個 Access 登入，所有 app 一起；Cloudflare 文件
+ * session-management「Log out as a user」）。用 <a> 不用 <Link>：要整頁跳到 Cloudflare，不是站內換頁。
+ * 家裡網路、桌機本機本來就沒登入這回事，只顯示是哪一種。
+ */
+function LoginBar({ who }: { who: AdminIdentity }) {
+  return (
+    <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--muted)">
+      <span aria-hidden className={`size-1.5 rounded-full ${who.via === "access" ? "bg-(--ok)" : "bg-(--accent)"}`} />
+      {who.via === "access" ? (
+        <>
+          <span>已登入 {who.email}</span>
+          <a
+            href="/cdn-cgi/access/logout"
+            className="ml-auto inline-flex items-center h-8 px-3 rounded-full border border-(--border) text-(--text) hover:border-(--warn) hover:text-(--warn) transition-colors"
+          >
+            登出
+          </a>
+        </>
+      ) : (
+        <span>{who.via === "ip" ? "家裡網路（免登入）" : "桌機本機（免登入）"}，不用登出</span>
+      )}
+    </p>
   );
 }
 
