@@ -11,7 +11,7 @@
 //   node scripts/admin-db.js todo add --title "…" --section "還沒做的點子" [--group "B. 網站功能"] [--code B22]
 //        [--size S|M|L] [--you] [--star] [--detail "…" | --detail-file <檔案>]
 //   node scripts/admin-db.js todo edit <id> [--title …] [--detail … | --detail-file …] [--append "…"] [--size …] [--group …] [--section …]
-//   node scripts/admin-db.js todo done <id> [--note "做了什麼"]   完成（--note 會接在說明最後）
+//   node scripts/admin-db.js todo done <id> [--note "做了什麼"]   完成（--note 會接在說明最後，並自動補一筆完成紀錄到 done_log；多項合併成一筆敘述時再另外 done add）
 //   node scripts/admin-db.js todo drop <id> --note "理由"        評估過、不做
 //   node scripts/admin-db.js todo reopen <id>
 // 完成紀錄（2026-11-26 起 DONE.md 的正本也在資料庫，done_log 表）：
@@ -167,6 +167,15 @@ if (cmd === "decisions") {
     const tag = sub === "done" ? "✅ 完成" : sub === "drop" ? "不做的理由" : "重新打開";
     const detail = typeof a.note === "string" ? `${t.detail}\n**${tag}（${tw(now).slice(0, 10)}）**：${a.note.replace(/\\n/g, "\n")}`.trim() : t.detail;
     db.prepare("UPDATE todos SET status = ?, detail = ?, done_at = ?, updated_at = ? WHERE id = ?").run(status, detail, status === "open" ? null : now, now, t.id);
+    // 完成的歷史只留 /admin/done 一份：待辦標完成時順手補一筆完成紀錄（2026-11-26，使用者同意「待辦的已完成跟完成會衝突」）
+    if (sub === "done" && version >= 4) {
+      const minSort = db.prepare("SELECT MIN(sort) m FROM done_log").get().m ?? 10;
+      const title = `${t.code ? `${t.code} ` : ""}${t.title}`;
+      const doneNote = typeof a.note === "string" ? a.note.replace(/\\n/g, "\n") : "完成";
+      const body = [`- [x] ${doneNote}`, "", "**原待辦說明**", t.detail].join("\n");
+      db.prepare("INSERT INTO done_log (day, title, body, sort, created_at) VALUES (?, ?, ?, ?, ?)").run(tw(now).slice(0, 10), title, body, minSort - 10, now);
+      log("done.add", `（待辦完成）${title}`);
+    }
     log(`todo.${sub}`, `${t.id} ${t.title}`);
     console.log(`${t.id} → ${status}`);
   } else {

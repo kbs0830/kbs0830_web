@@ -61,3 +61,12 @@ test("/api/admin/session：外部 404、沒帶 Origin 的 POST 403", async ({ re
   expect((await request.get("/api/admin/session", { headers: { "cf-connecting-ip": "203.0.113.9" } })).status()).toBe(404);
   expect((await request.post("/api/admin/session", { data: { keep: true }, headers: { origin: "https://evil.example" } })).status()).toBe(403);
 });
+
+// 完成頁（2026-11-26 加速）：列表不帶全文，點開才抓；搜尋走伺服器
+test("/api/admin/done：外部 404、本機 ?q= 回符合的 id、?id= 回全文", async ({ request }) => {
+  expect((await request.get("/api/admin/done?q=a", { headers: { "cf-connecting-ip": "203.0.113.9" } })).status()).toBe(404);
+  expect((await request.get("/api/admin/done")).status()).toBe(400);
+  const res = await request.get("/api/admin/done?q=" + encodeURIComponent("不可能出現的字串zzz"));
+  expect(res.status()).toBe(200);
+  expect((await res.json()).ids).toEqual([]);
+});

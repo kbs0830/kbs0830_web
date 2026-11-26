@@ -23,9 +23,10 @@ export default function Page() {
 
 async function AdminDone() {
   await connection();
-  let items: { id: number; day: string | null; title: string; body: string }[] = [];
+  // 只帶日期＋標題；全文點開才抓（/api/admin/done，2026-11-26 使用者：「admin 後台開始卡了」）
+  let items: { id: number; day: string | null; title: string }[] = [];
   try {
-    items = listDone().map(({ id, day, title, body }) => ({ id, day, title, body }));
+    items = listDone().map(({ id, day, title }) => ({ id, day, title }));
   } catch {}
   return (
     <AdminShell title="完成" intro={intro}>
