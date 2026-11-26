@@ -2,4 +2,5 @@
 // 2026-11-26：5xl→6xl（1152px）；大螢幕再分兩級（斷點在 globals.css）：1920 以上 7xl（1280px）、2400 以上 88rem（1408px）。
 // 1920 以上 About／作品／記事／Contact 的標題跟內文也各大一級（各檔裡的 3xl: 字級）。
 // 子頁面不跟這個走（PageShell 的 3xl 是閱讀寬度）。
-export const HOME_WIDTH = "max-w-6xl 3xl:max-w-7xl 4xl:max-w-[88rem]";
+// 2026-11-26 使用者：三種螢幕要等比例，大約佔 70-75% → 1920 以上改成 72vw（1920→1382、2560→1843），1920 以下維持 6xl
+export const HOME_WIDTH = "max-w-6xl 3xl:max-w-[72vw]";
