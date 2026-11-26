@@ -2,6 +2,7 @@
 // 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）、<SpotifyNowPlaying>、<Tabs>（只管顯示哪一頁），
 // 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
 // 2026-11-05：歷程／技能／活動／足跡原本一路往下排、整區很長，改成分頁（Tabs），面板內容照樣在 server 產生。
+import { Fragment } from "react";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import RevealHeading from "@/components/ui/RevealHeading";
@@ -285,7 +286,20 @@ export default function AboutSection() {
                       {value ? (
                         <span className="flex gap-3 text-(--muted)">
                           <span className="shrink-0">{key}</span>
-                          <span>{value}</span>
+                          {/* 只在「 · 」之間換行，每一段不拆開（2026-11-26 使用者：手機上「三年級（燕巢）」被拆成兩行、括號掉到下一行開頭）。
+                              「·」留在上一行行尾 */}
+                          <span>
+                            {/* 空格放在 nowrap 外面，才是可以換行的地方 */}
+                            {value.split(" · ").map((seg, i, all) => (
+                              <Fragment key={seg}>
+                                <span className="whitespace-nowrap">
+                                  {seg}
+                                  {i < all.length - 1 && " ·"}
+                                </span>
+                                {i < all.length - 1 && " "}
+                              </Fragment>
+                            ))}
+                          </span>
                         </span>
                       ) : (
                         <span className="text-(--muted)">{line}</span>
