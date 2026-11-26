@@ -95,7 +95,8 @@ export default function DecisionTable({ items, decisions, demo = false }: { item
       </div>
 
       <div role="group" aria-label="篩選" className="flex gap-1.5 overflow-x-auto -mx-6 px-6 pb-1 mb-5 [scrollbar-width:none] sm:flex-wrap sm:mx-0 sm:px-0">
-        {(["all", "none", "now", "later", "skip", "done", "dropped"] as const).filter((f) => counts[f] > 0 || f === "all").map((f) => (
+        {/* 完成的不在這裡看了：2026-11-26 起歷史只有 /admin/done 一份（todo done 會自動補一筆） */}
+        {(["all", "none", "now", "later", "skip", "dropped"] as const).filter((f) => counts[f] > 0 || f === "all").map((f) => (
           <button
             key={f}
             type="button"
@@ -105,8 +106,8 @@ export default function DecisionTable({ items, decisions, demo = false }: { item
               filter === f ? "border-(--text) text-(--text) bg-(--surface)" : "border-(--border) text-(--muted) hover:text-(--text)"
             }`}
           >
-            {f !== "all" && f !== "done" && f !== "dropped" && <span aria-hidden className={`size-2 rounded-full ${BAR[f]}`} />}
-            {f === "all" ? "全部" : f === "none" ? "還沒決定" : f === "done" ? "✓ 已完成" : f === "dropped" ? "評估過不做" : LABEL[f]}
+            {f !== "all" && f !== "dropped" && <span aria-hidden className={`size-2 rounded-full ${BAR[f]}`} />}
+            {f === "all" ? "全部" : f === "none" ? "還沒決定" : f === "dropped" ? "評估過不做" : LABEL[f]}
             <span className="font-mono tabular-nums">{counts[f]}</span>
           </button>
         ))}

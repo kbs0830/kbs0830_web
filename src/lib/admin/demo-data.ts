@@ -138,8 +138,6 @@ export const demoTodos: TodoItem[] = [
     detail: "（範例）每月跑一次，作品的 GitHub 連結、文章引用的網址壞掉就寄信。" }),
   item({ id: "D4", title: "提供作品截圖", section: "你要決定或提供素材的", needsYou: true,
     detail: "（範例）有兩個作品還是示意圖，換成真機截圖會更有說服力。" }),
-  item({ id: "D5", code: "D5", title: "首頁背景加更多玩法", section: "還沒做的點子", group: "B. 網站功能", size: "L", status: "done", doneAt: Date.UTC(2026, 10, 26, 8),
-    detail: "（範例）終端機加 neofetch、hero 指令。\n**✅ 完成（2026-11-26）**：已上線" }),
 ];
 
 export const demoDecisions: Decision[] = [
