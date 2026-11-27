@@ -165,7 +165,28 @@ function FootprintPanel() {
       <p className="text-xs text-(--muted) font-light mb-8 font-mono">
         已到訪 {visitedCountries.length} 個國家 · 規劃中 {planningCountries.length} 個國家
       </p>
-      <div className="space-y-8">
+      {/* 手機改成清單式（TODO P6，2026-11-27）：一國一行，城市用「·」接成一行字；沒有城市的國家只放國名，不放佔一整行卻沒資訊的「已到訪」方框。
+          811px → 約 350px。桌機維持下面的方框樣式（寬螢幕放得下、比較好看） */}
+      <ul className="sm:hidden space-y-2.5 text-[15px] font-light leading-relaxed">
+        {visitedCountries.map((c) => (
+          <li key={c.country}>
+            <span aria-hidden className="mr-1.5">{c.flag}</span>
+            <span className="text-(--text)">{c.country}</span>
+            {c.cities.length > 0 && <span className="text-(--muted) break-keep">　{c.cities.join(" · ")}</span>}
+          </li>
+        ))}
+        <li className="pt-2.5 border-t border-(--border) text-(--muted)">
+          規劃中　
+          {planningCountries.map((c, i) => (
+            <span key={c.country}>
+              {i > 0 && " · "}
+              <span aria-hidden>{c.flag} </span>
+              {c.country}
+            </span>
+          ))}
+        </li>
+      </ul>
+      <div className="hidden sm:block space-y-8">
         <div className="space-y-4">
           {visitedCountries.map((c) => (
             <div key={c.country} className="grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-start">

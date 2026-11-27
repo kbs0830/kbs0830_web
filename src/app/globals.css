@@ -135,6 +135,19 @@ body {
     animation-range: 0 60px;
   }
 }
+/* 右下角「↑」（TODO Q9，BackToTop.tsx）：捲過一個螢幕（100vh）時 80px 內淡入、滑上來；before 的狀態（看不見、不能點）用 fill both 留住。
+   不支援的瀏覽器退回元件裡的 JS（shown() 的 class）。 */
+@supports (animation-timeline: scroll()) {
+  .back-to-top-fade {
+    animation: back-to-top-in linear both;
+    animation-timeline: scroll(root);
+    animation-range: 100vh calc(100vh + 80px);
+  }
+}
+@keyframes back-to-top-in {
+  from { opacity: 0; visibility: hidden; translate: 0 8px; }
+  to { opacity: 1; visibility: visible; translate: 0 0; }
+}
 @keyframes nav-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }

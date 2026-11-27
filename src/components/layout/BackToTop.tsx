@@ -5,6 +5,8 @@ import { useSyncExternalStore } from "react";
 // 右下角「↑ 回頂端」：捲超過一個螢幕才出現。首頁跟所有 PageShell 子頁面都有；減少動態開著時不用平滑捲動。
 // 2026-11-24 加過一顆手機的「↓ 到頁尾」（去頁尾的頁面索引），同一天頁面索引收進右上角選單後就拿掉了
 // ——手機上要找其他頁面開選單就好，不必捲到底，右下角也少一顆按鈕擋內容
+// 2026-11-27（TODO Q9）：支援 animation-timeline: scroll() 的瀏覽器改純 CSS（globals.css 的 .back-to-top-fade：捲過一個螢幕時淡入），
+// 不用 JS 逐次判斷捲動位置；不支援的瀏覽器照舊用這裡的 useSyncExternalStore
 
 const subscribe = (onChange: () => void) => {
   window.addEventListener("scroll", onChange, { passive: true });
@@ -33,7 +35,7 @@ export default function BackToTop() {
         type="button"
         id="back-to-top"
         onClick={() => window.scrollTo({ top: 0, behavior: behavior() })}
-        className={`${btn} bottom-8 ${shown(visible)}`}
+        className={`${btn} bottom-8 back-to-top-fade ${shown(visible)}`}
         aria-label="返回頂端"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
