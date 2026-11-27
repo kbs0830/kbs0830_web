@@ -6,6 +6,7 @@ import { PERIOD_NAMES, buildReport, delta, resolveRange, type Entry, type Period
 import { nf, monthDay as md, regionName } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
 import { readSearchConsole } from "@/lib/stats/search-console";
+import { readSearchIndex } from "@/lib/stats/search-index";
 import { connection } from "next/server";
 
 // 日報／週報／月報的內容（2026-11-26 從公開的 /reports 搬進站長後台，TODO G8；使用者 11/25：「我之後再挪到私人的管理者裡面」）。
@@ -68,6 +69,7 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
   const cmpLabel = period === "day" ? "前一天" : period === "week" ? "上週" : "上個月";
   const cmp = (cur: number, prev: number) => `${cmpLabel} ${N(prev)}${delta(cur, prev)}`;
   const gsc = readSearchConsole();
+  const gscIndex = readSearchIndex();
   const sessionsTotal = r.direct != null ? r.direct + r.refKinds.reduce((n, [, c]) => n + c, 0) : undefined;
 
   return (
@@ -349,6 +351,42 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
           <div className="space-y-8">
             <Shares label="搜尋字詞（曝光次數）" entries={gsc.analytics.queries.map((q): Entry => [q.key, q.impressions])} />
             <Shares label="被搜尋到的頁面（曝光次數）" entries={gsc.analytics.pages.slice(0, 10).map((q): Entry => [pageTitle(q.key), q.impressions])} />
+          </div>
+        </Block>
+      )}
+
+      {gscIndex && (
+        <Block
+          title="Google 收錄狀態"
+          en="Index coverage"
+          note={`每週逐網址問 Google（URL Inspection API）；更新於 ${twTime(gscIndex.fetchedAt)}。「已找到 - 尚未建立索引」＝Google 知道這頁但還沒排到去抓，通常等就好；「已檢索 - 尚未建立索引」才是內容太薄或太像別頁，要改。「Google 還不知道」多半是剛上線的新頁，sitemap 會帶它去。`}
+        >
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-(--border) border border-(--border) rounded-sm overflow-hidden mb-8">
+            <Kpi label="已收錄" value={`${gscIndex.index.indexed}／${gscIndex.index.total}`} />
+            <Kpi label="還沒收錄" value={N(gscIndex.index.total - gscIndex.index.indexed)} />
+            <Kpi label="這次新收錄" value={gscIndex.newlyIndexed.length ? `+${gscIndex.newlyIndexed.length}` : "0"} />
+            <Kpi label="收錄率" value={`${Math.round((gscIndex.index.indexed / Math.max(1, gscIndex.index.total)) * 100)}%`} />
+          </dl>
+          <div className="space-y-8">
+            <Shares label="各狀態頁數" entries={Object.entries(gscIndex.index.states).sort((a, b) => b[1] - a[1]) as Entry[]} />
+            {gscIndex.index.pages.some((p) => !p.indexed) && (
+              <div>
+                <p className="text-[11px] text-(--muted) font-mono tracking-wide mb-1">還沒收錄的頁</p>
+                <ul className="border-y border-(--border) divide-y divide-(--border) text-sm font-light">
+                  {gscIndex.index.pages
+                    .filter((p) => !p.indexed)
+                    .map((p) => (
+                      <li key={p.path} className="py-2 flex justify-between gap-3">
+                        <span className="font-mono min-w-0 [overflow-wrap:anywhere]">{p.path}</span>
+                        <span className="text-(--muted) shrink-0">{p.state}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+            {gscIndex.newlyIndexed.length > 0 && (
+              <p className="text-xs text-(--muted) font-light leading-relaxed">這次新收錄：{gscIndex.newlyIndexed.join("、")}</p>
+            )}
           </div>
         </Block>
       )}

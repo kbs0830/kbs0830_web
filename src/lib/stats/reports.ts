@@ -10,6 +10,7 @@ import { getAllPosts } from "@/lib/content/blog";
 import { readDelays } from "@/lib/travel/airport-delay-recorder";
 import { summarizeDelaysRange, type DelaySummary } from "@/lib/travel/airport-delays";
 import { readGoClicks } from "@/lib/stats/go-clicks";
+import { readSearchIndex } from "@/lib/stats/search-index";
 import { readHeroStats, VARIANT_NAMES, type HeroVariant } from "@/lib/stats/hero-stats";
 import { AIRLINE_NAMES, TYPE_NAMES, readState as readRadar } from "../../../scripts/lib/radar.js";
 import { nf, monthDay as md } from "@/lib/format";
@@ -461,6 +462,15 @@ export function reportText(r: Report): string {
     for (const p of r.posts) L.push(`  📝 ${p.title}`);
     for (const c of r.changes.slice(0, 15)) L.push(`  ・${md(c.date)} ${c.scope}：${c.text}`);
     if (r.changes.length > 15) L.push(`  …還有 ${r.changes.length - 15} 項`);
+    L.push("");
+  }
+  const idx = readSearchIndex();
+  if (idx) {
+    const missing = idx.index.pages.filter((p) => !p.indexed);
+    L.push(
+      `【Google 收錄】已收錄 ${idx.index.indexed}／${idx.index.total} 頁${idx.newlyIndexed.length ? `，這次新收錄 ${idx.newlyIndexed.length} 頁` : ""}（${md(idx.fetchedAt.slice(0, 10))} 檢查）` +
+        (missing.length ? `；還沒收錄 ${missing.length} 頁：${missing.slice(0, 8).map((p) => p.path).join("、")}${missing.length > 8 ? "…" : ""}` : ""),
+    );
     L.push("");
   }
   L.push(`網頁版（要登入後台）：https://kbs0830.com/admin/reports?p=${range.period}&d=${range.from}`);

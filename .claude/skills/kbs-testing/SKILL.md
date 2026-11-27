@@ -65,3 +65,13 @@ working directory 同步到最新 commit，兩個 workflow 誰先跑都測得到
 （2026-07 正式站還直接用 `.next` 時，在這裡連續 build 曾讓線上 process 的 build 對不上、chunk 500。）
 例外：`pnpm install` 還是會動到線上在用的 `node_modules`，不要在這裡手動跑，交給 deploy.ps1。
 
+**本機驗證要用自己專屬的 build 資料夾＋port（2026-11-27）**：多個 Claude session 同時在這個 repo 工作時，大家都 build 到 `.next-test`、都開 3200，會互相蓋掉 chunk
+（我的 E2E 因此一次 22 項假失敗：頁面沒樣式、chunk 500）。各用各的，例如 `NEXT_DIST_DIR=.next-test3`＋`PORT=3201`＋`playwright.local-3201.config.ts`，驗完關掉 server、刪掉資料夾。
+`.next-test*` 不在 `.gitignore` 裡（只有 `.next-test`），記得刪，別 commit。
+
+**其他 E2E 守則（2026-11-27）**：
+- `e2e/visual-guard.spec.ts`：樣式防呆（CSS 裸 `--變數`、方括號變數 class、強調色底透明、內文對比）；不做像素截圖比對（首頁有即時內容，桌機跟 A14 渲染不同）
+- `e2e/perf-budget.spec.ts`：效能預算（傳輸量 KB、請求數、LCP），**只在正式 build 有意義**，預設跳過；驗證時 `PERF_BUDGET=1 node node_modules/@playwright/test/cli.js test -c <本機 config> perf-budget`。預算＝正式 build 量到的數字放寬約 30%，要調大請寫理由。CI 的 E2E 跑 `next dev`（沒壓縮、沒 minify），不能跑這支
+- `e2e/csp.spec.ts` 會逐頁開 sitemap 全部頁面，頁數增加時時間上限要跟著放寬（11/27 CI 因頁數增加在 240 秒逾時，已改 600 秒）
+- 新增文章加進既有系列時，`src/lib/content/blog.test.ts` 裡寫死的系列篇數要跟著改
+

@@ -4,7 +4,8 @@ import { expect, test } from "@playwright/test";
 // 在頁面一開始就掛監聽收集起來。每頁捲到底，讓延遲載入的圖片（GitHub 熱力圖、作品截圖）也載到。
 // 新增外部資源忘了加進 next.config.ts 的 CSP，這支會擋下來。
 test("sitemap 每一頁都沒有 CSP 違規", async ({ page, request }) => {
-  test.setTimeout(240_000);
+  // 2026-11-27：sitemap 頁數從約 30 長到 60 多（文章、工具、/ask…），CI 的 `next dev` 每頁還要即時編譯，240 秒不夠（CI 兩次都在這逾時）
+  test.setTimeout(600_000);
   const xml = await (await request.get("/sitemap.xml")).text();
   const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
 

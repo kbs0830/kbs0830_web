@@ -106,7 +106,13 @@ function summarizeInspections(results) {
     if (r.verdict === "PASS") indexed++;
     else notIndexed.push(r.url.replace(SITE, "") || "/");
   }
-  return { total: results.length, indexed, states, notIndexed };
+  // pages：每頁一筆（後台報表的收錄狀態表、跟上次比出「新收錄」用；TODO V6）
+  const pages = results.map((r) => ({
+    path: r.url.replace(SITE, "") || "/",
+    indexed: r.verdict === "PASS",
+    state: r.error ? "查詢失敗" : COVERAGE_ZH[r.coverageState] || r.coverageState || "未知",
+  }));
+  return { total: results.length, indexed, states, notIndexed, pages };
 }
 
 async function run({ inspect = true } = {}) {
@@ -235,7 +241,28 @@ async function submitSitemap() {
   return { ok: true, feed };
 }
 
-if (require.main === module && process.argv.includes("--cache")) {
+if (require.main === module && process.argv.includes("--index")) {
+  // 收錄狀態快取（TODO V6，2026-11-27）：每週一次，逐網址問 URL Inspection API（sitemap 55 頁約 1～2 分鐘，所以由 ps1 在背景跑），
+  // 寫 data/search-index.json：每頁收錄與否＋跟上次比「這次新收錄的頁」。後台 /admin/reports 的「Google 收錄狀態」讀它。
+  const out = process.env.GSC_INDEX_FILE || path.join(REPO, "data", "search-index.json");
+  run()
+    .catch((e) => ({ error: e.message }))
+    .then((r) => {
+      if (r.error || r.skipped || !r.index) {
+        process.stdout.write(JSON.stringify(r));
+        process.exitCode = 1;
+        return;
+      }
+      let before = new Set();
+      try {
+        before = new Set(JSON.parse(fs.readFileSync(out, "utf8")).index.pages.filter((p) => p.indexed).map((p) => p.path));
+      } catch {}
+      const newlyIndexed = before.size ? r.index.pages.filter((p) => p.indexed && !before.has(p.path)).map((p) => p.path) : [];
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, JSON.stringify({ fetchedAt: new Date().toISOString(), site: r.site, index: r.index, newlyIndexed }, null, 2));
+      process.stdout.write(JSON.stringify({ ok: true, total: r.index.total, indexed: r.index.indexed, newlyIndexed: newlyIndexed.length }));
+    });
+} else if (require.main === module && process.argv.includes("--cache")) {
   // 後台報表的快取（2026-11-26，TODO G9，使用者要把搜尋字詞放進後台）：只抓搜尋成效（近 28 天），寫 data/search-console.json。
   // 這份檔案不進 git；搜尋字詞只在站長後台（/admin/reports）顯示。由 scripts/search-console-cache.ps1 每天一次呼叫（watchdog）。
   const out = process.env.GSC_CACHE_FILE || path.join(REPO, "data", "search-console.json");
