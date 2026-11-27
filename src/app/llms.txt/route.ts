@@ -1,7 +1,7 @@
 import { projects } from "@/lib/content/projects";
 import { getAllPosts } from "@/lib/content/blog";
 import { statusLines } from "@/lib/content/about";
-import { EMAIL, GITHUB_URL, SITE_URL } from "@/lib/site/site";
+import { EMAIL, GITHUB_URL, HIRE_ENABLED, SITE_URL } from "@/lib/site/site";
 
 // /llms.txt：給 AI（ChatGPT、Claude、Perplexity…）讀的網站摘要（llmstxt.org 慣例），build 時產生。
 // 內容直接從 projects.ts／blog／about.ts 組出來，新增作品或文章會自動跟上。
@@ -35,8 +35,8 @@ ${posts.map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug})：${post
 - [履歷](${SITE_URL}/resume)：學歷、技能、代表作品
 - [現在在做什麼](${SITE_URL}/now)
 - [開發環境與工具](${SITE_URL}/uses)
-- [問我](${SITE_URL}/ask)：跑在站長桌機上的本地 AI 小助理，根據站上的作品與文章回答
-- [接案](${SITE_URL}/hire)：私有 AI 小助理、網站、影像辨識、Python 後端
+- [問我](${SITE_URL}/ask)：跑在站長桌機上的本地 AI 小助理，根據站上的作品與文章回答${HIRE_ENABLED ? `
+- [接案](${SITE_URL}/hire)：私有 AI 小助理、網站、影像辨識、Python 後端` : ""}
 - [飛行紀錄](${SITE_URL}/flights)：搭過的航線、機場、航空公司（航迷小筆記）
 - [住宿紀錄](${SITE_URL}/hotels)：住過的飯店、城市、飯店集團
 - [維運狀態](${SITE_URL}/status)：可用率、部署紀錄、事故報告

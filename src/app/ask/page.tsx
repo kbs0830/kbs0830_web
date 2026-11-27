@@ -3,6 +3,7 @@ import Link from "next/link";
 import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import AskChat from "@/components/ask/AskChat";
+import { HIRE_ENABLED } from "@/lib/site/site";
 
 // 「問我」AI 助理（TODO H1，2026-11-27）。後端 /api/chat、知識庫 lib/ai/（細節在 kbs-integrations 技能）
 export const metadata: Metadata = withShare({
@@ -31,11 +32,16 @@ export default function AskPage() {
           （連同小助理的回答，用來看大家想知道什麼、改進答不好的地方）：不記 IP、不記任何帳號，email 和電話會先遮掉，只保留 90 天，只有站長看得到。請不要在問題裡放你的個人資料。
         </p>
         <p>
-          想請他幫你做類似的東西（資料不出你家的 AI 小助理、網站、影像辨識），看{" "}
-          <Link href="/hire" className={link}>
-            接案 · Hire
-          </Link>
-          ；一般聯絡看{" "}
+          {HIRE_ENABLED && (
+            <>
+              想請他幫你做類似的東西（資料不出你家的 AI 小助理、網站、影像辨識），看{" "}
+              <Link href="/hire" className={link}>
+                接案 · Hire
+              </Link>
+              ；一般聯絡看{" "}
+            </>
+          )}
+          {!HIRE_ENABLED && "想聯絡或合作，請看 "}
           <Link href="/#contact" className={link}>
             Contact
           </Link>

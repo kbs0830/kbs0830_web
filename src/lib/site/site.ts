@@ -8,6 +8,9 @@ export const GITHUB_URL = "https://github.com/kbs0830";
 export const REPO_URL = `${GITHUB_URL}/kbs0830_web`;
 // 2026-11-05 起先不用（Contact 連結跟 JSON-LD sameAs 都拿掉了），恢復時從這裡引用
 export const FACEBOOK_URL = "https://www.facebook.com/tra0830";
+// /hire 接案頁 2026-11-27 先隱藏（使用者：「接案先隱藏」）：頁面程式還在，但回 404、不進 sitemap／llms.txt／Ctrl+K／頁尾、/ask 不連過去。
+// 恢復：改成 true（接案條件還沒定：價位、每週時數、接不接日本案子，見待辦「接案條件」）
+export const HIRE_ENABLED = false;
 export const INSTAGRAM_URL = "https://www.instagram.com/pingwei_0830/";
 
 // 結構化資料（JSON-LD）裡「這個人」的固定 ID：layout 的 Person、首頁的 ProfilePage、

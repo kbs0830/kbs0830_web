@@ -5,7 +5,8 @@ import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import BulletList from "@/components/ui/BulletList";
-import { EMAIL } from "@/lib/site/site";
+import { notFound } from "next/navigation";
+import { EMAIL, HIRE_ENABLED } from "@/lib/site/site";
 
 // 接案頁（TODO E1，2026-11-27；make-money.md 階段一第 1 項）。
 // 只寫「這個網站上看得到證據」的服務，每一項都連到做過的東西。
@@ -43,6 +44,7 @@ function Service({ title, en, children, proof }: { title: string; en: string; ch
 }
 
 export default function HirePage() {
+  if (!HIRE_ENABLED) notFound(); // 先隱藏，見 lib/site/site.ts
   return (
     <PageShell
       eyebrow="Hire"

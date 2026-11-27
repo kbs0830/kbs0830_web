@@ -1,5 +1,5 @@
 import type { Route } from "next";
-import { EMAIL, GITHUB_URL, INSTAGRAM_URL } from "@/lib/site/site";
+import { EMAIL, GITHUB_URL, HIRE_ENABLED, INSTAGRAM_URL } from "@/lib/site/site";
 
 // 全站頁面索引（2026-11-23，「頁面瀏覽方便程度」）：頁尾的頁面清單（SiteFooter）跟 Ctrl+K 快速跳轉（QuickJump）共用這一份。
 // 新增獨立頁面時加進對應的分組，兩邊就都找得到（還是要另外加進 sitemap.ts）。
@@ -26,7 +26,7 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
       { href: "/now", zh: "近況", en: "Now", desc: "現在在做什麼、在學什麼" },
       { href: "/uses", zh: "開発環境", en: "Uses", desc: "硬體、軟體、工具" },
       { href: "/ask", zh: "問我", en: "Ask", desc: "本地 AI 小助理：問作品、技術，附來源連結" },
-      { href: "/hire", zh: "接案", en: "Hire", desc: "私有 AI 小助理、網站、影像辨識，每一項都連到做過的作品" },
+      ...(HIRE_ENABLED ? [{ href: "/hire" as const, zh: "接案", en: "Hire", desc: "私有 AI 小助理、網站、影像辨識，每一項都連到做過的作品" }] : []),
       { href: "/resume", zh: "履歷", en: "Resume", desc: "教育、技能、作品、證照" },
     ],
   },

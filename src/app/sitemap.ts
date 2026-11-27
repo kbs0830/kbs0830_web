@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { projects } from "@/lib/content/projects";
 import { getAllPosts } from "@/lib/content/blog";
-import { SITE_URL } from "@/lib/site/site";
+import { HIRE_ENABLED, SITE_URL } from "@/lib/site/site";
 import { TOOL_PAGES } from "@/lib/site/site-map";
 import { allRouteSlugs } from "@/lib/tools/popular-routes";
 import { MONTHS } from "@/lib/travel/fukuoka-climate";
@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/now", "weekly", 0.6),
     page("/uses", "monthly", 0.5),
     page("/ask", "monthly", 0.5),
-    page("/hire", "monthly", 0.6),
+    ...(HIRE_ENABLED ? [page("/hire", "monthly", 0.6)] : []),
     page("/resume", "monthly", 0.6),
     page("/blog", "weekly", 0.8),
     page("/flights", "monthly", 0.3),
