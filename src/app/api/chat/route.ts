@@ -3,6 +3,7 @@ import { clientIp, RateLimiter, readLimitedJson } from "@/lib/api/request-guard"
 import { MAX_BODY_BYTES, SYSTEM_PROMPT, ollamaToTextStream, parseChatBody } from "@/lib/ai/chat-input";
 import { contextBlock, sourcesOf, techLines, techSources } from "@/lib/ai/knowledge";
 import { CHAT_MODEL, OLLAMA_URL } from "@/lib/ai/ollama";
+import { logAsk } from "@/lib/ai/ask-log";
 import { retrieve } from "@/lib/ai/retrieve";
 
 // 站上 AI 小助理（2026-11-27）：POST /api/chat  body: { messages: [{ role, content }, ...] }
@@ -11,7 +12,8 @@ import { retrieve } from "@/lib/ai/retrieve";
 // 瀏覽器在串流開始前就拿得到。
 // Ollama 只聽 127.0.0.1:11434，不對外開；這支是唯一入口，所以限流都在這裡：
 //   每個 IP 10 分鐘 12 則、全站每小時 200 則、同時最多 2 個在生成（RTX 3070 8GB 排隊只會更慢）。
-// 不存對話內容、不記錄誰問了什麼（只在記憶體算次數，重啟就清空）。
+// 提問紀錄（2026-11-27，使用者決定要記）：問題、答案（截斷）、來源、花多久寫進 data/ask-log.jsonl（lib/ai/ask-log.ts），
+// email、電話、疑似金鑰先遮掉，**不記 IP**，保留 90 天，只有後台 /admin/ask 看得到；/ask 頁面有寫明。限流次數只在記憶體算。
 
 const TIMEOUT_MS = 120_000; // 冷啟動（載入模型）實測約 60 秒，再留生成的時間
 const MAX_CONCURRENT = 2;
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
     }
   };
 
+  const startedAt = Date.now();
   const timeout = AbortSignal.timeout(TIMEOUT_MS);
   const signal = AbortSignal.any([timeout, req.signal]);
 
@@ -65,16 +68,39 @@ export async function POST(req: NextRequest) {
     });
     if (!upstream.ok || !upstream.body) {
       release();
+      logAsk({ q: messages.at(-1)!.content, a: "", src: [], ms: Date.now() - startedAt, turn: messages.filter((m) => m.role === "user").length, ok: false });
       return fail("AI 暫時無法使用", 502);
     }
+    // 邊送邊把答案收起來，答完（或中斷）時記一筆；只記一次
+    const decoder = new TextDecoder();
+    let answer = "";
+    let logged = false;
+    const record = (ok: boolean) => {
+      if (logged) return;
+      logged = true;
+      logAsk({ q: messages.at(-1)!.content, a: answer, src: sources.map((s) => s.href), ms: Date.now() - startedAt, turn: messages.filter((m) => m.role === "user").length, ok });
+    };
     const text = ollamaToTextStream(upstream.body).pipeThrough(
       new TransformStream({
-        flush: release,
-        transform: (chunk, controller) => controller.enqueue(chunk),
+        flush() {
+          release();
+          record(true);
+        },
+        transform(chunk, controller) {
+          if (answer.length < 2000) answer += decoder.decode(chunk, { stream: true });
+          controller.enqueue(chunk);
+        },
       }),
     );
     // 瀏覽器中途關掉或逾時：上游 fetch 被 abort，串流出錯，也要把名額還回去
-    signal.addEventListener("abort", release, { once: true });
+    signal.addEventListener(
+      "abort",
+      () => {
+        release();
+        record(false);
+      },
+      { once: true },
+    );
     return new Response(text, {
       headers: {
         "content-type": "text/plain; charset=utf-8",
@@ -85,6 +111,7 @@ export async function POST(req: NextRequest) {
     });
   } catch {
     release();
+    logAsk({ q: messages.at(-1)!.content, a: "", src: [], ms: Date.now() - startedAt, turn: messages.filter((m) => m.role === "user").length, ok: false });
     return fail("AI 暫時無法使用", 503);
   }
 }

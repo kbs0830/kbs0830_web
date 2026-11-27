@@ -9,9 +9,10 @@ import RadarLive from "@/components/live/RadarLive";
 import { BarChart, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { detail, dex, readState } from "../../../scripts/lib/radar.js";
 import { DEX_HIDDEN } from "@/lib/live/aircraft-dex";
+import { ensureRadarReport, readRadarReport } from "@/lib/live/radar-report";
 import { nf, monthDay as md } from "@/lib/format";
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 自家雷達頁（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）。
@@ -34,6 +35,9 @@ type NowFlight = { flight: string; alt: number | null; airlineName: string | nul
 
 async function RadarContent() {
   await connection(); // Cache Components：下面讀的都是即時資料（TODO C13）
+  // AI 日報（TODO H6）：昨天的還沒寫就在回應送出後寫一份（lib/live/radar-report.ts），這次先顯示已有的
+  after(() => ensureRadarReport());
+  const report = readRadarReport();
   const d = loadRadar();
   const dexCount = (dex(readState(radarFile())) as { code: string }[]).filter((e) => !DEX_HIDDEN.has(e.code)).length;
 
@@ -53,6 +57,20 @@ async function RadarContent() {
               [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 30 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
             ]}
           />
+
+          {/* 日報（TODO H6）：數字由程式算好，本機 Gemma 負責寫成句子；Ollama 沒開時是固定句型。只有數量、時段、航空公司、機型 */}
+          {report && (
+            <section className="mb-12" aria-label="日報">
+              <SectionHeading en="Daily note">{md(report.date)}の日報</SectionHeading>
+              <p className="text-[15px] sm:text-sm font-light leading-[1.9] sm:leading-relaxed text-(--text)">{report.text}</p>
+              <p className="mt-2 text-xs text-(--muted) font-light">
+                {report.by === "ai"
+                  ? "這段話是跑在站長桌機上的本地 AI（Gemma 3）寫的，數字都是程式先算好再交給它，寫完會檢查有沒有冒出沒給它的數字。"
+                  : "這段話是程式用固定句型寫的（本地 AI 當時沒開）。"}
+                每天第一位來看的人會觸發當天的日報。
+              </p>
+            </section>
+          )}
 
           {/* 機體図鑑（2026-11-25）入口 */}
           <Link

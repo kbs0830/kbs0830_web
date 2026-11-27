@@ -23,11 +23,19 @@ export default function AskPage() {
       <AskChat />
       <div className="mt-16 space-y-2 text-xs text-(--muted) font-light leading-relaxed">
         <p>
-          這個小助理是 Google 的 Gemma 3（4B）模型，跑在站長自己的桌機上（RTX 3070），問題不會送去雲端；對話只留在這個畫面，不會儲存。
+          這個小助理是 Google 的 Gemma 3（4B）模型，跑在站長自己的桌機上（RTX 3070），問題不會送去雲端。
           小模型偶爾會答錯，以來源連結裡的內容為準。
         </p>
         <p>
-          想聯絡或合作，請看{" "}
+          <strong className="font-normal text-(--text)">你問的問題會被記錄</strong>
+          （連同小助理的回答，用來看大家想知道什麼、改進答不好的地方）：不記 IP、不記任何帳號，email 和電話會先遮掉，只保留 90 天，只有站長看得到。請不要在問題裡放你的個人資料。
+        </p>
+        <p>
+          想請他幫你做類似的東西（資料不出你家的 AI 小助理、網站、影像辨識），看{" "}
+          <Link href="/hire" className={link}>
+            接案 · Hire
+          </Link>
+          ；一般聯絡看{" "}
           <Link href="/#contact" className={link}>
             Contact
           </Link>

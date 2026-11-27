@@ -26,6 +26,7 @@ export const SITE_GROUPS: { label: string; pages: SitePage[] }[] = [
       { href: "/now", zh: "近況", en: "Now", desc: "現在在做什麼、在學什麼" },
       { href: "/uses", zh: "開発環境", en: "Uses", desc: "硬體、軟體、工具" },
       { href: "/ask", zh: "問我", en: "Ask", desc: "本地 AI 小助理：問作品、技術，附來源連結" },
+      { href: "/hire", zh: "接案", en: "Hire", desc: "私有 AI 小助理、網站、影像辨識，每一項都連到做過的作品" },
       { href: "/resume", zh: "履歷", en: "Resume", desc: "教育、技能、作品、證照" },
     ],
   },
