@@ -19,5 +19,5 @@ description: kbs0830_web 第三方整合與 SEO 全文：本地 AI 聊天 API（
 | 第三方整合 | 真實訪客 Web Vitals（2026-11-04，自架） | `parts/08.md` | 1.3 KB |
 | 第三方整合 | 自家 FR24 雷達（2026-11-21） | `parts/09.md` | 5.1 KB |
 | 第三方整合 | Spotify「正在聽」 | `parts/10.md` | 1.0 KB |
-| 第三方整合 | 本地 AI 聊天 API（2026-11-27，Ollama + gemma3:4b，`/api/chat`、`lib/ai/`） | `parts/12.md` | 1.9 KB |
+| 第三方整合 | 本地 AI：聊天 API＋「問我」/ask（2026-11-27，Ollama gemma3:4b＋embeddinggemma，`/api/chat`、`lib/ai/`、知識庫檢索） | `parts/12.md` | 4.3 KB |
 |  | SEO | `parts/11.md` | 5.8 KB |
