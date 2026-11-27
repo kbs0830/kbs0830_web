@@ -19,6 +19,16 @@ export default async function AdminShell({ title, intro, children }: { title: st
   return (
     <PageShell compact backHref="/" backLabel="回網站" eyebrow="站長後台 · Admin" title={title} intro={intro}>
       <LoginBar who={who} />
+      {/* 全文搜尋（TODO S4）：純 GET 表單，不用 JS；結果在 /admin/search */}
+      <form action="/admin/search" role="search" className="mb-3">
+        <input
+          type="search"
+          name="q"
+          aria-label="搜尋後台（待辦、完成紀錄、操作紀錄）"
+          placeholder="搜尋待辦、完成紀錄…"
+          className="h-9 w-full rounded-sm border border-(--border) bg-(--bg) px-3 text-sm text-(--text) placeholder:text-(--muted)"
+        />
+      </form>
       <AdminNav />
       {children}
     </PageShell>

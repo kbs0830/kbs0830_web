@@ -73,6 +73,39 @@ const MIGRATIONS = [
      created_at INTEGER NOT NULL
    );
    CREATE INDEX done_log_sort ON done_log (sort);`,
+  // 5：全文搜尋（2026-11-27，TODO S4）：SQLite FTS5＋trigram 分詞，中文不用斷詞，任意 3 字以上的片段都搜得到（2 字以下退回 LIKE，見 searchAdmin）。
+  //    ⚠️ 刪除用 src IN (...)，不能用 src LIKE 'todo%'：FTS5 的未索引欄位用 LIKE 比對會永遠 0 筆（2026-11-27 實測）。
+  //    一張 search 表放三個來源：待辦（src＝todo／todo:done／todo:dropped）、完成紀錄（done）、操作紀錄（log）；用 trigger 跟原表同步。
+  `CREATE VIRTUAL TABLE search USING fts5(src UNINDEXED, ref UNINDEXED, title, body, tokenize = 'trigram');
+   INSERT INTO search (src, ref, title, body) SELECT 'todo' || CASE WHEN status = 'open' THEN '' ELSE ':' || status END, id, title, detail FROM todos;
+   INSERT INTO search (src, ref, title, body) SELECT 'done', CAST(id AS TEXT), title, body FROM done_log;
+   INSERT INTO search (src, ref, title, body) SELECT 'log', CAST(id AS TEXT), action, detail FROM admin_log;
+   CREATE TRIGGER search_todos_ai AFTER INSERT ON todos BEGIN
+     INSERT INTO search (src, ref, title, body) VALUES ('todo' || CASE WHEN new.status = 'open' THEN '' ELSE ':' || new.status END, new.id, new.title, new.detail);
+   END;
+   CREATE TRIGGER search_todos_au AFTER UPDATE ON todos BEGIN
+     DELETE FROM search WHERE src IN ('todo', 'todo:done', 'todo:dropped') AND ref = old.id;
+     INSERT INTO search (src, ref, title, body) VALUES ('todo' || CASE WHEN new.status = 'open' THEN '' ELSE ':' || new.status END, new.id, new.title, new.detail);
+   END;
+   CREATE TRIGGER search_todos_ad AFTER DELETE ON todos BEGIN
+     DELETE FROM search WHERE src IN ('todo', 'todo:done', 'todo:dropped') AND ref = old.id;
+   END;
+   CREATE TRIGGER search_done_ai AFTER INSERT ON done_log BEGIN
+     INSERT INTO search (src, ref, title, body) VALUES ('done', CAST(new.id AS TEXT), new.title, new.body);
+   END;
+   CREATE TRIGGER search_done_au AFTER UPDATE ON done_log BEGIN
+     DELETE FROM search WHERE src = 'done' AND ref = CAST(old.id AS TEXT);
+     INSERT INTO search (src, ref, title, body) VALUES ('done', CAST(new.id AS TEXT), new.title, new.body);
+   END;
+   CREATE TRIGGER search_done_ad AFTER DELETE ON done_log BEGIN
+     DELETE FROM search WHERE src = 'done' AND ref = CAST(old.id AS TEXT);
+   END;
+   CREATE TRIGGER search_log_ai AFTER INSERT ON admin_log BEGIN
+     INSERT INTO search (src, ref, title, body) VALUES ('log', CAST(new.id AS TEXT), new.action, new.detail);
+   END;
+   CREATE TRIGGER search_log_ad AFTER DELETE ON admin_log BEGIN
+     DELETE FROM search WHERE src = 'log' AND ref = CAST(old.id AS TEXT);
+   END;`,
 ];
 
 let db: { file: string; conn: DatabaseSync } | null = null;
@@ -239,6 +272,40 @@ export function addDone(title: string, body: string, day: string | null = null, 
   const r = conn.prepare("INSERT INTO done_log (day, title, body, sort, created_at) VALUES (?, ?, ?, ?, ?)").run(d, title, body, sort, now);
   logEvent("done.add", title, now);
   return Number(r.lastInsertRowid);
+}
+
+// ── 全文搜尋（TODO S4）────────────────────────────────────
+export type SearchHit = { src: "todo" | "todo:done" | "todo:dropped" | "done" | "log"; ref: string; title: string; snippet: string };
+export const SEARCH_LABEL: Record<SearchHit["src"], string> = { todo: "待辦", "todo:done": "待辦（已完成）", "todo:dropped": "待辦（不做）", done: "完成紀錄", log: "操作紀錄" };
+/** 標出命中字的記號（結果字串裡用這兩個字元包起來，畫面再換成 <mark>） */
+export const MARK_OPEN = "⟦";
+export const MARK_CLOSE = "⟧";
+
+/**
+ * 搜全部：待辦、完成紀錄、操作紀錄。3 個字以上走 FTS5 trigram（有排序、命中處反白）；
+ * trigram 搜不到 2 個字的詞（例「雷達」），退回 LIKE（沒有反白，標題或內文含這個字就算）。
+ */
+export function searchAdmin(query: string, limit = 40): SearchHit[] {
+  const q = query.trim();
+  if (!q) return [];
+  const conn = getDb();
+  if ([...q].length >= 3) {
+    const phrase = `"${q.replace(/"/g, '""')}"`; // 整串當一個片語，使用者打的 - * : 這類符號才不會被當成 FTS 語法
+    return conn
+      .prepare(
+        `SELECT src, ref, highlight(search, 2, ?, ?) AS title, snippet(search, 3, ?, ?, '…', 14) AS snippet
+         FROM search WHERE search MATCH ? ORDER BY rank LIMIT ?`,
+      )
+      .all(MARK_OPEN, MARK_CLOSE, MARK_OPEN, MARK_CLOSE, phrase, limit) as SearchHit[];
+  }
+  // LIKE 的跳脫字元用 !（不用反斜線，免得在 SQL 字串跟 JS 字串之間來回跳脫）
+  const like = `%${q.replace(/[!%_]/g, (c) => `!${c}`)}%`;
+  return conn
+    .prepare(
+      `SELECT src, ref, title, substr(body, 1, 80) AS snippet FROM search
+       WHERE title LIKE ? ESCAPE '!' OR body LIKE ? ESCAPE '!' LIMIT ?`,
+    )
+    .all(like, like, limit) as SearchHit[];
 }
 
 /** 只給測試用 */

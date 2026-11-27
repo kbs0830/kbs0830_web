@@ -136,7 +136,7 @@
 
 **兩台都適用**：
 - **待辦在站長後台資料庫，不是 TODO.md**（2026-11-26）：`node scripts/admin-db.js todo`（列出）／`decisions`（使用者選的先做）／`todo add|done|drop`，用法在那支檔案開頭；
-  說明要寫完整（背景、使用者原話、做法）。**做完的紀錄也在資料庫，不寫 DONE.md**：`todo done` 會自動補一筆到完成紀錄（待辦頁不再有「已完成」分頁，歷史只看 `/admin/done`）；多項合併敘述才另外 `done add --title … --detail-file …`；查用 `done search`。資料庫 `data/admin.db` 只在桌機——在 A14 上讀不到，請使用者看 `/admin/todo` 或回桌機再寫
+  說明要寫完整（背景、使用者原話、做法）。**做完的紀錄也在資料庫，不寫 DONE.md**：`todo done` 會自動補一筆到完成紀錄（待辦頁不再有「已完成」分頁，歷史只看 `/admin/done`）；多項合併敘述才另外 `done add --title … --detail-file …`；查用 `search <字>`（待辦＋完成＋操作紀錄一次搜）或 `done search`。資料庫 `data/admin.db` 只在桌機——在 A14 上讀不到，請使用者看 `/admin/todo` 或回桌機再寫
 - 找 port 的 PID **不要加 `-State Listen`**（dual-stack socket 會顯示 Closed）
 - E2E 每個測試用 `gotoReady(page, path)`，不要直接 `page.goto`
 - 改 Cloudflare 設定後要 `curl -sI` 實際看到結果才算數

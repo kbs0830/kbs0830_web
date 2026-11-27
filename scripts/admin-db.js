@@ -17,6 +17,7 @@
 //   node scripts/admin-db.js todo ask <id> "問題"                Claude 有問題要使用者回答：接在說明最後一行「> **Claude 問（日期）**：…」，後台用紫色顯示、列表出現「Claude 有問題」標籤
 //   node scripts/admin-db.js todo say <id> "備註"                Claude 的一般備註／回覆（同樣紫色，不加標籤）；使用者回答後，用 say 記下「使用者答：…」並處理掉問題（edit 把那行改成 say 的格式）
 // 問題要寫成使用者一眼能回答的樣子（選項 A／B、要提供什麼）；使用者在後台的備註欄回答，讀到就處理。
+//   node scripts/admin-db.js search <關鍵字>      待辦、完成紀錄、操作紀錄一次全文搜（FTS5 trigram，3 字以上最準；2 字以下 LIKE）。後台也有：/admin/search
 // 完成紀錄（2026-11-26 起 DONE.md 的正本也在資料庫，done_log 表）：
 //   node scripts/admin-db.js done [--limit 20]      最近的完成紀錄（日期、標題、字數）
 //   node scripts/admin-db.js done show <id>         一筆的全文
@@ -92,7 +93,26 @@ function readDetail(a) {
   return undefined;
 }
 
-if (cmd === "backup") {
+if (cmd === "search") {
+  // 全文搜尋（TODO S4）：待辦、完成紀錄、操作紀錄一次搜，跟後台 /admin/search 同一套（src/lib/admin/db.ts 的 searchAdmin）。
+  // 3 個字以上走 FTS5 trigram（有排序，命中處用【】標出來）；2 個字以下退回 LIKE
+  need(version >= 5, "資料庫還沒有 search 表：網站升級重啟、開一次後台之後才有（migration 5）。");
+  const q = rest.join(" ").trim();
+  need(q, "用法：node scripts/admin-db.js search <關鍵字>");
+  const LABEL_SRC = { todo: "待辦", "todo:done": "待辦（已完成）", "todo:dropped": "待辦（不做）", done: "完成紀錄", log: "操作紀錄" };
+  let rows;
+  if ([...q].length >= 3) {
+    const phrase = `"${q.replace(/"/g, '""')}"`;
+    rows = db
+      .prepare("SELECT src, ref, highlight(search, 2, '【', '】') AS title, snippet(search, 3, '【', '】', '…', 14) AS snippet FROM search WHERE search MATCH ? ORDER BY rank LIMIT 40")
+      .all(phrase);
+  } else {
+    const like = `%${q.replace(/[!%_]/g, (c) => `!${c}`)}%`;
+    rows = db.prepare("SELECT src, ref, title, substr(body, 1, 80) AS snippet FROM search WHERE title LIKE ? ESCAPE '!' OR body LIKE ? ESCAPE '!' LIMIT 40").all(like, like);
+  }
+  for (const r of rows) console.log(`[${LABEL_SRC[r.src] ?? r.src} ${r.ref}] ${r.title}${r.snippet ? `\n    ${r.snippet.replace(/\s+/g, " ")}` : ""}`);
+  console.log(`\n${rows.length} 筆。`);
+} else if (cmd === "backup") {
   // 備份（TODO S1）：WAL 模式下資料可能還在 admin.db-wal，直接複製 .db 會漏；VACUUM INTO 產生一致、單檔的備份。backup.ps1 用這個
   const dest = rest[0];
   need(dest, "用法：node scripts/admin-db.js backup <備份檔路徑>");
