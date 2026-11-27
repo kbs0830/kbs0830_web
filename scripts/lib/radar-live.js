@@ -4,7 +4,7 @@
 //   1. 位置一律延遲 DELAY_MS（5 分鐘，使用者指定）才放出來：公開的畫面是「5 分鐘前的天空」，
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
-//   3. 對外的 id 是「識別碼＋當天日期」雜湊後取 8 碼，不是 ICAO hex；對外沒有 hex、squawk、訊號強度。
+//   3. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
 //   4. 畫面的地圖固定在高雄周邊、不以接收器為圓心、不畫距離圈、不標接收器位置（見 RadarLiveScreen.tsx）。
 // 離線／飛機 0 架時照樣記（空的取樣），不然畫面不知道「那段時間沒飛機」還是「沒資料」。
 
@@ -42,7 +42,12 @@ function recordTrack(prev, sample, now) {
   return { samples: keep.slice(-MAX_SAMPLES) };
 }
 
-const idOf = (hex, date) => crypto.createHash("sha1").update(`${hex}|${date}`).digest("hex").slice(0, 8);
+// id：HMAC＋每次啟動隨機產生的金鑰（hex 只有 24 位元，單純雜湊可以暴力還原）；金鑰只在記憶體，重啟後 id 換一批（畫面上的尾跡斷一次，無妨）
+const SECRET = crypto.randomBytes(16);
+const idOf = (hex, date) => crypto.createHmac("sha256", SECRET).update(`${hex}|${date}`).digest("hex").slice(0, 8);
+
+const MIN_ALT_FT = 1000; // 地面與 1,000 ft 以下不放出去：低空航跡會透露離機場／接收器多近
+const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數（約 100 公尺）
 
 /**
  * 給 /radar/live 畫面的資料：只含 now - DELAY_MS 以前的取樣。
@@ -58,7 +63,7 @@ function buildFrame(track, types, names, now) {
   const out = samples.map((s) => ({
     t: s.t,
     ok: s.ok,
-    p: s.ac.map((a) => {
+    p: s.ac.filter((a) => a.al == null || a.al >= MIN_ALT_FT).map((a) => {
       const id = idOf(a.h, date);
       const airline = (a.f.match(/^([A-Z]{3})\d{1,4}[A-Z]{0,2}$/) || [])[1] || null;
       const ty = types && types[a.h] && types[a.h].t ? types[a.h].t : null;
@@ -69,7 +74,7 @@ function buildFrame(track, types, names, now) {
         ty,
         tn: ty ? (names.types[ty] || ty) : null,
       };
-      return [id, a.la, a.lo, a.al, a.sp, a.tr];
+      return [id, coarse(a.la), coarse(a.lo), a.al, a.sp, a.tr];
     }),
   }));
   return { now, delayMs: DELAY_MS, samples: out, info };

@@ -32,6 +32,14 @@ describe("buildFrame（延遲 5 分鐘＋不外流識別碼）", () => {
     expect(f.samples.map((s: { t: number }) => s.t)).toEqual([T0, T0 + 30_000]);
     expect(buildFrame(track(), null, names, T0 + DELAY_MS - 1).samples).toHaveLength(0);
   });
+  it("地面與 1,000 ft 以下不出現，座標粗化到 3 位小數", () => {
+    let t = recordTrack(null, ok([plane({ hex: "low1", flight: "CAL9", alt: 500 }), plane({ hex: "gnd1", flight: "CAL8", alt: "ground" }), plane()]), T0);
+    t = recordTrack(t, ok([plane()]), T0 + 30_000);
+    const f = buildFrame(t, null, names, T0 + 30_000 + DELAY_MS);
+    expect(f.samples[0].p).toHaveLength(1);
+    expect(f.samples[0].p[0][1]).toBe(22.574);
+    expect(f.samples[0].p[0][2]).toBe(120.439);
+  });
   it("輸出沒有 hex，id 同一天固定、換日會變", () => {
     const f = buildFrame(track(), { ab12cd: { t: "A321" } }, names, T0 + 60_000 + DELAY_MS);
     const json = JSON.stringify(f);
