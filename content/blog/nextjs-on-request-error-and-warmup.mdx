@@ -1,0 +1,63 @@
+---
+title: "伺服器端出錯沒人看到：Next.js onRequestError 記錄、告警，加上部署後預熱"
+seoTitle: "Next.js 16 onRequestError：記錄伺服器端錯誤到檔案、重複出錯寄告警，附部署後預熱 sitemap"
+titleEn: "Logging server errors with Next.js onRequestError, and warming the cache after deploys"
+date: "2026-11-27"
+description: "頁面 render 或 API 在伺服器端出錯，原本只會躺在 server.log 裡沒人看。用 Next.js 的 instrumentation onRequestError 記到專用的 errors.log、後台看得到、重複出錯才寄信；另外部署重啟後把 sitemap 的頁面全打一輪，第一個訪客不用等。"
+tags: ["Next.js", "Observability", "Performance"]
+series: "自架網站維運"
+seriesOrder: 6
+commits: ["0a8881b"]
+---
+
+自架網站的 watchdog 會在「整個網站沒回應」時救回來，也會寄信。但有一種壞法它看不到：網站活著、首頁正常，只有某個頁面或 API 在伺服器端丟例外。這類錯誤只會出現在 `logs/server.log`，沒有人會去翻，直到有訪客回報才知道。
+
+## onRequestError：Next.js 提供的出錯鉤子
+
+`instrumentation.ts` 除了 `register()`，還可以匯出 `onRequestError`。每當頁面 render、Route Handler 或 Server Action 在伺服器端出錯，Next.js 就會呼叫它，帶著錯誤、請求的路徑與方法、還有「是哪一類出錯」（`render`、`route`、`action`、`proxy`）。
+
+我讓它只做一件事：往 `logs/errors.log` 加一行 JSON。
+
+```ts
+export async function onRequestError(err, request, context) {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  const { formatServerError, recordServerError } = await import("@/lib/ops/server-errors");
+  recordServerError(formatServerError(err, request, context));
+}
+```
+
+記什麼、不記什麼，是設計重點：記時間、路徑、方法、類別、錯誤訊息的前 300 字、Next.js 給的 `digest`；**路徑會砍掉 `?` 後面的查詢字串**，也不記 cookie、header、IP。檔案超過 1MB 就只留最後 500 行，不會無限長大；寫檔失敗要吞掉，不能讓「記錄錯誤」本身再造成一次錯誤。
+
+後台的「維運」頁多了一塊「最近的伺服器錯誤」，讀的就是這個檔。
+
+## 偶爾一次不寄信，一直出錯才寄
+
+每個錯誤都寄信一定會被淹沒。watchdog 每 5 分鐘跑一次，順便讀 `errors.log` 最後 300 行，把「路徑加錯誤訊息」相同的歸成一組：最近 1 小時內同一組出現 5 次以上，才寄一封告警（6 小時冷卻）；錯誤停了，再補一封「已經停了」。
+
+PowerShell 這段我沒辦法直接等真的出錯來驗證，所以做了一個假的環境：寫一個含 6 筆相同錯誤、1 筆 5 小時前的舊錯誤、1 行壞資料的 `errors.log`，把 `Send-Alert` 換成會印出參數的假函式，再執行那一段。結果是：6 筆那次會寄信，舊錯誤跟壞資料被略過；只剩 3 筆時則走「清除告警」。
+
+## 驗證時踩到的小坑：底線開頭的資料夾不是路由
+
+要確認 `onRequestError` 真的接上了，我臨時加了一個會丟例外的 API 來測。第一次我把它放在 `src/app/api/_boom/route.ts`，結果打 `/api/_boom` 一直是 404，根本沒有出錯。
+
+App Router 裡**底線開頭的資料夾是「私有資料夾」，不會變成路由**。改名成 `boom-test` 之後，請求回 500，`errors.log` 裡也多了一行（查詢字串確實被砍掉了）。驗完把這個測試 API 刪掉，再重新 build 一次，確保它不會跑到線上。
+
+## 同一件事的另一面：部署後的第一個請求很慢
+
+自架網站每次部署都是重啟 Node。Next.js 的 Cache Components 快取放在記憶體，重啟就清空；而且每個頁面第一次被請求時還要載入對應的程式碼。`scripts/server.js` 裡的註解記著當時量到的差距：重啟後第一個請求，首頁要 5 秒、某個後台頁要 7 秒，暖機之後只要 40 到 120 毫秒。
+
+所以伺服器啟動完成後，會自己先打一輪頁面。原本只列了 13 個頁面，我改成：先打那 13 個，再讀自己的 `sitemap.xml`，把剩下的公開頁面也全打一輪，同時最多 4 個，不跟真人搶 CPU：
+
+```js
+await mapPool(rest, 4, (p) => getPath(port, p)); // rest = sitemap 裡還沒暖過的路徑
+```
+
+實測 62 個路徑大約 2 到 3 秒就暖完。預熱請求的 `User-Agent` 用 `kbs0830-warmup`，開頭的 `kbs0830-` 會被統計程式辨認成自己的工具，不算進訪客、也不算進未過濾流量。
+
+## 小結
+
+- `onRequestError` 把伺服器端錯誤記到專用檔案；只記必要欄位、砍掉查詢字串、限制檔案大小
+- 告警要有門檻：同一種錯誤 1 小時內 5 次以上才寄，冷卻加恢復通知
+- 看不到真實故障的程式，就用假資料＋假的寄信函式把邏輯跑一遍
+- App Router 的 `_` 開頭資料夾是私有資料夾，不是路由
+- 重啟後預熱：讀自己的 sitemap、限制同時數、用能被統計排除的 User-Agent

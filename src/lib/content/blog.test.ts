@@ -47,10 +47,10 @@ describe("readingMinutes", () => {
 });
 
 describe("系列文、上一篇／下一篇、相關文章、tag、目錄（2026-11-09）", () => {
-  it("自架網站維運系列 5 篇，依 seriesOrder 1～5 排", async () => {
+  it("自架網站維運系列依 seriesOrder 排（目前 6 篇：11/27 加了第 6 篇伺服器錯誤記錄）", async () => {
     const { getSeriesPosts } = await import("@/lib/content/blog");
     const s = getSeriesPosts("自架網站維運");
-    expect(s.map((p) => p.seriesOrder)).toEqual([1, 2, 3, 4, 5]);
+    expect(s.map((p) => p.seriesOrder)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(s[0].slug).toBe("task-scheduler-72-hours");
   });
 
@@ -58,7 +58,7 @@ describe("系列文、上一篇／下一篇、相關文章、tag、目錄（2026
     const orders = getAllPosts()
       .filter((p) => p.series === "自架網站維運")
       .map((p) => p.seriesOrder);
-    expect(orders).toEqual([5, 4, 3, 2, 1]);
+    expect(orders).toEqual([6, 5, 4, 3, 2, 1]);
   });
 
   it("上一篇＝比較舊、下一篇＝比較新；最新那篇沒有下一篇", async () => {

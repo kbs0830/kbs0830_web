@@ -1,0 +1,87 @@
+---
+title: "SQLite 全文搜尋：FTS5 trigram 讓中文不用斷詞也搜得到"
+seoTitle: "SQLite FTS5 中文全文搜尋：trigram 分詞、不用斷詞，附 Node 內建 node:sqlite 範例"
+titleEn: "Chinese full-text search in SQLite: FTS5 trigram, no word segmentation"
+date: "2026-11-27"
+description: "站長後台的待辦、完成紀錄、操作紀錄加上全文搜尋：用 SQLite 內建的 FTS5 trigram，中文任意 3 字以上的片段都找得到，不用裝套件；也記下兩個踩到的坑——2 字詞搜不到、FTS5 表上用 LIKE 刪除會刪 0 筆。"
+tags: ["SQLite", "Search", "Node.js"]
+series: "站長後台"
+seriesOrder: 2
+commits: ["5466322"]
+---
+
+這個網站的站長後台有三堆文字：待辦、完成紀錄、操作紀錄，加起來幾百筆。要找「以前做過什麼」，原本只有命令列的 `LIKE '%字%'`，而且三個地方各搜各的。想做一個搜尋框，一次搜完。
+
+中文全文搜尋最麻煩的是斷詞：「住宿紀錄改標題」要怎麼切？常見的解法是裝斷詞套件或換搜尋引擎。但 SQLite 的 FTS5 有一個很少人提的分詞器 `trigram`，剛好繞過這個問題。
+
+## trigram：不切詞，直接切成每 3 個字
+
+`trigram` 把文字切成「每 3 個字元一組」的片段建索引，查詢時也這樣切。所以不需要知道詞在哪裡斷，只要查詢字串有 3 個字以上，任何片段都能比對到。
+
+Node 24 內建的 `node:sqlite` 就帶 FTS5，不用裝任何東西。建表只有一行：
+
+```sql
+CREATE VIRTUAL TABLE search USING fts5(
+  src UNINDEXED, ref UNINDEXED,   -- 來源跟原表的 id，不進索引
+  title, body,
+  tokenize = 'trigram'
+);
+```
+
+搜「宿紀錄」，找得到「住宿紀錄改標題」，中間沒有任何斷詞。
+
+## 三個來源放進同一張表，用 trigger 保持同步
+
+待辦、完成紀錄、操作紀錄是三張不同的表。我讓它們共用一張 `search`：`src` 記來源（`todo`、`done`、`log`，待辦另外分 `todo:done`、`todo:dropped`），`ref` 記原表的 id。原表的新增、修改、刪除用 trigger 同步過去，建表時再把舊資料回填一次：
+
+```sql
+CREATE TRIGGER search_done_ai AFTER INSERT ON done_log BEGIN
+  INSERT INTO search (src, ref, title, body)
+  VALUES ('done', CAST(new.id AS TEXT), new.title, new.body);
+END;
+```
+
+這樣之後不管是網站還是命令列腳本寫資料，索引都會自己跟上。
+
+## 查詢：整串當片語，命中處用 highlight() 標出來
+
+使用者打的字不能直接丟給 `MATCH`：打 `-`、`*`、`:` 或引號，FTS5 會當成查詢語法而報錯。做法是把整串用雙引號包成一個片語（字串裡的雙引號改成兩個）：
+
+```ts
+const phrase = `"${q.replace(/"/g, '""')}"`;
+db.prepare(
+  `SELECT src, ref,
+          highlight(search, 2, ?, ?) AS title,
+          snippet(search, 3, ?, ?, '…', 14) AS snippet
+   FROM search WHERE search MATCH ? ORDER BY rank LIMIT 40`,
+).all(OPEN, CLOSE, OPEN, CLOSE, phrase);
+```
+
+`highlight()` 跟 `snippet()` 會把命中的字用你指定的記號包起來，畫面再把記號換成 `<mark>`。結果依 `rank` 排序，標題命中的自然排前面。搜「住宿紀錄」，會同時出現一筆待辦、一筆完成紀錄、一筆操作紀錄，各自標明來源。
+
+## 坑一：2 個字的詞搜不到
+
+trigram 最少要 3 個字。搜「雷達」這種 2 字詞，索引裡根本沒有對應的片段，結果是 0 筆。我的做法是：查詢字串少於 3 個字時退回 `LIKE`，這時沒有排序、也沒有反白，只是「標題或內文含這個字」。頁面上的說明也直接寫「中文打 3 個字以上最準」，不假裝 2 字詞搜得一樣好。
+
+## 坑二：FTS5 表上用 `src LIKE 'todo%'` 刪除，會刪 0 筆
+
+原表更新時，trigger 要先把舊的索引列刪掉再插新的。一開始我這樣寫：
+
+```sql
+DELETE FROM search WHERE src LIKE 'todo%' AND ref = old.id;
+```
+
+單元測試立刻抓到問題：更新待辦標題之後，舊標題還是搜得到。把它拆出來單獨測，同一張表上 `src = 'todo:done' AND ref = ...` 刪得掉，`src LIKE 'todo%' AND ref = ...` 卻回報刪了 0 筆。我沒有深究原因，只確定 FTS5 的 `UNINDEXED` 欄位用 `LIKE` 比對不可靠。改成明確列出：
+
+```sql
+DELETE FROM search WHERE src IN ('todo', 'todo:done', 'todo:dropped') AND ref = old.id;
+```
+
+這個坑沒有任何錯誤訊息，只是「該刪的沒刪」，所以一定要用測試蓋住「更新後舊內容搜不到」這種情境。
+
+## 小結
+
+- FTS5 `trigram`：中文免斷詞，3 字以上的片段都搜得到，Node 24 的 `node:sqlite` 內建、不用裝套件
+- 多個來源共用一張表，用 trigger 保持同步，建表時回填舊資料
+- 使用者輸入整串包成片語，避免被當成 FTS 語法
+- 2 字詞退回 `LIKE`；FTS5 表上刪除用 `IN (...)`，不要用 `LIKE`

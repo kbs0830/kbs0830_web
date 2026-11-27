@@ -1,0 +1,61 @@
+---
+title: "SQLite 改 WAL 模式之後，備份不能再直接複製檔案：用 VACUUM INTO"
+seoTitle: "SQLite WAL 模式備份：為什麼不能直接複製 .db 檔，改用 VACUUM INTO 並做 integrity_check"
+titleEn: "Backing up SQLite in WAL mode: copy the file, lose data — use VACUUM INTO"
+date: "2026-11-27"
+description: "站長後台的待辦與完成紀錄放在一個 SQLite 檔裡，網站跟命令列腳本會同時寫它。改成 WAL 模式讓讀寫互不擋，但備份腳本原本直接複製 .db 檔，在 WAL 下可能漏資料；改成 VACUUM INTO 並驗證 integrity_check。"
+tags: ["SQLite", "Backup", "Windows"]
+series: "站長後台"
+seriesOrder: 1
+commits: ["b2b8c94"]
+---
+
+這個網站沒有外部資料庫。站長後台的待辦、完成紀錄、決策、操作紀錄，都放在 `data/admin.db` 這一個 SQLite 檔裡。它有兩個寫入者：網站（後台按鈕）跟我平常用的命令列腳本 `scripts/admin-db.js`，兩邊可能同時寫。
+
+## 預設模式下，讀寫會互相等
+
+SQLite 預設的 `journal_mode` 是 `delete`：寫入的時候別人不能讀，只能靠 `busy_timeout` 硬等。我原本設了 3 秒，平常夠用，但同時有人在後台按決策、另一邊在命令列新增待辦時，就是在賭誰先寫完。
+
+改成 WAL（Write-Ahead Logging）：寫入先記在旁邊的 `admin.db-wal`，讀的人不被擋，寫入通常也比較快。開檔時加兩行：
+
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+```
+
+WAL 模式是存在檔案裡的，設一次之後每次開都是；另外，唯讀連線不能切換模式，所以命令列腳本只在「要寫入」時才下這兩行。
+
+## 真正的坑：備份腳本直接複製 .db
+
+每天的備份腳本 `backup.ps1` 原本是這樣備份資料庫的：
+
+```powershell
+Copy-IfExists (Join-Path $repo "data\admin.db") (Join-Path $dest "data\admin.db")
+```
+
+在預設模式下，複製的瞬間剛好碰到寫入，備份也許是壞檔，但至少資料都在這一個檔裡。**WAL 模式下情況更糟**：最近的寫入可能還在 `admin.db-wal`，只複製 `admin.db` 會直接漏掉它們，而且不會有任何錯誤——備份看起來成功，還原時才發現少了東西。
+
+所以改 WAL 的同一次修改，一定要同時改備份。
+
+## 改用 VACUUM INTO：一致的單檔備份
+
+`VACUUM INTO '<檔案>'` 會把整個資料庫（含 WAL 裡的內容）整理成一個乾淨、單檔的複本，過程中讀寫不受影響。我加了一個命令列子指令 `backup`，除了 `VACUUM INTO`，還馬上開備份檔跑一次 `integrity_check`、數一下待辦筆數，確認它真的打得開：
+
+```js
+db.exec(`VACUUM INTO '${dest.replace(/'/g, "''")}'`);
+const check = new DatabaseSync(dest, { readOnly: true });
+const ok = check.prepare("PRAGMA integrity_check").get().integrity_check;
+const n = check.prepare("SELECT COUNT(*) n FROM todos").get().n;
+// 預期：ok === "ok"
+```
+
+`backup.ps1` 改成呼叫它，失敗就丟例外讓整個備份回報失敗，不再默默複製一個可能壞掉的檔案。
+
+我在資料庫副本上實測：`journal_mode` 確實變成 `wal`；備份出來的檔案 `integrity_check` 回 `ok`，裡面有 187 項待辦。真正的排程備份還要等下一輪才會跑到新程式，所以還沒有在正式環境看過它的 log。
+
+## 小結
+
+- 兩個程式同時寫同一個 SQLite 檔：用 WAL，讀寫互不擋；唯讀連線不能改模式，只在寫入時設
+- **改 WAL 就一定要改備份**：直接複製 `.db` 可能漏掉還在 `-wal` 裡的資料，而且不會報錯
+- 用 `VACUUM INTO` 產生一致的單檔備份，並且馬上用 `integrity_check` 驗證
+- 備份失敗要讓整個流程失敗，不要默默吞掉

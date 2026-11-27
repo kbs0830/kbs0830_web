@@ -1,0 +1,92 @@
+---
+title: "導覽列背景跟「回到頂端」按鈕，不用 JavaScript 也能跟著捲動出現"
+seoTitle: "CSS animation-timeline: scroll() 實作導覽列捲動背景與回到頂端按鈕，附不支援瀏覽器的退路"
+titleEn: "Scroll-driven navbar background and back-to-top button in pure CSS"
+date: "2026-11-27"
+description: "把網站導覽列的半透明背景、右下角「↑」按鈕，從監聽 scroll 事件改成 CSS 的 animation-timeline: scroll()：瀏覽器自己根據捲動位置算進度。把 JavaScript 關掉實測也會動；不支援的瀏覽器退回原本的 JS。"
+tags: ["CSS", "Animation", "Performance"]
+commits: ["860c455", "8358fe8"]
+---
+
+這個網站有三個「捲動到某個位置才出現」的東西：首頁導覽列的半透明底、子頁面的頂端列、右下角的「↑ 回到頂端」。以前都是同一種寫法：JavaScript 監聽 `scroll` 事件，捲過門檻就切換一個 class。
+
+這樣不算錯，但有兩個小缺點：捲動過程中每次都要跑 JS 判斷；而且效果是「啪」一下開關，不是跟著捲動慢慢出現。
+
+## CSS 可以直接用捲動位置當動畫的時間軸
+
+`animation-timeline: scroll()` 讓動畫不再跟著時間走，改成跟著「頁面捲動了多少」走。搭配 `animation-range` 指定從哪裡到哪裡播完，瀏覽器自己根據捲動位置算進度，不用任何 JavaScript。
+
+導覽列的底色、模糊、底線，我畫在 `::before` 這一層（原本直接畫在 header 上），讓它的透明度從 0 慢慢變成 1：
+
+```css
+.nav-fade::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-ma); /* 不支援的瀏覽器用這個 */
+}
+.nav-fade.is-solid::before { opacity: 1; }  /* JS 退路加的 class */
+
+@supports (animation-timeline: scroll()) {
+  .nav-fade::before {
+    transition: none;
+    animation: nav-fade-in linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 60px;               /* 捲 0～60px 的過程 */
+  }
+}
+@keyframes nav-fade-in { from { opacity: 0 } to { opacity: 1 } }
+```
+
+「回到頂端」按鈕同一個做法，範圍是「捲過一個螢幕高度之後的 80px」，淡入的同時從下面滑上來：
+
+```css
+@supports (animation-timeline: scroll()) {
+  .back-to-top-fade {
+    animation: back-to-top-in linear both;
+    animation-timeline: scroll(root);
+    animation-range: 100vh calc(100vh + 80px);
+  }
+}
+@keyframes back-to-top-in {
+  from { opacity: 0; visibility: hidden; translate: 0 8px; }
+  to   { opacity: 1; visibility: visible; translate: 0 0; }
+}
+```
+
+`animation-fill-mode: both`（上面 `animation` 簡寫裡的 `both`）很重要：還沒捲到範圍之前，按鈕要停在 `from` 的狀態，也就是看不見、點不到。
+
+## 不支援的瀏覽器：保留原本的 JavaScript
+
+整段包在 `@supports (animation-timeline: scroll())` 裡。不支援的瀏覽器看不到這段 CSS，繼續用原本的 JS：捲過門檻就加 `.is-solid`，或切換按鈕的 class。支援的瀏覽器裡 JS 其實還在跑，只是它設定的值被 CSS 動畫蓋過，兩邊的結果一致。所以這個做法的好處是「效果跟著捲動漸變」跟「不需要等 JS 載入」，不是「完全沒有 JS」。
+
+## 實測：把 JavaScript 關掉
+
+要確認它真的是純 CSS 在動，最直接的方法是在 Playwright 開一個 `javaScriptEnabled: false` 的瀏覽器環境，然後捲到不同位置、讀 `getComputedStyle` 的 opacity。「↑」按鈕在 700px 高的視窗裡：
+
+| 捲動位置 | opacity | visibility |
+|---|---|---|
+| 0 px | 0.00 | hidden |
+| 600 px | 0.00 | hidden |
+| 720 px | 0.25 | visible |
+| 760 px | 0.75 | visible |
+| 900 px | 1.00 | visible |
+
+導覽列的 `::before` 在捲動 0、20、40、60px 時是 0、0.33、0.67、1。數字跟 `animation-range` 算出來的進度完全吻合。
+
+## 順便改了的測試
+
+原本的 E2E 測試是「捲過 60px 之後 header 的 `background-color` 不再透明」。底色移到 `::before` 之後，header 本身永遠是透明的，這個測試就沒意義了。改成讀 `::before` 的 opacity：一開始是 0，捲到 400px 之後要大於 0.9。這樣不管走 CSS 還是走 JS 退路，測的都是「使用者看到的結果」。
+
+## 小結
+
+- `animation-timeline: scroll()` ＋ `animation-range`：動畫跟著捲動位置走，不用監聽 `scroll`
+- 要漸變的視覺（底色、模糊、底線）畫在 `::before`，只動它的 opacity
+- `fill-mode: both` 讓「還沒到範圍」時停在起始狀態
+- 用 `@supports` 包起來，不支援的瀏覽器退回 JS；測試改成看使用者看到的結果
+- 驗證最直接：把 JavaScript 關掉，讀 computed style
