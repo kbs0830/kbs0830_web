@@ -6,11 +6,12 @@ import PageShell from "@/components/layout/PageShell";
 import AirportDistance from "@/components/tools/AirportDistance";
 import ToolNote from "@/components/tools/ToolNote";
 import { AIRPORTS } from "@/lib/travel/flights";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // 機場距離／航程（TODO J5，2026-11-24）。我飛過的機場用中文名（lib/travel/flights.ts），其他用 OurAirports 的英文城市名
 export const metadata: Metadata = withShare({
-  title: "機場距離計算：兩個機場代碼算飛行距離跟時間 · Airport Distance — PINGWEI LI",
-  description: "輸入兩個三碼機場代碼（例如 TPE、FUK），算出大圓距離（公里、英里）跟大概要飛多久。全球約 3,200 個有定期航班的機場。",
+  title: "機場飛行距離計算：台北到福岡飛多遠、要飛多久 · Airport Distance — PINGWEI LI",
+  description: "機場距離計算：輸入兩個三碼機場代碼（例如 TPE、FUK），算出飛行距離（公里、英里）跟大概要飛多久。全球約 3,200 個有定期航班的機場。",
   alternates: { canonical: "/tools/airport-distance" },
 });
 
@@ -25,6 +26,7 @@ export default function AirportDistancePage() {
       title={<>機場距離計算</>}
       intro="輸入兩個三碼機場代碼，算出兩地的大圓距離（地球表面最短的路線）跟大概要飛多久。網址會記住你查的航線。"
     >
+      <ToolJsonLd href="/tools/airport-distance" />
       <Suspense fallback={<div className="min-h-[360px]" />}>
         <AirportDistance zh={zh} />
       </Suspense>

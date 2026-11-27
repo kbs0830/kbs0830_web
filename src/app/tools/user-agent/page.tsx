@@ -5,6 +5,7 @@ import PageShell from "@/components/layout/PageShell";
 import UserAgentCheck from "@/components/tools/UserAgentCheck";
 import ToolNote from "@/components/tools/ToolNote";
 import { AI_BOTS, SEARCH_BOTS } from "../../../../scripts/lib/bot-patterns.js";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // 這個 User-Agent 是爬蟲嗎？（TODO J13，2026-11-24）
 export const metadata: Metadata = withShare({
@@ -22,8 +23,9 @@ export default function UserAgentPage() {
       title={<>這個 User-Agent 是爬蟲嗎</>}
       intro="伺服器 log 裡看到一串看不懂的 User-Agent？貼進來判斷是誰。預設帶入你現在這個瀏覽器的。"
     >
+      <ToolJsonLd href="/tools/user-agent" />
       <UserAgentCheck />
-      <ToolNote>
+      <ToolNote href="/tools/user-agent">
         <p>
           規則跟這個網站自己的流量統計是同一套（在{" "}
           <Link href="/stats" className="text-(--accent) underline underline-offset-4 decoration-(--border) hover:decoration-(--accent)">

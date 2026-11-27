@@ -10,7 +10,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 
 export const metadata: Metadata = withShare({
   title: "履歷 · Resume — PINGWEI LI",
-  description: "PINGWEI LI 履歷：教育背景、技能、作品集。",
+  description: "PINGWEI LI 履歷：教育背景、技能、作品集、證照，可下載 PDF。",
   alternates: { canonical: "/resume", types: { "text/markdown": "/resume.md" } },
 });
 

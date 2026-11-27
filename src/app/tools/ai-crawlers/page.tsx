@@ -5,6 +5,7 @@ import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import AiCrawlers from "@/components/tools/AiCrawlers";
 import ToolNote from "@/components/tools/ToolNote";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // AI 爬蟲檢查（TODO J12，2026-11-24）。API：/api/tools/robots（防 SSRF 的做法在 lib/tools/safe-fetch.ts）
 export const metadata: Metadata = withShare({
@@ -22,10 +23,11 @@ export default function AiCrawlersPage() {
       title={<>AI 爬蟲檢查</>}
       intro="ChatGPT、Claude、Gemini 搜不搜得到你的網站，第一關是 robots.txt。輸入網域，看各家 AI 爬蟲跟搜尋引擎有沒有被擋。"
     >
+      <ToolJsonLd href="/tools/ai-crawlers" />
       <Suspense fallback={<div className="min-h-[420px]" />}>
         <AiCrawlers />
       </Suspense>
-      <ToolNote>
+      <ToolNote href="/tools/ai-crawlers">
         <p>
           判斷照 robots.txt 的標準（RFC 9309）：有寫爬蟲名字的規則優先，沒有才套用 *；這裡只看「首頁能不能抓」，有擋其他路徑就標「部分擋」。
           robots.txt 是君子協定，擋了也只有守規矩的爬蟲會照做；Cloudflare 之類的防火牆另外擋的話，這裡看不出來。

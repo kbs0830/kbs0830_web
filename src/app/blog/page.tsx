@@ -9,7 +9,7 @@ import BlogSearch from "@/components/content/BlogSearch";
 
 export const metadata: Metadata = withShare({
   title: "記事 · 技術部落格 — PINGWEI LI",
-  description: "踩過的坑都寫下來，下次就不用再踩一次。",
+  description: "Next.js 16、Tailwind v4、Cloudflare Tunnel、Windows 自架網站的踩坑紀錄：每篇都是真的發生過、附解法，下次就不用再踩一次。",
   alternates: { canonical: "/blog", types: { "text/markdown": "/blog.md", "application/rss+xml": "/feed.xml" } },
 });
 

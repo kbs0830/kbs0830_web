@@ -7,13 +7,14 @@ import { clothingAdvice, getFukuokaForecast, getWeather } from "@/lib/live/weath
 import { Suspense } from "react";
 import { connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // 現在去福岡要穿什麼（TODO J4，2026-11-24）。現在的溫度跟頁尾時鐘旁的天氣同一份（30 分鐘快取），
 // 福岡這幾天的最高／最低另外抓（3 小時快取）。都是伺服器端抓，訪客的瀏覽器不連第三方。
 
 export const metadata: Metadata = withShare({
-  title: "現在去福岡要穿什麼？福岡 vs 高雄氣溫 · Fukuoka Weather — PINGWEI LI",
-  description: "福岡現在幾度、比高雄冷多少，接下來幾天的最高／最低溫跟穿著建議。給從台灣飛福岡的人看的。",
+  title: "福岡天氣預報＋穿搭：現在去福岡要穿什麼？福岡 vs 高雄氣溫 · Fukuoka Weather — PINGWEI LI",
+  description: "福岡天氣預報：現在幾度、比高雄冷多少，接下來幾天的最高／最低溫跟穿著建議。給從台灣飛福岡的人看的。",
   alternates: { canonical: "/tools/fukuoka-weather" },
 });
 
@@ -96,6 +97,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       title={<>現在去福岡要穿什麼</>}
       intro="福岡跟高雄差幾度、接下來幾天怎麼穿。建議是以台灣人的體感寫的（偏怕冷）。"
     >
+      <ToolJsonLd href="/tools/fukuoka-weather" />
       {children}
     </PageShell>
   );

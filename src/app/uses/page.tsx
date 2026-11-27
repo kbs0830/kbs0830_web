@@ -7,8 +7,8 @@ import BulletList from "@/components/ui/BulletList";
 import { usesGroups } from "@/lib/content/page-content";
 
 export const metadata: Metadata = withShare({
-  title: "/uses — PINGWEI LI",
-  description: "開発環境・硬體・軟體工具清單",
+  title: "開発環境 · 我用的工具（RTX 3070、Claude Code） — PINGWEI LI",
+  description: "PINGWEI LI 的開発環境與工具清單：桌機（i7-12700＋RTX 3070，也是這個網站的主機）、筆電、Claude Code、自架網站用到的軟體。",
   alternates: { canonical: "/uses", types: { "text/markdown": "/uses.md" } },
 }, { ownImage: true });
 

@@ -23,6 +23,7 @@ import JsonLd from "@/components/ui/JsonLd";
 import PageShell from "@/components/layout/PageShell";
 import CopyCodeButton from "@/components/ui/CopyCodeButton";
 import Comments from "@/components/content/Comments";
+import { RelatedTools } from "@/components/content/RelatedLinks";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
@@ -234,6 +235,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           （GitHub）
         </p>
       )}
+
+      {/* 這篇相關的工具（TODO V8，對應表在 lib/site/related.ts） */}
+      <RelatedTools slug={post.slug} />
 
       {/* 讀完的下一步（TODO I8）：系列文直接接下一篇。2026-11-25 拿掉底下的「想收到新文章？RSS 訂閱」：使用者沒有要做訂閱功能 */}
       {seriesNext && (

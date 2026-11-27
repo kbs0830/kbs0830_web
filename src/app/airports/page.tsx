@@ -20,8 +20,8 @@ import { nf } from "@/lib/format";
 
 export const metadata: Metadata = withShare(
   {
-    title: "高雄小港機場、福岡機場即時航班時刻表（出發・抵達・延誤） · Airport Boards — PINGWEI LI",
-    description: "高雄小港、福岡兩個機場的即時航班：出發、抵達、延誤，還有今天高雄 ⇄ 福岡的直飛班機。每 3 分鐘更新。",
+    title: "小港機場航班動態：高雄、福岡機場即時航班（出發・抵達・延誤） · Airport Boards — PINGWEI LI",
+    description: "小港機場、福岡機場航班動態即時查詢：出發、抵達、延誤、取消，還有今天高雄 ⇄ 福岡的直飛班機。每 3 分鐘更新。",
     alternates: { canonical: "/airports" },
   },
   { ownImage: true },

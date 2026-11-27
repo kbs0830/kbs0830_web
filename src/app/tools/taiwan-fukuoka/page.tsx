@@ -9,13 +9,14 @@ import { getBoards, taiwanFuk, type Flight } from "@/lib/travel/airport-board";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // 台灣 ⇄ 福岡直飛（TODO J2，2026-11-24，使用者把「高雄 ⇄ 福岡」改成「台灣各機場」）。
 // 福岡空港的看板（/airports 已經在抓、3 分鐘快取）本來就有每班的出發／抵達機場，篩出台灣的就是全部直飛，不用另外接桃園機場。
 
 export const metadata: Metadata = withShare({
-  title: "台灣 ⇄ 福岡直飛班機（今天）：桃園、高雄、台中 · TW⇄FUK — PINGWEI LI",
-  description: "今天台灣各機場跟福岡之間的全部直飛班機：桃園、高雄、台中⋯⋯幾點到、幾點飛、哪家航空、有沒有延誤。資料來自福岡空港，每 3 分鐘更新。",
+  title: "高雄、桃園、台中飛福岡直飛班機（今天）：班次、航空公司、延誤 · TW⇄FUK — PINGWEI LI",
+  description: "今天高雄、桃園、台中⋯⋯台灣各機場飛福岡的全部直飛班機：幾點飛、幾點到、哪家航空、有沒有延誤。資料來自福岡空港，每 3 分鐘更新。",
   alternates: { canonical: "/tools/taiwan-fukuoka" },
 });
 
@@ -101,6 +102,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       title={<>台灣 ⇄ 福岡直飛</>}
       intro="今天台灣各機場跟福岡之間的全部直飛班機。時間都是福岡（日本）時間，比台灣快 1 小時；開著這頁會自己刷新。"
     >
+      <ToolJsonLd href="/tools/taiwan-fukuoka" />
       {children}
     </PageShell>
   );

@@ -5,8 +5,8 @@ import BulletList from "@/components/ui/BulletList";
 import { nowItems } from "@/lib/content/page-content";
 
 export const metadata: Metadata = withShare({
-  title: "/now — PINGWEI LI",
-  description: "現在在做什麼、在學什麼",
+  title: "近況 · 現在在做什麼、在學什麼 — PINGWEI LI",
+  description: "PINGWEI LI 的近況：現在在做的專案、在學的技術（React Three Fiber、WebGL Shader、本地端 ML 推論），不定期更新。",
   alternates: { canonical: "/now", types: { "text/markdown": "/now.md" } },
 }, { ownImage: true });
 

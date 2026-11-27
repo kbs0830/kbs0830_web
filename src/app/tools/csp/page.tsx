@@ -3,6 +3,7 @@ import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import CspAnalyzer from "@/components/tools/CspAnalyzer";
 import ToolNote from "@/components/tools/ToolNote";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // CSP 標頭解讀（TODO J16，2026-11-26）
 export const metadata: Metadata = withShare({
@@ -20,6 +21,7 @@ export default function CspPage() {
       title={<>CSP 標頭解讀</>}
       intro="Content-Security-Policy 一長串看不懂？貼進來，每條指令在管什麼、哪裡寫得太鬆、少了什麼，一次看完。"
     >
+      <ToolJsonLd href="/tools/csp" />
       <CspAnalyzer />
       <ToolNote>
         <p>

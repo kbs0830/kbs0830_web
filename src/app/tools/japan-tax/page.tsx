@@ -5,11 +5,12 @@ import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import JapanTax from "@/components/tools/JapanTax";
 import ToolNote from "@/components/tools/ToolNote";
+import ToolJsonLd from "@/components/tools/ToolJsonLd";
 
 // 日本消費稅換算（TODO J6，2026-11-24）
 export const metadata: Metadata = withShare({
-  title: "日本消費稅計算：税抜・税込換算、8% 和 10%、換台幣 · Japan Tax — PINGWEI LI",
-  description: "日本標價寫「税抜」到底要付多少？輸入價格，馬上算出含稅、未稅、消費稅（10% 或外帶食品 8%），順便用今天的匯率換成台幣。",
+  title: "日本消費稅計算機：税抜・税込換算、8% 和 10%、換台幣 · Japan Tax — PINGWEI LI",
+  description: "日本消費稅計算機：標價寫「税抜」到底要付多少？輸入價格，馬上算出含稅、未稅、消費稅（10% 或外帶食品 8%），順便用今天的匯率換成台幣。",
   alternates: { canonical: "/tools/japan-tax" },
 });
 
@@ -22,6 +23,7 @@ export default function JapanTaxPage() {
       title={<>日本消費稅換算</>}
       intro="日本標價常常寫「税抜」（未稅），結帳才加 10%。輸入標價，算出實際要付多少，順便換成台幣。"
     >
+      <ToolJsonLd href="/tools/japan-tax" />
       <Suspense fallback={<div className="min-h-[360px]" />}>
         <JapanTax />
       </Suspense>
