@@ -1,0 +1,102 @@
+---
+title: "同一個資料夾開好幾個 AI session：commit 互相夾帶、部署 build 到別人改一半的檔案"
+seoTitle: "多個 Claude Code session 共用一個 git 資料夾的問題：暫存區共用、部署 build 未 commit 檔案、Git Bash 路徑被改寫"
+titleEn: "Several AI coding sessions, one working tree: mixed commits and half-edited builds"
+date: "2026-11-27"
+description: "我同時開好幾個 Claude Code session 改這個網站，而且都在正式站的同一個資料夾裡。兩天內遇到：commit 夾帶別的 session 的檔案、部署明明沒有新 commit 卻 build 失敗、兩邊同時新增待辦撞編號，外加 Git Bash 把參數改成 C:/Program Files/Git/…。"
+series: "自架網站維運"
+seriesOrder: 8
+tags: ["Git", "DevOps", "Windows"]
+---
+
+這個網站大部分的改動是我跟 Claude Code 一起做的。為了快，我常常同時開三、四個 session：一個改版面、一個弄雷達、一個整理待辦。問題是它們**全部在同一個資料夾裡工作**——而且那個資料夾就是正式站本身（桌機排程跑的 `scripts/server.js`、CI 部署都在這裡）。
+
+平常各改各的檔案，看起來相安無事。11/26～11/27 兩天，下面這幾件事接連發生。
+
+## 1. commit 夾帶了別人的檔案
+
+`git add` 放進去的暫存區（index）是**整個資料夾共用一份**，不分是哪個 session 放的。A session 跑 `git add` 加了自己的檔案、還沒 commit；B session 這時 `git add 自己的檔案 && git commit`，commit 會把暫存區裡**所有**東西一起帶走。
+
+實際紀錄：
+
+| commit | 訊息寫的是 | 實際內容還有 |
+|---|---|---|
+| `8fc6a04` | 首頁頁尾拿掉重複的「找我」 | `watchdog.ps1`、雷達健康檢查、`HeroSky.tsx`、後台假資料…共 10 個檔 |
+| `3915209` | 後台依螢幕寬度加寬 | 4 個檔全是作品頁、`PortfolioSection.tsx` |
+
+程式本身都沒壞，但 commit 訊息跟內容對不起來，之後要查「這行是為什麼改的」就查錯地方；更糟的情況是把別人**還沒改完**的東西推上線。
+
+能馬上做的防法：commit 前一定看 `git diff --cached --stat`，而且用 `git commit <檔案…>` 只提交自己的路徑——這樣就算暫存區有別人的東西也不會被帶走。
+
+## 2. 沒有新 commit，部署卻 build 失敗
+
+部署腳本 `deploy.ps1` 的流程是：在正式站資料夾 `git pull` → `next build` 到雙槽中沒在用的那一槽 → 健檢 → 換槽。這裡的漏洞是：**`next build` 讀的是資料夾裡的檔案，不是 git 裡的版本**。
+
+`logs/deploy.log` 裡有兩次很明顯：
+
+```text
+[2026-11-26T23:03:33] git pull origin main
+[2026-11-26T23:03:33]   Already up to date.
+[2026-11-26T23:04:19]   Error: Route "/projects/[slug]": Next.js encountered uncached or runtime data …
+[2026-11-26T23:04:20] [FAILED] Build failed (exit 1)，線上沒動、還是 .next-a
+
+[2026-11-27T09:57:56]   Already up to date.
+[2026-11-27T09:58:16]   ./src/app/api/chat/route.ts:33:96  Error: Unterminated string constant
+[2026-11-27T09:58:16] [FAILED] Build failed (exit 1)，線上沒動、還是 .next-a
+```
+
+兩次都是「Already up to date」——沒有拉到任何新東西，build 卻失敗。原因是另一個 session 正改到一半：第一次是雷達作品頁的元件改到一半（同一分鐘 `tsc` 也在 `RadarSnapshot.tsx` 報型別錯誤），讓原本該全靜態的作品頁讀到了即時資料；第二次更直接，`route.ts` 一個字串打到一半就被 build 了。
+
+這次沒出事是靠[雙槽部署](/blog/vscode-locks-next)：新的那一槽 build 失敗，線上那一槽照常服務，只是白跑一次、寄了一封失敗信。但反過來的情況更可怕——別人改到一半、**剛好能 build 過**的東西，會直接上線，而 git 裡根本沒有那個版本，出事時連退回都不知道要退到哪。
+
+正確的做法是部署時在**乾淨的副本**裡 build：`git worktree add` 一份 `origin/main`，`node_modules` 用 junction 指回原本那份（Windows 建 junction 不用管理員），build 完再把產物放回槽位。這件事還在待辦裡，還沒做。
+
+## 3. 兩邊同時寫資料庫：撞編號
+
+待辦清單放在 `data/admin.db`（SQLite），用命令列腳本新增。我整理待辦時準備新增一項，編號打算用 Q13；結果另一個 session 在這段時間裡已經新增了 Q13～Q17。
+
+資料庫本身沒壞——它早就改成 WAL 模式、設了 `busy_timeout`（經過寫在[SQLite WAL 與備份](/blog/sqlite-wal-vacuum-into-backup)），同時寫不會互相弄壞資料。壞的是**「先查最大編號、心裡記著、過一會兒再寫」**這種流程：查跟寫之間別人插隊了。改成在寫入前一刻才算下一個空號（我那項最後是 Q18），就順利寫進去了。
+
+## 4. 順便踩到的：Git Bash 會改寫你的參數
+
+這個不是多 session 的錯，但同一天踩到，而且很隱密。Claude Code 在 Windows 上的 shell 是 Git Bash（MSYS2），它會把**看起來像 Unix 路徑的參數**自動轉成 Windows 路徑，再傳給 `node` 這類 Windows 程式。我新增一項待辦，標題開頭是 `/now`：
+
+```bash
+$ node -e 'console.log(process.argv[1])' "/now、/uses"
+C:/Program Files/Git/now、/uses
+```
+
+存進資料庫的標題就變成了 `C:/Program Files/Git/now、…`。關掉轉換要加 `MSYS_NO_PATHCONV=1`：
+
+```bash
+$ MSYS_NO_PATHCONV=1 node -e 'console.log(process.argv[1])' "/now、/uses"
+/now、/uses
+```
+
+但關掉之後，**真正的路徑也不轉了**。我同一行指令裡用 `cygpath -u` 產生的暫存檔路徑是 `/tmp/…`，Node 收到後當成目前磁碟的根目錄：
+
+```text
+ENOENT C:\tmp\msys-test.md
+```
+
+結果七筆新增全部失敗。路徑要自己先轉成 Windows 格式：`cygpath -w` 會給 `C:\Users\…\Temp\…`，這樣有沒有開 `MSYS_NO_PATHCONV` 都讀得到。
+
+規則整理成一句：**參數裡有 `/` 開頭的文字就加 `MSYS_NO_PATHCONV=1`，同一行的檔案路徑一律用 `cygpath -w`。**
+
+## 根本解法：每個 session 一個 worktree
+
+上面 1～3 都是同一個原因：好幾個寫入者共用一份工作區。Git 本來就有解法——`git worktree` 讓同一個 repo 有好幾個資料夾，各自有自己的分支、自己的暫存區，共用同一份 `.git` 歷史：
+
+```bash
+git worktree add ../kbs-hero -b hero-tweak   # 這個 session 只在這裡改
+# 改完、commit、合回 main
+git worktree remove ../kbs-hero
+```
+
+Claude Code 桌面版開 session 時可以直接勾「用 worktree」。正式站資料夾就只留給部署用，不再有人在裡面改檔案。
+
+這兩件（部署在乾淨副本 build、session 各開 worktree）目前都還在待辦裡等我決定。在那之前的人工防線是：
+
+- commit 用 `git commit <自己的檔案>`，先看 `git diff --cached --stat`
+- 新增有編號的東西，寫入前一刻才查空號
+- Git Bash 裡 `/` 開頭的參數加 `MSYS_NO_PATHCONV=1`，路徑用 `cygpath -w`
