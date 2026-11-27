@@ -2,6 +2,7 @@
 // Streamable HTTP transport、無狀態（不發 Mcp-Session-Id）、唯讀；回應一律 application/json（不開 SSE）。
 // 資料跟公開 API 同一份（lib/api/public-api.ts），只有網站上本來就公開的內容。
 import { apiFlights, apiNow, apiPost, apiPosts, apiProfile, apiProject, apiProjects, searchSite } from "@/lib/api/public-api";
+import { semanticSearch } from "@/lib/ai/retrieve";
 import { SITE_URL } from "@/lib/site/site";
 
 export const SUPPORTED_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -13,6 +14,7 @@ interface Tool {
   title: string;
   description: string;
   inputSchema: Json;
+  /** 可以回傳 Promise（語意搜尋要呼叫本機 Ollama） */
   run: (args: Json) => unknown;
 }
 
@@ -91,6 +93,18 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: "semantic_search",
+    title: "語意搜尋",
+    description: "用意思搜尋作品跟文章（本站自架的 embedding 模型）。問句、同義詞也找得到，例如「怎麼讓網站不要掛掉」。回傳最相關的頁面標題與路徑；本機 AI 沒開時退回關鍵字。",
+    inputSchema: { type: "object", properties: { query: { type: "string", description: "一句話或幾個詞，中英文都可以" } }, required: ["query"] },
+    run: async (a) => {
+      const q = asString(a.query)?.trim();
+      if (!q) throw new ToolError("query 不能是空的");
+      const results = await semanticSearch(q.slice(0, 200), 5, AbortSignal.timeout(8000));
+      return { query: q, results: results.map((r) => ({ ...r, url: `${SITE_URL}${r.href}` })) };
+    },
+  },
+  {
     name: "get_now",
     title: "現在在做什麼",
     description: "現在在忙什麼、在學什麼（/now 頁）。",
@@ -117,7 +131,7 @@ const result = (id: RpcRequest["id"], r: unknown) => ({ jsonrpc: "2.0", id, resu
 const error = (id: RpcRequest["id"], code: number, message: string) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
 
 /** 處理一則 JSON-RPC 訊息；通知（沒有 id）回 null＝不用回應 */
-export function handleRpc(msg: RpcRequest): object | null {
+export function handleRpc(msg: RpcRequest): object | null | Promise<object | null> {
   if (!msg || typeof msg !== "object" || msg.jsonrpc !== "2.0" || typeof msg.method !== "string") {
     return error(msg?.id, -32600, "Invalid Request");
   }
@@ -151,15 +165,15 @@ export function handleRpc(msg: RpcRequest): object | null {
       const tool = TOOLS.find((t) => t.name === name);
       if (!tool) return error(msg.id, -32602, `Unknown tool: ${String(name)}`);
       const args = (msg.params?.arguments ?? {}) as Json;
+      const ok = (data: unknown) =>
+        result(msg.id, { content: [{ type: "text", text: JSON.stringify(data, null, 2) }], structuredContent: data });
+      const fail = (e: unknown) =>
+        e instanceof ToolError ? result(msg.id, { content: [{ type: "text", text: e.message }], isError: true }) : error(msg.id, -32603, "Internal error");
       try {
         const data = tool.run(args);
-        return result(msg.id, {
-          content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-          structuredContent: data,
-        });
+        return data instanceof Promise ? data.then(ok, fail) : ok(data);
       } catch (e) {
-        if (e instanceof ToolError) return result(msg.id, { content: [{ type: "text", text: e.message }], isError: true });
-        return error(msg.id, -32603, "Internal error");
+        return fail(e);
       }
     }
     default:

@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
 import LostPlane from "@/components/fun/LostPlane";
 import FlowLines from "@/components/fun/FlowLines";
+import NotFoundSuggest from "@/components/fun/NotFoundSuggest";
 
 export default function NotFound() {
   return (
@@ -20,6 +21,7 @@ export default function NotFound() {
       <span hidden data-not-found />
       <FlowLines />
       <LostPlane />
+      <NotFoundSuggest />
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-sm font-light tracking-wide text-(--accent) hover:opacity-70 transition-opacity"

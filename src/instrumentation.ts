@@ -6,6 +6,17 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   if (process.env.NEXT_PHASE === "phase-production-build") return;
+  // 本地 AI 開機預熱（TODO H1，2026-11-27）：部署重啟後 1 分鐘，先把聊天模型載進 GPU、算好知識庫向量，
+  // 第一個問 /ask 的訪客就不用等一分鐘冷啟動。只有正式環境（next start／server.js）跑；Ollama 沒開就安靜略過。
+  // unref：不要讓這個計時器擋住 process 結束。
+  if (process.env.NODE_ENV === "production" && process.env.OLLAMA_PREWARM !== "0") {
+    setTimeout(() => {
+      void import("@/lib/ai/ollama").then(async ({ warmChatModel }) => {
+        const { warmRetrieval } = await import("@/lib/ai/retrieve");
+        await Promise.all([warmChatModel(), warmRetrieval()]);
+      });
+    }, 60_000).unref();
+  }
   if (process.env.AIRPORT_DELAY_RECORDER === "0") return;
   const { startAirportDelayRecorder } = await import("@/lib/travel/airport-delay-recorder");
   startAirportDelayRecorder();

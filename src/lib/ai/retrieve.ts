@@ -64,6 +64,51 @@ export async function retrieve(query: string, limit = 3, signal?: AbortSignal): 
   }
 }
 
+/** 同一頁只留一筆（段落很多，同一篇文章常有好幾段都相關） */
+export function uniquePages(chunks: Chunk[], limit: number): { title: string; href: string }[] {
+  const seen = new Set<string>();
+  const out: { title: string; href: string }[] = [];
+  for (const c of chunks) {
+    if (seen.has(c.href)) continue;
+    seen.add(c.href);
+    out.push({ title: c.title.split(" · ")[0], href: c.href });
+    if (out.length === limit) break;
+  }
+  return out;
+}
+
+/**
+ * 網址（slug）比對：問題裡的英文字（3 字元以上）有幾個出現在頁面網址裡。打錯一個字的網址（/blog/tunnel-dwon-four-days）
+ * 語意向量對不準，但 tunnel、four、days 三個字都在 tunnel-down-four-days 裡。重疊 ≥2 個字（只有 1 個字時要 1 個）才算，多的排前面。
+ */
+export function hrefMatches(query: string, chunks: Chunk[]): Chunk[] {
+  const tokens = [...new Set(query.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 3))];
+  if (tokens.length === 0) return [];
+  const need = Math.min(2, tokens.length);
+  const best = new Map<string, { chunk: Chunk; n: number }>();
+  for (const c of chunks) {
+    if (best.has(c.href)) continue;
+    const n = tokens.filter((t) => c.href.toLowerCase().includes(t)).length;
+    if (n >= need) best.set(c.href, { chunk: c, n });
+  }
+  return [...best.values()].toSorted((a, b) => b.n - a.n).map((x) => x.chunk);
+}
+
+/**
+ * 語意搜尋（Ctrl+K、404 頁、MCP 用）：只用 embedding 模型，不碰聊天模型，所以很快（暖機後約 0.1 秒）、不跟 /ask 搶 GPU。
+ * 問「怎麼讓網站不要掛掉」也找得到寫「監控」「自動重啟」的文章。Ollama 沒開就退回關鍵字。
+ */
+export async function semanticSearch(query: string, limit = 5, signal?: AbortSignal): Promise<{ title: string; href: string }[]> {
+  const lexical = search(query, getTopical(), 8);
+  try {
+    const [vecs, [q]] = await Promise.all([Promise.race([getDocVecs(), timeoutAfter(VECTOR_WAIT_MS)]), embed([`task: search result | query: ${query}`], signal)]);
+    const semantic = rank(q, vecs, getTopical(), 10).filter((x) => x.score >= CITE_SIMILARITY);
+    return uniquePages([...hrefMatches(query, getTopical()), ...fuse(semantic.map((x) => x.chunk), lexical, 10)], limit);
+  } catch {
+    return uniquePages([...hrefMatches(query, getTopical()), ...lexical], limit);
+  }
+}
+
 /** 開機或進 /ask 時先把向量算好，第一個訪客就不用等 */
 export async function warmRetrieval(): Promise<boolean> {
   try {

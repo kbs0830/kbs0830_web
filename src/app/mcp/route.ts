@@ -24,10 +24,10 @@ export async function POST(req: Request) {
   }
   // 舊版協定允許一次送一批（陣列）；新版沒有了，但照樣處理
   if (Array.isArray(body)) {
-    const out = body.map((m) => handleRpc(m)).filter((r) => r !== null);
+    const out = (await Promise.all(body.map((m) => handleRpc(m)))).filter((r) => r !== null);
     return out.length ? json(out) : new Response(null, { status: 202, headers: CORS });
   }
-  const out = handleRpc(body as Parameters<typeof handleRpc>[0]);
+  const out = await handleRpc(body as Parameters<typeof handleRpc>[0]);
   return out ? json(out) : new Response(null, { status: 202, headers: CORS });
 }
 

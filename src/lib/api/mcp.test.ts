@@ -56,6 +56,26 @@ describe("MCP：工具", () => {
   });
 });
 
+describe("MCP：semantic_search（非同步工具）", () => {
+  const rpc = (args: object) =>
+    handleRpc({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "semantic_search", arguments: args } }) as Promise<{
+      result?: { isError?: boolean; structuredContent?: { results: { href: string; url: string }[] } };
+    }>;
+
+  it("空的 query 回 isError", async () => {
+    expect((await rpc({ query: "  " })).result?.isError).toBe(true);
+  });
+
+  it("問得到東西：回傳站內路徑跟完整網址（Ollama 沒開時退回關鍵字，結果一樣有）", async () => {
+    const r = (await rpc({ query: "Cloudflare Tunnel 斷線" })).result;
+    expect(r?.isError).toBeUndefined();
+    const results = r!.structuredContent!.results;
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeLessThanOrEqual(5);
+    for (const x of results) expect(x.url).toBe(`https://kbs0830.com${x.href}`);
+  });
+});
+
 describe("MCP：HTTP 端點", () => {
   const post = (body: string) => POST(new Request("https://kbs0830.com/mcp", { method: "POST", body, headers: { "Content-Type": "application/json" } }));
 

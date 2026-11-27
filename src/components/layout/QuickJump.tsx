@@ -57,11 +57,41 @@ export default function QuickJump() {
   }, []);
 
   const searching = query.trim().length > 0;
+  const pages = matchItems(PAGE_ITEMS, query);
+  const projects = searching && index ? matchItems(index.projects, query) : [];
+  const posts = searching && index ? matchItems(index.posts, query) : [];
+  const literal = pages.length + projects.length + posts.length;
+  const term = query.trim();
+
+  // 語意搜尋（TODO H5）：字面比對找不到幾個結果時，停下打字 0.5 秒後問本機 AI 的 embedding（/api/search）。
+  // 結果連同它回答的字一起存，字改了舊結果就不顯示（不用在 effect 裡同步清空 state）
+  const [semantic, setSemantic] = useState<{ q: string; items: JumpItem[] } | null>(null);
+  const wantSemantic = open && term.length >= 2 && literal < 3 && (index !== null || failed);
+  useEffect(() => {
+    if (!wantSemantic) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+        .then((data: { results?: { title: string; href: string }[] }) =>
+          setSemantic({ q: term, items: (data.results ?? []).map((r) => ({ ...r, sub: "語意相關" })) }),
+        )
+        .catch(() => {}); // AI 沒開或被限流：安靜地只顯示字面結果
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [wantSemantic, term]);
+  const shown = new Set([...pages, ...projects, ...posts].map((i) => i.href));
+  const related = wantSemantic && semantic?.q === term ? semantic.items.filter((i) => !shown.has(i.href)) : [];
+
   const groups = [
-    { label: "頁面 · Pages", items: matchItems(PAGE_ITEMS, query) },
+    { label: "頁面 · Pages", items: pages },
     // 沒輸入時只列頁面，清單不會一打開就很長
-    { label: "作品 · Work", items: searching && index ? matchItems(index.projects, query) : [] },
-    { label: "文章 · Blog", items: searching && index ? matchItems(index.posts, query) : [] },
+    { label: "作品 · Work", items: projects },
+    { label: "文章 · Blog", items: posts },
+    { label: "相關 · Related（AI）", items: related },
   ];
   const sections: { label: string; items: JumpItem[]; start: number }[] = [];
   let total = 0;
@@ -94,7 +124,7 @@ export default function QuickJump() {
     : searching && !index
       ? "載入作品、文章中…"
       : searching
-        ? total === 0 ? "沒有符合的結果" : `${total} 筆`
+        ? total === 0 ? (wantSemantic && semantic?.q !== term ? "沒有字面符合，AI 找相關內容中…" : "沒有符合的結果") : `${total} 筆`
         : "輸入關鍵字也會搜尋作品跟文章";
 
   return (
