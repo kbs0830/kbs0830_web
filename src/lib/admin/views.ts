@@ -5,6 +5,7 @@ import { recentLogins } from "@/lib/admin/db";
 import { VIA_LABEL } from "@/lib/admin/login-log";
 import { piHealthLine } from "@/lib/admin/pi-health";
 import { readSiteFacts } from "@/lib/ops/colophon";
+import { readServerErrors } from "@/lib/ops/server-errors";
 import { readDeploys, readRestarts } from "@/lib/ops/status";
 import { presenceCount } from "@/lib/stats/presence";
 import { buildReport, resolveRange } from "@/lib/stats/reports";
@@ -118,6 +119,14 @@ export function opsModel(): ViewModel {
         en: "Restarts",
         limit: 5,
         rows: restarts.map((r) => ({ time: r.time, text: `${KIND[r.kind]}・${r.auto ? "watchdog 自動救回" : "要人處理"}`, tone: r.auto ? "ok" : "warn" })),
+      },
+      {
+        kind: "log",
+        title: "最近的伺服器錯誤",
+        en: "Server errors",
+        limit: 5,
+        empty: "最近沒有伺服器端錯誤。",
+        rows: readServerErrors(20).map((e) => ({ time: e.t, text: `${e.kind} ${e.method} ${e.path}：${e.message}`, tone: "warn" as const })),
       },
       {
         kind: "log",

@@ -126,25 +126,39 @@ const WARM_PATHS = [
   "/", "/blog", "/radar", "/status", "/stats", "/resume",
   "/admin", "/admin/ops", "/admin/traffic", "/admin/todo", "/admin/mail", "/admin/reports", "/admin/done",
 ];
+// 2026-11-27（TODO U2）：Cache Components 的 "use cache" 快取在記憶體、每次部署（重啟）就清空，所以上面幾頁打完之後，
+// 再讀自己的 sitemap.xml 把其餘的公開頁面也打一輪（約 55 頁），第一個訪客不用等伺服器重算。限速：同時 4 個。
+function getPath(port, p) {
+  return new Promise((resolve) => {
+    const req = http.get({ host: "127.0.0.1", port, path: p, headers: { "user-agent": "kbs0830-warmup" }, timeout: 20000 }, (res) => {
+      const chunks = [];
+      res.on("data", (c) => chunks.length < 64 && chunks.push(c)); // 只有 sitemap 要內容；其他頁讀掉丟掉就好
+      res.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+      res.on("error", () => resolve(""));
+    });
+    req.on("timeout", () => req.destroy());
+    req.on("error", () => resolve(""));
+  });
+}
+
+async function mapPool(items, limit, fn) {
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) await fn(items[next++]);
+    }),
+  );
+}
+
 function warmUp(port, log) {
   if (process.env.KBS_NO_WARMUP) return;
   (async () => {
     const t0 = Date.now();
-    for (const p of WARM_PATHS) {
-      await new Promise((resolve) => {
-        const req = http.get(
-          { host: "127.0.0.1", port, path: p, headers: { "user-agent": "kbs0830-warmup" }, timeout: 20000 },
-          (res) => {
-            res.resume();
-            res.on("end", resolve);
-            res.on("error", resolve);
-          },
-        );
-        req.on("timeout", () => req.destroy());
-        req.on("error", resolve);
-      });
-    }
-    log(`warmup done ${WARM_PATHS.length} paths ${Date.now() - t0}ms`);
+    for (const p of WARM_PATHS) await getPath(port, p);
+    const sitemap = await getPath(port, "/sitemap.xml");
+    const rest = [...sitemap.matchAll(/<loc>https?:\/\/[^/]+(\/[^<]*)<\/loc>/g)].map((m) => m[1]).filter((p) => !WARM_PATHS.includes(p));
+    await mapPool(rest, 4, (p) => getPath(port, p));
+    log(`warmup done ${WARM_PATHS.length + rest.length} paths ${Date.now() - t0}ms`);
   })().catch(() => {});
 }
 

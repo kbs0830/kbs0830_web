@@ -262,6 +262,24 @@ try { & (Join-Path $PSScriptRoot "link-check.ps1") -IfOlderThanDays 30 | Out-Nul
 # --- Search Console 搜尋成效快取（後台報表用；超過 24 小時沒更新才抓，失敗只記 logs\search-console.log）---
 try { & (Join-Path $PSScriptRoot "search-console-cache.ps1") -IfOlderThanHours 24 | Out-Null } catch { Log "[WARN] search-console-cache.ps1 失敗：$($_.Exception.Message)" }
 
+# --- 伺服器端錯誤（TODO Q4）：logs\errors.log 是網站 onRequestError 寫的（頁面 render／API／Server Action 出錯）。
+#     同一種錯誤（路徑＋訊息）最近 1 小時內 5 次以上才寄信（6 小時冷卻），偶爾一次只留在後台 /admin/ops 看 ---
+try {
+    $errLog = Join-Path (Split-Path -Parent $PSScriptRoot) "logs\errors.log"
+    if (Test-Path $errLog) {
+        $since = (Get-Date).ToUniversalTime().AddHours(-1)
+        $recent = @(Get-Content $errLog -Tail 300 -Encoding utf8 | ForEach-Object { try { $_ | ConvertFrom-Json } catch { $null } } |
+            Where-Object { $_ -and ([datetime]::Parse($_.t).ToUniversalTime() -gt $since) })
+        $hot = @($recent | Group-Object { "$($_.path) $($_.message)" } | Where-Object { $_.Count -ge 5 } | Sort-Object Count -Descending | Select-Object -First 5)
+        if ($hot.Count -gt 0) {
+            $body = ($hot | ForEach-Object { "$($_.Count) 次　$($_.Name)" }) -join "`n"
+            Notify (Send-Alert -Key "server-errors" -CooldownMinutes 360 -Subject "🟠 網站伺服器端一直在出錯" -Body ("最近 1 小時內同一種錯誤出現 5 次以上：`n`n$body`n`n完整紀錄：後台 /admin/ops「最近的伺服器錯誤」或 logs\errors.log"))
+        } else {
+            Notify (Clear-Alert -Key "server-errors" -Subject "✅ 伺服器端錯誤已經停了")
+        }
+    }
+} catch { Log "[WARN] 伺服器錯誤檢查失敗：$($_.Exception.Message)" }
+
 # --- 提醒信（reminders.json 排的日期到了就寄，每則只寄一次；失敗不影響監控結果）---
 try { & (Join-Path $PSScriptRoot "reminders.ps1") | Out-Null } catch { Log "[WARN] reminders.ps1 失敗：$($_.Exception.Message)" }
 
