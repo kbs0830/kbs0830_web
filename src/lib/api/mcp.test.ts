@@ -89,4 +89,15 @@ describe("MCP：HTTP 端點", () => {
     expect(GET().status).toBe(405);
     expect(OPTIONS().headers.get("access-control-allow-origin")).toBe("*");
   });
+
+  it("批次超過 10 則回 413；semantic_search 超過每分鐘 30 次回 429", async () => {
+    const ping = { jsonrpc: "2.0", id: 1, method: "ping" };
+    expect((await post(JSON.stringify(Array.from({ length: 11 }, () => ping)))).status).toBe(413);
+    expect((await post(JSON.stringify(Array.from({ length: 10 }, () => ping)))).status).toBe(200);
+    const ai = { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "semantic_search", arguments: { query: "" } } };
+    const statuses: number[] = [];
+    for (let i = 0; i < 4; i++) statuses.push((await post(JSON.stringify(Array.from({ length: 10 }, () => ai)))).status);
+    expect(statuses.slice(0, 3)).toEqual([200, 200, 200]);
+    expect(statuses[3]).toBe(429);
+  });
 });
