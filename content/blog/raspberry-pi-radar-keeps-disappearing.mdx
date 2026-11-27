@@ -1,0 +1,199 @@
+---
+title: "換了電源，樹莓派還是半夜消失：先讓它留下遺言"
+seoTitle: "Raspberry Pi 3B 半夜從網路消失：欠壓、Wi-Fi 省電、journal 存在 tmpfs、watchdog 設定被忽略（Pi24 實例）"
+titleEn: "New power supply, and my Raspberry Pi still vanished at night: first, make it leave a note"
+date: "2026-11-27"
+description: "家裡跑 ADS-B 雷達的樹莓派，一週內斷了好幾次。第一次是供電不足，換了電源還是在凌晨消失。這篇記錄怎麼一層一層排除：網站端監視、log 只存在記憶體裡、Wi-Fi 省電模式，還有一個以為開著其實被略過的溫度保護。"
+series: "自架網站維運"
+seriesOrder: 7
+tags: ["Raspberry Pi", "Linux", "Monitoring"]
+commits: ["12c3dda", "b34a83e"]
+---
+
+[自家雷達](/radar)的資料來自家裡一台 Raspberry Pi 3B：插一支 USB 電視棒收飛機的 ADS-B 訊號，跑 FR24 官方的 Pi24 映像，走 Wi-Fi 連回家裡網路。網站這邊每 30 秒讀一次它的狀態。
+
+這台樹莓派一週內斷了好幾次。這篇是到目前為止的排查紀錄——**最後的原因還沒抓到**，但已經做到「下次再斷，一定看得到原因」。
+
+## 第一次：真的是電源
+
+11/23 凌晨它整台消失 11 小時：ping 不到、ARP 表裡沒有，整段網段掃過也找不到（所以不是換了 IP）。拔電重開就好了，原因不明。
+
+當天晚上又斷了兩次。這次剛好連得上 SSH，第一個看的是：
+
+```bash
+vcgencmd get_throttled
+# throttled=0x50005
+```
+
+這個值是位元旗標，低 4 位是「現在」、16～19 位是「開機以來發生過」：
+
+| 位元 | 意思 |
+|---|---|
+| 0 / 16 | 電壓不足（undervoltage） |
+| 1 / 17 | 頻率被壓（arm frequency capped） |
+| 2 / 18 | 正在降頻（throttled） |
+| 3 / 19 | 溫度軟上限 |
+
+`0x50005` 就是「**現在**電壓不足而且在降頻，開機以來也一直這樣」。`dmesg` 裡開機 3 分鐘就有好幾行 `Undervoltage detected`，`lsusb` 甚至看不到電視棒——電不夠，USB 裝置直接掉了。
+
+結論很清楚：換電源。
+
+## 換完電源，順便讓網站看得到它
+
+換電源之後 `get_throttled` 回到 `0x0`，問題解決……的同時我決定不要再靠「發現雷達頁面沒飛機」來知道它出事。
+
+網站的 server 每 5 分鐘用 SSH（專用金鑰，只跑讀取狀態的指令）登進樹莓派跑一小段 shell，把結果寫成 JSON：溫度、CPU、記憶體、`get_throttled`、記憶卡有沒有變唯讀、檔案系統狀態、I/O 錯誤數、Wi-Fi 訊號。後台多了一個分頁畫 24 小時的曲線，桌機上的 watchdog 讀那份 JSON，有問題就寄信：
+
+- 75°C 以上寄，**降到 70°C 以下才算恢復**（不然在 75 上下抖就會一直寄）
+- 現在欠壓、或開機以來曾經欠壓
+- 記憶卡變唯讀、出現 I/O 錯誤、檔案系統不是 clean
+- 空間 90% 以上、可用記憶體不到 80 MB
+- SSH 一小時讀不到——但只在雷達本身還連得上時才寄，整台不見已經有「雷達離線」那封信了，不要一件事寄兩封
+
+這段 shell 是從 Windows 用 stdin 餵給遠端的 `bash -s`，不要塞在命令列參數裡。Windows 的引號規則加上 SSH 再解析一次，裡面有 `$`、`'`、`|` 的指令幾乎一定會被吃掉。
+
+## 第二次：一切正常，然後消失
+
+換完電源的隔天凌晨 03:47，它又不見了。
+
+這次有監視資料，所以能看斷線**前**的狀態：
+
+- `get_throttled` 是 `0x0`——這次開機以來**一次欠壓都沒有**
+- 溫度 69°C，整晚都在 69～72°C，沒有往上衝
+- 記憶體剩 750 MB，記憶卡 clean、0 個錯誤
+
+沒有任何快要出事的跡象。上一筆還好好的，下一筆就整台不見。
+
+而且 11/23 那次也是凌晨 4 點左右。
+
+## 想看它斷線前發生什麼，才發現 log 根本沒存
+
+重開機之後我第一件事是想看「上一次開機」最後幾分鐘的 log，結果：
+
+```bash
+journalctl --list-boots
+# 只有這一次
+```
+
+Pi24 的 `journald.conf` 寫的是 `Storage=volatile`，log 只放在記憶體裡。這是刻意的：減少記憶卡寫入、延長壽命。代價是**每次出事、拔電重開，證據就跟著沒了**。
+
+只改成 `Storage=persistent` 還不夠，因為再往下看：
+
+```bash
+findmnt /var/log
+# tmpfs  tmpfs  rw,nosuid,noatime,size=51200k
+```
+
+整個 `/var/log` 是 fstab 掛的 50 MB tmpfs。journald 的持久化路徑固定是 `/var/log/journal`，建在 tmpfs 上一樣是記憶體。
+
+做法是在記憶卡上開一個資料夾，用 systemd mount unit 把它 bind 到 `/var/log/journal`：
+
+```ini
+# /etc/systemd/system/var-log-journal.mount
+[Mount]
+What=/var/lib/journal-sd
+Where=/var/log/journal
+Type=none
+Options=bind
+
+[Install]
+WantedBy=local-fs.target
+```
+
+再用 drop-in 開持久化（原本的 `journald.conf` 不動，刪掉 drop-in 就還原）：
+
+```ini
+# /etc/systemd/journald.conf.d/persistent.conf
+[Journal]
+Storage=persistent
+SystemMaxUse=50M
+SyncIntervalSec=1m
+```
+
+兩個細節：
+
+- **`SyncIntervalSec` 預設是 5 分鐘**。拔電的話，最後 5 分鐘的 log 還在記憶體裡，等於最想看的那段剛好沒有。改成 1 分鐘，寫入量多一點但很小。
+- mount unit 我一開始寫了 `Requires=var-log.mount`，`systemd-analyze verify` 單獨檢查時會說找不到這個 unit（它是 fstab 產生的）。其實不用寫：systemd 會自動讓子路徑的 mount 排在父路徑之後，拿掉反而少一個出錯的地方。
+
+另外，在樹莓派上寫完任何設定都要跑 `sync`。之前登記 SSH 金鑰後整台斷電，`authorized_keys` 變成 0 bytes——檔案還沒真的寫進記憶卡就掉電了。
+
+## 嫌疑犯：Wi-Fi 省電模式
+
+log 存不到之前發生的事，但開機訊息裡有一行：
+
+```
+brcmfmac: brcmf_cfg80211_set_power_mgmt: power save enabled
+```
+
+Pi 3B 內建的 Broadcom Wi-Fi 開省電模式，有個流傳很久的老毛病：斷線之後連不回來，機器本身活著，網路上看不到它。這跟「數據全部正常、突然整台消失」很吻合。
+
+Pi24 用的是 NetworkManager，連線設定的 `802-11-wireless.powersave` 是 `0 (default)`，也就是交給驅動決定，而驅動預設是開。關法：
+
+```ini
+# /etc/NetworkManager/conf.d/wifi-powersave-off.conf
+[connection]
+wifi.powersave = 2
+```
+
+`2` 是關閉（`3` 才是開啟，`0` 是預設、`1` 是不動它）。同時把現有連線也改掉：
+
+```bash
+sudo nmcli connection modify preconfigured 802-11-wireless.powersave 2
+```
+
+要立刻生效，我先試了不斷線的 `nmcli device reapply wlan0`，結果：
+
+```
+Can't reapply changes to '802-11-wireless.powersave' setting
+```
+
+這個欄位不能熱套用，只能 `nmcli connection up` 重連一次。從 SSH 裡做這件事會把自己踢下線，所以要包成背景工作：
+
+```bash
+sudo nohup sh -c 'sleep 1; nmcli connection up preconfigured' >/tmp/conup.log 2>&1 &
+```
+
+斷線幾秒後重新連上，`dmesg` 出現 `power save disabled`，生效了。
+
+## 我差點把看門狗弄壞
+
+排查時我看到 `systemctl show -p RuntimeWatchdogUSec` 是 `0`，就以為硬體看門狗沒開——系統卡死不會自動重開，難怪每次都要人回家拔電。
+
+於是加了 `RuntimeWatchdogSec=14s`，`daemon-reexec` 套用。設完回查 log 才發現：
+
+```
+watchdog[700]: hardware watchdog identity: Broadcom BCM2835 Watchdog timer
+watchdog[700]: watchdog now set to 60 seconds
+```
+
+**Pi24 本來就有 `watchdog.service`**（獨立的 watchdog daemon），早就佔著 `/dev/watchdog`。systemd 那邊顯示 0 只是代表「systemd 自己沒在餵狗」，不是沒有看門狗。兩邊都想開同一個裝置，下次開機誰先搶到不一定，搶輸的那個會失效——等於我一個「加強」把原本能用的保護變成碰運氣。已經移掉了。
+
+這個錯誤反而給了一條線索：**看門狗一直都在，但兩次斷線它都沒有把樹莓派重開**。如果是核心卡死，60 秒內就會自己重開回來。它沒有，代表系統大概還活著、只是不在網路上，或者是突然斷電。這兩個方向，前者正好是 Wi-Fi 省電要解決的。
+
+## 以為開著，其實被略過的溫度保護
+
+看 watchdog daemon 的設定時，`/etc/watchdog.conf` 裡寫著 80°C 會重開：
+
+```
+temperature-device = /sys/class/thermal/thermal_zone0/temp
+max-temperature    = 80000
+```
+
+但開機 log 裡有一行：
+
+```
+watchdog[698]: Ignoring invalid option at line 12 of config file: temperature-device=...
+```
+
+新版的 watchdog 已經不認 `temperature-device` 這個寫法，整行被忽略。設定檔寫著有保護，實際上沒有——不看 log 永遠不會知道。
+
+而這台的溫度確實需要保護：關掉省電之後觀察了 7 個多小時，網路一次都沒斷，但溫度從早上 70°C 一路爬到中午 74.7°C，CPU 使用率一直穩定在 28%，不是工作量變大，是散熱不夠。下一步是加散熱片。
+
+## 學到的事
+
+- **先讓它留下遺言。** 「拔電重開就好了」是最糟的結局：好了，但下次一樣。在猜原因之前，先確保下次出事時 log 還在。Pi24 為了保護記憶卡把 log 放在記憶體裡，這個取捨對一般使用者合理，對要除錯的人就是在銷毀證據。
+- **監視要看「斷線前」，不只是「斷線了」。** 換電源之後那次，如果只有「雷達離線」的信，我大概會繼續懷疑電源。有了前 5 分鐘的 `0x0` 和 69°C，才能把電源排除掉。
+- **一個值是 0，先問是誰的 0。** `RuntimeWatchdogUSec=0` 是 systemd 沒在用看門狗，不是沒有看門狗。動手之前多看一眼 `ls /dev/watchdog*` 被誰開著，就不會差點把它弄壞。
+- **設定檔寫的不等於正在生效的。** 溫度保護、Wi-Fi 省電都是這樣：一個寫了但被忽略，一個沒寫但驅動預設開著。判斷要看執行時的 log（`dmesg`、`journalctl`），不是看設定檔。
+
+目前的狀態：電源 OK、Wi-Fi 省電已關、log 會存到記憶卡。下次如果還斷，重開後一行 `journalctl -b -1 -n 200` 就能看到它最後在做什麼。到時候再補後續。
