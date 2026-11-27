@@ -151,6 +151,15 @@ try {
     git pull origin main 2>&1 | ForEach-Object { Log "  $_" }
     if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
 
+    # 這支是在正式站資料夾裡 build，所以「還沒 commit 的改動」會被一起 build（TODO C13，2026-11-27）：好幾個 Claude session 共用這個資料夾時，
+    # 別人改到一半的檔案會讓 build 失敗（11/26 兩次），或更糟——被 build 成功、上線了而 git 裡根本沒有。
+    # 這裡先把它們列進 log（也會附在失敗信裡），至少一看就知道是不是這個原因。真正的解法（在乾淨的副本裡 build）見後台待辦 C13 的評估。
+    $script:dirtySource = @(git status --porcelain -- src content public scripts next.config.ts package.json pnpm-lock.yaml | Where-Object { $_ -notmatch 'src/generated|public/resume\.pdf' })
+    if ($script:dirtySource.Count -gt 0) {
+        Log "[WARN] 工作目錄有 $($script:dirtySource.Count) 個還沒 commit 的程式檔，會被一起 build："
+        $script:dirtySource | Select-Object -First 15 | ForEach-Object { Log "  $_" }
+    }
+
     # 套件有變才重新安裝，平常部署不多花這一步。比對的是「上次成功 install 時的
     # lockfile 雜湊」（存在 node_modules 裡），不是 pull 前後有沒有變——2026-11 在正式站
     # 目錄直接 git merge，pull 回報 Already up to date，舊判斷就跳過 install、build 失敗。
@@ -235,7 +244,10 @@ catch {
     $lines = Get-Content $logFile -Encoding utf8
     $start = ($lines | Select-String -Pattern "===== Deploy started =====" | Select-Object -Last 1).LineNumber
     $tail = if ($start) { $lines[($start - 1)..($lines.Count - 1)] | Select-Object -Last 40 } else { $lines | Select-Object -Last 40 }
-    $body = "commit：$(git log --oneline -1)`n錯誤：$($_.Exception.Message)`n`n完整 log：logs\deploy.log`n`n$($tail -join "`n")"
+    $dirtyNote = if ($script:dirtySource -and $script:dirtySource.Count -gt 0) {
+        "`n⚠️ 部署時工作目錄有 $($script:dirtySource.Count) 個還沒 commit 的程式檔（可能是別的 session 改到一半，build 失敗多半是這個原因）：`n" + (($script:dirtySource | Select-Object -First 10) -join "`n") + "`n"
+    } else { "" }
+    $body = "commit：$(git log --oneline -1)`n錯誤：$($_.Exception.Message)`n$dirtyNote`n完整 log：logs\deploy.log`n`n$($tail -join "`n")"
     Log "通知：$(Send-Alert -Key 'deploy' -CooldownMinutes 0 -Subject '部署失敗' -Body $body)"
     exit 1
 }
