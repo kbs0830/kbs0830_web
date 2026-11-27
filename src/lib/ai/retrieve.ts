@@ -50,10 +50,10 @@ const timeoutAfter = (ms: number) => new Promise<never>((_, reject) => setTimeou
  * 依問題挑最相關的作品／文章段落（語意＋關鍵字合併）。found 放進提示，cited 是有把握的、拿來當「來源」連結。
  * Ollama 沒開或向量還沒算完就只用關鍵字（這時 found 全部當來源）。
  */
-export async function retrieve(query: string, limit = 3): Promise<{ core: Chunk[]; found: Chunk[]; cited: Chunk[] }> {
+export async function retrieve(query: string, limit = 3, signal?: AbortSignal): Promise<{ core: Chunk[]; found: Chunk[]; cited: Chunk[] }> {
   const lexical = search(query, getTopical(), 6);
   try {
-    const [vecs, [q]] = await Promise.all([Promise.race([getDocVecs(), timeoutAfter(VECTOR_WAIT_MS)]), embed([`task: search result | query: ${query}`])]);
+    const [vecs, [q]] = await Promise.all([Promise.race([getDocVecs(), timeoutAfter(VECTOR_WAIT_MS)]), embed([`task: search result | query: ${query}`], signal)]);
     const semantic = rank(q, vecs, getTopical(), 6);
     const found = fuse(semantic.map((x) => x.chunk), lexical, limit);
     const strong = new Set(semantic.filter((x) => x.score >= CITE_SIMILARITY).map((x) => x.chunk));

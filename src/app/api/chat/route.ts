@@ -27,18 +27,8 @@ export async function POST(req: NextRequest) {
   if (!messages) return fail("訊息格式不對、太長，或最後一則不是你的提問", 400);
 
   if (perIp.limited(clientIp(req)) || sitewide.limited("all")) return fail("問太多次了，休息一下再問", 429);
+  // 檢查跟佔名額之間不能有 await：否則下面檢索的那幾秒裡，多個請求會同時通過檢查、超過上限
   if (active >= MAX_CONCURRENT) return fail("現在有人在問，請幾秒後再試", 503);
-
-  // 檢索用最近兩則提問（追問「那它呢？」才找得到東西）；檢索失敗不影響回答，只是沒有參考資料
-  const query = messages.filter((m) => m.role === "user").slice(-2).map((m) => m.content).join("\n");
-  const { core, found, cited } = await retrieve(query).catch(() => ({ core: [], found: [], cited: [] }));
-  const sources = [...techSources(query), ...sourcesOf(cited)].filter((s, i, all) => all.findIndex((x) => x.href === s.href) === i).slice(0, 3);
-  // 「哪些作品用了 X」由程式算好，放在問題正後方（放在參考資料裡面，4B 模型會視而不見、照自己的印象列）
-  const tech = techLines(query);
-  const hint = tech.length ? `\n【已確認的事實，列作品時照這個，不要多列】${tech.join("；")}` : "";
-
-  const timeout = AbortSignal.timeout(TIMEOUT_MS);
-  const signal = AbortSignal.any([timeout, req.signal]);
   active++;
   let released = false;
   const release = () => {
@@ -48,7 +38,18 @@ export async function POST(req: NextRequest) {
     }
   };
 
+  const timeout = AbortSignal.timeout(TIMEOUT_MS);
+  const signal = AbortSignal.any([timeout, req.signal]);
+
   try {
+    // 檢索用最近兩則提問（追問「那它呢？」才找得到東西）；檢索失敗不影響回答，只是沒有參考資料
+    const query = messages.filter((m) => m.role === "user").slice(-2).map((m) => m.content).join("\n");
+    const { core, found, cited } = await retrieve(query, 3, signal).catch(() => ({ core: [], found: [], cited: [] }));
+    const sources = [...techSources(query), ...sourcesOf(cited)].filter((s, i, all) => all.findIndex((x) => x.href === s.href) === i).slice(0, 3);
+    // 「哪些作品用了 X」由程式算好，放在問題正後方（放在參考資料裡面，4B 模型會視而不見、照自己的印象列）
+    const tech = techLines(query);
+    const hint = tech.length ? `\n【已確認的事實，列作品時照這個，不要多列】${tech.join("；")}` : "";
+
     const upstream = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: "POST",
       headers: { "content-type": "application/json" },
