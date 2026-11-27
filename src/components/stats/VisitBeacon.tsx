@@ -41,6 +41,8 @@ function campaignRef(): string | null {
 export default function VisitBeacon() {
   const pathname = usePathname();
   useEffect(() => {
+    // /radar/live 是直播（OBS）畫面，不是訪客：不算造訪
+    if (pathname.startsWith("/radar/live")) return;
     // 站長在 /stats 打開「不計入」：照樣送（要拿 newFeature），但只帶 notMe，伺服器不計（lib/client/not-me.ts）
     const body = isNotMe()
       ? JSON.stringify({ notMe: true })

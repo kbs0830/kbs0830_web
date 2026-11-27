@@ -18,6 +18,7 @@
 const fs = require("node:fs");
 const { twDate, twHour } = require("./tw-time");
 const path = require("node:path");
+const { recordTrack, readTrack, writeTrack } = require("./radar-live");
 
 const POLL_MS = 30_000;
 const KEEP_DAYS = 120;
@@ -281,7 +282,11 @@ async function pollRadar(host) {
       rxConnected: m.rx_connected === "1",
       shutdown: m.shutdown === "yes",
       // 高度：這版 dump1090-mutability 叫 altitude（地面是 "ground"），新版 readsb 叫 alt_baro
-      aircraft: (Array.isArray(a.aircraft) ? a.aircraft : []).map((x) => ({ hex: x.hex, flight: x.flight, seen: x.seen, alt: x.altitude ?? x.alt_baro })),
+      aircraft: (Array.isArray(a.aircraft) ? a.aircraft : []).map((x) => ({
+        hex: x.hex, flight: x.flight, seen: x.seen, alt: x.altitude ?? x.alt_baro,
+        // 座標／速度／航向：只給 radar-live.js 的「延遲 5 分鐘直播畫面」用（它自己說明隱私規則），applySample 的彙總不碰
+        lat: x.lat, lon: x.lon, seen_pos: x.seen_pos, speed: x.speed, track: x.track,
+      })),
     };
   } catch {
     return { reachable: false, rxConnected: false, shutdown: false, aircraft: [] };
@@ -333,6 +338,7 @@ function startRadarPoller({ host, file, typesFile, log }) {
   let running = false;
   const typesPath = typesFile || path.join(path.dirname(file), "aircraft-types.json");
   const types = readState(typesPath) || {};
+  const trackPath = path.join(path.dirname(file), "radar-track.json");
   const tick = async () => {
     if (running) return;
     running = true;
@@ -343,6 +349,8 @@ function startRadarPoller({ host, file, typesFile, log }) {
       if (await lookupTypes(prev, types, now)) fs.writeFileSync(typesPath, JSON.stringify(types));
       const next = applySample(prev, sample, now, types);
       fs.writeFileSync(file, JSON.stringify(next));
+      // 直播畫面用的位置軌跡（只留 20 分鐘，公開時延遲 5 分鐘；規則見 radar-live.js）
+      writeTrack(trackPath, recordTrack(readTrack(trackPath), sample, now));
     } catch (e) {
       if (log) log(`RADAR poll error: ${e && e.message ? e.message : e}`);
     } finally {

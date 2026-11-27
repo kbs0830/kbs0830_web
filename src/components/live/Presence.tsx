@@ -37,6 +37,7 @@ function tabId(): string {
 
 export default function Presence() {
   useEffect(() => {
+    if (location.pathname.startsWith("/radar/live")) return; // 直播（OBS）畫面不算「現在有人在看」
     const id = tabId();
     let ctrl: AbortController | null = null;
     const report = async () => {
