@@ -1,0 +1,132 @@
+{
+ "source": "Open-Meteo Historical Weather API（ERA5 再分析）",
+ "years": [
+  2015,
+  2024
+ ],
+ "generatedAt": "2026-11-27",
+ "fukuoka": [
+  {
+   "high": 9.1,
+   "low": 3.3,
+   "rainyDays": 11
+  },
+  {
+   "high": 10.2,
+   "low": 3.4,
+   "rainyDays": 10.5
+  },
+  {
+   "high": 14.2,
+   "low": 6.4,
+   "rainyDays": 10.8
+  },
+  {
+   "high": 18.6,
+   "low": 10.5,
+   "rainyDays": 11.8
+  },
+  {
+   "high": 22.9,
+   "low": 14.8,
+   "rainyDays": 11
+  },
+  {
+   "high": 25.6,
+   "low": 19.2,
+   "rainyDays": 15.8
+  },
+  {
+   "high": 29.7,
+   "low": 23.6,
+   "rainyDays": 19.1
+  },
+  {
+   "high": 31.3,
+   "low": 24.7,
+   "rainyDays": 14.8
+  },
+  {
+   "high": 27.2,
+   "low": 21.1,
+   "rainyDays": 15.5
+  },
+  {
+   "high": 22,
+   "low": 15.4,
+   "rainyDays": 10.4
+  },
+  {
+   "high": 17.2,
+   "low": 10.2,
+   "rainyDays": 9.6
+  },
+  {
+   "high": 11.1,
+   "low": 5.2,
+   "rainyDays": 10.1
+  }
+ ],
+ "kaohsiung": [
+  {
+   "high": 23.2,
+   "low": 15.8,
+   "rainyDays": 5.1
+  },
+  {
+   "high": 24.1,
+   "low": 16.5,
+   "rainyDays": 4.7
+  },
+  {
+   "high": 26.2,
+   "low": 18.9,
+   "rainyDays": 5.9
+  },
+  {
+   "high": 28.5,
+   "low": 22,
+   "rainyDays": 8
+  },
+  {
+   "high": 30,
+   "low": 24.6,
+   "rainyDays": 15.9
+  },
+  {
+   "high": 30.8,
+   "low": 26.1,
+   "rainyDays": 21
+  },
+  {
+   "high": 31.2,
+   "low": 26.3,
+   "rainyDays": 22.8
+  },
+  {
+   "high": 30.3,
+   "low": 25.9,
+   "rainyDays": 24.1
+  },
+  {
+   "high": 30.3,
+   "low": 25.4,
+   "rainyDays": 19.6
+  },
+  {
+   "high": 29,
+   "low": 23.8,
+   "rainyDays": 13.4
+  },
+  {
+   "high": 27.4,
+   "low": 21.3,
+   "rainyDays": 6.1
+  },
+  {
+   "high": 24.7,
+   "low": 17.6,
+   "rainyDays": 3.9
+  }
+ ]
+}

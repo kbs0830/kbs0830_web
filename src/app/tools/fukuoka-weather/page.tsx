@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
 import { withShare } from "@/lib/site/share-meta";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -8,6 +9,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import ToolJsonLd from "@/components/tools/ToolJsonLd";
+import { MONTHS } from "@/lib/travel/fukuoka-climate";
 
 // 現在去福岡要穿什麼（TODO J4，2026-11-24）。現在的溫度跟頁尾時鐘旁的天氣同一份（30 分鐘快取），
 // 福岡這幾天的最高／最低另外抓（3 小時快取）。都是伺服器端抓，訪客的瀏覽器不連第三方。
@@ -99,6 +101,19 @@ function Shell({ children }: { children: React.ReactNode }) {
     >
       <ToolJsonLd href="/tools/fukuoka-weather" />
       {children}
+      {/* 每個月的穿搭（TODO V2，2026-11-27）：計畫幾月去，看那個月平均幾度、穿什麼；近 10 年平均，不是預報 */}
+      <nav aria-label="福岡每月穿搭" className="mt-14">
+        <h2 className="mb-3 text-[11px] text-(--muted) font-mono tracking-[0.2em] uppercase">福岡每月穿搭 · 幾月去穿什麼</h2>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          {MONTHS.map((m) => (
+            <li key={m}>
+              <Link href={`/tools/fukuoka-weather/${m}` as Route} className="inline-block py-1.5 text-sm font-light text-(--muted) hover:text-(--accent) transition-colors">
+                {m} 月
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </PageShell>
   );
 }

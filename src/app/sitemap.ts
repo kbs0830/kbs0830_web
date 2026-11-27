@@ -4,6 +4,7 @@ import { getAllPosts } from "@/lib/content/blog";
 import { SITE_URL } from "@/lib/site/site";
 import { TOOL_PAGES } from "@/lib/site/site-map";
 import { allRouteSlugs } from "@/lib/tools/popular-routes";
+import { MONTHS } from "@/lib/travel/fukuoka-climate";
 
 type Entry = MetadataRoute.Sitemap[number];
 const page = (path: string, changeFrequency: Entry["changeFrequency"], priority: number, lastModified?: Date): Entry => ({
@@ -40,6 +41,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...TOOL_PAGES.map((t) => page(t.href, "weekly", 0.6)),
     // 熱門航線距離頁 30 頁（TODO V3，/tools/airport-distance/tpe-fuk）
     ...allRouteSlugs().map((s) => page(`/tools/airport-distance/${s}`, "monthly", 0.5)),
+    // 福岡每月穿搭 12 頁（TODO V2，/tools/fukuoka-weather/3）
+    ...MONTHS.map((m) => page(`/tools/fukuoka-weather/${m}`, "monthly", 0.5)),
     ...projects.map((p) => page(`/projects/${p.slug}`, "monthly", 0.7)),
     ...getAllPosts().map((post) => page(`/blog/${post.slug}`, "monthly", 0.6, new Date(post.date))),
     // tag 頁 noindex（2026-11-12，見 app/blog/tags/[tag]/page.tsx），不列
