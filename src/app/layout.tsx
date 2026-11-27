@@ -6,6 +6,7 @@ import WebVitals from "@/components/stats/WebVitals";
 import VisitBeacon from "@/components/stats/VisitBeacon";
 import Presence from "@/components/live/Presence";
 import QuickJump from "@/components/layout/QuickJump";
+import ServiceWorkerRegister from "@/components/layout/ServiceWorkerRegister";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -108,6 +109,7 @@ export default function RootLayout({
         </a>
         <WebVitals />
         <VisitBeacon />
+        <ServiceWorkerRegister />
         <Presence />
         {children}
         <QuickJump />

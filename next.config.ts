@@ -103,6 +103,12 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // Service Worker 檔（public/sw.js，TODO B10）：瀏覽器本來就會自己檢查更新，但中間的 Cloudflare 預設會把 .js 快取起來，
+      // 改了 sw.js 卻一直拿到舊的。要求每次都回源（不快取）
+      {
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "private, no-cache, max-age=0, must-revalidate" }],
+      },
     ];
   },
   // Markdown for Agents（lib/content/markdown.ts）：AI 工具帶 `Accept: text/markdown`、或網址加 `.md`，
