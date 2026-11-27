@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { withShare } from "@/lib/site/share-meta";
@@ -7,6 +7,7 @@ import AirportDistance from "@/components/tools/AirportDistance";
 import ToolNote from "@/components/tools/ToolNote";
 import { AIRPORTS } from "@/lib/travel/flights";
 import ToolJsonLd from "@/components/tools/ToolJsonLd";
+import { DESTINATIONS, ORIGINS, routeSlug } from "@/lib/tools/popular-routes";
 
 // 機場距離／航程（TODO J5，2026-11-24）。我飛過的機場用中文名（lib/travel/flights.ts），其他用 OurAirports 的英文城市名
 export const metadata: Metadata = withShare({
@@ -30,6 +31,29 @@ export default function AirportDistancePage() {
       <Suspense fallback={<div className="min-h-[360px]" />}>
         <AirportDistance zh={zh} />
       </Suspense>
+      {/* 熱門航線（TODO V3）：每條一頁，第一句就是答案；主工具頁列出來讓人（跟 Google）找得到 */}
+      <section className="mt-16">
+        <h2 className="mb-4 text-[11px] text-(--muted) font-mono tracking-[0.2em] uppercase">熱門航線 · Popular routes</h2>
+        <div className="space-y-4">
+          {ORIGINS.map((o) => (
+            <div key={o.code}>
+              <p className="text-sm font-light text-(--text) mb-1">{o.label} →</p>
+              <ul className="flex flex-wrap gap-x-5 gap-y-0.5">
+                {DESTINATIONS.map((d) => (
+                  <li key={d.code}>
+                    <Link
+                      href={`/tools/airport-distance/${routeSlug(o.code, d.code)}` as Route}
+                      className="inline-block py-1.5 text-sm font-light text-(--muted) hover:text-(--accent) transition-colors"
+                    >
+                      {d.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
       <ToolNote>
         <p>
           機場座標來自 OurAirports（公共領域的開放資料），只收有定期航班的大、中型機場。距離是球面近似；

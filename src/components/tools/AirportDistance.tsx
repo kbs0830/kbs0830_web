@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useJson } from "@/lib/client/hooks";
+import { flightHours, greatCircleKm, hm } from "@/lib/tools/flight-calc"; // 距離、時間的算法跟熱門航線頁共用（TODO V3）
 
 // 機場距離／航程（TODO J5，2026-11-24）。機場座標是 OurAirports 的公開資料（公共領域），
 // 精簡成有定期航班的大中型機場、約 3,200 個（public/data/airports.json，~90 KB gzip），打開這頁才下載。全部在瀏覽器算。
@@ -10,22 +11,6 @@ import { useJson } from "@/lib/client/hooks";
 type Row = [iata: string, name: string, city: string, country: string, lat: number, lon: number];
 type Airport = { iata: string; name: string; city: string; country: string; lat: number; lon: number };
 
-const EARTH_KM = 6371;
-const CRUISE_KMH = 800; // 噴射客機的平均地速，粗估用
-const TAXI_H = 0.5; // 起降、滑行多出來的時間
-
-function greatCircleKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
-  const rad = Math.PI / 180;
-  const dLat = (b.lat - a.lat) * rad;
-  const dLon = (b.lon - a.lon) * rad;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
-  return 2 * EARTH_KM * Math.asin(Math.sqrt(h));
-}
-
-/** 粗估飛行時間（小時）：距離 ÷ 800 km/h ＋ 0.5 小時；不含風向（往東通常比較快） */
-const flightHours = (km: number) => km / CRUISE_KMH + TAXI_H;
-
-const hm = (h: number) => `${Math.floor(h)} 小時 ${Math.round((h % 1) * 60)} 分`;
 const clean = (v: string) => v.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
 
 export default function AirportDistance({ zh }: { zh: Record<string, string> }) {

@@ -25,7 +25,8 @@ test("sitemap 每一頁都沒有 CSP 違規", async ({ page, request }) => {
         await new Promise((r) => setTimeout(r, 30));
       }
     });
-    await page.waitForLoadState("networkidle");
+    // 有些頁面會一直有請求在跑（/ask 的暖機、輪詢），永遠不會 networkidle：最多等 15 秒就往下走，違規照樣收集（2026-11-27，/ask 讓這支卡到逾時）
+    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
     const found = await page.evaluate(() => (window as unknown as { __csp: string[] }).__csp);
     violations.push(...found.map((v) => `${decodeURIComponent(path)}：${v}`));
   }
