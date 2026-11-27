@@ -67,6 +67,7 @@
 | 3D 背景 | `components/canvas/`（首頁天空同步：`lib/client/sky.ts`） |
 | 作品、文章、About 資料 | `lib/content/` |
 | 訪客統計／維運／旅行／網址 SEO | `lib/stats/`／`lib/ops/`／`lib/travel/`／`lib/site/` |
+| 本地 AI（Ollama 聊天 API，細節在 `kbs-integrations`） | `lib/ai/`、`app/api/chat/` |
 | 只在瀏覽器跑的 hook | `lib/client/` |
 | 讀寫 `data/`、`logs/` | `lib/data-file.ts` |
 | 排程、部署、伺服器 | `scripts/`（⚠️ 不要搬，排程工作用絕對路徑指過去） |
@@ -114,6 +115,7 @@
 | `kbs-integrations` | CSP、統計、Spotify、雷達、SEO（metadata／sitemap／JSON-LD） |
 
 **新的紀錄寫進對應的技能檔或寫成文章**，不要再加回這份 CLAUDE.md；只有「每次都要遵守」的規則才放這裡。
+**網站的特色功能要寫成部落格文章**（`content/blog/*.mdx`，使用者 2026-11-27：「這個網站特色要寫進 BLOG，記得改 MD 方便之後讀取」）：做完有意思的功能（新技術、踩到的坑、實測數字）就寫一篇，**同時**更新對應技能檔（後台、維運功能在 `kbs-site/parts/15.md`、`kbs-ops/parts/05～07.md`），並在技能檔裡寫出對應的文章 slug。文章只寫實測過的內容，不放雷達位置、本名這類不公開的東西。
 
 ### 兩台開發機（先確認現在在哪一台）
 

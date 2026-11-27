@@ -1,6 +1,6 @@
 ---
 name: kbs-integrations
-description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統計、未過濾流量、Cloudflare 設定腳本、CSP、/stats 訪客分析、Web Vitals、自家 FR24 雷達、Spotify 正在聽，以及 SEO（metadata、canonical、sitemap、JSON-LD、llms.txt、OG 圖）。碰 CSP、Cloudflare API、統計資料、Spotify、雷達、metadata／sitemap／robots，或新增頁面要補 SEO 時先讀。
+description: kbs0830_web 第三方整合與 SEO 全文：本地 AI 聊天 API（Ollama／gemma3、/api/chat）、自架訪客來源統計、未過濾流量、Cloudflare 設定腳本、CSP、/stats 訪客分析、Web Vitals、自家 FR24 雷達、Spotify 正在聽，以及 SEO（metadata、canonical、sitemap、JSON-LD、llms.txt、OG 圖）。碰 CSP、Cloudflare API、統計資料、Spotify、雷達、metadata／sitemap／robots，或新增頁面要補 SEO 時先讀。
 ---
 
 
@@ -19,4 +19,5 @@ description: kbs0830_web 第三方整合與 SEO 全文：自架訪客來源統�
 | 第三方整合 | 真實訪客 Web Vitals（2026-11-04，自架） | `parts/08.md` | 1.3 KB |
 | 第三方整合 | 自家 FR24 雷達（2026-11-21） | `parts/09.md` | 5.1 KB |
 | 第三方整合 | Spotify「正在聽」 | `parts/10.md` | 1.0 KB |
+| 第三方整合 | 本地 AI 聊天 API（2026-11-27，Ollama + gemma3:4b，`/api/chat`、`lib/ai/`） | `parts/12.md` | 1.9 KB |
 |  | SEO | `parts/11.md` | 5.8 KB |
