@@ -46,7 +46,7 @@ function recordTrack(prev, sample, now) {
 const SECRET = crypto.randomBytes(16);
 const idOf = (hex, date) => crypto.createHmac("sha256", SECRET).update(`${hex}|${date}`).digest("hex").slice(0, 8);
 
-const MIN_ALT_FT = 1000; // 地面與 1,000 ft 以下不放出去：低空航跡會透露離機場／接收器多近
+const MIN_ALT_FT = 1000; // 地面、1,000 ft 以下、高度不明的都不放出去（fail closed）：低空航跡會透露離機場／接收器多近
 const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數（約 100 公尺）
 
 /**
@@ -63,7 +63,7 @@ function buildFrame(track, types, names, now) {
   const out = samples.map((s) => ({
     t: s.t,
     ok: s.ok,
-    p: s.ac.filter((a) => a.al == null || a.al >= MIN_ALT_FT).map((a) => {
+    p: s.ac.filter((a) => typeof a.al === "number" && a.al >= MIN_ALT_FT).map((a) => {
       const id = idOf(a.h, date);
       const airline = (a.f.match(/^([A-Z]{3})\d{1,4}[A-Z]{0,2}$/) || [])[1] || null;
       const ty = types && types[a.h] && types[a.h].t ? types[a.h].t : null;
