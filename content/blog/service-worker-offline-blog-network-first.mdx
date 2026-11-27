@@ -1,0 +1,67 @@
+---
+title: "讓讀過的文章沒網路也打得開：Service Worker 用 network-first，不怕舊快取卡住"
+seoTitle: "Service Worker 離線閱讀部落格：network-first 策略、Next.js 實作、Playwright 斷網測試"
+titleEn: "Offline reading for a blog with a service worker: network-first, so stale caches never win"
+date: "2026-11-27"
+description: "給個人網站的部落格加上離線閱讀：一支不到 100 行的 Service Worker，有網路時一律拿最新內容，連不上才用上次讀過的那份。記下策略怎麼選、哪些請求不能碰、Cloudflare 會把 sw.js 快取起來的坑，以及怎麼用 Playwright 斷網驗證。"
+tags: ["Service Worker", "PWA", "Next.js"]
+commits: ["501116f"]
+---
+
+網站早就有 PWA manifest，卻從來沒有 Service Worker，所以「加到主畫面」只是個圖示，沒網路就是一片空白。部落格是最適合離線的內容：文章讀過一次，通勤搭車沒訊號時想再翻一次，不該打不開。
+
+## 策略：network-first，不是 cache-first
+
+離線快取最常見的災難是「部署了新版、改了文章，使用者卻一直看到舊的」。這個網站一天部署很多次，文章也會修，所以我選 **network-first**：
+
+1. 有網路：一律向伺服器拿最新的，成功就順便把這份存起來；
+2. 5 秒沒回應或連不上：改用上次存的那份；
+3. 從來沒讀過、也沒網路：顯示一張靜態的離線頁。
+
+這樣舊快取永遠不會「贏過」新內容；它只是網路斷掉時的備案。代價是：只有「Service Worker 接管之後讀過的」頁面才會被存，第一次造訪的那一次不會，也沒有主動預先下載所有文章。
+
+只有兩類東西會被存：
+
+- `/blog` 跟 `/blog/*` 的頁面（最多 60 份，只存狀態 200 的正常回應；維修頁回 503，不存，免得維修時把好的文章洗掉）
+- `/_next/static/*`：檔名帶 hash、內容不會變的 JS、CSS、字型，用 cache-first。離線時文章頁需要它們才有樣式
+
+## 哪些請求絕對不能碰
+
+Service Worker 會攔截整個網站範圍的請求，所以要列出「不處理」的清單：非 GET、別的網域、`/api`、`/admin`、`/login`、`/go`（轉址統計）、`/cdn-cgi`（Cloudflare 的登入流程），還有 `sw.js` 自己。後台的頁面、登入狀態、點擊計數都不能被快取或改寫。
+
+## 坑一：Cloudflare 會把 sw.js 快取起來
+
+瀏覽器會自己檢查 `sw.js` 有沒有更新，這沒問題。但網站前面有 Cloudflare，它預設會把 `.js` 檔當靜態檔快取。如果之後改了 `sw.js`，瀏覽器可能一直從 Cloudflare 拿到舊版，新的策略永遠上不去（這是我預防性處理的，還沒真的遇到）。做法是在 `next.config.ts` 替 `/sw.js` 單獨加標頭：
+
+```ts
+{ source: "/sw.js", headers: [{ key: "Cache-Control", value: "private, no-cache, max-age=0, must-revalidate" }] }
+```
+
+CSP 倒是不用改：這個網站原本就有 `worker-src 'self'`。
+
+## 只在正式環境註冊
+
+開發模式每次存檔都重新編譯，如果再被 Service Worker 快取，除錯會非常痛苦。CI 的 E2E 也是跑開發模式。所以註冊的元件只在 `NODE_ENV === "production"` 才動作，而且等頁面載入完、瀏覽器閒下來才註冊，不跟首頁的 LCP 搶頻寬。
+
+## 怎麼驗證離線：Playwright 的 setOffline
+
+Playwright 可以把瀏覽器環境切到離線，剛好拿來測。流程有個細節：**第一次載入頁面時 Service Worker 還沒接管**，那次請求不會被存。所以測試要讀兩次：
+
+```ts
+await page.goto("/blog/task-scheduler-72-hours");           // 觸發註冊
+await page.evaluate(() => navigator.serviceWorker.ready);
+await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+await page.goto("/blog/task-scheduler-72-hours");           // 這次經過 SW，被存起來
+await context.setOffline(true);
+await page.goto("/blog/task-scheduler-72-hours");           // 斷網，應該還開得起來
+```
+
+斷網後同一篇的標題要跟線上時一樣；打開一篇沒讀過的文章，要看到離線頁。我在正式 build 上跑，兩件事都通過。這個測試在 CI 會自動跳過（CI 跑開發模式，根本沒有註冊 Service Worker），所以它只在我本機驗證正式 build 時才跑。
+
+## 小結
+
+- 內容常常更新的網站用 **network-first**：舊快取只當網路斷掉時的備案
+- 列出「不處理」的清單：後台、API、登入、第三方；只存狀態 200 的回應
+- 帶 hash 的靜態檔用 cache-first，離線頁面才有樣式
+- 中間有 CDN 的話，記得讓 `sw.js` 不被快取
+- dev 不註冊；測試要「讀兩次」再斷網
