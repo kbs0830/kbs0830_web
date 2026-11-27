@@ -16,6 +16,8 @@ export default function NotFound() {
         </>
       }
     >
+      {/* 給 WebVitals 認的標記：404 頁的指標記成 /404，不用訪客打錯的原始網址（TODO R2） */}
+      <span hidden data-not-found />
       <FlowLines />
       <LostPlane />
       <Link

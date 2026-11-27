@@ -38,7 +38,8 @@ export default function Page() {
 
 async function AdminTodo() {
   await connection();
-  const items = readTodo({ all: true });
+  // 已完成的不送（歷史在 /admin/done；TODO S2，2026-11-27：待辦頁 396KB 裡 59 項已完成的根本不顯示）。「評估過不做」留著，詳細說明點了才抓
+  const items = readTodo({ all: true }).filter((i) => i.status !== "done");
   const decisions = listDecisions();
   const events = recentEvents(10);
   return (

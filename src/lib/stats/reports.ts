@@ -151,6 +151,8 @@ export interface Report {
   /** /go/<代號> 的點擊（E10）：站內推薦連結、外部連結有沒有人點 */
   go: Entry[] | null;
   vitals: { metric: string; p75: number; n: number }[] | null;
+  /** 同上，只有手機的樣本（2026-11-27 起才分，樣本還少；TODO R2） */
+  vitalsMobile: { metric: string; p75: number; n: number }[] | null;
   disk: { drive: string; freeGb: number; pct: number }[];
   changes: ChangelogEntry[];
   posts: { slug: string; title: string; date: string }[];
@@ -195,8 +197,8 @@ function watchdogExtras(from: string, to: string) {
   return { boots, tunnelOnce, localFail };
 }
 
-function webVitals(): Report["vitals"] {
-  const home = readVitals()["/"];
+function webVitals(key = "/"): Report["vitals"] {
+  const home = readVitals()[key];
   if (!home) return null;
   return ["LCP", "INP", "CLS", "FCP", "TTFB"].filter((k) => home[k]?.length).map((k) => ({ metric: k, p75: p75(home[k]), n: home[k].length }));
 }
@@ -347,6 +349,7 @@ export function buildReport(range: Range, now = new Date()): Report {
     hero,
     go,
     vitals: webVitals(),
+    vitalsMobile: webVitals("/|m"),
     disk: diskFree(),
     changes: readChangelog().filter((c) => inRange(c.date, from, end)),
     posts: getAllPosts()
@@ -419,6 +422,9 @@ export function reportText(r: Report): string {
   if (r.hero) {
     L.push(`【首頁 3D 背景】${list(r.hero)}`);
     L.push("");
+  }
+  if (r.vitalsMobile?.length) {
+    L.push(`【首頁 Web Vitals p75：手機】（2026-11-27 起才分手機，樣本還少）${r.vitalsMobile.map((x) => `${x.metric} ${x.p75}（n=${x.n}）`).join("、")}`);
   }
   if (r.vitals?.length) {
     L.push(`【首頁 Web Vitals p75】（最近的樣本，不分期間）${r.vitals.map((x) => `${x.metric} ${x.p75}（n=${x.n}）`).join("、")}`);

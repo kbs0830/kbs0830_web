@@ -42,6 +42,8 @@ export interface Project {
   isPersonal?: boolean;
   /** 整個作品先隱藏：頁面 404、不進作品集／sitemap／API（資料留著，拿掉這行就恢復） */
   hidden?: boolean;
+  /** 隱藏的作品，舊網址 308 轉去哪（有提到它的頁面）；不寫就是 404。redirect 由 next.config.ts 從這裡產生，恢復顯示（拿掉 hidden）就自動消失 */
+  hiddenRedirect?: string;
   /** 有作品頁，但不列在首頁作品集、終端機、Ctrl+K（只從別的頁面連過去） */
   unlisted?: boolean;
   image?: string;
@@ -262,6 +264,8 @@ const allProjects: Project[] = [
     icon: "🏆",
     // 2026-11-25 使用者：「frc 的專門頁面先隱藏，稍微提到就好」——高工學習記錄、自動跟隨機器人頁、About 時間軸裡有提
     hidden: true,
+    // 2026-11-27（TODO R1）：舊網址還有人點（Google／別人的連結），轉到有寫到底盤沿用 FRC 的那頁，不要讓人撞 404
+    hiddenRedirect: "/projects/auto-following-robot",
     title: "FRC Robot Team",
     titleJa: "ロボット競技団",
     titleZh: "FRC 機器人競技",
@@ -1409,6 +1413,11 @@ const allProjects: Project[] = [
 ];
 
 export const projects = allProjects.filter((p) => !p.hidden);
+
+/** 隱藏作品的舊網址轉址表（給 next.config.ts 的 redirects()；TODO R1） */
+export const hiddenProjectRedirects = allProjects
+  .filter((p) => p.hidden && p.hiddenRedirect)
+  .map((p) => ({ source: `/projects/${p.slug}`, destination: p.hiddenRedirect as string, permanent: true }));
 /** 首頁作品集、終端機、Ctrl+K 用：不含 unlisted */
 export const listedProjects = projects.filter((p) => !p.unlisted);
 export const personalProjects = listedProjects.filter((p) => p.isPersonal);

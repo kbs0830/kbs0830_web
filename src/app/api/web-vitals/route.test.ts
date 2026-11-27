@@ -68,6 +68,23 @@ describe("web-vitals API route", () => {
     expect(await (await GET()).json()).toEqual({});
   });
 
+  it("手機的樣本分開存（key 加 |m），桌機跟沒帶 device 的（舊版）照舊；TODO R2", async () => {
+    const { POST, GET, mobileKey } = await import("./route");
+    await POST(post({ name: "LCP", value: 4200, page: "/", device: "mobile" }));
+    await POST(post({ name: "LCP", value: 1500, page: "/", device: "desktop" }));
+    await POST(post({ name: "LCP", value: 1600, page: "/" }));
+    const body = await (await GET()).json();
+    expect(body[mobileKey("/")].LCP).toEqual({ n: 1, p75: 4200 });
+    expect(body["/"].LCP.n).toBe(2);
+  });
+
+  it("後台頁面（站長自己逛的）不計入；404 頁用 /404 這個 key", async () => {
+    const { POST, GET } = await import("./route");
+    for (const page of ["/admin", "/admin/todo"]) expect((await POST(post({ name: "LCP", value: 1000, page }))).status).toBe(204);
+    await POST(post({ name: "LCP", value: 900, page: "/404" }));
+    expect(Object.keys(await (await GET()).json())).toEqual(["/404"]);
+  });
+
   it("同一頁同一指標只留最近 200 筆", async () => {
     const { POST, GET } = await import("./route");
     for (let i = 0; i < 205; i++) await POST(post({ name: "TTFB", value: i, page: "/blog" }));

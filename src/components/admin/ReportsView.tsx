@@ -205,11 +205,14 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
           )}
           {r.go && <Shares label="外部連結點擊（/go/ 代號，真人）" entries={r.go} />}
           {r.hero && <Shares label="首頁 3D 背景拿到哪一版（分頁）" entries={r.hero} />}
-          {r.vitals && (
-            <div>
-              <p className="text-[11px] text-(--muted) font-mono tracking-wide mb-1">首頁 Web Vitals p75（最近的樣本，不分期間）</p>
+          {[
+            { label: "首頁 Web Vitals p75（最近的樣本，不分期間；2026-11-27 前沒分手機桌機）", rows: r.vitals },
+            { label: "首頁 Web Vitals p75：手機（2026-11-27 起才分，樣本還少）", rows: r.vitalsMobile },
+          ].map(({ label, rows }) => rows && (
+            <div key={label}>
+              <p className="text-[11px] text-(--muted) font-mono tracking-wide mb-1">{label}</p>
               <ul className="border-y border-(--border) divide-y divide-(--border) font-mono text-sm">
-                {r.vitals.map((x) => (
+                {rows.map((x) => (
                   <li key={x.metric} className="flex justify-between py-2">
                     <span>{x.metric}</span>
                     <span className="text-(--muted)">
@@ -220,7 +223,7 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
                 ))}
               </ul>
             </div>
-          )}
+          ))}
         </div>
       </Block>
 

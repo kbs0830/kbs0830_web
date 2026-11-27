@@ -55,9 +55,11 @@ if (!fs.existsSync(file)) {
   process.exit(0);
 }
 const writing =
+  cmd === "backup" ||
   (cmd === "todo" && ["add", "edit", "done", "drop", "reopen", "ask", "say"].includes(rest[0])) || (cmd === "done" && ["add", "import"].includes(rest[0]));
 const db = new DatabaseSync(file, { readOnly: !writing });
 db.exec("PRAGMA busy_timeout = 3000");
+if (writing) db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;"); // 跟網站（src/lib/admin/db.ts）同一套；唯讀連線不能改模式
 const version = db.prepare("PRAGMA user_version").get().user_version;
 if ((cmd === "todo") && version < 2) {
   console.log("資料庫還沒有 todos 表：先開一次 /admin/todo（網站會升級資料庫、從 TODO.md 匯入）。");
@@ -90,7 +92,20 @@ function readDetail(a) {
   return undefined;
 }
 
-if (cmd === "decisions") {
+if (cmd === "backup") {
+  // 備份（TODO S1）：WAL 模式下資料可能還在 admin.db-wal，直接複製 .db 會漏；VACUUM INTO 產生一致、單檔的備份。backup.ps1 用這個
+  const dest = rest[0];
+  need(dest, "用法：node scripts/admin-db.js backup <備份檔路徑>");
+  fs.mkdirSync(path.dirname(path.resolve(dest)), { recursive: true });
+  fs.rmSync(dest, { force: true });
+  db.exec(`VACUUM INTO '${path.resolve(dest).replace(/'/g, "''")}'`);
+  const check = new DatabaseSync(dest, { readOnly: true });
+  const ok = check.prepare("PRAGMA integrity_check").get().integrity_check;
+  const n = check.prepare("SELECT COUNT(*) n FROM todos").get().n;
+  check.close();
+  need(ok === "ok", `備份檔 integrity_check：${ok}`);
+  console.log(`備份完成：${dest}（integrity_check ok、${n} 項待辦）`);
+} else if (cmd === "decisions") {
   const order = { now: 0, later: 1, skip: 2 };
   const titles = version >= 2 ? new Map(db.prepare("SELECT id, title FROM todos").all().map((t) => [t.id, t.title])) : new Map();
   const rows = db.prepare("SELECT item_id, choice, note, updated_at FROM decisions").all();

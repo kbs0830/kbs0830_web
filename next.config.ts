@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync, execSync } from "node:child_process";
 import { GISCUS } from "./src/lib/site/giscus";
+import { hiddenProjectRedirects } from "./src/lib/content/projects";
 
 // 頁尾的「版本＋最後更新時間」：build 當下 HEAD 的 commit（hash 跟 commit 時間）。
 // 部署一定是在 git repo 裡 build；萬一讀不到（沒有 git）就顯示 dev，不讓 build 失敗
@@ -133,6 +134,10 @@ const nextConfig: NextConfig = {
         destination: "/projects/ticketing-system",
         permanent: true,
       },
+      // 隱藏的作品（projects.ts 的 hidden＋hiddenRedirect）：舊網址轉到有提到它的頁面，不拿 404（TODO R1）
+      ...hiddenProjectRedirects,
+      // 有些瀏覽器／工具照舊慣例要 /site.webmanifest，本站的是 /manifest.webmanifest（app/manifest.ts）
+      { source: "/site.webmanifest", destination: "/manifest.webmanifest", permanent: true },
     ];
   },
 };

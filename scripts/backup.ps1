@@ -55,7 +55,14 @@ try {
     Copy-IfExists (Join-Path $repo "data\visits-detail.json") (Join-Path $dest "data\visits-detail.json")  # 訪客分析（2026-11-12）
     Copy-IfExists (Join-Path $repo "data\radar.json") (Join-Path $dest "data\radar.json")  # 自家雷達每天的彙總（2026-11-21）
     Copy-IfExists (Join-Path $repo "data\uptime.log") (Join-Path $dest "data\uptime.log")  # 可用率紀錄（2026-11-21，/status）
-    Copy-IfExists (Join-Path $repo "data\admin.db") (Join-Path $dest "data\admin.db")  # 站長後台資料庫：待辦、決策、操作紀錄（2026-11-26 起待辦的正本在這裡）
+    # 站長後台資料庫：待辦、完成紀錄、決策、操作紀錄（2026-11-26 起待辦的正本在這裡）。
+    # 2026-11-27 改 WAL 模式後不能直接複製 .db（資料可能還在 -wal）：用 VACUUM INTO 產生一致的單檔，並自己跑 integrity_check（TODO S1）
+    if (Test-Path (Join-Path $repo "data\admin.db")) {
+        New-Item -ItemType Directory -Path (Join-Path $dest "data") -Force | Out-Null
+        $adminBackup = & node (Join-Path $repo "scripts\admin-db.js") backup (Join-Path $dest "data\admin.db") 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "admin.db 備份失敗：$adminBackup" }
+        Log "  $adminBackup"
+    }
     Copy-IfExists (Join-Path $repo ".git\config") (Join-Path $dest "git\config")
     foreach ($name in "deploy.log", "watchdog.log", "backup.log") {
         Copy-IfExists (Join-Path $repo "logs\$name") (Join-Path $dest "logs\$name")

@@ -214,7 +214,8 @@ function Row({ item, value, readOnly, onSave }: { item: TodoItem; value: Value |
   };
 
   return (
-    <li className="relative pl-4 pr-3 py-3 sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-5">
+    // content-visibility：捲不到的列先不排版、不繪製（手機上 98 列不用一次畫完；Ctrl+F 照樣找得到；TODO S2）
+    <li className="relative pl-4 pr-3 py-3 sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-5 [content-visibility:auto] [contain-intrinsic-size:auto_96px]">
       <span aria-hidden className={`absolute left-0 inset-y-0 w-[3px] ${BAR[choice ?? "none"]}`} />
       <div className="min-w-0">
         <p id={titleId} className="text-sm leading-snug text-(--text)">

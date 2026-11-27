@@ -13,6 +13,8 @@ const METRICS = new Set(["LCP", "INP", "CLS", "FCP", "TTFB"]);
 const KEEP = 200;
 // 只收站上真的有的路徑形狀，擋掉亂打的字串把檔案灌爆
 const PATH_PATTERN = /^\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)?)?$/;
+// 手機的樣本存在「頁面|m」這個 key（桌機、舊資料沒有後綴），讀的地方用 mobileKey() 取（TODO R2）
+export const mobileKey = (page: string) => `${page}|m`;
 
 
 // GET：每頁每個指標的樣本數跟 p75（Google 判斷 Core Web Vitals 及格與否用的就是 p75）
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const body = await readLimitedJson(req, 1000);
   if (body === undefined) return new NextResponse(null, { status: 400 });
-  const { name, value, page } = (body ?? {}) as Record<string, unknown>;
+  const { name, value, page, device } = (body ?? {}) as Record<string, unknown>;
   if (
     typeof name !== "string" || !METRICS.has(name) ||
     typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 60_000 ||
@@ -46,10 +48,13 @@ export async function POST(req: NextRequest) {
   ) {
     return new NextResponse(null, { status: 400 });
   }
+  // 站長自己逛後台的不算（2026-11-27：/admin 的樣本佔了好幾頁，跟訪客的混在一起沒意義）
+  if (page === "/admin" || page.startsWith("/admin/")) return new NextResponse(null, { status: 204 });
+  const key = device === "mobile" ? mobileKey(page) : page;
 
   // await 都在上面；從這裡開始到寫檔是同步的，不會跟其他 request 交錯（見 visitor-stats）
   const vitals = readVitals();
-  const values = ((vitals[page] ??= {})[name] ??= []);
+  const values = ((vitals[key] ??= {})[name] ??= []);
   values.push(name === "CLS" ? Math.round(value * 1000) / 1000 : Math.round(value));
   if (values.length > KEEP) values.splice(0, values.length - KEEP);
 

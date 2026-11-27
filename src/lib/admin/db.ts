@@ -7,7 +7,8 @@ import { dataFile } from "@/lib/data-file";
 // 站長後台的資料庫（TODO A1／G1 決策表，2026-11-26）：SQLite，用 Node 24 內建的 node:sqlite（不用裝套件，桌機不能手動 pnpm add）。
 // 檔案在 data/admin.db（不進 git，ADMIN_DB_FILE 可以換；單元測試用 ":memory:"）。
 // - 同步 API：跟 lib/data-file.ts 一樣，「讀 → 改 → 寫」中間沒有 await，單一 process 不會交錯
-// - journal_mode 用預設的 DELETE（不是 WAL）：寫入量很小，而且備份直接複製 .db 一個檔就完整
+// - journal_mode = WAL（2026-11-27，TODO S1）：網站（後台按鈕）跟 scripts/admin-db.js 會同時寫同一個檔，WAL 讓讀寫互不擋。
+//   ⚠️ WAL 模式下資料可能還在 admin.db-wal，備份不能直接複製 .db：用 `node scripts/admin-db.js backup <檔案>`（VACUUM INTO，一致的單檔）
 // - 表結構用 PRAGMA user_version 做版本，要加欄位就在 MIGRATIONS 後面加一段，不要改舊的
 // 給 Claude／排程讀：scripts/admin-db.js（CommonJS，同一個檔案）
 
@@ -82,7 +83,7 @@ export function getDb(): DatabaseSync {
   db?.conn.close();
   if (file !== ":memory:") fs.mkdirSync(path.dirname(file), { recursive: true });
   const conn = new DatabaseSync(file);
-  conn.exec("PRAGMA busy_timeout = 3000; PRAGMA foreign_keys = ON;");
+  conn.exec("PRAGMA busy_timeout = 3000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;");
   migrate(conn);
   db = { file, conn };
   return conn;
