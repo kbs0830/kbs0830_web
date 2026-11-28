@@ -75,7 +75,7 @@ describe("search", () => {
   it("完全不相關的問題回空陣列", () => {
     // 注意：問題裡的字不能出現在任何文章裡（文章例子提過咖哩飯，這裡就不能用）
     expect(search("玫瑰花要怎麼施肥？").length).toBe(0);
-    expect(search("週末的颱風預報怎麼樣？").length).toBe(0);
+    expect(search("週末的颱風會不會登陸？").length).toBe(0);
     expect(search("")).toEqual([]);
   });
 
