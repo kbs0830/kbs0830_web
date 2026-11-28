@@ -8,9 +8,12 @@ import { hiddenProjectRedirects } from "./src/lib/content/projects";
 function gitHead() {
   try {
     const [sha, time] = execSync("git log -1 --format=%H%n%cI", { encoding: "utf8" }).trim().split("\n");
-    return { sha, time };
+    // 全部 commit 數＋第一個 commit 的時間（/2026 年度回顧用，TODO B18）
+    const count = execFileSync("git", ["rev-list", "--count", "HEAD"], { encoding: "utf8", windowsHide: true }).trim();
+    const first = execFileSync("git", ["log", "--reverse", "--format=%cI", "--max-parents=0"], { encoding: "utf8", windowsHide: true }).trim().split("\n")[0];
+    return { sha, time, count, first };
   } catch {
-    return { sha: "", time: "" };
+    return { sha: "", time: "", count: "", first: "" };
   }
 }
 const head = gitHead();
@@ -96,7 +99,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // next/image 優先給 AVIF（比 WebP 再小 20～30%），不支援的瀏覽器照舊拿 WebP
   images: { formats: ["image/avif", "image/webp"] },
-  env: { BUILD_COMMIT_SHA: head.sha, BUILD_COMMIT_TIME: head.time, BUILD_FEAT_LOG: gitFeatLog() },
+  env: { BUILD_COMMIT_SHA: head.sha, BUILD_COMMIT_TIME: head.time, BUILD_COMMIT_COUNT: head.count, BUILD_FIRST_COMMIT_TIME: head.first, BUILD_FEAT_LOG: gitFeatLog() },
   async headers() {
     return [
       {
