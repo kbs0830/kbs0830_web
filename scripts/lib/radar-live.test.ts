@@ -74,22 +74,21 @@ describe("剛剛經過", () => {
 });
 
 describe("飛機詳細資料", () => {
-  it("註冊號、製造商、全名、所屬公司、國別、出廠年會帶進 info；沒有的欄位不出現；hex 不外流", () => {
+  it("註冊號、製造商、全名、所屬公司、國別會帶進 info；沒有的欄位不出現；hex 不外流", () => {
     const t = recordTrack(null, ok([plane()]), T0);
     const types = { ab12cd: { t: "A321", v: 2, r: "B-16201", m: "Airbus", n: "A321 211", o: "EVA Air", c: "TW" } };
-    const f = buildFrame(t, types, names, T0 + DELAY_MS + 1000, { ab12cd: 2019 });
+    const f = buildFrame(t, types, names, T0 + DELAY_MS + 1000);
     const id = f.samples[0].p[0][0];
-    expect((f.info as Record<string, unknown>)[id]).toMatchObject({ rg: "B-16201", mf: "Airbus", ft: "A321 211", ow: "EVA Air", cc: "TW", yr: 2019 });
+    expect((f.info as Record<string, unknown>)[id]).toMatchObject({ rg: "B-16201", mf: "Airbus", ft: "A321 211", ow: "EVA Air", cc: "TW" });
     expect(JSON.stringify(f)).not.toMatch(/ab12cd/i);
     const bare = buildFrame(t, { ab12cd: { t: "A321" } }, names, T0 + DELAY_MS + 1000);
-    expect(Object.keys((bare.info as Record<string, object>)[id])).not.toContain("yr");
     expect(Object.keys((bare.info as Record<string, object>)[id])).not.toContain("rg");
   });
   it("沒有正常航班代碼的飛機（私人機、軍機）不帶任何詳細資料", () => {
     const t = recordTrack(null, ok([plane({ hex: "pr1", flight: "N123AB" })]), T0);
-    const f = buildFrame(t, { pr1: { t: "C172", v: 2, r: "N123AB", o: "John Doe", c: "US" } }, names, T0 + DELAY_MS + 1000, { pr1: 1999 });
+    const f = buildFrame(t, { pr1: { t: "C172", v: 2, r: "N123AB", o: "John Doe", c: "US" } }, names, T0 + DELAY_MS + 1000);
     const id = f.samples[0].p[0][0];
     expect((f.info as Record<string, object>)[id]).toEqual({ f: "", al: null, an: null, ty: "C172", tn: "C172" });
-    expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB|1999/);
+    expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB/);
   });
 });

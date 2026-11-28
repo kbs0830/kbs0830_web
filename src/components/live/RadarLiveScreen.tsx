@@ -15,7 +15,7 @@ import counties from "./radar-counties.json";
 //   - 機場、跑道、導航台是公開的航空資料（OurAirports，公有領域），畫出來；文字不寫行政區、不寫接收器離機場多近
 
 type Row = [id: string, lat: number, lon: number, alt: number | null, speed: number | null, track: number | null, vrate: number | null];
-type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; rg?: string; mf?: string; ft?: string; ow?: string; cc?: string; yr?: number };
+type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; rg?: string; mf?: string; ft?: string; ow?: string; cc?: string };
 type Frame = {
   now: number;
   delayMs: number;
@@ -518,7 +518,7 @@ export default function RadarLiveScreen() {
               <Stat label="高度 Alt" value={focus.alt == null ? "–" : `${(Math.round(focus.alt / 100) * 100).toLocaleString("en-US")} ft`} />
               <Stat label={`地速 GS${focus.sp == null ? "" : ` · ${Math.round(focus.sp * 1.852)} km/h`}`} value={focus.sp == null ? "–" : `${focus.sp} kt`} />
               <Stat label="航向 Trk" value={focus.tr == null ? "–" : `${Math.round(focus.tr)}° ${compass(focus.tr)}`} />
-              <Stat label="機齡 Age" value={focus.info.yr ? `${new Date(frame?.now ?? 0).getFullYear() - focus.info.yr} 年（${focus.info.yr}）` : "–"} />
+              <Stat label="機型代碼 ICAO" value={focus.info.ty ?? "–"} />
               <Stat label="製造商 Mfr" value={focus.info.mf ? focus.info.mf.replace(/ (Aircraft|Company|Corporation|Industries|Commercial).*$/i, "") : "–"} />
               <Stat label="升降 V/S" value={focus.vr == null ? "–" : Math.abs(focus.vr) < 300 ? "→ 平飛 level" : `${focus.vr > 0 ? "↑ 爬升" : "↓ 下降"} ${Math.abs(Math.round(focus.vr / 50) * 50).toLocaleString("en-US")} ft/min`} />
             </dl>

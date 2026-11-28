@@ -4,7 +4,7 @@
 //   1. 位置一律延遲 DELAY_MS 才放出來（2026-11-27 使用者指定 5 分鐘；2026-11-29 改成 1 分鐘）：公開的畫面是「1 分鐘前的天空」，
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
-//   3. 註冊號（rg）、所屬公司（ow）、製造商、出廠年等「飛機本身」的資料，只給有正常航班代碼的商用航班；沒班號的（私人機、軍機）一個欄位都不帶。
+//   3. 註冊號（rg）、所屬公司（ow）、製造商等「飛機本身」的資料，只給有正常航班代碼的商用航班；沒班號的（私人機、軍機）一個欄位都不帶。
 //   4. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
 //   5. 畫面的地圖固定在高雄周邊、不以接收器為圓心、不畫距離圈、不標接收器位置（見 RadarLiveScreen.tsx）。
 // 離線／飛機 0 架時照樣記（空的取樣），不然畫面不知道「那段時間沒飛機」還是「沒資料」。
@@ -56,15 +56,14 @@ function recordTrack(prev, sample, now) {
 
 // id：HMAC＋每次啟動隨機產生的金鑰（hex 只有 24 位元，單純雜湊可以暴力還原）；金鑰只在記憶體，重啟後 id 換一批（畫面上的尾跡斷一次，無妨）
 const SECRET = crypto.randomBytes(16);
-/** 飛機本身的公開資料（註冊號、製造商、機型全名、所屬公司、國別、出廠年）。沒有的欄位不出現 */
-function detailOf(d, year) {
+/** 飛機本身的公開資料（註冊號、製造商、機型全名、所屬公司、國別）。沒有的欄位不出現。機齡沒做：試過 OpenSky 資料庫，接收器看過的 552 架只有 8 架有出廠年份（台灣、日韓都是 0） */
+function detailOf(d) {
   const o = {};
   if (d.r) o.rg = d.r;
   if (d.m) o.mf = d.m;
   if (d.n) o.ft = d.n;
   if (d.o) o.ow = d.o;
   if (d.c) o.cc = d.c;
-  if (Number.isInteger(year) && year > 1950 && year < 2100) o.yr = year;
   return o;
 }
 
@@ -78,9 +77,8 @@ const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數�
  * @param track  readState(radar-track.json)
  * @param types  機型快取（hex → { t }），可 null
  * @param names  { airlines: {CAL:"中華航空"}, types: {A321:"A321"} }（radar.js 的對照表）
- * @param [ages]   hex → 出廠年份（data/aircraft-age.json，選用；沒有檔案就不顯示機齡）
  */
-function buildFrame(track, types, names, now, ages) {
+function buildFrame(track, types, names, now) {
   const cutoff = now - DELAY_MS;
   const date = twDate(now);
   const samples = (track && Array.isArray(track.samples) ? track.samples : []).filter((s) => s.t <= cutoff && s.t >= cutoff - WINDOW_MS);
@@ -100,7 +98,7 @@ function buildFrame(track, types, names, now, ages) {
         ty,
         tn: ty ? (names.types[ty] || ty) : null,
         // 詳細資料只給「有正常航班代碼」的商用航班：註冊號跟 hex 一樣是飛機的公開識別碼，私人機的所屬人可能是個人姓名，沒班號的一律不帶
-        ...(/^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/.test(a.f) ? detailOf(d, ages && ages[a.h]) : {}),
+        ...(/^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/.test(a.f) ? detailOf(d) : {}),
       };
       return [id, coarse(a.la), coarse(a.lo), a.al, a.sp, a.tr, a.vr ?? null];
     }),
@@ -115,7 +113,7 @@ function buildFrame(track, types, names, now, ages) {
     .map(([hex, e]) => {
       const airline = (e.f.match(/^([A-Z]{3})\d/) || [])[1] || null;
       const ty = types && types[hex] && types[hex].t ? types[hex].t : null;
-      return { f: e.f, al: airline, an: airline ? names.airlines[airline] || null : null, ty, tn: ty ? names.types[ty] || ty : null, t: e.t, alt: e.al, sp: e.sp, tr: e.tr, ...detailOf((types && types[hex]) || {}, ages && ages[hex]) };
+      return { f: e.f, al: airline, an: airline ? names.airlines[airline] || null : null, ty, tn: ty ? names.types[ty] || ty : null, t: e.t, alt: e.al, sp: e.sp, tr: e.tr, ...detailOf((types && types[hex]) || {}) };
     });
   return { now, delayMs: DELAY_MS, samples: out, info, recent };
 }
