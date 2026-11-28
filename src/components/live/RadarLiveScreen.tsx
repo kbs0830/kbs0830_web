@@ -650,7 +650,7 @@ export default function RadarLiveScreen() {
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
-      <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "34.5em", opacity: idle ? 1 : 0, filter: idle ? "none" : "blur(8px)", transition: "opacity 1s ease, filter 1s ease" }} aria-hidden={!idle}>
+      <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "35em", opacity: idle ? 1 : 0, filter: idle ? "none" : "blur(8px)", transition: "opacity 1s ease, filter 1s ease" }} aria-hidden={!idle}>
         <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>
           {offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
         </p>

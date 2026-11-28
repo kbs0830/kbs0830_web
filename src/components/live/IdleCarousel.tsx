@@ -110,12 +110,13 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
   const slides = [...(prev ? [{ ...prev, out: true }] : []), { ...cur, out: false }];
 
   return (
+    // 外層用「畫面基準的 em」定位：中心放在「螢幕左邊到右欄之間」的正中央（右欄左邊緣在 70em → 中心 35em），寬 48em，左右各留約 11em。
+    // 卡片放大的字級只加在內層：如果 left 寫在已經放大的元素上，em 會被乘上 1.2，整張卡就偏右、貼近右欄（使用者：「右邊太擠」）
+    <div className="absolute" style={{ left: "35em", bottom: "7em", width: "48em", translate: "-50% 0", pointerEvents: "none" }}>
     <div
-      className="absolute bottom-[7.5em] w-[38em] rounded-sm border px-[1.3em] pt-[1em] pb-[0.9em]"
+      className="w-full rounded-sm border px-[1.3em] pt-[1em] pb-[0.9em]"
       style={{
-        left: "34.5em",
-        translate: "-50% 0",
-        fontSize: "1.15em",
+        fontSize: "1.2em",
         background: "rgba(14,26,38,0.78)",
         borderColor: "rgba(255,255,255,0.08)",
         opacity: visible ? 1 : 0,
@@ -131,7 +132,7 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
         @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(0, -16px, 0) scale(1.01); filter: blur(10px); } }
         @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
       `}</style>
-      <div className="relative" style={{ height: "17em" }}>
+      <div className="relative" style={{ height: "16.5em" }}>
         {slides.map((s) => (
           <div
             key={s.key + (s.out ? "-out" : "-in")}
@@ -155,6 +156,7 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
         ))}
       </div>
     </div>
+    </div>
   );
 }
 
@@ -163,12 +165,13 @@ function Board({ rows }: { rows: Row[] }) {
   return (
     <>
       {/* 狀態與登機門要看得清楚：用亮色、跟航班同大，不是灰色小字（使用者：「狀態跟登機門不見了」） */}
-      <div className="grid gap-[0.5em]" style={{ gridTemplateColumns: cols, fontSize: "0.72em", color: C.muted, padding: "0 0 0.3em" }}>
-        <span>時間</span>
-        <span>航班</span>
-        <span>目的地</span>
-        <span>狀態</span>
-        <span className="text-right">登機門</span>
+      <div className="grid gap-[0.5em]" style={{ gridTemplateColumns: cols, color: C.muted, padding: "0 0 0.3em" }}>
+        {/* 字級要放在每個欄位上、不能放在 grid 上：欄寬是 em，grid 字級變小欄寬就跟著變窄，表頭會跟資料對不上 */}
+        <span style={{ fontSize: "0.72em" }}>時間</span>
+        <span style={{ fontSize: "0.72em" }}>航班</span>
+        <span style={{ fontSize: "0.72em" }}>目的地</span>
+        <span style={{ fontSize: "0.72em" }}>狀態</span>
+        <span className="text-right" style={{ fontSize: "0.72em" }}>登機門</span>
       </div>
       {rows.map((r) => (
         <div key={`${r.t}-${r.code}`} className="grid items-baseline gap-[0.5em]" style={{ gridTemplateColumns: cols, padding: "0.26em 0", borderTop: `1px solid ${C.line}` }}>
