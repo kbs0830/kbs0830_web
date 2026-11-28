@@ -1,0 +1,76 @@
+---
+title: "灰字再疊一層透明度：無障礙檢查第一次跑就抓到 20 處"
+titleEn: "Gray text plus opacity: the first accessibility scan found 20 contrast failures"
+date: "2026-11-28"
+description: "日式簡約的設計愛用淡淡的灰字，我又習慣在灰字上再加 opacity 做層次。接上 axe-core 自動檢查之後，第一次跑就抓到 20 處對比不足；還有一處只有在正式資料下才會出現。"
+tags: ["Accessibility", "WCAG", "Testing"]
+---
+
+這個網站的設計方向是日式簡約：大量留白、次要文字用灰色 `#6b6b6b`。灰色本身沒問題，跟背景的對比度大約 5:1，過得了 WCAG AA 要求的 4.5:1。
+
+問題在我的一個習慣：想要「再淡一點」的時候，就在灰字上加 `opacity-60`。
+
+```tsx
+<p className="text-xs text-(--muted) opacity-60">{project.title}</p>
+```
+
+灰色 × 60% 透明度，實際顯示出來的顏色更淺，對比度掉到 2.4:1 左右。
+
+7 月跑 Lighthouse 時抓過一次對比度問題（[那次的紀錄](/blog/lighthouse-wcag-contrast)），但那是手動跑、只看幾頁。這次把 axe-core 接進 E2E 測試，每次 push 都自動檢查。
+
+## 測試怎麼寫
+
+用 `@axe-core/playwright` 掃 8 個頁面，淺色、深色模式各一次，只擋 serious／critical 等級：
+
+```ts
+const result = await new AxeBuilder({ page })
+  .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+  .exclude("canvas") // 3D 背景是裝飾
+  .analyze();
+```
+
+兩個細節：
+
+- **開「減少動態效果」**：網站的文字是捲動到才淡入，一開始是 opacity 0。不關掉動畫的話，axe 會把還沒淡入的字也當成對比不足。
+- **首頁的分頁要一個一個切過去**：沒選到的分頁內容是 `hidden`，axe 不會檢查。
+
+## 第一次跑
+
+16 個組合（8 頁 × 2 主題）有 8 個沒過。全站約 20 處，幾乎都是同一個模式：
+
+| 位置 | 寫法 | 對比度 |
+| --- | --- | --- |
+| 作品英文成果句 | 靛藍 × `opacity-50` | 2.3:1 |
+| 履歷底部說明 | 灰字 × `opacity-60` | 2.4:1 |
+| 頁尾「最後更新」 | 灰字 × `opacity-70` | 2.8:1 |
+| 深色模式架構圖的線上標籤 | `#ccc` 字配 `#585858` 底 | 4.43:1 |
+
+最後一個差一點點：4.43 對 4.5。那是 mermaid 深色主題的預設值，把標籤底色調深就過了。
+
+另外還抓到一個不是對比度的：首頁副標用打字機效果逐字出現，我在 `<p>` 上放了 `aria-label` 讓螢幕閱讀器讀完整句——但 `<p>` 不允許 `aria-label`。改成一段只給螢幕閱讀器的隱藏文字，打字動畫那段設 `aria-hidden`。
+
+## 修完，CI 還是紅的
+
+我把 20 處都修了，本機 53 個測試全過，推上去。GitHub Actions 上的 E2E：失敗。
+
+```
+/stats color-contrast（serious）× 4：... > .opacity-60
+```
+
+`/stats` 頁的百分比數字：
+
+```tsx
+<span className="text-xs text-(--muted)">
+  {value} <span className="opacity-60">{pct}%</span>
+</span>
+```
+
+灰字在**外層**，`opacity-60` 在**裡面的子元素**。我第一輪是搜「同一行同時有 `text-(--muted)` 跟 `opacity-`」，這種寫法搜不到。
+
+那本機測試為什麼過？我是在另一個乾淨的資料夾測的（為了裝新套件不影響正式站），那裡沒有流量資料，`/stats` 那一區根本不顯示。CI 跑在有真實資料的資料夾，那一區出現了，就被抓到。
+
+## 學到的事
+
+- **淡化文字用字級跟顏色，不要用 opacity。** opacity 是乘上去的，你在設計稿上看到的灰色，跟使用者實際看到的不是同一個顏色。
+- **自動檢查只能檢查畫面上有的東西。** 被收起來的分頁、沒有資料就不顯示的區塊，都要想辦法讓它們出現。
+- **測試環境的資料跟正式環境不一樣，結果就可能不一樣。** 這次剛好是 CI 用了真實資料才抓到；反過來的情況也一定存在。

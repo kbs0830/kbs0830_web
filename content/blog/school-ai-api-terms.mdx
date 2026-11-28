@@ -1,0 +1,78 @@
+---
+title: "學校給了一組 AI API：我先讀條款，才決定它不能接進這個網站"
+seoTitle: "學校提供的 AI API（OpenAI 相容）怎麼安全使用：服務條款、.env 與 .gitignore 實測"
+titleEn: "My university gave me an AI API: why I read the terms before wiring it into my site"
+date: "2026-11-28"
+description: "高科大電算中心的 iAI 是 OpenAI 相容的校內 API。原本想直接接進這個網站，讀完條款後改成只在作業裡用；測試時還踩到 curl 送中文 JSON 的坑，以及 .gitignore 其實沒擋 .env。"
+tags: ["AI", "API", "Security"]
+---
+
+學校電算中心開了一個叫「高科 iAI」的服務，登入校內帳號就能拿到 API Key，背後是自己架的 GPU，模型有 Furen 系列、Embedding、語音辨識等等。我的第一個念頭是：這個網站已經有 AI 聊天了，把它接進來不就好了？
+
+在動手之前，我先把登入後跳出來的服務條款讀了一遍。結論是：**不能接進這個網站**。
+
+## 條款裡跟我有關的三件事
+
+| 條款重點 | 對這個網站的意思 |
+|---|---|
+| 只限課堂教學、作業專題、學術研究、校務測試，禁止商業營利 | 個人作品集不算上面任何一類 |
+| 不得把 API 轉售、分發給第三方 | 網站是公開的，訪客等於間接在用這組 API |
+| API Key 不得分享給非本校師生 | key 放在伺服器端也一樣，任何人都能透過我的網站呼叫它 |
+
+違規的後果不是警告：條款寫的是可以不經通知永久停權、追繳消耗的算力費用，嚴重的移送校方處理。而且 key 被濫用時，責任在帳號持有者身上。
+
+所以這個網站的 AI 聊天繼續用自己桌機上的 Ollama。iAI 只用在作業裡，網站上我只在 About 寫了「開始用在學校專案」，**頁面本身沒有任何一個請求會打到它**。
+
+## 測試：先看 `/models`，再打對話
+
+它是 OpenAI 相容的格式，所以先用最便宜的請求確認 key 有效：
+
+```bash
+curl -s -H "Authorization: Bearer $IAI_API_KEY" "$IAI_BASE_URL/models"
+```
+
+回 200，列出十二個模型。接著打 `/chat/completions`，第一次卻是 400：
+
+```
+Invalid model name passed in model=None
+```
+
+我明明有帶 `"model": "Furen-std"`。原因是我在 Git Bash 裡用 `curl -d` 直接塞了含中文的 JSON，body 沒有被正確解析，伺服器看到的是空的。改成先寫進檔案，再用 `--data-binary @檔案` 傳，就回了 200：
+
+```bash
+curl -s -H "Authorization: Bearer $IAI_API_KEY" -H "Content-Type: application/json" \
+  --data-binary @body.json "$IAI_BASE_URL/chat/completions"
+```
+
+這個坑只在命令列測試時出現。用 Python 的 `openai` SDK 不會遇到，因為 JSON 是 SDK 自己序列化的。
+
+## 更重要的一件事：.gitignore 沒擋 .env
+
+key 要放進 `.env`，而作業的 repo 是 GitHub 上的私有庫。我檢查它的 `.gitignore`，只有這幾行：
+
+```
+venv/
+.venv/
+env/
+```
+
+`env/` 擋的是**資料夾**，不是 `.env` 這個檔案。如果我直接建 `.env` 然後 `git add .`，key 就進了 git 歷史，而且是洗不掉的那種：就算之後刪檔，舊 commit 裡還是看得到。
+
+我先補上規則，再建檔，再用 `git check-ignore -v .env` 確認真的被擋住：
+
+```
+.env
+.env.*
+!.env.example
+*.key
+credentials.json
+```
+
+另外放一份只有變數名稱的 `.env.example` 進 git，換電腦時知道要填什麼。
+
+## 這次留下來的做法
+
+1. **拿到任何服務的 key，先讀使用條款**，特別看「用途限制」和「能不能給第三方用」兩條。
+2. **建 `.env` 之前先確認 `.gitignore`**，用 `git check-ignore` 驗證，不要靠眼睛看。
+3. **key 不貼進對話、不印進 log**。測試時我只確認「有填、長度不是 0」，沒有把值印出來。
+4. 校內資源就留在校內用途：作業在本機跑，要放作品集的 Demo 用截圖或錄影。

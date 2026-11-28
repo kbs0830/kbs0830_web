@@ -1,0 +1,93 @@
+---
+title: "CSP 正式開幾分鐘，就抓到 Cloudflare 偷偷插進來的 script"
+titleEn: "Turning on CSP caught a script Cloudflare injects only for real browsers"
+date: "2026-11-28"
+description: "開 Content-Security-Policy 之前，全站 43 頁在兩個瀏覽器測過都沒有違規。正式上線後用真的瀏覽器打開線上網站，回報馬上進來：被擋的是 Cloudflare 自己在 edge 插進頁面的統計 script——本機、curl、自動測試都看不到它。"
+series: "自架網站維運"
+seriesOrder: 9
+tags: ["Security", "Cloudflare", "DevOps"]
+---
+
+Content-Security-Policy（CSP）是一個 HTTP header，告訴瀏覽器「這個網站只准從哪些地方載入 script、圖片、字型」。有人在頁面塞了奇怪的 script，瀏覽器會直接拒絕執行。
+
+它的麻煩是：設錯了，擋到的是**自己網站的正常功能**。所以我照一般建議分兩步走。
+
+## 第一步：report-only
+
+先用 `Content-Security-Policy-Report-Only`。瀏覽器照常載入所有東西，只是把「如果正式開，這個會被擋」回報給一支 API：
+
+```ts
+{
+  key: "Content-Security-Policy-Report-Only",
+  value: [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
+    // ...
+    "report-uri /api/csp-report",
+  ].join("; "),
+}
+```
+
+`/api/csp-report` 只存「被擋的指令＋網域＋頁面路徑 → 次數」，不存 IP 跟完整網址。上線當晚：0 筆。
+
+## 第二步：正式開之前，自己先測一遍
+
+只有一晚的資料不太夠，所以正式開之前，我用**強制模式**把全站跑一遍：sitemap 裡 43 個網址，每頁捲到底讓延遲載入的圖片也載到，再加上終端機模式、深色模式切換、Konami 彩蛋這些互動。Chrome、Firefox 各一次。
+
+監聽的是瀏覽器的 `securitypolicyviolation` 事件，有東西被擋就會觸發：
+
+```js
+document.addEventListener("securitypolicyviolation", (e) => {
+  violations.push(`${e.effectiveDirective} ${e.blockedURI}`);
+});
+```
+
+結果：兩個瀏覽器、43 頁，**0 個違規**。我把這個檢查寫成 E2E 測試，然後把 header 從 `-Report-Only` 改成正式的 `Content-Security-Policy`，部署。
+
+## 上線後，用真的瀏覽器打開正式網站
+
+部署完，我用同一支腳本、改成打**線上的** `https://kbs0830.com`，開 5 個頁面。腳本自己沒報錯，但順手看了一眼 `/api/csp-report`：
+
+```json
+{
+  "total": 6,
+  "reports": {
+    "script-src-elem https://static.cloudflareinsights.com @ /": 2,
+    "script-src-elem https://static.cloudflareinsights.com @ /blog/slug": 1,
+    "script-src-elem https://static.cloudflareinsights.com @ /projects/slug": 1,
+    "script-src-elem https://static.cloudflareinsights.com @ /stats": 1,
+    "script-src-elem https://static.cloudflareinsights.com @ /resume": 1
+  }
+}
+```
+
+`static.cloudflareinsights.com` 是 **Cloudflare Web Analytics** 的 beacon。網站經過 Cloudflare 代理，Cloudflare 會在 edge 把這支 script 插進 HTML，用來統計 dashboard 上的訪客數字。它不在我的原始碼裡，所以我寫 CSP 的時候根本沒想到它。
+
+## 為什麼測試全部沒抓到
+
+因為它**只對真的瀏覽器插入**：
+
+- 自動測試打的是本機的 `localhost:3100`，沒經過 Cloudflare
+- 之前我用 `curl` 抓線上首頁、grep 外部網域，也沒看到它——Cloudflare 判斷那不是瀏覽器，就不插
+- report-only 上線到正式開之間只隔了不到兩小時，那段時間沒有收到任何回報
+
+只有「真的瀏覽器、經過 Cloudflare、打正式網址」這個組合才會出現。那 6 筆就是我自己剛剛那 5 個頁面（首頁開了兩次）。
+
+## 修法
+
+把它跟它送資料的網址加進允許清單：
+
+```ts
+`script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com`,
+`connect-src 'self' https://cloudflareinsights.com`,
+```
+
+再用真的瀏覽器打開線上網站確認：Chrome、Firefox 都 0 違規，統計 script 正常載入。從正式開到修好上線大約 2 分鐘，只影響那段時間 Cloudflare dashboard 的統計，網站本身完全正常。
+
+## 學到的事
+
+- **「上線前測過」測的是你測得到的那個環境。** 經過 CDN 的正式網站，跟本機、跟 curl 看到的不是同一份 HTML。
+- **正式開之後，馬上用真的瀏覽器打一次正式網址。** 這一步才是唯一跟真實訪客走同一條路的測試。
+- **正式開 CSP 時一定要留著 `report-uri`。** 如果我只開「擋」不開「回報」，這個問題會變成 Cloudflare 統計數字突然變少，然後我要猜很久為什麼。
+- **在 Cloudflare 開任何新功能之後，回去看一次 CSP 回報。** 它可能又在 edge 插了新東西。

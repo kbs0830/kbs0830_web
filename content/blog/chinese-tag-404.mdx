@@ -1,0 +1,81 @@
+---
+title: "中文網址的頁面：build 過、測試過，上線還是 404"
+titleEn: "A Chinese-character URL passed build and tests, then 404'd in production"
+date: "2026-11-28"
+description: "部落格加了依標籤分類的頁面，其中一個標籤是中文「隱私」。build 時先因為 HTTP header 不能有中文炸了一次；修好之後單元測試全過，上線卻是 404。"
+tags: ["Next.js", "Testing", "Debugging"]
+---
+
+部落格加了「依標籤看文章」的頁面：`/blog/tags/devops`、`/blog/tags/next-js`……網址由標籤名稱轉成小寫、空白跟點換成 `-`：
+
+```ts
+export function tagSlug(tag: string) {
+  return tag.toLowerCase().replace(/[\s.]+/g, "-");
+}
+```
+
+八篇文章裡有一篇的標籤是中文「隱私」，所以它的網址就是 `/blog/tags/隱私`。
+
+## 第一次：build 失敗
+
+```
+Error occurred prerendering page "/md/blog/tags/隱私".
+TypeError: Cannot convert argument to a ByteString because the character
+at index 31 has a value of 38577 which is greater than 255.
+```
+
+這個網站每一頁都有一份 Markdown 版給 AI 工具讀，回應的 HTTP header 裡會帶一個指回原頁面的 `Link`：
+
+```ts
+Link: `<${SITE_URL}/${path}>; rel="canonical"`
+```
+
+HTTP header 只能放 ASCII，`隱私` 放進去就炸。改成 `encodeURI(path)`，build 過了。
+
+## 第二次：測試全過，上線 404
+
+單元測試過、build 過，本機我打開 `/blog/tags/next-js` 看了一下也正常——只測了英文那頁。推上去之後，我在整理待辦清單時順手把 sitemap 裡每個網址都打一次：
+
+```
+404 /blog/tags/隱私
+```
+
+其他 42 個都是 200，只有它。
+
+Next.js 會在 build 時把 `/blog/tags/隱私` 預先產生成一個頁面。但瀏覽器送出請求時，網址裡的中文會被編碼成 `/blog/tags/%E9%9A%B1%E7%A7%81`。這兩個在某個環節沒對上，伺服器找不到預先產生的那一頁；而我又設了 `dynamicParams = false`（不在清單裡的一律 404），結果就是 404。
+
+為什麼沒在本機發現？因為我只點了英文標籤那一頁，從來沒有把「每個網址都打一次」當成測試的一部分。修好之後拿舊版在本機跑新的測試，同樣是 404——問題一直都在，只是沒人去看。
+
+## 修法：網址只用英數字
+
+不去研究中文網址在 Next.js 的哪一層被怎麼編碼，直接讓網址不要有中文：
+
+```ts
+const TAG_SLUGS: Record<string, string> = { 隱私: "privacy" };
+
+export function tagSlug(tag: string) {
+  return TAG_SLUGS[tag] ?? tag.toLowerCase().replace(/[\s.]+/g, "-");
+}
+```
+
+再補兩道防線：
+
+1. 單元測試：每個標籤的網址都要符合 `/^[a-z0-9-]+$/`，以後新增中文標籤忘了加對照表，測試直接失敗
+2. E2E 測試：抓 sitemap，裡面每個網址都要回 200
+
+第二個測試我拿**修好之前的版本**跑了一次，確認它真的會抓到這個 bug：
+
+```
+-   Array []
++   Array [
++     "404 /blog/tags/隱私",
++   ]
+```
+
+會失敗，才代表這個測試有在做事。
+
+## 學到的事
+
+- **「build 過」只代表程式碼能編譯，不代表每個網址都能打開。** sitemap 就是網站自己宣告「這些網址都存在」的清單，拿它來逐一驗證，成本很低。
+- **新寫的測試，先拿壞掉的版本跑一次。** 測試永遠都過的話，你分不出是程式沒問題，還是測試沒在測。
+- 中文標籤在畫面上照樣顯示中文，只是網址用英文。使用者看不出差別，但少了一整類編碼問題。
