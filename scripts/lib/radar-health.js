@@ -11,6 +11,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { execFile } = require("node:child_process");
+const { pullJournal } = require("./pi-journal.js");
 
 const POLL_MS = 5 * 60_000;
 const KEEP_MS = 24 * 3600_000; // 溫度歷史留 24 小時（算最高溫用）
@@ -211,6 +212,19 @@ function pollHealth({ host, user = "pi", keyPath }) {
   });
 }
 
+/** 任意指令從 stdin 餵給遠端 bash（pi-journal 用）；失敗就丟例外 */
+function sshRun({ host, user = "pi", keyPath, script }) {
+  return new Promise((resolve, reject) => {
+    const child = execFile(
+      sshBin(),
+      ["-i", keyPath, "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", `${user}@${host}`, "bash", "-s"],
+      { timeout: 60_000, windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
+      (err, stdout) => (err ? reject(err) : resolve(stdout)),
+    );
+    child.stdin.end(script);
+  });
+}
+
 function readHealth(file) {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -222,7 +236,8 @@ function readHealth(file) {
 const defaultKey = () => process.env.RADAR_SSH_KEY || path.join(os.homedir(), ".ssh", "pi24_radar");
 
 /** server.js 呼叫：金鑰檔不存在就不跑（回 null） */
-function startRadarHealthPoller({ host, file, radarFile, keyPath = defaultKey(), log }) {
+/** journalDir、cursorFile 有給就順便把樹莓派的系統 log 存一份到桌機（pi-journal.js） */
+function startRadarHealthPoller({ host, file, radarFile, journalDir, cursorFile, keyPath = defaultKey(), log }) {
   if (!fs.existsSync(keyPath)) {
     if (log) log(`radar health: 沒有 SSH 金鑰（${path.basename(keyPath)}），不讀樹莓派狀態`);
     return null;
@@ -236,6 +251,13 @@ function startRadarHealthPoller({ host, file, radarFile, keyPath = defaultKey(),
       const radar = radarFile ? readHealth(radarFile) : null;
       const reachable = radar && radar.status ? Boolean(radar.status.reachable) : null;
       fs.writeFileSync(file, JSON.stringify(nextState(readHealth(file), result, Date.now(), reachable)));
+      if (result.ok && journalDir && cursorFile) {
+        try {
+          await pullJournal({ run: (script) => sshRun({ host, keyPath, script }), dir: journalDir, cursorFile });
+        } catch (e) {
+          if (log) log(`RADAR journal error: ${e && e.message ? e.message.split("\n")[0] : e}`);
+        }
+      }
     } catch (e) {
       if (log) log(`RADAR health error: ${e && e.message ? e.message : e}`);
     } finally {
@@ -246,4 +268,4 @@ function startRadarHealthPoller({ host, file, radarFile, keyPath = defaultKey(),
   return setInterval(tick, POLL_MS).unref();
 }
 
-module.exports = { SCRIPT, decodeThrottled, parseHealth, applyHealth, problems, nextState, readHealth, pollHealth, startRadarHealthPoller };
+module.exports = { SCRIPT, decodeThrottled, parseHealth, applyHealth, problems, nextState, readHealth, pollHealth, sshRun, startRadarHealthPoller };
