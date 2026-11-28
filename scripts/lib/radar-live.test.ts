@@ -21,13 +21,13 @@ describe("recordTrack", () => {
   });
 });
 
-describe("buildFrame（延遲 5 分鐘＋不外流識別碼）", () => {
+describe("buildFrame（延遲＋不外流識別碼）", () => {
   const track = () => {
     let t = recordTrack(null, ok([plane()]), T0);
     t = recordTrack(t, ok([plane({ lat: 22.58 })]), T0 + 30_000);
     return recordTrack(t, ok([plane({ lat: 22.59 })]), T0 + 60_000);
   };
-  it("比 now - 5 分鐘新的取樣不會出現", () => {
+  it("比 now - DELAY_MS 新的取樣不會出現", () => {
     const f = buildFrame(track(), null, names, T0 + 30_000 + DELAY_MS); // 只有前兩筆夠舊
     expect(f.samples.map((s: { t: number }) => s.t)).toEqual([T0, T0 + 30_000]);
     expect(buildFrame(track(), null, names, T0 + DELAY_MS - 1).samples).toHaveLength(0);

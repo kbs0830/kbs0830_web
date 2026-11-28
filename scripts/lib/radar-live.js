@@ -1,7 +1,7 @@
 // 自家雷達「直播用」的飛機位置（2026-11-27，使用者要用 OBS 把 /radar/live 直播到 YouTube）。
 //
 // 跟 radar.js 的彙總是兩回事：這裡要存「座標」，所以隱私規則寫在前面——
-//   1. 位置一律延遲 DELAY_MS（5 分鐘，使用者指定）才放出來：公開的畫面是「5 分鐘前的天空」，
+//   1. 位置一律延遲 DELAY_MS 才放出來（2026-11-27 使用者指定 5 分鐘；2026-11-29 改成 1 分鐘）：公開的畫面是「1 分鐘前的天空」，
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
 //   3. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
@@ -13,7 +13,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { twDate } = require("./tw-time");
 
-const DELAY_MS = 5 * 60_000; // 位置延遲
+const DELAY_MS = 60_000; // 位置延遲（1 分鐘）
 const WINDOW_MS = 8 * 60_000; // 一次給畫面多久的取樣（5 分鐘軌跡＋2～3 分鐘播放緩衝）
 const KEEP_MS = DELAY_MS + WINDOW_MS + 60_000;
 const POS_FRESH_S = 30; // 位置超過 30 秒沒更新的不畫（aircraft.json 會留著舊的）

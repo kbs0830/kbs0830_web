@@ -5,7 +5,7 @@ import { AIRLINE_NAMES, TYPE_NAMES, detail, readState } from "../../../../../scr
 import { buildFrame, readTrack } from "../../../../../scripts/lib/radar-live.js";
 
 // /radar/live（OBS 直播畫面）用的飛機位置。⚠️ 這支是整個站唯一會回座標的 API，所以：
-//   - 只回 5 分鐘以前的取樣（buildFrame 的 DELAY_MS），沒有「現在」的位置
+//   - 只回 1 分鐘以前的取樣（buildFrame 的 DELAY_MS），沒有「現在」的位置
 //   - id 是每天換一次的雜湊，沒有 ICAO hex／squawk／訊號強度；座標存到小數 4 位
 //   - 地圖固定在高雄周邊、不標接收器（畫面端的規則，見 RadarLiveScreen.tsx）
 // 規則全文在 scripts/lib/radar-live.js 開頭。

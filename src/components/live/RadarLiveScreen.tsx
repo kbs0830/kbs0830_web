@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import coast from "./radar-coast.json";
+import aviation from "./radar-aviation.json";
 
 // /radar/live：給 OBS「瀏覽器來源」直播用的全螢幕雷達動畫（2026-11-27，使用者要直播到 YouTube，說明欄導流到網站）。
-// 資料：/api/radar/live 每 15 秒一次，只有「5 分鐘前」的位置取樣；這裡用取樣之間的內插＋速度／航向外推，
-// 把 30 秒一筆的資料播成連續的動畫（播放時間＝現在 − 5 分鐘 − 40 秒緩衝）。
+// 資料：/api/radar/live 每 15 秒一次，只有「1 分鐘前」的位置取樣；這裡用取樣之間的內插＋速度／航向外推，
+// 把 30 秒一筆的資料播成連續的動畫（播放時間＝現在 − 延遲 − 10 秒緩衝，後面沒有取樣的部分用速度外推）。
 //
-// ⚠️ 隱私（使用者 2026-11-27 同意「粗略位置公開、延遲 5 分鐘」；其餘照舊）：
+// ⚠️ 隱私（使用者 2026-11-27 同意「粗略位置公開」；2026-11-29 改成延遲 1 分鐘，並要求畫出機場與飛航設施、直播地點寫「高雄機場周圍」）：
 //   - 地圖固定在高雄周邊，不以接收器為圓心；不畫距離圈、不標接收器、不寫涵蓋範圍
 //   - 掃描線的圓心放在高雄市區（不是接收器）
-//   - 文字只寫「高雄」，不寫行政區、不寫離機場多近
+//   - 機場、跑道、導航台是公開的航空資料（OurAirports，公有領域），畫出來；文字不寫行政區、不寫接收器離機場多近
 
 type Row = [id: string, lat: number, lon: number, alt: number | null, speed: number | null, track: number | null];
 type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null };
@@ -31,15 +32,9 @@ const LAT0 = 22.75;
 const LON0 = 120.55;
 const LAT_SPAN = 1.6;
 const CITY = { lat: 22.627, lon: 120.301 }; // 高雄市區（掃描線的圓心）
-const CITIES: { n: string; lat: number; lon: number }[] = [
-  { n: "高雄 Kaohsiung", lat: 22.627, lon: 120.301 },
-  { n: "台南 Tainan", lat: 22.997, lon: 120.213 },
-  { n: "嘉義 Chiayi", lat: 23.48, lon: 120.449 },
-  { n: "屏東 Pingtung", lat: 22.669, lon: 120.488 },
-  { n: "台東 Taitung", lat: 22.756, lon: 121.144 },
-];
+const CITIES: { n: string; lat: number; lon: number }[] = [{ n: "高雄 Kaohsiung", lat: 22.627, lon: 120.301 }]; // 其他城市旁邊已經有機場代碼，不重複標
 const TRAIL_MS = 5 * 60_000;
-const BUFFER_MS = 40_000; // 播放時間再往前一點，讓兩筆取樣之間永遠接得上
+const BUFFER_MS = 10_000; // 播放時間再往前一點；取樣最多比播放時間早 30 秒，這段用速度外推
 const POLL_MS = 15_000;
 const KT_TO_DEG = 1 / 3600 / 60; // 1 節 = 1 海里/小時；1 度緯度 = 60 海里 → 每秒幾度（緯度方向）
 
@@ -184,6 +179,46 @@ export default function RadarLiveScreen() {
         ctx.fillRect(0, 0, w, h);
       }
 
+      // 飛航設施：機場跑道、導航台（VOR／TACAN 六角形，NDB 空心圓）。公開的航空資料，離線底圖
+      ctx.lineCap = "round";
+      for (const ap of aviation.airports) {
+        const khh = ap.id === "RCKH";
+        ctx.strokeStyle = khh ? "rgba(232,240,248,0.95)" : "rgba(138,160,181,0.8)";
+        ctx.lineWidth = (khh ? 4 : 2.5) * k;
+        for (const [la1, lo1, la2, lo2] of ap.rwy) {
+          const [x1, y1] = proj(la1, lo1);
+          const [x2, y2] = proj(la2, lo2);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+        const [ax, ay] = proj(ap.la, ap.lo);
+        ctx.fillStyle = khh ? C.text : "rgba(138,160,181,0.85)";
+        ctx.font = `${khh ? "600 " : ""}${(khh ? 17 : 14) * k}px ${mono}`;
+        ctx.fillText(khh ? "高雄機場 RCKH" : ap.id, ax + 12 * k, ay + (khh ? 22 : 16) * k);
+      }
+      ctx.lineWidth = 1.6 * k;
+      ctx.strokeStyle = "rgba(111,160,216,0.75)";
+      ctx.fillStyle = "rgba(111,160,216,0.7)";
+      ctx.font = `${12 * k}px ${mono}`;
+      for (const n of aviation.navaids) {
+        const [nx, ny] = proj(n.la, n.lo);
+        const r = 5.5 * k;
+        ctx.beginPath();
+        if (n.t === "N") {
+          ctx.setLineDash([2 * k, 2 * k]);
+          ctx.arc(nx, ny, r, 0, Math.PI * 2);
+        } else {
+          ctx.setLineDash([]);
+          for (let i = 0; i < 6; i++) ctx.lineTo(nx + r * Math.cos((i * Math.PI) / 3), ny + r * Math.sin((i * Math.PI) / 3));
+          ctx.closePath();
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (n.t === "V") ctx.fillText(n.id, nx + 9 * k, ny - 7 * k); // NDB 太密，只畫圖示
+      }
+
       // 城市名
       ctx.font = `${17 * k}px ${mono}`;
       ctx.textBaseline = "middle";
@@ -199,7 +234,7 @@ export default function RadarLiveScreen() {
       // 飛機
       const f = frameRef.current;
       const now = Date.now() + offsetRef.current;
-      const P = now - (f?.delayMs ?? 300_000) - BUFFER_MS;
+      const P = now - (f?.delayMs ?? 60_000) - BUFFER_MS;
       const list: Shown[] = [];
       if (f && f.samples.length) {
         const ids = new Set<string>();
@@ -378,9 +413,12 @@ export default function RadarLiveScreen() {
       <div className="absolute bottom-[2em] left-[2.4em] font-mono" style={{ color: C.muted, fontSize: "0.95em" }}>
         <p>
           <span className="mr-[0.6em] inline-block size-[0.55em] rounded-full align-middle" style={{ background: offline ? "#8a6d3b" : "#6fa0d8" }} />
-          畫面延遲約 5 分鐘 · Delayed ~5 min
+          畫面延遲約 1 分鐘 · Delayed ~1 min
         </p>
         <p className="mt-[0.3em]">資料時間 {clock || "--:--:--"}（台灣 UTC+8）</p>
+        <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>
+          ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB
+        </p>
       </div>
 
       {/* 右下：導流 */}
