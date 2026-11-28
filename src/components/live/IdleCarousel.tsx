@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { decodeMetar } from "@/lib/tools/metar";
 
 // 直播畫面「沒有飛機時」中下方輪播的四張卡片（2026-11-29，使用者：「小港起飛，小港降落，現在天氣，近三天的雷達資料，這四個圖卡輪轉」；
@@ -19,11 +19,28 @@ type Idle = {
 };
 
 const C = { muted: "#8aa0b5", line: "rgba(255,255,255,0.06)" };
-const SLIDE_MS = 12_000;
+// 每張停留多久（毫秒）：看內容多少——時刻表 6 列要掃一遍、METAR 有原文＋8 行翻譯要讀，統計卡最少。淡入 1.2 秒另算
+const DWELL: Record<string, number> = { dep: 14_000, arr: 14_000, wx: 18_000, l3: 12_000 };
+const hmTaipei = () => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(Date.now());
+
+/** 這份資料現在有哪幾張卡（資料不全的略過，例如時刻表抓不到） */
+function slideKeys(d: Idle | null): string[] {
+  if (!d) return [];
+  const k: string[] = [];
+  if (d.dep?.length) k.push("dep");
+  if (d.arr?.length) k.push("arr");
+  if (d.metar || d.weather || d.aqi) k.push("wx");
+  if (d.last3) k.push("l3");
+  return k;
+}
 
 export default function IdleCarousel() {
   const [data, setData] = useState<Idle | null>(null);
   const [idx, setIdx] = useState(0);
+  const [nowHm, setNowHm] = useState("");
+  const keysRef = useRef("");
+  const idxRef = useRef(0);
+  const keyStr = slideKeys(data).join(",");
 
   useEffect(() => {
     let alive = true;
@@ -46,15 +63,34 @@ export default function IdleCarousel() {
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => i + 1), SLIDE_MS);
+    keysRef.current = keyStr;
+  }, [keyStr]);
+
+  // 換頁：每 0.5 秒看一次，現在這張停夠它的時間（DWELL）才換；順便讓卡片上的「現在 HH:MM」跟著真實時間走
+  useEffect(() => {
+    let since = Date.now();
+    const t = setInterval(() => {
+      setNowHm((prev) => {
+        const next = hmTaipei();
+        return next === prev ? prev : next;
+      });
+      const keys = keysRef.current.split(",").filter(Boolean);
+      if (keys.length === 0) return;
+      const cur = keys[idxRef.current % keys.length];
+      if (Date.now() - since >= (DWELL[cur] ?? 12_000)) {
+        since = Date.now();
+        idxRef.current += 1;
+        setIdx(idxRef.current);
+      }
+    }, 500);
     return () => clearInterval(t);
   }, []);
 
   if (!data) return null;
   // 資料不全的卡片略過（例如時刻表抓不到）
   const slides: { key: string; label: string; sub: string; body: React.ReactNode }[] = [];
-  if (data.dep?.length) slides.push({ key: "dep", label: "小港機場 · 起飛 DEPARTURES", sub: `現在 ${data.nowHm} · 台灣時間`, body: <Board rows={data.dep} /> });
-  if (data.arr?.length) slides.push({ key: "arr", label: "小港機場 · 降落 ARRIVALS", sub: `現在 ${data.nowHm} · 台灣時間`, body: <Board rows={data.arr} /> });
+  if (data.dep?.length) slides.push({ key: "dep", label: "小港機場 · 起飛 DEPARTURES", sub: `現在 ${nowHm || data.nowHm} · 台灣時間`, body: <Board rows={data.dep} /> });
+  if (data.arr?.length) slides.push({ key: "arr", label: "小港機場 · 降落 ARRIVALS", sub: `現在 ${nowHm || data.nowHm} · 台灣時間`, body: <Board rows={data.arr} /> });
   // 「現在天氣」這頁只放完整的 METAR 電報原文，下面接白話翻譯（使用者：「那一頁只顯示完整 METAR，下面給翻譯」）
   if (data.metar) slides.push({ key: "wx", label: "高雄機場天氣 · METAR", sub: obsTime(data.metar.raw), body: <Weather metar={data.metar.raw} /> });
   else if (data.weather || data.aqi) slides.push({ key: "wx", label: "高雄現在天氣 · WEATHER NOW", sub: "", body: <WeatherFallback d={data} /> });
