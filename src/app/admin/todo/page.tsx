@@ -40,8 +40,12 @@ export default function Page() {
 async function AdminTodo() {
   await connection();
   // 已完成的不送（歷史在 /admin/done；TODO S2，2026-11-27：待辦頁 396KB 裡 59 項已完成的根本不顯示）。「評估過不做」留著，詳細說明點了才抓
-  const items = readTodo({ all: true }).filter((i) => i.status !== "done");
-  const decisions = listDecisions();
+  const all = readTodo({ all: true });
+  const items = all.filter((i) => i.status !== "done");
+  // 已完成項目的決定也不送：不然它們對不到畫面上的項目，全被當成「待辦裡已經找不到的決定」列出來
+  // （2026-11-28 使用者：「這裡面的東西都不見了？！」——其實是做完了，在 /admin/done）。真的已經不存在的項目才會出現在那一區
+  const doneIds = new Set(all.filter((i) => i.status === "done").map((i) => i.id));
+  const decisions = listDecisions().filter((d) => !doneIds.has(d.itemId));
   const events = recentEvents(10);
   return (
     <AdminShell title="待辦" intro={intro}>
