@@ -142,7 +142,8 @@
 - **好幾個 session 同時開（2026-11-28，C14）**：寫程式的 session 開「用 worktree」（`.claude/worktrees/<名字>`，自己的分支＋暫存區）；
   完成後 `git fetch && git rebase origin/main && git push origin HEAD:main` 觸發部署。worktree 沒有 `node_modules`／`data/`：往上層用正式站那份
   （`next.config.ts` 會把 Turbopack root 拉上去），3200 驗證時 `RADAR_FILE` 等指到暫存檔。**在正式站資料夾裡** commit 一律 `git commit -m … -- <自己的檔案>`（hookify 擋沒列檔案的）。
-  部署只 build 已 push 的程式碼（乾淨副本 `.live/`，C13）：**沒 push 的改動不會上線，`.live` 裡不要改檔案、不要刪**
+  部署只 build 已 push 的程式碼（乾淨副本 `.live/`，C13）：**沒 push 的改動不會上線，`.live` 裡不要改檔案、不要刪**。
+  session 要結束時，Stop hook（`.claude/settings.json` → `scripts/claude-stop-check.js`）看到有 commit 沒推到 origin/main 會擋一次：推上去，或跟使用者說明為什麼不推
 - 找 port 的 PID **不要加 `-State Listen`**（dual-stack socket 會顯示 Closed）
 - E2E 每個測試用 `gotoReady(page, path)`，不要直接 `page.goto`
 - 改 Cloudflare 設定後要 `curl -sI` 實際看到結果才算數
