@@ -55,7 +55,7 @@ export default function Home() {
               <StatusDot className="text-xs text-(--muted) font-light font-mono" />
             </Suspense>
             <Suspense fallback={null}>
-              <RareAircraft className="text-xs text-(--muted) font-light font-mono" />
+              <RareAircraft className="hidden sm:block text-xs text-(--muted) font-light font-mono" />
             </Suspense>
           </>
         }
