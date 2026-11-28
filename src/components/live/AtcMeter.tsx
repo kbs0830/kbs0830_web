@@ -119,7 +119,9 @@ export default function AtcMeter() {
     };
   }, [request]);
 
-  if (request === null) return null;
+  // 沒有 ?audio= 時照樣畫出（灰色待機），讓版面一直在；只有帶了裝置名稱才會去讀音訊輸入
+  const active = request !== null;
+  const shownStatus: Status = active ? status : "idle";
 
   const label = {
     connecting: "連線中 · Connecting",
@@ -128,7 +130,7 @@ export default function AtcMeter() {
     error: "沒有音訊輸入 · No input",
     nodevice: "找不到指定的裝置 · Device not found",
     needname: "請指定裝置名稱 · Name the device",
-  }[status];
+  }[shownStatus];
 
   return (
     <div className="absolute left-[2.4em] flex flex-col items-start" style={{ top: "13.5em", bottom: "9em" }} aria-label="塔台無線電音量">
@@ -155,10 +157,10 @@ export default function AtcMeter() {
           <span>-60</span>
         </div>
       </div>
-      <p className="mt-[0.8em] font-mono" style={{ color: status === "rx" ? "#e8f0f8" : "#8aa0b5", fontSize: "0.85em" }}>
+      <p className="mt-[0.8em] font-mono" style={{ color: shownStatus === "rx" ? "#e8f0f8" : "#8aa0b5", fontSize: "0.85em" }}>
         <span
           className="mr-[0.5em] inline-block size-[0.6em] rounded-full align-middle"
-          style={{ background: status === "rx" ? "#6fa0d8" : "rgba(138,160,181,0.4)" }}
+          style={{ background: shownStatus === "rx" ? "#6fa0d8" : "rgba(138,160,181,0.4)" }}
         />
         {label}
       </p>
