@@ -548,7 +548,10 @@ export default function RadarLiveScreen() {
     };
   }, []);
 
-  const offline = failed || (frame !== null && !frame.online);
+  // 「離線」要看實際資料：frame.online 是看 FR24 餵送程式的狀態（卡在 shutdown、rx 斷線時是 false），但 dump1090 可能還在正常收飛機。
+  // 畫面上明明有飛機在動就不算離線（2026-11-29 03:44 實例：右欄已經有航班，地圖卻還停在模糊的離線畫面）；
+  // 連網站都連不上（failed）才一律算離線
+  const offline = failed || (frame !== null && !frame.online && shown.length === 0);
   const quiet = frame !== null && !offline && shown.length === 0;
   // 閒置（沒有飛機或接收器離線）：背景模糊、拿掉左邊的音量條與圖例，改在中下方輪播四張卡片（見 IdleCarousel）
   const idle = offline || quiet;
