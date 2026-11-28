@@ -2,6 +2,7 @@
 // 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）、<SpotifyNowPlaying>、<Tabs>（只管顯示哪一頁），
 // 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
 // 2026-11-05：歷程／技能／活動／足跡原本一路往下排、整區很長，改成分頁（Tabs），面板內容照樣在 server 產生。
+import ScrollEnd from "@/components/ui/ScrollEnd";
 import { Fragment } from "react";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
@@ -143,7 +144,8 @@ function SkillsPanel() {
 function ActivityPanel() {
   return (
     <>
-      <div className="p-4 border border-(--border) rounded-sm bg-white overflow-x-auto">
+      {/* 手機放不下整年：先捲到最右邊（最近的月份）、邊緣淡出提示可以滑（TODO P4）；底色跟著主題，不再是寫死的白底 */}
+      <ScrollEnd className="p-4 border border-(--border) rounded-sm bg-(--bg) overflow-x-auto">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://ghchart.rshah.org/2d5a8e/kbs0830"
@@ -153,7 +155,7 @@ function ActivityPanel() {
           className="min-w-[640px] w-full h-auto"
           loading="lazy"
         />
-      </div>
+      </ScrollEnd>
       <p className="text-[11px] text-(--muted) font-light mt-2 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
     </>
   );

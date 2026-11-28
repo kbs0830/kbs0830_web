@@ -1,8 +1,6 @@
 import NavBar from "@/components/layout/NavBar";
 import BackToTop from "@/components/layout/BackToTop";
-import { Suspense } from "react";
-import StatusDot from "@/components/live/StatusDot";
-import RareAircraft from "@/components/live/RareAircraft";
+import FooterLive from "@/components/live/FooterLive";
 import LocalClock from "@/components/live/LocalClock";
 import VisitorStats from "@/components/live/VisitorStats";
 import { PresenceCount } from "@/components/live/Presence";
@@ -51,12 +49,7 @@ export default function Home() {
             <LocalClock />
             <PresenceCount />
             <VisitorStats />
-            <Suspense fallback={null}>
-              <StatusDot className="text-xs text-(--muted) font-light font-mono" />
-            </Suspense>
-            <Suspense fallback={null}>
-              <RareAircraft className="hidden sm:block text-xs text-(--muted) font-light font-mono" />
-            </Suspense>
+            <FooterLive className="text-xs text-(--muted) font-light font-mono" />
           </>
         }
       />

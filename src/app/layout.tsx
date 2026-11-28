@@ -59,7 +59,7 @@ const jsonLd = {
         {
           "@type": "HighSchool",
           name: "高雄市立中正高級工業職業學校",
-          alternateName: "Kaohsiung Municipal Zhongzheng Vocational High School",
+          alternateName: "Kaohsiung Municipal Chung-Cheng Industrial High School",
         },
       ],
       knowsLanguage: ["zh-TW", "en", "ja"],

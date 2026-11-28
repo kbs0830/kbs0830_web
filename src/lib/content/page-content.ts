@@ -2,11 +2,14 @@
 // 只維護這一份。全部是真實資料，改之前先確認屬實（見 CLAUDE.md）。
 // ⚠️ 改 resume 那幾段會觸發部署時重印 public/resume.pdf（deploy.ps1 的來源清單有這個檔案）
 
+// /now 的「在學／在忙」那幾行（手動）；「最近在做」由 /now 頁從更新紀錄自動挑（TODO，2026-11-28）。
+// 改完記得更新 nowUpdated，頁面會顯示「這幾行最後更新」。
+export const nowUpdated = "2026-11-28";
 export const nowItems = [
   "就讀國立高科大 智慧商務系 三年級（燕巢）",
   "持續打磨這個個人網站，累積 side project",
   "11 月開始用學校的 iAI（OpenAI 相容 API）輔助學校專案",
-  "學習 React Three Fiber 進階、WebGL Shader",
+  "學習 WebGPU／TSL（首頁封面用 compute shader 做的）、React Three Fiber",
   "研究本地端 ML 推理（edge AI）與 Electron 打包部署",
   "日本語 N5 学習中",
 ];
@@ -64,7 +67,7 @@ export const education = [
   },
   {
     school: "高雄市立中正高級工業職業學校",
-    schoolEn: "Kaohsiung Municipal Zhongzheng Vocational High School",
+    schoolEn: "Kaohsiung Municipal Chung-Cheng Industrial High School",
     program: "資訊科",
     period: "2021 – 2024",
   },
