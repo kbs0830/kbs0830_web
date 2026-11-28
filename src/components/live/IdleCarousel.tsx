@@ -120,9 +120,9 @@ export default function IdleCarousel({ visible = true, headline, subline }: { vi
       className="absolute"
       style={{
         left: "35em",
-        bottom: "9em",
+        top: "28em", // 垂直中心：上邊界＝左上標題區塊底部（約 8.5em）、下邊界＝左下「即時」區塊頂部（約 47.5em）的正中間
         width: "48em",
-        translate: "-50% 0",
+        translate: "-50% -50%",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
         transform: visible ? "none" : "translate3d(0, 12px, 0)",
@@ -305,7 +305,6 @@ function Last3({ d }: { d: NonNullable<Idle["last3"]> }) {
   return (
     <div className="grid gap-[2em]" style={{ gridTemplateColumns: "1.15fr 1fr" }}>
       <div>
-        <div style={{ color: C.muted, fontSize: "0.8em" }}>這三天收到</div>
         <div className="flex items-baseline gap-[0.5em]">
           <span className="font-serif" style={{ fontSize: "2.6em", lineHeight: 1.1 }}>{d.unique.toLocaleString("en-US")}</span>
           <span style={{ color: C.muted }}>架次</span>
