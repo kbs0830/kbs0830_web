@@ -91,4 +91,13 @@ describe("飛機詳細資料", () => {
     expect((f.info as Record<string, object>)[id]).toEqual({ f: "", al: null, an: null, ty: "C172", tn: "C172" });
     expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB/);
   });
+
+  it("剛剛經過也不含私人機：沒有正常班號的不進清單、也不帶註冊號與所屬人", () => {
+    let t = recordTrack(null, ok([plane({ hex: "pr1", flight: "N123AB", alt: 5000 }), plane({ hex: "ok1", flight: "EVA145" })]), T0);
+    t = recordTrack(t, ok([]), T0 + 30_000);
+    const types = { pr1: { t: "C172", v: 2, r: "N123AB", o: "John Doe", c: "US" }, ok1: { t: "A321", v: 2, r: "B-16201", o: "EVA Air", c: "TW" } };
+    const f = buildFrame(t, types, names, T0 + 30_000 + DELAY_MS + 120_000);
+    expect(f.recent.map((r: { f: string }) => r.f)).toEqual(["EVA145"]);
+    expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB/);
+  });
 });

@@ -107,6 +107,7 @@ function buildFrame(track, types, names, now) {
   const seenF = new Set();
   const recent = Object.entries((track && track.recent) || {})
     .filter(([, e]) => e.t <= cutoff - RECENT_GONE_MS)
+    .filter(([, e]) => CALLSIGN.test(e.f)) // 輸出端再擋一次（記錄時就只收商用班號，這裡是第二道）
     .sort((x, y) => y[1].t - x[1].t)
     .filter(([, e]) => (seenF.has(e.f) ? false : (seenF.add(e.f), true)))
     .slice(0, 5)
