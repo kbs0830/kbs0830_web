@@ -19,7 +19,7 @@ const WINDOW_MS = 8 * 60_000; // 一次給畫面多久的取樣（5 分鐘軌跡
 const KEEP_MS = DELAY_MS + WINDOW_MS + 60_000;
 const POS_FRESH_S = 30; // 位置超過 30 秒沒更新的不畫（aircraft.json 會留著舊的）
 const MAX_SAMPLES = 300; // 5 秒一筆 × 20 分鐘 = 240
-const RECENT_KEEP_MS = 60 * 60_000;
+const RECENT_KEEP_MS = 24 * 60 * 60_000; // 剛剛經過的紀錄留 24 小時（半夜沒飛機時，列表還有前一天的班次）
 const RECENT_GONE_MS = 60_000; // 最後被看到的時間比「畫面時間」早這麼久，才算「剛剛經過」（還在畫面上的不算）
 const CALLSIGN = /^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/;
 
@@ -44,7 +44,7 @@ function recordTrack(prev, sample, now) {
         }))
     : [];
   keep.push({ t: now, ok, ac });
-  // 「剛剛經過」：每架（有正常呼號、高度夠）最後一次被看到的時間與狀態，留 60 分鐘、最多 40 筆（超過 20 分鐘的取樣已經丟了，這份另外留）
+  // 「剛剛經過」：每架（有正常呼號、高度夠）最後一次被看到的時間與狀態，留 24 小時、最多 60 筆（超過 20 分鐘的取樣已經丟了，這份另外留）
   const recent = Object.fromEntries(Object.entries((prev && prev.recent) || {}).filter(([, e]) => now - e.t <= RECENT_KEEP_MS));
   // 沒解出座標的（只收到部分訊號）也算（使用者問「00:55、00:57 的飛機怎麼沒紀錄」）：有正常班號就列進去，只是畫不到地圖上。
   // 高度不限（使用者 2026-11-29 要求低空、地面、高度不明的也顯示）
@@ -55,7 +55,7 @@ function recordTrack(prev, sample, now) {
     const al = a.alt === "ground" ? 0 : num(a.alt);
     recent[String(a.hex).toLowerCase()] = { f, t: now, al, sp: num(a.speed), tr: num(a.track), vr: num(a.vert_rate) };
   }
-  const recentKept = Object.fromEntries(Object.entries(recent).sort((x, y) => y[1].t - x[1].t).slice(0, 40));
+  const recentKept = Object.fromEntries(Object.entries(recent).sort((x, y) => y[1].t - x[1].t).slice(0, 60));
   return { samples: keep.slice(-MAX_SAMPLES), recent: recentKept };
 }
 

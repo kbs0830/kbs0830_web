@@ -23,6 +23,7 @@ type Frame = {
   samples: { t: number; ok: boolean; p: Row[] }[];
   info: Record<string, Info>;
   recent?: Passed[];
+  yesterday?: { date: string; unique: number; airlines: { code: string; name: string; n: number }[] } | null;
   online: boolean;
   today?: { unique: number; peak: number; airlines: { code: string; name: string; n: number }[] };
   week?: { unique: number; uptime: number | null };
@@ -468,6 +469,8 @@ export default function RadarLiveScreen() {
   const named = shown.filter((s) => s.info?.f);
   const focus = named.length ? named[focusIdx % named.length] : null;
   const passed = frame?.recent ?? [];
+  // 不滿 5 班時，用昨天的航空公司統計補滿（標「昨天」）
+  const fillers = (frame?.yesterday?.airlines ?? []).slice(0, Math.max(0, 5 - passed.length));
   const tips = buildTips(frame);
   const focusId = focus?.id ?? null;
   useEffect(() => {
@@ -516,7 +519,7 @@ export default function RadarLiveScreen() {
             <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>
               空中 · IN THE AIR
             </p>
-            <p className="mt-[0.1em] font-serif font-light leading-none" style={{ fontSize: "4.2em" }}>
+            <p className="mt-[0.1em] font-serif font-light leading-none" style={{ fontSize: "3.6em" }}>
               {offline ? "–" : shown.length}
               <span className="ml-[0.2em] font-sans font-light" style={{ color: C.muted, fontSize: "0.3em" }}>
                 架
@@ -536,7 +539,7 @@ export default function RadarLiveScreen() {
         </div>
 
         {/* 焦點航班：每 8 秒換下一架，地圖上會圈起來 */}
-        <p className="mt-[1.1em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
+        <p className="mt-[0.9em] border-t pt-[0.6em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
           焦點航班 · FOCUS{focus ? `　${(focusIdx % named.length) + 1}/${named.length}` : ""}
         </p>
         {focus ? (
@@ -562,28 +565,11 @@ export default function RadarLiveScreen() {
           <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.9em" }}>目前沒有航班 · No flights</p>
         )}
 
-        <p className="mt-[1.1em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
-          航班 · FLIGHTS
-        </p>
-        <ul className="mt-[0.5em] space-y-[0.45em] overflow-hidden" style={{ minHeight: "4.8em" }}>
-          {named.slice(0, 3).map((s) => (
-            <li key={s.id} className="flex items-baseline justify-between gap-[1em]">
-              <span className="min-w-0 truncate">
-                <span className="font-mono font-semibold" style={{ fontSize: "1.05em" }}>{s.info.f}</span>
-                <span className="ml-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.8em" }}>{s.info.an ?? s.info.al ?? ""}</span>
-              </span>
-              <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.8em" }}>
-                {s.alt == null ? "" : `${(Math.round(s.alt / 100) * 100).toLocaleString("en-US")} ft`}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <p className="mt-[0.9em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
+        <p className="mt-[0.9em] border-t pt-[0.6em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
           剛剛經過 · JUST PASSED
         </p>
-        <ul className="mt-[0.5em] min-h-0 flex-1 space-y-[0.4em] overflow-hidden">
-          {passed.length === 0 ? (
+        <ul className="mt-[0.4em] min-h-0 flex-1 space-y-[0.3em] overflow-hidden">
+          {passed.length === 0 && fillers.length === 0 ? (
             <li className="font-light" style={{ color: C.muted, fontSize: "0.85em" }}>還沒有紀錄 · None yet</li>
           ) : (
             passed.map((p) => (
@@ -596,7 +582,24 @@ export default function RadarLiveScreen() {
               </li>
             ))
           )}
+          {fillers.map((a) => (
+            <li key={`y-${a.code}`} className="flex items-baseline justify-between gap-[1em]" style={{ opacity: 0.75 }}>
+              <span className="min-w-0 truncate">
+                <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>昨天</span>
+                <span className="ml-[0.6em] font-light" style={{ fontSize: "0.95em" }}>{a.name}</span>
+              </span>
+              <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{a.n} 架次</span>
+            </li>
+          ))}
         </ul>
+
+        {/* 統計輪播（每 9 秒換一則）：/radar 頁公開的統計，只有數字、航空公司、機型、時段 */}
+        {tips.length > 0 && (
+          <div key={tipIdx % tips.length} className="enter-fade mt-[0.6em] border-t pt-[0.6em]" style={{ borderColor: "rgba(255,255,255,0.08)", minHeight: "4.3em" }}>
+            <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.75em" }}>{tips[tipIdx % tips.length].label}</p>
+            <p className="mt-[0.3em] font-light leading-snug" style={{ fontSize: "0.95em" }}>{tips[tipIdx % tips.length].text}</p>
+          </div>
+        )}
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
@@ -627,16 +630,6 @@ export default function RadarLiveScreen() {
         </p>
       </div>
 
-      {/* 底部輪播：/radar 頁公開的統計（只有數字、航空公司、機型、時段） */}
-      {tips.length > 0 && (
-        <div className="absolute bottom-[2em] left-[30em] w-[38em]">
-          <div key={tipIdx % tips.length} className="enter-fade rounded-sm border px-[1.1em] py-[0.7em]" style={{ background: "rgba(14,26,38,0.6)", borderColor: "rgba(255,255,255,0.08)" }}>
-            <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.75em" }}>{tips[tipIdx % tips.length].label}</p>
-            <p className="mt-[0.2em] font-light leading-snug" style={{ fontSize: "1.05em" }}>{tips[tipIdx % tips.length].text}</p>
-          </div>
-        </div>
-      )}
-
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">
         <p className="font-serif font-light tracking-[0.08em]" style={{ fontSize: "1.9em" }}>kbs0830.com/radar</p>
@@ -661,19 +654,17 @@ function Stat({ label, value }: { label: string; value: string }) {
 function passedAgoMs(frame: Frame | null, p: Passed) {
   return frame ? Math.max(0, frame.now - frame.delayMs - p.t) : 0;
 }
-const ago = (ms: number) => (ms < 90_000 ? "剛剛" : `${Math.round(ms / 60_000)} 分鐘前`);
+const ago = (ms: number) => (ms < 90_000 ? "剛剛" : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} 分鐘前` : ms < 36 * 3600_000 ? `${Math.round(ms / 3600_000)} 小時前` : `${Math.round(ms / 86400_000)} 天前`);
 
-/** 底部輪播的內容：從 API 的統計組出幾則（沒有資料的就不放） */
+/** 右欄統計輪播的內容：從 API 的統計組出幾則（沒有資料的就不放）。使用者 2026-11-29：「近 7 天不要」→ 只放今天與累計，不放任何「近 7 天」 */
 function buildTips(f: Frame | null): { label: string; text: string }[] {
   if (!f) return [];
   const tips: { label: string; text: string }[] = [];
-  if (f.week) tips.push({ label: "近 7 天 · LAST 7 DAYS", text: `收到 ${f.week.unique.toLocaleString("en-US")} 架次${f.week.uptime != null ? `，接收器在線率 ${f.week.uptime}%` : ""}` });
+  if (f.today) tips.push({ label: "今天 · TODAY", text: `收到 ${f.today.unique} 架次，同時最多 ${f.today.peak} 架` });
   const hours = f.hours ?? [];
   const max = Math.max(...hours.map((v) => v ?? 0));
-  if (max > 0) tips.push({ label: "一天的節奏 · DAILY RHYTHM", text: `${hours.findIndex((v) => v === max)} 點最忙，近 7 天平均最多同時 ${max} 架；夜間機場有宵禁，凌晨最少` });
-  if (f.weekAirlines?.length) tips.push({ label: "近 7 天航空公司 · AIRLINES", text: f.weekAirlines.slice(0, 3).map((a) => `${a.name} ${a.n}`).join("　") });
-  if (f.weekTypes?.length) tips.push({ label: "近 7 天機型 · AIRCRAFT TYPES", text: f.weekTypes.slice(0, 3).map((a) => `${a.name} ${a.n}`).join("　") });
+  if (max > 0) tips.push({ label: "一天的節奏 · DAILY RHYTHM", text: `平均 ${hours.findIndex((v) => v === max)} 點最忙；夜間機場有宵禁，凌晨的飛機本來就少` });
+  if (f.today?.airlines?.length) tips.push({ label: "今天的航空公司 · AIRLINES TODAY", text: f.today.airlines.slice(0, 4).map((a) => `${a.name} ${a.n}`).join("　") });
   if (f.total) tips.push({ label: "累計 · SINCE START", text: `自己架的接收器已經記錄 ${f.total.days} 天、${f.total.unique.toLocaleString("en-US")} 架次，同時最多 ${f.total.peak} 架` });
-  if (f.today?.airlines?.length) tips.push({ label: "今天 · TODAY", text: f.today.airlines.slice(0, 4).map((a) => `${a.name} ${a.n}`).join("　") });
   return tips;
 }
