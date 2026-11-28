@@ -33,7 +33,11 @@ const fs = require("node:fs");
 const { DatabaseSync } = require("node:sqlite");
 const { parseDone } = require("./lib/parse-done");
 
-const file = process.env.ADMIN_DB_FILE || path.join(__dirname, "..", "data", "admin.db");
+// 在 Claude Code 的 worktree（<repo>/.claude/worktrees/<名字>）裡跑時，data/、content/drafts/ 都不在 git 裡、worktree 沒有：
+// 不處理的話會在 worktree 裡建一個空的 admin.db，待辦寫進去、刪 worktree 就不見（2026-11-28，TODO C14）→ 一律用正式站資料夾那份
+const here = path.join(__dirname, "..");
+const root = /[\\/]\.claude[\\/]worktrees[\\/][^\\/]+$/.test(here) ? path.resolve(here, "../../..") : here;
+const file = process.env.ADMIN_DB_FILE || path.join(root, "data", "admin.db");
 const [cmd = "todo", ...rest] = process.argv.slice(2);
 const tw = (ms) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 16).replace("T", " ");
 const LABEL = { now: "先做", later: "之後", skip: "不做" };
@@ -139,7 +143,7 @@ if (cmd === "search") {
     console.log(`${(LABEL[r.choice] ?? "備註").padEnd(3, "　")} ${code}${name}${r.note ? `　— ${r.note}` : ""}　(${tw(r.updated_at)})`);
   }
 } else if (cmd === "blog") {
-  const dir = path.join(__dirname, "..", "content", "drafts");
+  const dir = path.join(root, "content", "drafts");
   const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".mdx")) : [];
   const rev = version >= 6 ? new Map(db.prepare("SELECT slug, status, note, updated_at FROM blog_review").all().map((r) => [r.slug, r])) : new Map();
   const LAB = { pending: "待審", approved: "已核准", rejected: "已退回" };
