@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 import { searchPosts, type IndexedPost, type SearchHit } from "@/lib/content/blog-search";
 
 // /blog 的全文搜尋框（TODO A6，2026-11-21）。第一次聚焦才下載索引（/blog/search-index.json，build 時產生），之後在瀏覽器裡比對。
@@ -32,6 +33,28 @@ export default function BlogSearch() {
 
   const hits: SearchHit[] = index && query.trim() ? searchPosts(index, query) : [];
   const searching = query.trim().length > 0;
+  const term = query.trim();
+
+  // 意思相近（TODO H5）：字面找到少於 3 篇時，停下打字 0.5 秒後問本機 AI 的 embedding（/api/search，跟 Ctrl+K 同一支）。
+  // 結果連同查的字一起存，字改了舊結果就不顯示；AI 沒開、被限流就安靜地只顯示字面結果
+  const [semantic, setSemantic] = useState<{ q: string; items: { title: string; href: string }[] } | null>(null);
+  const wantSemantic = term.length >= 2 && (index !== null || failed) && hits.length < 3;
+  useEffect(() => {
+    if (!wantSemantic) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+        .then((data: { results?: { title: string; href: string }[] }) => setSemantic({ q: term, items: data.results ?? [] }))
+        .catch(() => {});
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [wantSemantic, term]);
+  const literal = new Set(hits.map((h) => `/blog/${h.slug}`));
+  const related = wantSemantic && semantic?.q === term ? semantic.items.filter((r) => r.href.startsWith("/blog/") && !literal.has(r.href)) : [];
 
   return (
     <div ref={wrap} hidden className="mb-12 -mt-4">
@@ -71,6 +94,20 @@ export default function BlogSearch() {
             </li>
           ))}
         </ul>
+      )}
+      {related.length > 0 && (
+        <div className="mt-6">
+          <p className="text-xs text-(--muted) font-mono mb-1">意思相近 · Related（AI）</p>
+          <ul className="divide-y divide-(--border) border-y border-(--border)">
+            {related.map((r) => (
+              <li key={r.href}>
+                <Link href={r.href as Route} className="group block py-3">
+                  <span className="text-[15px] sm:text-sm font-light text-(--text) group-hover:text-(--accent) transition-colors">{r.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
