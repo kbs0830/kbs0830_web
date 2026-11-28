@@ -7,12 +7,30 @@ import Reveal from "@/components/ui/Reveal";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { HOME_WIDTH } from "@/components/layout/home-width";
 
+// 輪播圓點的規則不放 globals.css：Lightning CSS（Next 的 CSS 處理）不認得 ::scroll-marker-group／::scroll-marker，
+// next dev 每處理一次就印一次警告，CI 一次 E2E 印了 45 萬次、log 大到卡住 runner（2026-11-28）。寫成字串就不經過它。
+// 圓點 6px，可點範圍 24px（WCAG 2.5.8 目標尺寸）。href＋precedence：React 19 會把它提到 <head>、只放一份
+const CAROUSEL_MARKERS = `@media (width < 640px) {
+  .post-carousel::scroll-marker-group { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
+  .post-carousel [data-marker]::scroll-marker {
+    content: "" / attr(data-marker);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--border) 3px, transparent 3.5px);
+    transition: background 0.3s var(--ease-ma);
+  }
+  .post-carousel [data-marker]::scroll-marker:target-current { background: radial-gradient(circle, var(--accent) 3px, transparent 3.5px); }
+  .post-carousel [data-marker]::scroll-marker:focus-visible { outline: 1px solid var(--accent); outline-offset: -4px; }
+}`;
+
 export default function LatestPosts() {
   const posts = getAllPosts().slice(0, 3);
   if (posts.length === 0) return null;
 
   return (
     <section aria-labelledby="latest-posts" className="pb-20 md:pb-32">
+      <style href="post-carousel-markers" precedence="default">{CAROUSEL_MARKERS}</style>
       <div className={`${HOME_WIDTH} mx-auto px-6`}>
         <Reveal className="flex items-baseline justify-between gap-4 mb-8 border-t border-(--border) pt-12">
           <div>
@@ -30,7 +48,7 @@ export default function LatestPosts() {
         </Reveal>
 
         {/* 手機（TODO Q10，2026-11-28）：原本 2 篇直排、第 3 篇藏起來 → 3 篇橫向滑動（一次露 1.15 張，看得出右邊還有）＋下面圓點，
-            高度只剩一張卡、3 篇都看得到。圓點是瀏覽器產生的（CSS 原生輪播 ::scroll-marker，globals.css .post-carousel），零 JS；
+            高度只剩一張卡、3 篇都看得到。圓點是瀏覽器產生的（CSS 原生輪播 ::scroll-marker，globals.css .post-carousel＋上面的 CAROUSEL_MARKERS），零 JS；
             不支援的瀏覽器就是普通的橫向捲動。sm 以上照舊格線 */}
         <div className="post-carousel grid md:grid-cols-3 gap-5">
           {posts.map((post, i) => (

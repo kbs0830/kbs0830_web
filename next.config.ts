@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync, execSync } from "node:child_process";
+import { copyFileSync, existsSync } from "node:fs";
+import path from "node:path";
 import { GISCUS } from "./src/lib/site/giscus";
 import { hiddenProjectRedirects } from "./src/lib/content/projects";
 
@@ -80,10 +82,23 @@ const securityHeaders = [
 
 const distDir = process.env.NEXT_DIST_DIR || ".next";
 
+// 在 Claude Code 桌面版的 worktree（<repo>/.claude/worktrees/<名字>）裡 build／dev（TODO C14，2026-11-28）：
+// worktree 沒有自己的 node_modules（套件只在正式站資料夾那份，由 deploy.ps1 維護），Node 會往上層找到它，
+// 但 Turbopack 只在「最近的 lockfile 那層」裡找檔案 → 報 Could not find the Next.js package。
+// 把 root 拉到上面三層的正式站資料夾就找得到；正式站本身的路徑不含 .claude/worktrees，不受影響
+const worktreeRoot = /[\\/]\.claude[\\/]worktrees[\\/][^\\/]+$/.test(process.cwd())
+  ? path.resolve(process.cwd(), "../../..")
+  : undefined;
+
+// tsconfig.deploy.json 是 gitignore 的副本，平常由 deploy.ps1 建；新開的 worktree／新 clone 沒有，
+// build 到 .next-test 會報 tsconfig not found → 沒有就先從 tsconfig.json 複製一份
+if (distDir !== ".next" && !existsSync("tsconfig.deploy.json")) copyFileSync("tsconfig.json", "tsconfig.deploy.json");
+
 const nextConfig: NextConfig = {
   // deploy.ps1 輪流 build 到 .next-a / .next-b（線上那槽照常服務），scripts/server.js 依
   // data/next-dist-dir.txt 決定用哪槽。平常（dev、手動 build、E2E）沒設這個變數，一律是 .next
   distDir,
+  ...(worktreeRoot && { turbopack: { root: worktreeRoot }, outputFileTracingRoot: worktreeRoot }),
   // 部署 build 時 Next 會把 <distDir>/types 自動寫進 tsconfig 的 include：讓它改那份 gitignore
   // 的副本，不要弄髒 tsconfig.json（VS Code 也就不會去監看、鎖住那兩槽）
   typescript: distDir === ".next" ? undefined : { tsconfigPath: "tsconfig.deploy.json" },

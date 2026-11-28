@@ -4,9 +4,18 @@ on:
   push:
     branches: [main]
 
+# 同時只有一個部署在跑，跑到一半不取消（build 到一半被砍，雙槽雖然救得回來，但白跑一次）。
+# 排隊中的只留最新一個：GitHub 的 concurrency 本來就會把被擠掉的舊 pending 取消；
+# deploy.ps1 一開始就 git pull，最新那次一定包含前面所有 commit，不會漏部署（2026-11-28 一次排了 4 個）
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: self-hosted
+    # 平常 1～3 分鐘；build 卡住時不要佔著唯一的 runner
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: C:\Users\user\Desktop\kbs0830_web-master

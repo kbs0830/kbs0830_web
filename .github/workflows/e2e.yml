@@ -4,9 +4,18 @@ on:
   push:
     branches: [main]
 
+# 只有一台 self-hosted runner，一次只跑一個 job（2026-11-28）：好幾個 session 連續 push 時，每個 commit 各排一個 E2E，
+# 一個卡住後面全部排隊（當天最長排了 1 小時，部署也跟著等）。E2E 只有最新那個 commit 的結果有意義 →
+# 新的 push 進來就取消還在跑／還在排的舊 E2E。
+concurrency:
+  group: e2e-main
+  cancel-in-progress: true
+
 jobs:
   e2e:
     runs-on: self-hosted
+    # 平常 6～10 分鐘。超過 30 分鐘一定是卡住了，別讓它佔著唯一的 runner（GitHub 預設要等 6 小時）
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: C:\Users\user\Desktop\kbs0830_web-master

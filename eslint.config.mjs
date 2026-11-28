@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // deploy.ps1 輪流使用的兩個 build 槽（見 next.config.ts distDir）
     ".next-a/**",
     ".next-b/**",
+    // Claude Code 桌面版的 session worktree（每個 session 一份完整副本，TODO C14）
+    ".claude/worktrees/**",
   ]),
   {
     // scripts/*.js 是直接用 `node scripts/xxx.js` 執行的 CommonJS Node 腳本，

@@ -846,28 +846,9 @@ details[open]::details-content {
     opacity: 1;
     translate: none;
   }
-  .post-carousel::scroll-marker-group {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
-    margin-top: 12px;
-  }
-  /* 圓點 6px，可點範圍 24px（WCAG 2.5.8 目標尺寸） */
-  .post-carousel [data-marker]::scroll-marker {
-    content: "" / attr(data-marker);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--border) 3px, transparent 3.5px);
-    transition: background 0.3s var(--ease-ma);
-  }
-  .post-carousel [data-marker]::scroll-marker:target-current {
-    background: radial-gradient(circle, var(--accent) 3px, transparent 3.5px);
-  }
-  .post-carousel [data-marker]::scroll-marker:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: -4px;
-  }
+  /* 圓點（::scroll-marker-group、::scroll-marker）的規則放在 LatestPosts.tsx 的 <style>：Lightning CSS 還不認得這兩個偽元素，
+     放這裡 next dev 每處理一次就印一次警告——CI 的 E2E 一次印了 45 萬次、log 1500 萬行，
+     上傳 log 卡住唯一的 runner 半小時，後面的部署全部排隊（2026-11-28） */
 }
 
 /* ── 連絡先：滿版＋捲動展開（ContactSection，TODO M16，2026-11-27）──────────────

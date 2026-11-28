@@ -24,6 +24,9 @@
 /tsconfig.deploy.json
 /out/
 
+# Claude Code 桌面版的 session worktree（每個 session 自己一份工作區，TODO C14，2026-11-28）
+/.claude/worktrees/
+
 # runtime logs
 /logs/
 
