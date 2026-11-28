@@ -23,16 +23,11 @@ type Frame = {
   samples: { t: number; ok: boolean; p: Row[] }[];
   info: Record<string, Info>;
   recent?: Passed[];
-  yesterday?: { date: string; unique: number; airlines: { code: string; name: string; n: number }[] } | null;
   online: boolean;
   today?: { unique: number; peak: number; airlines: { code: string; name: string; n: number }[] };
   week?: { unique: number; uptime: number | null };
   lastAircraftAt?: number | null;
   build?: string | null;
-  hours?: (number | null)[];
-  weekAirlines?: { code: string; name: string; n: number }[];
-  weekTypes?: { code: string; name: string; n: number }[];
-  total?: { unique: number; peak: number; days: number };
 };
 type Shown = { id: string; alt: number | null; sp: number | null; tr: number | null; vr: number | null; info: Info };
 type Passed = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; t: number; alt: number | null; sp: number | null; tr: number | null };
@@ -80,7 +75,6 @@ export default function RadarLiveScreen() {
   const [focusIdx, setFocusIdx] = useState(0);
   const focusRef = useRef<string | null>(null);
   const buildRef = useRef<string | null>(null);
-  const [tipIdx, setTipIdx] = useState(0);
 
   // 抓資料
   useEffect(() => {
@@ -119,13 +113,11 @@ export default function RadarLiveScreen() {
     };
   }, []);
 
-  // 焦點航班每 8 秒換下一架；底部統計輪播每 9 秒換下一則
+  // 焦點航班每 8 秒換下一架
   useEffect(() => {
     const t = setInterval(() => setFocusIdx((i) => i + 1), 8000);
-    const t2 = setInterval(() => setTipIdx((i) => i + 1), 9000);
     return () => {
       clearInterval(t);
-      clearInterval(t2);
     };
   }, []);
 
@@ -469,9 +461,6 @@ export default function RadarLiveScreen() {
   const named = shown.filter((s) => s.info?.f);
   const focus = named.length ? named[focusIdx % named.length] : null;
   const passed = frame?.recent ?? [];
-  // 不滿 5 班時，用昨天的航空公司統計補滿（標「昨天」）
-  const fillers = (frame?.yesterday?.airlines ?? []).slice(0, Math.max(0, 5 - passed.length));
-  const tips = buildTips(frame);
   const focusId = focus?.id ?? null;
   useEffect(() => {
     focusRef.current = focusId;
@@ -569,7 +558,7 @@ export default function RadarLiveScreen() {
           剛剛經過 · JUST PASSED
         </p>
         <ul className="mt-[0.4em] min-h-0 flex-1 space-y-[0.3em] overflow-hidden">
-          {passed.length === 0 && fillers.length === 0 ? (
+          {passed.length === 0 ? (
             <li className="font-light" style={{ color: C.muted, fontSize: "0.85em" }}>還沒有紀錄 · None yet</li>
           ) : (
             passed.map((p) => (
@@ -582,24 +571,7 @@ export default function RadarLiveScreen() {
               </li>
             ))
           )}
-          {fillers.map((a) => (
-            <li key={`y-${a.code}`} className="flex items-baseline justify-between gap-[1em]" style={{ opacity: 0.75 }}>
-              <span className="min-w-0 truncate">
-                <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>昨天</span>
-                <span className="ml-[0.6em] font-light" style={{ fontSize: "0.95em" }}>{a.name}</span>
-              </span>
-              <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{a.n} 架次</span>
-            </li>
-          ))}
         </ul>
-
-        {/* 統計輪播（每 9 秒換一則）：/radar 頁公開的統計，只有數字、航空公司、機型、時段 */}
-        {tips.length > 0 && (
-          <div key={tipIdx % tips.length} className="enter-fade mt-[0.6em] border-t pt-[0.6em]" style={{ borderColor: "rgba(255,255,255,0.08)", minHeight: "4.3em" }}>
-            <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.75em" }}>{tips[tipIdx % tips.length].label}</p>
-            <p className="mt-[0.3em] font-light leading-snug" style={{ fontSize: "0.95em" }}>{tips[tipIdx % tips.length].text}</p>
-          </div>
-        )}
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
@@ -655,16 +627,3 @@ function passedAgoMs(frame: Frame | null, p: Passed) {
   return frame ? Math.max(0, frame.now - frame.delayMs - p.t) : 0;
 }
 const ago = (ms: number) => (ms < 90_000 ? "剛剛" : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} 分鐘前` : ms < 36 * 3600_000 ? `${Math.round(ms / 3600_000)} 小時前` : `${Math.round(ms / 86400_000)} 天前`);
-
-/** 右欄統計輪播的內容：從 API 的統計組出幾則（沒有資料的就不放）。使用者 2026-11-29：「近 7 天不要」→ 只放今天與累計，不放任何「近 7 天」 */
-function buildTips(f: Frame | null): { label: string; text: string }[] {
-  if (!f) return [];
-  const tips: { label: string; text: string }[] = [];
-  if (f.today) tips.push({ label: "今天 · TODAY", text: `收到 ${f.today.unique} 架次，同時最多 ${f.today.peak} 架` });
-  const hours = f.hours ?? [];
-  const max = Math.max(...hours.map((v) => v ?? 0));
-  if (max > 0) tips.push({ label: "一天的節奏 · DAILY RHYTHM", text: `平均 ${hours.findIndex((v) => v === max)} 點最忙；夜間機場有宵禁，凌晨的飛機本來就少` });
-  if (f.today?.airlines?.length) tips.push({ label: "今天的航空公司 · AIRLINES TODAY", text: f.today.airlines.slice(0, 4).map((a) => `${a.name} ${a.n}`).join("　") });
-  if (f.total) tips.push({ label: "累計 · SINCE START", text: `自己架的接收器已經記錄 ${f.total.days} 天、${f.total.unique.toLocaleString("en-US")} 架次，同時最多 ${f.total.peak} 架` });
-  return tips;
-}
