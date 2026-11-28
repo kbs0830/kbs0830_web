@@ -6,13 +6,17 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 // 音源是使用者自己的接收設備（SDR／對講機）→ 虛擬音效線 → 這台電腦的「音訊輸入」；這個元件只**量音量**：
 //   - 不錄音、不上傳、不播放（AnalyserNode 沒有接到喇叭）；聲音本身由 OBS 另外加「音訊輸入擷取」送上 YouTube
 //   - 只有網址有 `?audio=1`（或 `?audio=裝置名稱的一部分`，例如 `?audio=CABLE`）才會啟動，一般訪客不會被要求麥克風權限
+// 2026-11-29：塔台音源還在架設，先拿「無版權輕音樂」測量音量條 → 預設顯示「音樂 · MUSIC」＋「塔台無線電建置中」；
+// 網址再加 `&radio=1` 才改成「塔台 · ATC」（塔台音源接好之後）。
+// 隱私：**一定要指定裝置名稱**（`?audio=CABLE`），不再退回「預設麥克風」——預設可能是耳機麥克風，不能不小心打開。
+//   拿裝置名稱需要先有一次權限（瀏覽器規定），這個暫時串流會立刻關掉；建議把 Windows 的預設錄音裝置也設成虛擬音效線，連這一下都碰不到耳機。
 // 音量：RMS 換成 dBFS，-60 dB～0 dB 對應 24 格；峰值保持 1.2 秒再慢慢掉；超過約 -45 dB 持續 0.3 秒算「接收中」（靜噪打開）
 
 const SEGMENTS = 24;
 const FLOOR_DB = -60;
 const RX_DB = -45;
 
-type Status = "connecting" | "idle" | "rx" | "error";
+type Status = "connecting" | "idle" | "rx" | "error" | "nodevice" | "needname";
 
 export default function AtcMeter() {
   // 網址參數：server 端是 null（不畫），瀏覽器端讀 location.search（useSyncExternalStore 不會有 hydration 不一致）
@@ -20,6 +24,11 @@ export default function AtcMeter() {
     () => () => {},
     () => new URLSearchParams(location.search).get("audio"),
     () => null,
+  );
+  const radio = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(location.search).get("radio") === "1",
+    () => false,
   );
   const [status, setStatus] = useState<Status>("connecting");
   const segRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -35,16 +44,21 @@ export default function AtcMeter() {
     (async () => {
       try {
         const raw = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
-        stream = await navigator.mediaDevices.getUserMedia({ audio: raw });
-        // 指定了裝置名稱（?audio=CABLE）：拿到權限後才讀得到裝置名稱，再換成那個裝置
+        // 一定要指定裝置名稱（?audio=CABLE）；空的或 "1" 一律不開，避免誤開預設（可能是耳機）麥克風
         const want = request.trim().toLowerCase();
-        if (want && want !== "1") {
-          const dev = (await navigator.mediaDevices.enumerateDevices()).find((d) => d.kind === "audioinput" && d.label.toLowerCase().includes(want));
-          if (dev) {
-            stream.getTracks().forEach((t) => t.stop());
-            stream = await navigator.mediaDevices.getUserMedia({ audio: { ...raw, deviceId: { exact: dev.deviceId } } });
-          }
+        if (!want || want === "1") {
+          setStatus("needname");
+          return;
         }
+        // 拿到權限後才讀得到裝置名稱：先開一下預設裝置（立刻關掉），再換成指定的那個
+        const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
+        probe.getTracks().forEach((t) => t.stop());
+        const dev = (await navigator.mediaDevices.enumerateDevices()).find((d) => d.kind === "audioinput" && d.label.toLowerCase().includes(want));
+        if (!dev) {
+          setStatus("nodevice");
+          return;
+        }
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { ...raw, deviceId: { exact: dev.deviceId } } });
         if (stopped) return;
         ctx = new AudioContext();
         const analyser = ctx.createAnalyser();
@@ -107,13 +121,27 @@ export default function AtcMeter() {
 
   if (request === null) return null;
 
-  const label = { connecting: "連線中 · Connecting", idle: "待機 · Standby", rx: "接收中 · RX", error: "沒有音訊輸入 · No input" }[status];
+  const label = {
+    connecting: "連線中 · Connecting",
+    idle: radio ? "待機 · Standby" : "靜音 · Silent",
+    rx: radio ? "接收中 · RX" : "播放中 · Playing",
+    error: "沒有音訊輸入 · No input",
+    nodevice: "找不到指定的裝置 · Device not found",
+    needname: "請指定裝置名稱 · Name the device",
+  }[status];
 
   return (
     <div className="absolute left-[2.4em] flex flex-col items-start" style={{ top: "13.5em", bottom: "9em" }} aria-label="塔台無線電音量">
       <p className="font-mono tracking-[0.18em]" style={{ color: "#8aa0b5", fontSize: "0.8em" }}>
-        塔台 · ATC
+        {radio ? "塔台 · ATC" : "音樂 · MUSIC"}
       </p>
+      {!radio && (
+        <p className="mt-[0.2em] font-light" style={{ color: "#8aa0b5", fontSize: "0.75em" }}>
+          塔台無線電建置中
+          <br />
+          ATC radio under construction
+        </p>
+      )}
       <div className="mt-[0.8em] flex min-h-0 flex-1 items-stretch gap-[0.7em]">
         <div className="flex w-[1.1em] flex-col-reverse gap-[0.18em]">
           {Array.from({ length: SEGMENTS }, (_, i) => (
