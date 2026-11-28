@@ -24,6 +24,7 @@ import PageShell from "@/components/layout/PageShell";
 import CopyCodeButton from "@/components/ui/CopyCodeButton";
 import Comments from "@/components/content/Comments";
 import { RelatedTools } from "@/components/content/RelatedLinks";
+import PostFeedback from "@/components/content/PostFeedback";
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
@@ -235,6 +236,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           （GitHub）
         </p>
       )}
+
+      {/* 「這篇有幫到你嗎？」（TODO B20）：只記次數，後台報表看哪種文章值得多寫 */}
+      <PostFeedback slug={post.slug} />
 
       {/* 這篇相關的工具（TODO V8，對應表在 lib/site/related.ts） */}
       <RelatedTools slug={post.slug} />

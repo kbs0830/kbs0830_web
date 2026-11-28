@@ -7,6 +7,8 @@ import { nf, monthDay as md, regionName } from "@/lib/format";
 import { pageTitle } from "@/lib/site/page-title";
 import { readSearchConsole } from "@/lib/stats/search-console";
 import { readSearchIndex } from "@/lib/stats/search-index";
+import { readFeedbackSummary, REASON_LABEL } from "@/lib/stats/feedback";
+import { getAllPosts } from "@/lib/content/blog";
 import { connection } from "next/server";
 
 // 日報／週報／月報的內容（2026-11-26 從公開的 /reports 搬進站長後台，TODO G8；使用者 11/25：「我之後再挪到私人的管理者裡面」）。
@@ -70,6 +72,8 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
   const cmp = (cur: number, prev: number) => `${cmpLabel} ${N(prev)}${delta(cur, prev)}`;
   const gsc = readSearchConsole();
   const gscIndex = readSearchIndex();
+  const postTitles = new Map(getAllPosts().map((p) => [p.slug, p.title]));
+  const feedback = readFeedbackSummary();
   const sessionsTotal = r.direct != null ? r.direct + r.refKinds.reduce((n, [, c]) => n + c, 0) : undefined;
 
   return (
@@ -388,6 +392,27 @@ export default async function ReportsView({ searchParams }: { searchParams: Prom
               <p className="text-xs text-(--muted) font-light leading-relaxed">這次新收錄：{gscIndex.newlyIndexed.join("、")}</p>
             )}
           </div>
+        </Block>
+      )}
+
+      {feedback.length > 0 && (
+        <Block
+          title="文章回饋"
+          en="Was it helpful?"
+          note="記事最後「這篇有幫到你嗎？」的累計票數（不分期間，只算真人瀏覽器、不存是誰）。票數少的時候比例沒有意義，要有 5 票以上再看。「沒有」可以選原因，這裡列最多人選的那個。"
+        >
+          <ul className="border-y border-(--border) divide-y divide-(--border) text-sm font-light">
+            {feedback.map((f) => (
+              <li key={f.slug} className="py-3">
+                <p className="text-(--text) [overflow-wrap:anywhere]">{postTitles.get(f.slug) ?? f.slug}</p>
+                <p className="mt-0.5 font-mono text-xs text-(--muted)">
+                  有 {f.yes}・沒有 {f.no}
+                  {f.yes + f.no >= 5 ? `・有幫助 ${f.helpfulPct}%` : "・（票數還太少）"}
+                  {f.topReason && `・沒有的原因：${REASON_LABEL[f.topReason]}`}
+                </p>
+              </li>
+            ))}
+          </ul>
         </Block>
       )}
 
