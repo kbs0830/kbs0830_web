@@ -13,7 +13,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 //
 // 兩個參數都沒有時照樣畫出（灰色待機），一般訪客不會被要求任何權限。
 // 2026-11-29：塔台音源還在架設，先量「無版權輕音樂」→ 預設顯示「音樂 · MUSIC」＋「塔台無線電建置中」，網址加 `&radio=1` 才改成「塔台 · ATC」。
-// 音量：dBFS，-60～0 dB 對應 24 格；峰值保持 1.2 秒再慢慢掉；超過約 -45 dB 持續 0.3 秒算「接收中」。`&debug=1` 顯示診斷文字。
+// 音量：dBFS，-60～0 dB 對應 24 格；峰值保持 1.2 秒再慢慢掉；超過約 -45 dB 持續 0.3 秒算「接收中」。出問題（連不上、找不到來源）時才在下面顯示一行原因，正常時什麼都不顯示。
 
 const SEGMENTS = 24;
 const FLOOR_DB = -60;
@@ -43,7 +43,6 @@ export default function AtcMeter() {
   const obsIn = (q.get("obsin") ?? "").trim();
   const obsPw = q.get("obspw") ?? "";
   const radio = q.get("radio") === "1";
-  const debug = q.get("debug") === "1";
   const mode: "obs" | "mic" | null = obs !== null ? "obs" : audio !== null ? "mic" : null;
 
   const [status, setStatus] = useState<Status>("connecting");
@@ -311,7 +310,8 @@ export default function AtcMeter() {
       <p className="font-mono" style={{ color: "#8aa0b5", fontSize: "0.75em" }}>
         <span ref={dbRef}>-∞</span> dBFS
       </p>
-      {debug && diag && (
+      {/* 診斷文字：正常運作時不顯示（使用者 2026-11-29：「下面小字要拿掉」），只有連不上、找不到來源時才出現 */}
+      {diag && (shownStatus === "error" || shownStatus === "nodevice" || shownStatus === "needname") && (
         <p className="mt-[0.5em] max-w-[22em] font-mono leading-snug" style={{ color: "#8aa0b5", fontSize: "0.7em" }}>
           {diag}
         </p>

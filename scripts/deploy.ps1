@@ -220,7 +220,11 @@ try {
     $siteState = if ($lockHash -ne $installedHash) { "網站已停（剛裝完套件）" } else { "線上是 $activeSlot，照常服務" }
     Log "next build → $targetSlot（$siteState）"
     $targetPath = Join-Path $live $targetName
-    if (Test-Path $targetPath) { Remove-Item $targetPath -Recurse -Force }
+    # 整個資料夾清掉重 build，但「cache」留著：Turbopack 的編譯快取放在 <distDir>/cache，每次整個刪掉就等於每次從頭編譯
+    # （log 一直寫「No build cache found」，光編譯就 20 秒）。兩個槽輪流用，所以每個槽的快取隔一次部署就能用上（2026-11-29，使用者：「部署也太久」）
+    if (Test-Path $targetPath) {
+        Get-ChildItem $targetPath -Force | Where-Object { $_.Name -ne "cache" } | Remove-Item -Recurse -Force
+    }
     # tsconfig.deploy.json：Next 會往裡面加 <distDir>/types，用副本才不會弄髒 tsconfig.json（見 next.config.ts）
     Copy-Item (Join-Path $live "tsconfig.json") (Join-Path $live "tsconfig.deploy.json") -Force
     # build 時讀到的資料（prerender）跟執行時同一份：正式站資料夾的 data／logs／草稿（server.js 也是設這幾個）

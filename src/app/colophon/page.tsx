@@ -207,7 +207,7 @@ function nodes(f: SiteFacts): NodeDef[] {
       title: "自家雷達",
       live: f.radar ? (f.radar.online ? `現在收到 ${f.radar.aircraftNow} 架` : "離線") : "—",
       heading: "自家雷達 · 樹莓派 ADS-B 接收器",
-      body: ["家裡另一台樹莓派收飛機廣播的 ADS-B 訊號、分享給 Flightradar24；server.js 每 30 秒在區網讀一次數字，存成彙總。"],
+      body: ["家裡另一台樹莓派收飛機廣播的 ADS-B 訊號、分享給 Flightradar24；server.js 每 5 秒在區網讀一次數字，存成彙總。"],
       facts: f.radar ? [f.radar.online ? `現在收到 ${f.radar.aircraftNow} 架飛機` : "現在離線"] : [],
       links: [{ href: "/radar", label: "自家雷達" }],
     },

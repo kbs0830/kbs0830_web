@@ -1,6 +1,6 @@
 // 自家 FR24 雷達（ADS-B 接收器）即時狀態（TODO 點子 B13，2026-11-21）。
 //
-// scripts/server.js 每 30 秒在區網讀一次雷達（.env.local 的 RADAR_HOST，沒設就整個不跑）：
+// scripts/server.js 每 5 秒在區網讀一次雷達（.env.local 的 RADAR_HOST，沒設就整個不跑）：
 //   - http://<RADAR_HOST>:8754/monitor.json        fr24feed 的狀態（接收器有沒有連上、是不是卡在關機）
 //   - http://<RADAR_HOST>/dump1090/data/aircraft.json  現在收到的飛機
 // 彙總寫進 data/radar.json，/api/radar 讀它給 /flights 的 RadarStatus 顯示，watchdog 拿 status 判斷要不要寄信。
@@ -20,8 +20,7 @@ const { twDate, twHour } = require("./tw-time");
 const path = require("node:path");
 const { recordTrack, readTrack, writeTrack } = require("./radar-live");
 
-const POLL_MS = 30_000;
-const TRACK_POLL_MS = 5_000; // 直播軌跡的取樣間隔
+const POLL_MS = 5_000; // 2026-11-29 使用者：「每 30 秒在家裡的區網讀一次，改成每五秒」（原本 30 秒；直播軌跡也是同一次讀取）
 const KEEP_DAYS = 120;
 const RECENT_SECONDS = 60; // aircraft.json 會留 5 分鐘沒訊號的飛機；60 秒內有收到才算「現在」
 
@@ -294,7 +293,7 @@ async function pollRadar(host) {
   }
 }
 
-const TYPE_LOOKUPS_PER_TICK = 4; // 每 30 秒最多問 adsbdb 4 次（新收到的飛機才問，問過的存快取）
+const TYPE_LOOKUPS_PER_TICK = 4; // 每輪最多問 adsbdb 4 次（新收到的飛機才問，問過的存快取；輪詢是 5 秒一次，這個每 6 次才做一次）
 const TYPE_MISS_RETRY_MS = 30 * 86400_000; // 查不到的 30 天後再試一次
 const TYPE_CACHE_MAX = 30_000;
 
@@ -349,9 +348,10 @@ async function lookupTypes(state, types, now, fetcher = fetchType) {
   return changed;
 }
 
-/** server.js 呼叫：每 30 秒讀一次、寫檔。寫檔是同步的（同一個 process 只有這裡寫，API 只讀） */
+/** server.js 呼叫：每 5 秒讀一次、寫檔（統計與直播軌跡共用同一次讀取）。寫檔是同步的（同一個 process 只有這裡寫，API 只讀） */
 function startRadarPoller({ host, file, typesFile, log }) {
   let running = false;
+  let n = 0;
   const typesPath = typesFile || path.join(path.dirname(file), "aircraft-types.json");
   const types = readState(typesPath) || {};
   const trackPath = path.join(path.dirname(file), "radar-track.json");
@@ -362,9 +362,11 @@ function startRadarPoller({ host, file, typesFile, log }) {
       const sample = await pollRadar(host);
       const now = Date.now();
       const prev = readState(file);
-      if (await lookupTypes(prev, types, now)) fs.writeFileSync(typesPath, JSON.stringify(types));
-      const next = applySample(prev, sample, now, types);
-      fs.writeFileSync(file, JSON.stringify(next));
+      // 機型查詢（問外面的 adsbdb）不跟著 5 秒一次：每 6 次（約 30 秒）才做一次，免得請求量變 6 倍
+      if (n++ % 6 === 0 && (await lookupTypes(prev, types, now))) fs.writeFileSync(typesPath, JSON.stringify(types));
+      fs.writeFileSync(file, JSON.stringify(applySample(prev, sample, now, types)));
+      // 直播畫面用的位置軌跡（只留 20 分鐘；規則見 radar-live.js）
+      writeTrack(trackPath, recordTrack(readTrack(trackPath), sample, now));
     } catch (e) {
       if (log) log(`RADAR poll error: ${e && e.message ? e.message : e}`);
     } finally {
@@ -372,22 +374,6 @@ function startRadarPoller({ host, file, typesFile, log }) {
     }
   };
   tick();
-  // 直播畫面用的位置軌跡：5 秒一次（延遲 0 時動畫才順；規則見 radar-live.js）。只讀接收器、只寫 radar-track.json，不碰統計
-  let fastRunning = false;
-  const fastTick = async () => {
-    if (fastRunning) return;
-    fastRunning = true;
-    try {
-      const sample = await pollRadar(host);
-      writeTrack(trackPath, recordTrack(readTrack(trackPath), sample, Date.now()));
-    } catch (e) {
-      if (log) log(`RADAR track error: ${e && e.message ? e.message : e}`);
-    } finally {
-      fastRunning = false;
-    }
-  };
-  fastTick();
-  setInterval(fastTick, TRACK_POLL_MS).unref();
   return setInterval(tick, POLL_MS).unref();
 }
 

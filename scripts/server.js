@@ -80,7 +80,7 @@ process.env.CSP_REPORT_FILE = path.join(dataDir, "csp-reports.json");
 process.env.VISITS_DETAIL_FILE = path.join(dataDir, "visits-detail.json");
 // 新功能上線 12 小時（deploy.ps1 寫，分頁圖示櫻花粉）
 process.env.FEATURE_RELEASE_FILE = path.join(dataDir, "feature-release.json");
-// 自家 FR24 雷達的彙總（lib/radar.js；下面 prepare 之後開始每 30 秒讀，.env.local 要有 RADAR_HOST）
+// 自家 FR24 雷達的彙總（lib/radar.js；下面 prepare 之後開始每 5 秒讀，.env.local 要有 RADAR_HOST）
 process.env.RADAR_FILE = process.env.RADAR_FILE || path.join(dataDir, "radar.json");
 process.env.RADAR_HEALTH_FILE = process.env.RADAR_HEALTH_FILE || path.join(dataDir, "radar-health.json");
 // 維運狀態頁 /status（src/lib/ops/status.ts）：watchdog 每 5 分鐘一行的可用率、deploy.log、watchdog.log

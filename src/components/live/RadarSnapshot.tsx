@@ -44,7 +44,7 @@ export default function RadarSnapshot() {
               [`${nf.format(d.today?.unique ?? 0)} 架`, "今天收到 · Today"],
               [`${nf.format(d.today?.peak ?? 0)} 架`, "今天最多同時 · Peak"],
               [`${nf.format(d.week?.unique ?? 0)} 架次`, "近 7 天 · 7 days", "每天收到幾架不同的飛機，7 天加起來。同一架飛機隔天又飛過會再算一次，所以叫「架次」。"],
-              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 30 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
+              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 5 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
             ]}
           />
           </div>

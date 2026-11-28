@@ -16,7 +16,7 @@ import { after, connection } from "next/server";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 
 // 自家雷達頁（2026-11-21，使用者：「自家雷達 · My Radar 沒能給更好看的頁面嗎?」）。
-// 資料：scripts/server.js 每 30 秒在區網讀雷達寫的 data/radar.json（scripts/lib/radar.js 的 detail()）。
+// 資料：scripts/server.js 每 5 秒在區網讀雷達寫的 data/radar.json（scripts/lib/radar.js 的 detail()）。
 // 跟 /stats 一樣每次請求現讀檔（Cache Components：頁首是外殼、數字串流進來）→ 沒有 Markdown 版（Markdown 是 build 時預先產生的，會是舊數字）。
 // ⚠️ 隱私：接收器在使用者家。只放數字、航空公司、時段——不放地圖、座標、涵蓋範圍、最遠距離，
 //    也不寫離哪個機場多近（CLAUDE.md「自家 FR24 雷達」）。
@@ -54,7 +54,7 @@ async function RadarContent() {
               [`${nf.format(d.today?.unique ?? 0)} 架`, "今天收到 · Today"],
               [`${nf.format(d.today?.peak ?? 0)} 架`, "今天最多同時 · Peak"],
               [`${nf.format(d.week?.unique ?? 0)} 架次`, "近 7 天 · 7 days", "每天收到幾架不同的飛機，7 天加起來。同一架飛機隔天又飛過會再算一次，所以叫「架次」。"],
-              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 30 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
+              [d.week?.uptime != null ? `${d.week.uptime}%` : "–", "在線率 · Uptime", "網站每 5 秒問一次接收器，近 7 天裡有回應、而且有在接收訊號的比例。"],
             ]}
           />
 
@@ -179,7 +179,7 @@ async function RadarContent() {
             <BulletList
               items={[
                 "樹莓派（Flightradar24 的 Pi24 系統）＋ DVB-T 電視棒當 SDR 接收器，fr24feed 解碼後即時送到 Flightradar24",
-                "這個網站的伺服器每 30 秒在家裡的區網讀一次，只留數字：現在、今天、每小時幾架，跟航空公司、機型",
+                "這個網站的伺服器每 5 秒在家裡的區網讀一次，只留數字：現在、今天、每小時幾架，跟航空公司、機型",
                 "不公開位置：不畫地圖、不算涵蓋範圍——把收到的飛機位置畫出來，就看得出接收器在哪",
                 "離線超過 15 分鐘，或白天 2 小時一架都沒收到，會自動寄信給我",
               ]}

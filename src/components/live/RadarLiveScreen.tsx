@@ -127,9 +127,9 @@ export default function RadarLiveScreen() {
     return () => ro.disconnect();
   }, []);
 
-  // 焦點航班每 8 秒換下一架
+  // 焦點航班每 12 秒換下一架（圈圈與資訊卡都是淡入淡出，不是瞬間切換）
   useEffect(() => {
-    const t = setInterval(() => setFocusIdx((i) => i + 1), 8000);
+    const t = setInterval(() => setFocusIdx((i) => i + 1), 12000);
     return () => {
       clearInterval(t);
     };
@@ -147,6 +147,7 @@ export default function RadarLiveScreen() {
     let dpr = 1;
     let land: Path2D | null = null;
     let lastPublish = 0;
+    const ringAlpha = new Map<string, number>(); // 每架飛機的焦點圈透明度（0～1）
     // canvas 的 font 不認 CSS 變數，要先讀出實際字型名稱
     const mono = getComputedStyle(canvas).getPropertyValue("--font-mono").trim() || "monospace";
 
@@ -434,9 +435,11 @@ export default function RadarLiveScreen() {
           ctx.fillStyle = onGround ? "rgba(232,240,248,0.5)" : C.plane;
           ctx.fill(new Path2D(PLANE));
           ctx.restore();
-          if (id === focusRef.current) {
-            // 焦點航班：細圈（資訊欄的詳細資料就是這一架）
-            ctx.strokeStyle = "rgba(111,160,216,0.95)";
+          // 焦點航班：細圈（資訊欄的詳細資料就是這一架）。換焦點時舊的慢慢淡出、新的慢慢淡入（不要瞬間跳）
+          const ra = (ringAlpha.get(id) ?? 0) + ((id === focusRef.current ? 1 : 0) - (ringAlpha.get(id) ?? 0)) * 0.06;
+          ringAlpha.set(id, ra);
+          if (ra > 0.02) {
+            ctx.strokeStyle = `rgba(111,160,216,${(0.95 * ra).toFixed(3)})`;
             ctx.lineWidth = 2 * k;
             ctx.beginPath();
             ctx.arc(px, py, 27 * k, 0, Math.PI * 2);
@@ -546,7 +549,7 @@ export default function RadarLiveScreen() {
           焦點航班 · FOCUS{focus ? `　${(focusIdx % named.length) + 1}/${named.length}` : ""}
         </p>
         {focus ? (
-          <div className="mt-[0.5em] rounded-sm px-[0.9em] py-[0.7em]" style={{ background: "rgba(45,90,142,0.18)", border: "1px solid rgba(111,160,216,0.35)" }}>
+          <div key={focus.id} className="enter-fade mt-[0.5em] rounded-sm px-[0.9em] py-[0.7em]" style={{ background: "rgba(45,90,142,0.18)", border: "1px solid rgba(111,160,216,0.35)", ["--enter-duration" as string]: "1.2s" }}>
             <p className="flex items-baseline justify-between gap-[0.6em]">
               <span className="font-mono font-semibold" style={{ fontSize: "1.55em" }}>{focus.info.f}</span>
               <span className="truncate font-light" style={{ color: C.muted, fontSize: "0.95em" }}>{focus.info.an ?? focus.info.al ?? ""}</span>
@@ -576,7 +579,7 @@ export default function RadarLiveScreen() {
             <li className="font-light" style={{ color: C.muted, fontSize: "0.85em" }}>還沒有紀錄 · None yet</li>
           ) : (
             passed.slice(0, passedFit).map((p) => (
-              <li key={`${p.f}-${p.t}`} className="flex items-baseline justify-between gap-[1em]">
+              <li key={`${p.f}-${p.t}`} className="enter-fade flex items-baseline justify-between gap-[1em]" style={{ ["--enter-duration" as string]: "1.2s" }}>
                 <span className="min-w-0 truncate">
                   <span className="font-mono font-semibold" style={{ fontSize: "0.95em" }}>{p.f}</span>
                   <span className="ml-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.78em" }}>{p.an ?? p.al ?? ""}{p.tn ? ` · ${p.tn}` : ""}</span>
