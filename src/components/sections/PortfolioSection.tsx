@@ -11,6 +11,7 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import TagBadge from "@/components/ui/TagBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ProjectHighlight from "@/components/ui/ProjectHighlight";
+import RadarCardChart from "@/components/live/RadarCardChart";
 import ProjectFilter, { type FilterGroup } from "@/components/sections/ProjectFilter";
 import { HOME_WIDTH } from "@/components/layout/home-width";
 
@@ -61,6 +62,8 @@ function ProjectCard({
                   className="object-cover grayscale-[10%] group-hover:grayscale-0 transition-[filter] duration-500"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
+                {/* 雷達站：截圖上面淡入即時小圖（TODO R6），抓到之前／抓不到就是截圖 */}
+                {project.slug === "fr24-receiver" && <RadarCardChart />}
               </div>
             </ViewTransition>
           )}

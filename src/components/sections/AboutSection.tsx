@@ -35,8 +35,33 @@ function ProficiencyDots({ level }: { level: number }) {
   );
 }
 
+const MOBILE_SKILLS = 5;
+
+function SkillChip({ item, className = "inline-flex" }: { item: (typeof skills)[0]["items"][0]; className?: string }) {
+  const tag = tagForSkill(item.name);
+  // 有作品用到的技能：點了跳到作品集並篩出那些作品（ProjectFilter 監聽 data-filter-tag，不重新載入頁面）
+  return tag ? (
+    <a
+      href="#portfolio"
+      data-filter-tag={tag}
+      title={`看用到 ${tag} 的作品（${projectCountForTag(tag)} 個）`}
+      className={`${className} items-center ${pill} hover:border-(--accent) hover:text-(--accent) transition-colors underline decoration-dotted decoration-(--border) underline-offset-4`}
+    >
+      {item.name}
+      <ProficiencyDots level={item.level} />
+    </a>
+  ) : (
+    <span className={`${className} items-center ${pill} ${pillHover}`}>
+      {item.name}
+      <ProficiencyDots level={item.level} />
+    </span>
+  );
+}
+
 // 原生 <details>：開合、鍵盤操作、aria-expanded 都由瀏覽器處理；動畫見 globals.css details.disclosure
 function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; defaultOpen: boolean }) {
+  const sorted = group.items.toSorted((a, b) => b.level - a.level);
+  const [top, rest] = sorted.length > MOBILE_SKILLS + 1 ? [sorted.slice(0, MOBILE_SKILLS), sorted.slice(MOBILE_SKILLS)] : [sorted, []];
   return (
     <details open={defaultOpen} className="disclosure group pt-3 first:pt-0">
       <summary className="w-full grid sm:grid-cols-[180px_1fr] gap-3 sm:gap-6 items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden">
@@ -51,29 +76,30 @@ function SkillGroup({ group, defaultOpen }: { group: (typeof skills)[0]; default
           {group.items.length} 項技能，點擊展開
         </span>
       </summary>
+      {/* 熟練度高的排前面（同分照原本順序）。手機（TODO P7，2026-11-28）：一類 7 個以上時只先露前 5 個，
+          其他收在「還有 N 個」裡（巢狀 <details>，零 JS）；桌機全部攤開，跟以前一樣 */}
       <div className="flex flex-wrap gap-2 pt-4 sm:pl-[204px]">
-        {group.items.map((item) => {
-          const tag = tagForSkill(item.name);
-          // 有作品用到的技能：點了跳到作品集並篩出那些作品（ProjectFilter 監聽 data-filter-tag，不重新載入頁面）
-          return tag ? (
-            <a
-              key={item.name}
-              href="#portfolio"
-              data-filter-tag={tag}
-              title={`看用到 ${tag} 的作品（${projectCountForTag(tag)} 個）`}
-              className={`inline-flex items-center ${pill} hover:border-(--accent) hover:text-(--accent) transition-colors underline decoration-dotted decoration-(--border) underline-offset-4`}
-            >
-              {item.name}
-              <ProficiencyDots level={item.level} />
-            </a>
-          ) : (
-            <span key={item.name} className={`inline-flex items-center ${pill} ${pillHover}`}>
-              {item.name}
-              <ProficiencyDots level={item.level} />
-            </span>
-          );
-        })}
+        {top.map((item) => (
+          <SkillChip key={item.name} item={item} />
+        ))}
+        {rest.map((item) => (
+          <SkillChip key={item.name} item={item} className="hidden sm:inline-flex" />
+        ))}
       </div>
+      {rest.length > 0 && (
+        <details className="sm:hidden group/more">
+          <summary className="inline-flex items-center gap-1.5 mt-3 py-1.5 text-xs font-light text-(--muted) cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <span className="group-open/more:hidden">還有 {rest.length} 個</span>
+            <span className="hidden group-open/more:inline">收起</span>
+            <span aria-hidden className="text-(--accent) text-[10px] transition-[rotate] duration-200 group-open/more:rotate-180">▾</span>
+          </summary>
+          <div className="flex flex-wrap gap-2 pt-2">
+            {rest.map((item) => (
+              <SkillChip key={item.name} item={item} />
+            ))}
+          </div>
+        </details>
+      )}
     </details>
   );
 }
@@ -83,7 +109,15 @@ function TimelineItem({ item, index }: { item: (typeof timeline)[0]; index: numb
   return (
     <Reveal from="left" duration={0.5} delay={index * 0.08} margin={60} className="group/tl flex items-start gap-6">
       <p className="text-xs text-(--accent) tracking-[0.15em] w-[60px] shrink-0 pt-0.5 text-right font-mono">{item.year}</p>
-      <div tabIndex={0} className="relative pl-8 cursor-pointer group/item">
+      <div tabIndex={0} className="relative flex-1 pl-8 pr-8 sm:pr-0 cursor-pointer group/item">
+        {/* 手機看不出可以點開（TODO P8，2026-11-28）：右邊一個淡淡的「＋」，點開（focus）時轉 45° 變成「×」，跟技能分類 ▸ 轉向同一套語言。
+            桌機是滑鼠移上去就展開，不需要提示 */}
+        <span
+          aria-hidden
+          className="sm:hidden absolute right-0 top-0 grid place-items-center size-6 -mt-1 text-base font-light leading-none text-(--muted) transition-[rotate,color] duration-300 ease-(--ease-ma) group-focus/item:rotate-45 group-focus/item:text-(--accent)"
+        >
+          +
+        </span>
         {/* 外層 Reveal 加上 data-shown 時，圓點跟著放大出現 */}
         <div
           className="absolute left-[-4px] top-[5px] w-2 h-2 rounded-full border border-(--accent) bg-(--bg) scale-0 transition-[scale] duration-300 group-data-shown/tl:scale-100"
@@ -279,27 +313,31 @@ export default function AboutSection() {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-14 md:mb-20">
           <Reveal delay={0.1}>
             <div className="space-y-5 font-light leading-relaxed text-[15px] 3xl:text-[17px] break-keep">
-              <div className="mb-6">
+              {/* 手機（TODO P1，2026-11-28）：照片縮成 64px、跟第一段並排（圖左字右），不再自己佔一行；桌機照舊照片在上 */}
+              <div className="flex items-start gap-4 sm:block">
                 <Image
                   src="/image/大頭貼.jpg"
                   alt="PINGWEI LI"
                   width={108}
                   height={108}
-                  className="rounded-sm object-cover object-top grayscale-[15%]"
+                  className="size-16 sm:size-[108px] shrink-0 sm:mb-6 rounded-sm object-cover object-top grayscale-[15%]"
                 />
+                {/* 2026-11-26 文案重寫（TODO N10，使用者選 1B＋2＋3）：一段一個具體事實，不用「深深」「探索…的可能性」這類空泛詞 */}
+                {/* 中文句子在 JSX 裡不要換行：換行會變成一個半形空格（「福岡； 一半」）。外層 break-keep：只在標點、空格換行，不會斷成「靈／感」「程式／碼」 */}
+                {/* min-w-0＋<wbr>：跟照片並排後一行變窄，break-keep 下「一半的靈感來自…航程」整串沒有斷點，360px 會把頁面撐到 404px（E2E 抓到）。
+                    在詞組之間給斷點，不會斷在詞的中間 */}
+                <p className="min-w-0 text-(--text)">
+                  我在<span className="text-(--accent)">高雄</span>念書，常往返<span className="text-(--accent)">福岡</span>；一半的靈感<wbr />來自這兩座城市<wbr />之間的那段航程。
+                </p>
               </div>
-              {/* 2026-11-26 文案重寫（TODO N10，使用者選 1B＋2＋3）：一段一個具體事實，不用「深深」「探索…的可能性」這類空泛詞 */}
-              {/* 中文句子在 JSX 裡不要換行：換行會變成一個半形空格（「福岡； 一半」）。外層 break-keep：只在標點、空格換行，不會斷成「靈／感」「程式／碼」 */}
-              <p className="text-(--text)">
-                我在<span className="text-(--accent)">高雄</span>念書，常往返<span className="text-(--accent)">福岡</span>；一半的靈感來自這兩座城市之間的那段航程。
-              </p>
               <p className="text-(--muted)">
                 我做的東西落在 AI 跟網頁之間：模型負責判斷，介面負責好用，程式碼負責讓下一個人看得懂。
               </p>
               <p className="text-(--muted)">
                 這個網站就是例子——自己寫、架在家裡的桌機上，出問題會自己寄信通知我。
               </p>
-              <div className="pt-2 border-t border-(--border)">
+              {/* 英文段落手機不顯示（TODO P1）：跟作品區「手機一行中文就好」同一個原則；桌機照舊 */}
+              <div className="hidden sm:block pt-2 border-t border-(--border)">
                 <p className="text-(--muted) text-sm 3xl:text-[15px]">
                   Student developer between Kaohsiung and Fukuoka. I work where AI meets the web —
                   and I host what I build: this site runs on a desktop at home.
@@ -311,16 +349,18 @@ export default function AboutSection() {
           <Reveal delay={0.15}>
             <div className="p-6 border border-(--border) rounded-sm bg-(--bg) space-y-4 font-mono">
               <p className="text-xs tracking-[0.25em] text-(--accent) uppercase">現況 · Status</p>
-              <ul className="space-y-3 text-sm 3xl:text-[15px] font-light">
+              {/* 手機（TODO P2，2026-11-28）：7 行清單約 330px → 兩欄小格子（標籤小字在上、值在下），資訊全部保留、高度約減半。
+                  值很長的（就讀）佔滿兩欄。桌機照舊「▸ 標籤　值」一行一項 */}
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-3.5 sm:block sm:space-y-3 text-sm 3xl:text-[15px] font-light">
                 {/* 每行「標籤＋全形空格＋值」：標籤固定一欄，值換行時對齊值的開頭（手機上就讀那行會換行） */}
                 {statusLines.map((line) => {
                   const [key, value] = line.split("　");
                   return (
-                    <li key={line} className="flex items-start gap-3">
-                      <span className="text-(--accent) mt-0.5" aria-hidden>▸</span>
+                    <li key={line} className={`flex items-start gap-3 ${value && value.length > 16 ? "col-span-2" : ""}`}>
+                      <span className="hidden sm:inline text-(--accent) mt-0.5" aria-hidden>▸</span>
                       {value ? (
-                        <span className="flex gap-3 text-(--muted)">
-                          <span className="shrink-0">{key}</span>
+                        <span className="flex flex-col gap-0.5 sm:flex-row sm:gap-3 text-(--text) sm:text-(--muted)">
+                          <span className="shrink-0 text-[11px] tracking-wide text-(--muted) sm:text-sm 3xl:text-[15px] sm:tracking-normal">{key}</span>
                           {/* 只在「 · 」之間換行，每一段不拆開（2026-11-26 使用者：手機上「三年級（燕巢）」被拆成兩行、括號掉到下一行開頭）。
                               「·」留在上一行行尾 */}
                           <span>
@@ -355,6 +395,9 @@ export default function AboutSection() {
         <Reveal delay={0.2}>
           <Tabs
             label="關於我的分類"
+            // 各分頁高度差很多（390px 實測：歷程 481、技能 427、足跡 410、開発活動 209），給同一個最小高度（以最高的為準），切換時下面的作品區不會整塊上下跳（TODO P5）。
+            // 只加在顯示中的那頁：hidden="until-found" 的面板還佔版面（content-visibility），加了會多出好幾頁空白
+            panelClassName="[&:not([hidden])]:min-h-[30.5rem] sm:[&:not([hidden])]:min-h-[29rem]"
             items={[
               { key: "timeline", label: "歷程", labelEn: "Timeline", count: timeline.length, panel: <TimelinePanel /> },
               { key: "skills", label: "技能", labelEn: "Skills", count: skillCount, panel: <SkillsPanel /> },

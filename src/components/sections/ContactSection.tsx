@@ -1,8 +1,9 @@
 // Server Component；互動只有複製 Email（CopyEmailButton）跟磁吸效果（Magnetic），兩地時刻在 ContactRoute
 //
 // 2026-11-27（TODO M16，使用者：「按下連絡先的時候頁面自動往下以外還要放大滿版有視覺衝擊」；決定「1 保留 2 做」）：
-//   - 整區是一整個螢幕高的深墨色（淺色模式也反白）：section 加 data-theme="dark" 沿用深色調色盤，再用 .contact-stage 換成偏藍的墨色，
-//     深色模式下才分得出跟頁面底色的邊界
+//   - 整區是一整個螢幕高的色塊（.contact-stage）：淺色模式是淡藍灰的和紙色、深色模式是偏藍的墨色。
+//     2026-11-28 使用者：「連絡先太黑了，太突兀了」→ 原本淺色模式也整區反白成深墨（data-theme="dark"），拿掉了
+//   - 底部留 pb-24：右下角「↑ 回頂端」（bottom-8＋40px 高）不會蓋到最底下的航線（2026-11-28 使用者：被右下角的按鈕擋住）
 //   - 捲到時從內縮的圓角卡片推成滿版（globals.css .contact-stage，CSS 捲動動畫，區塊填滿螢幕時剛好展開完）。
 //     NavBar／封面的「聯絡我」只負責捲下來，展開是捲動自己播的；用滾輪捲的人也看得到
 //   - 標題保留「連絡先 · Get in Touch」（決定 1），放大；Email 當主角；最底下高雄 → 福岡的航線收尾
@@ -30,8 +31,8 @@ const links: { href: string; label: string; icon: ReactNode; download?: boolean 
 
 export default function ContactSection() {
   return (
-    <section id="contact" data-theme="dark" className="contact-stage relative min-h-svh flex bg-(--bg) text-(--text)">
-      <div className={`contact-inner ${HOME_WIDTH} w-full mx-auto px-6 pt-28 pb-10 sm:pb-14 flex flex-col`}>
+    <section id="contact" className="contact-stage relative min-h-svh flex bg-(--bg) text-(--text)">
+      <div className={`contact-inner ${HOME_WIDTH} w-full mx-auto px-6 pt-28 pb-24 flex flex-col`}>
         <div className="flex-1 flex flex-col justify-center">
           <Eyebrow className="mb-6 sm:mb-8">03 — Contact</Eyebrow>
           <h2 className="contact-title font-serif font-light leading-[1.1] text-[clamp(2.75rem,11vw,6rem)] tracking-[0.01em] mb-8 sm:mb-10">

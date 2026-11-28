@@ -17,7 +17,8 @@ type TabItem = {
 //     找到時瀏覽器發 beforematch → 自動切到那一頁
 //   - ARIA tabs 規範：←→ / Home / End 換頁、只有目前那個 tab 在 Tab 鍵順序裡
 //   - 底下那條指示線滑到選中的分頁（直接改 style，不 re-render）；列印時全部面板都印出來（globals.css）
-export default function Tabs({ items, label }: { items: TabItem[]; label: string }) {
+/** panelClassName：每個面板都加上的 class，例如最小高度——各頁高度差很多時，切換分頁下面的內容才不會整塊上下跳（About，TODO P5） */
+export default function Tabs({ items, label, panelClassName = "" }: { items: TabItem[]; label: string; panelClassName?: string }) {
   const [active, setActive] = useState(items[0].key);
   const id = useId();
   const list = useRef<HTMLDivElement>(null);
@@ -132,7 +133,7 @@ export default function Tabs({ items, label }: { items: TabItem[]; label: string
           aria-labelledby={`${id}-tab-${t.key}`}
           hidden={t.key !== active}
           tabIndex={0}
-          className="tab-panel focus-visible:outline-offset-8"
+          className={`tab-panel focus-visible:outline-offset-8 ${panelClassName}`}
         >
           {t.panel}
         </div>

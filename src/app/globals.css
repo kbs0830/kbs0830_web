@@ -165,6 +165,9 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 1.6 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 240px 240px;
   opacity: 0.2;
+  /* TODO R5（2026-11-28）：淺色模式捲到深墨的連絡先時，褐色纖維蓋在深底上看起來髒。
+     multiply：乘在淺底上跟原本幾乎一樣，乘在深墨上趨近於零（看不到）；不用動 z-index（NavBar 是 z-50，會一起被蓋） */
+  mix-blend-mode: multiply;
 }
 /* 2026-11-26 使用者：深色模式的紙紋不好看 → 只留淺色 */
 [data-theme="dark"] body::after {
@@ -816,14 +819,23 @@ details[open]::details-content {
   }
 }
 
-/* ── 連絡先：深墨滿版＋捲動展開（ContactSection，TODO M16，2026-11-27）──────────────
-   section 有 data-theme="dark"（沿用深色調色盤，淺色模式也反白），這裡再把底色換成偏藍的墨色：
-   深色模式的頁面底色 #0f0f0d 跟深色調色盤一樣，不換的話卡片的邊看不出來。 */
+/* ── 連絡先：滿版＋捲動展開（ContactSection，TODO M16，2026-11-27）──────────────
+   2026-11-28 使用者：「連絡先太黑了，太突兀了」→ 淺色模式不再整區反白成深墨，改成淡淡的藍灰和紙（藍白），
+   跟頁面的暖白底分得出來、又不會一捲到就像換了一個網站；衝擊感留給「卡片推成滿版」的動畫跟放大的標題。
+   --muted 壓深一點：#6b6b6b 在這個底色上對比只有 4.5 左右，太險。
+   深色模式維持偏藍的墨色：頁面底色 #0f0f0d，不換的話卡片的邊看不出來。 */
 .contact-stage {
+  --bg: #e8edf2;
+  --surface: #dde4eb;
+  --border: #c5cfd9;
+  --muted: #59606a;
+  --card-x: max(1rem, calc((100vw - 72rem) / 2));
+}
+[data-theme="dark"] .contact-stage {
   --bg: #11141b;
   --surface: #181c25;
   --border: #2a303c;
-  --card-x: max(1rem, calc((100vw - 72rem) / 2));
+  --muted: #8a8880;
 }
 /* 航線虛線（ContactRoute） */
 .contact-route { container-type: inline-size; }
