@@ -76,6 +76,7 @@ export default function RadarLiveScreen() {
   const [focusIdx, setFocusIdx] = useState(0);
   const focusRef = useRef<string | null>(null);
   const passedRef = useRef<HTMLUListElement>(null);
+  const idleRef = useRef(false);
   const [passedFit, setPassedFit] = useState(5);
   const buildRef = useRef<string | null>(null);
 
@@ -140,7 +141,7 @@ export default function RadarLiveScreen() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) return;
     let raf = 0;
     let w = 0;
@@ -176,16 +177,23 @@ export default function RadarLiveScreen() {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       buildLand();
+      rebuild();
     });
     ro.observe(canvas);
 
-    const draw = (tick: number) => {
-      raf = requestAnimationFrame(draw);
-      if (!w || !land) return;
-      const k = h / 1080; // 文字、圖示大小跟著畫面高度
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-
+    // 靜態底圖（格線、陸地、縣市界、機場、導航台、城市名）只在尺寸改變時畫一次，每個畫格直接貼上去。
+    // 2K60（2560×1440、每秒 60 格）時，如果每格都重畫幾百條路徑與上百個文字，CPU 會先撐不住（2026-11-29，使用者：「目前畫面是 2K60，網站要跟上」）
+    let bg: HTMLCanvasElement | null = null;
+    let bgBlur: HTMLCanvasElement | null = null; // 閒置時用的「模糊＋壓暗」底圖：預先畫一次，不用每格叫瀏覽器即時模糊整個螢幕（backdrop-filter 在 2K60 很重）
+    let idleMix = 0; // 0＝清楚的地圖、1＝完全模糊壓暗；往目標慢慢靠近（約 1 秒）
+    let wedge: HTMLCanvasElement | null = null; // 掃描線的扇形：預先畫好，每格只旋轉再貼（旋轉與合成交給顯卡）
+    let wedgeH = 0;
+    const planePath = new Path2D(PLANE);
+    const paintStatic = (ctx: CanvasRenderingContext2D, k: number) => {
+      ctx.fillStyle = C.bg;
+      ctx.fillRect(0, 0, w, h);
+      const L = land;
+      if (!L) return;
       // 經緯線（每 0.5 度，很淡）
       ctx.strokeStyle = C.grid;
       ctx.lineWidth = 1;
@@ -204,23 +212,11 @@ export default function RadarLiveScreen() {
 
       // 陸地
       ctx.fillStyle = C.land;
-      ctx.fill(land);
+      ctx.fill(L);
       ctx.strokeStyle = C.line;
       ctx.lineWidth = 1.2 * k;
       ctx.lineJoin = "round";
-      ctx.stroke(land);
-
-      // 掃描線（圓心放高雄市區；很淡、12 秒一圈）
-      const [sx, sy] = proj(CITY.lat, CITY.lon);
-      if (typeof ctx.createConicGradient === "function") {
-        const a = ((tick / 12000) % 1) * Math.PI * 2;
-        const g = ctx.createConicGradient(a - Math.PI * 0.5, sx, sy);
-        g.addColorStop(0, "rgba(45,90,142,0)");
-        g.addColorStop(0.92, "rgba(45,90,142,0)");
-        g.addColorStop(1, "rgba(111,160,216,0.16)");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-      }
+      ctx.stroke(L);
 
       // 縣市界線（只畫縣市之間的內部界線，海岸線已經有了；虛線、很淡）＋縣市名
       ctx.strokeStyle = "rgba(138,160,181,0.38)";
@@ -372,6 +368,69 @@ export default function RadarLiveScreen() {
         ctx.fillText(c.n, x + 10 * k, y);
       }
 
+    };
+    const rebuild = () => {
+      const k = h / 1080;
+      bg = document.createElement("canvas");
+      bg.width = Math.round(w * dpr);
+      bg.height = Math.round(h * dpr);
+      const bctx = bg.getContext("2d");
+      if (bctx) {
+        bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        paintStatic(bctx, k);
+      }
+      bgBlur = document.createElement("canvas");
+      bgBlur.width = bg.width;
+      bgBlur.height = bg.height;
+      const blctx = bgBlur.getContext("2d");
+      if (blctx) {
+        blctx.filter = `blur(${9 * dpr}px) brightness(0.72)`;
+        blctx.drawImage(bg, 0, 0);
+      }
+      // 掃描線扇形：圓心放在高雄市區，很淡、12 秒一圈（原本每格都畫一個全螢幕的圓錐漸層）
+      const R = Math.hypot(w, h);
+      const theta = Math.PI * 2 * 0.08;
+      wedgeH = Math.ceil(R * Math.sin(theta)) + 2;
+      wedge = document.createElement("canvas");
+      wedge.width = Math.ceil(R);
+      wedge.height = wedgeH;
+      const wctx = wedge.getContext("2d");
+      if (wctx && typeof wctx.createConicGradient === "function") {
+        const g = wctx.createConicGradient(0, 0, wedgeH);
+        g.addColorStop(0, "rgba(45,90,142,0)");
+        g.addColorStop(0.92, "rgba(45,90,142,0)");
+        g.addColorStop(1, "rgba(111,160,216,0.16)");
+        wctx.fillStyle = g;
+        wctx.fillRect(0, 0, wedge.width, wedge.height);
+      } else {
+        wedge = null;
+      }
+    };
+
+    const draw = (tick: number) => {
+      raf = requestAnimationFrame(draw);
+      if (!w || !land || !bg) return;
+      const k = h / 1080; // 文字、圖示大小跟著畫面高度
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.drawImage(bg, 0, 0, w, h);
+      idleMix += ((idleRef.current ? 1 : 0) - idleMix) * 0.06;
+      if (idleMix > 0.01 && bgBlur) {
+        ctx.globalAlpha = idleMix;
+        ctx.drawImage(bgBlur, 0, 0, w, h);
+        ctx.globalAlpha = 1;
+      }
+      if (wedge) {
+        const [sx, sy] = proj(CITY.lat, CITY.lon);
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(((tick / 12000) % 1) * Math.PI * 2 - Math.PI * 0.5);
+        ctx.drawImage(wedge, 0, -wedgeH);
+        ctx.restore();
+      }
+      ctx.textBaseline = "middle";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
       // 飛機
       const f = frameRef.current;
       const now = Date.now() + offsetRef.current;
@@ -434,7 +493,7 @@ export default function RadarLiveScreen() {
           ctx.rotate((track * Math.PI) / 180);
           ctx.scale(13 * k, 13 * k);
           ctx.fillStyle = onGround ? "rgba(232,240,248,0.5)" : C.plane;
-          ctx.fill(new Path2D(PLANE));
+          ctx.fill(planePath);
           ctx.restore();
           // 焦點航班：細圈（資訊欄的詳細資料就是這一架）。換焦點時舊的慢慢淡出、新的慢慢淡入（不要瞬間跳）
           const ra = (ringAlpha.get(id) ?? 0) + ((id === focusRef.current ? 1 : 0) - (ringAlpha.get(id) ?? 0)) * 0.06;
@@ -478,6 +537,9 @@ export default function RadarLiveScreen() {
   const quiet = frame !== null && !offline && shown.length === 0;
   // 閒置（沒有飛機或接收器離線）：背景模糊、拿掉左邊的音量條與圖例，改在中下方輪播四張卡片（見 IdleCarousel）
   const idle = offline || quiet;
+  useEffect(() => {
+    idleRef.current = idle;
+  }, [idle]);
   const named = shown.filter((s) => s.info?.f);
   const focus = named.length ? named[focusIdx % named.length] : null;
   const passed = frame?.recent ?? [];
@@ -490,17 +552,7 @@ export default function RadarLiveScreen() {
     <div className="fixed inset-0 z-[200] overflow-hidden" style={{ background: C.bg, color: C.text, fontSize: "calc(100svh / 54)", fontFamily: "var(--font-geist-sans), sans-serif" }}>
       <canvas ref={canvasRef} className="absolute inset-0 size-full" aria-hidden />
 
-      {/* 空域安靜／離線時把地圖模糊並壓暗，中央訊息才看得清楚（標題與右欄在它上面，不受影響） */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: idle ? 1 : 0,
-          transition: "opacity 1.2s var(--ease-ma, ease)",
-          backdropFilter: "blur(9px) brightness(0.72)",
-          WebkitBackdropFilter: "blur(9px) brightness(0.72)",
-        }}
-      />
+      {/* 空域安靜／離線時地圖會模糊並壓暗：在 canvas 裡用預先模糊好的底圖淡入（見 rebuild／idleMix），標題與右欄在它上面、不受影響 */}
 
       {/* 左上：標題 */}
       <div className="absolute left-[2.4em] top-[2em]">
@@ -516,7 +568,10 @@ export default function RadarLiveScreen() {
       </div>
 
       {/* 左：塔台無線電音量條（網址有 ?audio=1 才啟動，只量音量，見 AtcMeter.tsx） */}
-      {!idle && <AtcMeter />}
+      {/* 有飛機時才看得到；閒置時淡出（一直掛著，不會斷線重連） */}
+      <div className="absolute inset-0" style={{ opacity: idle ? 0 : 1, filter: idle ? "blur(6px)" : "none", transition: "opacity 1s ease, filter 1s ease", pointerEvents: "none" }} aria-hidden={idle}>
+        <AtcMeter />
+      </div>
 
       {/* 右：統計、焦點航班詳細資料、航班、剛剛經過 */}
       <aside
@@ -595,20 +650,18 @@ export default function RadarLiveScreen() {
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
-      {idle && (
-        <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "35em" }}>
-          <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>
-            {offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
-          </p>
-          <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "1em" }}>
-            {offline
-              ? "會自動重新連線 · Reconnecting automatically"
-              : frame?.lastAircraftAt
-                ? `上一架 ${twHM.format(frame.lastAircraftAt)}（台灣時間）· 夜間機場有宵禁，飛機本來就少`
-                : "夜間機場有宵禁，飛機本來就少"}
-          </p>
-        </div>
-      )}
+      <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "34.5em", opacity: idle ? 1 : 0, filter: idle ? "none" : "blur(8px)", transition: "opacity 1s ease, filter 1s ease" }} aria-hidden={!idle}>
+        <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>
+          {offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
+        </p>
+        <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "1em" }}>
+          {offline
+            ? "會自動重新連線 · Reconnecting automatically"
+            : frame?.lastAircraftAt
+              ? `上一架 ${twHM.format(frame.lastAircraftAt)}（台灣時間）· 夜間機場有宵禁，飛機本來就少`
+              : "夜間機場有宵禁，飛機本來就少"}
+        </p>
+      </div>
 
       {/* 左下：延遲說明＋資料時間 */}
       <div className="absolute bottom-[2em] left-[2.4em] font-mono" style={{ color: C.muted, fontSize: "0.95em" }}>
@@ -617,15 +670,13 @@ export default function RadarLiveScreen() {
           {(frame?.delayMs ?? 0) === 0 ? "即時 · Live" : `畫面延遲約 ${Math.round((frame?.delayMs ?? 0) / 60_000)} 分鐘 · Delayed`}
         </p>
         <p className="mt-[0.3em]">資料時間 {clock || "--:--:--"}（台灣 UTC+8）</p>
-        {!idle && (
-          <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>
-            ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB　┄ 縣市界
-          </p>
-        )}
+        <p className="mt-[0.3em]" style={{ fontSize: "0.85em", opacity: idle ? 0 : 1, transition: "opacity 1s ease, filter 1s ease" }}>
+          ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB　┄ 縣市界
+        </p>
       </div>
 
       {/* 閒置時的輪播：小港起飛、小港降落、現在天氣、近三天雷達資料 */}
-      {idle && <IdleCarousel />}
+      <IdleCarousel visible={idle} />
 
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">
