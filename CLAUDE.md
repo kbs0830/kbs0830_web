@@ -141,7 +141,8 @@
   說明要寫完整（背景、使用者原話、做法）。**做完的紀錄也在資料庫，不寫 DONE.md**：`todo done` 會自動補一筆到完成紀錄（待辦頁不再有「已完成」分頁，歷史只看 `/admin/done`）；多項合併敘述才另外 `done add --title … --detail-file …`；查用 `search <字>`（待辦＋完成＋操作紀錄一次搜）或 `done search`。資料庫 `data/admin.db` 只在桌機——在 A14 上讀不到，請使用者看 `/admin/todo` 或回桌機再寫
 - **好幾個 session 同時開（2026-11-28，C14）**：寫程式的 session 開「用 worktree」（`.claude/worktrees/<名字>`，自己的分支＋暫存區）；
   完成後 `git fetch && git rebase origin/main && git push origin HEAD:main` 觸發部署。worktree 沒有 `node_modules`／`data/`：往上層用正式站那份
-  （`next.config.ts` 會把 Turbopack root 拉上去），3200 驗證時 `RADAR_FILE` 等指到暫存檔。**在正式站資料夾裡** commit 一律 `git commit -m … -- <自己的檔案>`（hookify 擋沒列檔案的）
+  （`next.config.ts` 會把 Turbopack root 拉上去），3200 驗證時 `RADAR_FILE` 等指到暫存檔。**在正式站資料夾裡** commit 一律 `git commit -m … -- <自己的檔案>`（hookify 擋沒列檔案的）。
+  部署只 build 已 push 的程式碼（乾淨副本 `.live/`，C13）：**沒 push 的改動不會上線，`.live` 裡不要改檔案、不要刪**
 - 找 port 的 PID **不要加 `-State Listen`**（dual-stack socket 會顯示 Closed）
 - E2E 每個測試用 `gotoReady(page, path)`，不要直接 `page.goto`
 - 改 Cloudflare 設定後要 `curl -sI` 實際看到結果才算數

@@ -127,6 +127,7 @@ function nodes(f: SiteFacts): NodeDef[] {
       body: [
         "Next.js 16（App Router）＋ React 19 ＋ React Compiler。大部分頁面 build 時就產生好，像這頁這種要即時數字的才每次現算。",
         "build 有兩個資料夾 .next-a／.next-b：新版 build 到沒在用的那個，好了才切過去，停站只有 1～2 秒；切過去健檢沒過，就指回原本那個。",
+        "build 在一份乾淨的 git 副本裡做，只有已經 push 的程式碼：同一台電腦上正在改、還沒 commit 的東西不會被一起上線。",
       ],
       facts: [`現在線上的是 ${f.slot}`, `上次部署 ${ago(f.lastDeploy)}`],
       links: [{ href: "/blog/vscode-locks-next" as Route, label: "為什麼是兩個資料夾" }],
