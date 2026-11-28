@@ -458,6 +458,18 @@ export default function RadarLiveScreen() {
     <div className="fixed inset-0 z-[200] overflow-hidden" style={{ background: C.bg, color: C.text, fontSize: "calc(100svh / 54)", fontFamily: "var(--font-geist-sans), sans-serif" }}>
       <canvas ref={canvasRef} className="absolute inset-0 size-full" aria-hidden />
 
+      {/* 空域安靜／離線時把地圖模糊並壓暗，中央訊息才看得清楚（標題與右欄在它上面，不受影響） */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          opacity: offline || quiet ? 1 : 0,
+          transition: "opacity 1.2s var(--ease-ma, ease)",
+          backdropFilter: "blur(9px) brightness(0.72)",
+          WebkitBackdropFilter: "blur(9px) brightness(0.72)",
+        }}
+      />
+
       {/* 左上：標題 */}
       <div className="absolute left-[2.4em] top-[2em]">
         <h1 className="font-serif font-light tracking-[0.08em]" style={{ fontSize: "2.6em", lineHeight: 1.15 }}>
