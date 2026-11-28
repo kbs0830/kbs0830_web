@@ -14,19 +14,21 @@ import counties from "./radar-counties.json";
 //   - 掃描線的圓心放在高雄市區（不是接收器）
 //   - 機場、跑道、導航台是公開的航空資料（OurAirports，公有領域），畫出來；文字不寫行政區、不寫接收器離機場多近
 
-type Row = [id: string, lat: number, lon: number, alt: number | null, speed: number | null, track: number | null];
+type Row = [id: string, lat: number, lon: number, alt: number | null, speed: number | null, track: number | null, vrate: number | null];
 type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null };
 type Frame = {
   now: number;
   delayMs: number;
   samples: { t: number; ok: boolean; p: Row[] }[];
   info: Record<string, Info>;
+  recent?: Passed[];
   online: boolean;
   today?: { unique: number; peak: number; airlines: { code: string; name: string; n: number }[] };
   week?: { unique: number; uptime: number | null };
   lastAircraftAt?: number | null;
 };
-type Shown = { id: string; alt: number | null; info: Info };
+type Shown = { id: string; alt: number | null; sp: number | null; tr: number | null; vr: number | null; info: Info };
+type Passed = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; t: number; alt: number | null; sp: number | null; tr: number | null };
 
 // 地圖範圍：高雄周邊（緯度跨約 1.6 度），中心點偏左，右邊留給資訊欄
 const LAT0 = 22.75;
@@ -35,6 +37,10 @@ const LAT_SPAN = 1.6;
 const CITY = { lat: 22.627, lon: 120.301 }; // 高雄市區（掃描線的圓心）
 const CITIES: { n: string; lat: number; lon: number }[] = [{ n: "高雄 Kaohsiung", lat: 22.627, lon: 120.301 }]; // 其他城市旁邊已經有機場代碼，不重複標
 const TRAIL_MS = 5 * 60_000;
+const RWY_SCALE = 2.6;
+const MAIN_AIRPORTS = new Set(["RCKH", "RCNN", "RCKU", "RCQC", "RCFN"]); // 畫進場中心線與跑道編號的機場
+const COMPASS = ["北", "東北", "東", "東南", "南", "西南", "西", "西北"];
+const compass = (deg: number) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 const BUFFER_MS = 10_000; // 播放時間再往前一點；取樣最多比播放時間早 30 秒，這段用速度外推
 const POLL_MS = 15_000;
 const KT_TO_DEG = 1 / 3600 / 60; // 1 節 = 1 海里/小時；1 度緯度 = 60 海里 → 每秒幾度（緯度方向）
@@ -64,6 +70,8 @@ export default function RadarLiveScreen() {
   const [failed, setFailed] = useState(false);
   const [shown, setShown] = useState<Shown[]>([]);
   const [clock, setClock] = useState<string>("");
+  const [focusIdx, setFocusIdx] = useState(0);
+  const focusRef = useRef<string | null>(null);
 
   // 抓資料
   useEffect(() => {
@@ -93,6 +101,12 @@ export default function RadarLiveScreen() {
       clearInterval(timer);
       ctrl?.abort();
     };
+  }, []);
+
+  // 焦點航班每 8 秒換下一架
+  useEffect(() => {
+    const t = setInterval(() => setFocusIdx((i) => i + 1), 8000);
+    return () => clearInterval(t);
   }, []);
 
   // 畫面
@@ -201,25 +215,102 @@ export default function RadarLiveScreen() {
         ctx.fillText(c.n, x - 27 * k, y);
       }
 
-      // 飛航設施：機場跑道、導航台（VOR／TACAN 六角形，NDB 空心圓）。公開的航空資料，離線底圖
-      ctx.lineCap = "round";
+      // 飛航設施：機場。主要機場畫「深色外框＋亮色跑道＋中心線」、跑道編號、向兩端延伸的進場中心線（每 5 海里一個刻度）。
+      // 資料是公開的航空資料（OurAirports）；跑道寬度是為了看得見而放大的，不是實際比例
+      ctx.lineCap = "butt";
+      const nm = h / LAT_SPAN / 60; // 1 海里（1 分緯度）的像素
       for (const ap of aviation.airports) {
         const khh = ap.id === "RCKH";
-        ctx.strokeStyle = khh ? "rgba(232,240,248,0.95)" : "rgba(138,160,181,0.8)";
-        ctx.lineWidth = (khh ? 4 : 2.5) * k;
-        for (const [la1, lo1, la2, lo2] of ap.rwy) {
-          const [x1, y1] = proj(la1, lo1);
-          const [x2, y2] = proj(la2, lo2);
+        const main = MAIN_AIRPORTS.has(ap.id);
+        (ap.rwy as [number, number, number, number, string, string, number | null][]).forEach(([la1, lo1, la2, lo2, n1, n2, ft], ri) => {
+          let [x1, y1] = proj(la1, lo1);
+          let [x2, y2] = proj(la2, lo2);
+          if (main) {
+            // 這個縮放下 3 公里的跑道只有十幾像素：主要機場把跑道符號以中心為準放大 2.6 倍，才看得出方向與編號
+            const mx = (x1 + x2) / 2;
+            const my = (y1 + y2) / 2;
+            [x1, y1, x2, y2] = [mx + (x1 - mx) * RWY_SCALE, my + (y1 - my) * RWY_SCALE, mx + (x2 - mx) * RWY_SCALE, my + (y2 - my) * RWY_SCALE];
+          }
+          const ang = Math.atan2(y2 - y1, x2 - x1);
+          const ux = Math.cos(ang);
+          const uy = Math.sin(ang);
+          if (main) {
+            // 進場中心線：兩端各 15 海里，虛線，每 5 海里一個小刻度
+            ctx.strokeStyle = khh ? "rgba(232,240,248,0.30)" : "rgba(138,160,181,0.2)";
+            ctx.lineWidth = 1.4 * k;
+            ctx.setLineDash([9 * k, 7 * k]);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x1 - ux * 15 * nm, y1 - uy * 15 * nm);
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 + ux * 15 * nm, y2 + uy * 15 * nm);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            for (const d of [5, 10, 15]) {
+              for (const sgn of [-1, 1]) {
+                const [ex, ey] = sgn < 0 ? [x1, y1] : [x2, y2];
+                const cx0 = ex + sgn * ux * d * nm;
+                const cy0 = ey + sgn * uy * d * nm;
+                ctx.moveTo(cx0 - uy * 6 * k, cy0 + ux * 6 * k);
+                ctx.lineTo(cx0 + uy * 6 * k, cy0 - ux * 6 * k);
+              }
+            }
+            ctx.stroke();
+          }
+          // 跑道本體：深色外框、亮色跑道、中心虛線
+          const wOuter = (khh ? 11 : main ? 8 : 6) * k;
+          ctx.strokeStyle = C.bg;
+          ctx.lineWidth = wOuter;
           ctx.beginPath();
           ctx.moveTo(x1, y1);
           ctx.lineTo(x2, y2);
           ctx.stroke();
-        }
+          ctx.strokeStyle = khh ? "rgba(232,240,248,0.95)" : "rgba(138,160,181,0.85)";
+          ctx.lineWidth = wOuter - 3 * k;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          if (khh) {
+            ctx.strokeStyle = "rgba(11,22,32,0.7)";
+            ctx.lineWidth = 1.2 * k;
+            ctx.setLineDash([6 * k, 5 * k]);
+            ctx.beginPath();
+            ctx.moveTo(x1 + ux * 6 * k, y1 + uy * 6 * k);
+            ctx.lineTo(x2 - ux * 6 * k, y2 - uy * 6 * k);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+          // 跑道編號（兩端外側）
+          if (main && ri === 0) {
+            // 平行雙跑道在這個縮放下疊在一起，只標第一組（18L → 18）
+            const bare = (n: string) => n.replace(/[LRC]$/, "");
+            ctx.fillStyle = khh ? C.text : "rgba(138,160,181,0.85)";
+            ctx.font = `600 ${(khh ? 15 : 12) * k}px ${mono}`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(bare(n1), x1 - ux * 22 * k, y1 - uy * 22 * k);
+            ctx.fillText(bare(n2), x2 + ux * 22 * k, y2 + uy * 22 * k);
+            ctx.textAlign = "start";
+          }
+          if (khh && ft) {
+            ctx.fillStyle = C.muted;
+            ctx.font = `${13 * k}px ${mono}`;
+            ctx.fillText(`RWY ${n1}/${n2} · ${Math.round(ft * 0.3048).toLocaleString("en-US")} m`, (x1 + x2) / 2 - 62 * k, (y1 + y2) / 2 + 52 * k);
+          }
+        });
         const [ax, ay] = proj(ap.la, ap.lo);
         ctx.fillStyle = khh ? C.text : "rgba(138,160,181,0.85)";
-        ctx.font = `${khh ? "600 " : ""}${(khh ? 17 : 14) * k}px ${mono}`;
-        ctx.fillText(khh ? "高雄機場 RCKH" : ap.id, ax + 12 * k, ay + (khh ? 22 : 16) * k);
+        ctx.font = `${khh ? "600 " : ""}${(khh ? 18 : 14) * k}px ${mono}`;
+        ctx.fillText(khh ? "高雄國際機場 RCKH / KHH" : ap.id + (ap.iata ? ` · ${ap.iata}` : ""), ax - (khh ? 100 : -12) * k, ay + (khh ? 34 : 16) * k);
+        if (khh && ap.ft != null) {
+          ctx.fillStyle = C.muted;
+          ctx.font = `${13 * k}px ${mono}`;
+          ctx.fillText(`標高 ${ap.ft} ft`, ax - 100 * k, ay + 72 * k);
+        }
       }
+      ctx.lineCap = "round";
       ctx.lineWidth = 1.6 * k;
       ctx.strokeStyle = "rgba(111,160,216,0.75)";
       ctx.fillStyle = "rgba(111,160,216,0.7)";
@@ -291,7 +382,7 @@ export default function RadarLiveScreen() {
           }
           const track = a.row[5] ?? (b ? (Math.atan2((b.lon - a.lon) * Math.cos((a.lat * Math.PI) / 180), b.lat - a.lat) * 180) / Math.PI : 0);
           const info = f.info[id];
-          list.push({ id, alt: a.row[3], info });
+          list.push({ id, alt: a.row[3], sp: a.row[4], tr: a.row[5], vr: a.row[6] ?? null, info });
 
           // 尾跡（5 分鐘，越舊越淡）
           const trail = pts.filter((q) => q.t <= P && q.t >= P - TRAIL_MS);
@@ -317,6 +408,14 @@ export default function RadarLiveScreen() {
           ctx.fillStyle = onGround ? "rgba(232,240,248,0.5)" : C.plane;
           ctx.fill(new Path2D(PLANE));
           ctx.restore();
+          if (id === focusRef.current) {
+            // 焦點航班：細圈（資訊欄的詳細資料就是這一架）
+            ctx.strokeStyle = "rgba(111,160,216,0.95)";
+            ctx.lineWidth = 2 * k;
+            ctx.beginPath();
+            ctx.arc(px, py, 27 * k, 0, Math.PI * 2);
+            ctx.stroke();
+          }
 
           if (info?.f) {
             ctx.fillStyle = C.text;
@@ -348,6 +447,12 @@ export default function RadarLiveScreen() {
   const offline = failed || (frame !== null && !frame.online);
   const quiet = frame !== null && !offline && shown.length === 0;
   const named = shown.filter((s) => s.info?.f);
+  const focus = named.length ? named[focusIdx % named.length] : null;
+  const passed = frame?.recent ?? [];
+  const focusId = focus?.id ?? null;
+  useEffect(() => {
+    focusRef.current = focusId;
+  }, [focusId]);
 
   return (
     <div className="fixed inset-0 z-[200] overflow-hidden" style={{ background: C.bg, color: C.text, fontSize: "calc(100svh / 54)", fontFamily: "var(--font-geist-sans), sans-serif" }}>
@@ -366,53 +471,92 @@ export default function RadarLiveScreen() {
         </p>
       </div>
 
-      {/* 右：統計與航班 */}
+      {/* 右：統計、焦點航班詳細資料、航班、剛剛經過 */}
       <aside
-        className="absolute right-[2em] top-[2em] bottom-[7.4em] flex w-[24em] flex-col rounded-sm border p-[1.6em]"
+        className="absolute right-[2em] top-[2em] bottom-[7.4em] flex w-[24em] flex-col rounded-sm border p-[1.4em]"
         style={{ background: "rgba(14,26,38,0.72)", borderColor: "rgba(255,255,255,0.08)" }}
       >
-        <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.85em" }}>
-          空中 · IN THE AIR
-        </p>
-        <p className="mt-[0.2em] font-serif font-light leading-none" style={{ fontSize: "5.6em" }}>
-          {offline ? "–" : shown.length}
-          <span className="ml-[0.2em] font-sans font-light" style={{ color: C.muted, fontSize: "0.3em" }}>
-            架 · aircraft
-          </span>
-        </p>
-
-        <div className="mt-[1.4em] grid grid-cols-2 gap-[1em]">
+        <div className="flex items-end justify-between">
           <div>
-            <p className="font-serif font-light" style={{ fontSize: "2em" }}>{frame?.today?.unique ?? "–"}</p>
-            <p style={{ color: C.muted, fontSize: "0.8em" }}>今天收到 · Today</p>
+            <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>
+              空中 · IN THE AIR
+            </p>
+            <p className="mt-[0.1em] font-serif font-light leading-none" style={{ fontSize: "4.2em" }}>
+              {offline ? "–" : shown.length}
+              <span className="ml-[0.2em] font-sans font-light" style={{ color: C.muted, fontSize: "0.3em" }}>
+                架
+              </span>
+            </p>
           </div>
-          <div>
-            <p className="font-serif font-light" style={{ fontSize: "2em" }}>{frame?.today?.peak ?? "–"}</p>
-            <p style={{ color: C.muted, fontSize: "0.8em" }}>最多同時 · Peak</p>
+          <div className="flex gap-[1.2em] pb-[0.2em] text-right">
+            <div>
+              <p className="font-serif font-light leading-none" style={{ fontSize: "1.7em" }}>{frame?.today?.unique ?? "–"}</p>
+              <p className="mt-[0.2em]" style={{ color: C.muted, fontSize: "0.7em" }}>今天 Today</p>
+            </div>
+            <div>
+              <p className="font-serif font-light leading-none" style={{ fontSize: "1.7em" }}>{frame?.today?.peak ?? "–"}</p>
+              <p className="mt-[0.2em]" style={{ color: C.muted, fontSize: "0.7em" }}>最多 Peak</p>
+            </div>
           </div>
         </div>
 
-        <p className="mt-[1.6em] border-t pt-[1em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.85em", borderColor: "rgba(255,255,255,0.08)" }}>
+        {/* 焦點航班：每 8 秒換下一架，地圖上會圈起來 */}
+        <p className="mt-[1.1em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
+          焦點航班 · FOCUS{focus ? `　${(focusIdx % named.length) + 1}/${named.length}` : ""}
+        </p>
+        {focus ? (
+          <div className="mt-[0.5em] rounded-sm px-[0.9em] py-[0.7em]" style={{ background: "rgba(45,90,142,0.18)", border: "1px solid rgba(111,160,216,0.35)" }}>
+            <p className="flex items-baseline justify-between gap-[0.6em]">
+              <span className="font-mono font-semibold" style={{ fontSize: "1.55em" }}>{focus.info.f}</span>
+              <span className="truncate font-light" style={{ color: C.muted, fontSize: "0.95em" }}>{focus.info.an ?? focus.info.al ?? ""}</span>
+            </p>
+            <p className="font-light" style={{ color: C.muted, fontSize: "0.9em" }}>{focus.info.tn ?? "機型查詢中 · type unknown"}</p>
+            <dl className="mt-[0.6em] grid grid-cols-2 gap-x-[1em] gap-y-[0.45em]" style={{ fontSize: "0.9em" }}>
+              <Stat label="高度 Alt" value={focus.alt == null ? "–" : `${(Math.round(focus.alt / 100) * 100).toLocaleString("en-US")} ft`} />
+              <Stat label={`地速 GS${focus.sp == null ? "" : ` · ${Math.round(focus.sp * 1.852)} km/h`}`} value={focus.sp == null ? "–" : `${focus.sp} kt`} />
+              <Stat label="航向 Trk" value={focus.tr == null ? "–" : `${Math.round(focus.tr)}° ${compass(focus.tr)}`} />
+              <Stat label="升降 V/S" value={focus.vr == null ? "–" : Math.abs(focus.vr) < 300 ? "→ 平飛 level" : `${focus.vr > 0 ? "↑ 爬升" : "↓ 下降"} ${Math.abs(Math.round(focus.vr / 50) * 50).toLocaleString("en-US")} ft/min`} />
+            </dl>
+          </div>
+        ) : (
+          <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.9em" }}>目前沒有航班 · No flights</p>
+        )}
+
+        <p className="mt-[1.1em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
           航班 · FLIGHTS
         </p>
-        <ul className="mt-[0.6em] min-h-0 flex-1 space-y-[0.7em] overflow-hidden">
-          {named.slice(0, 9).map((s) => (
+        <ul className="mt-[0.5em] space-y-[0.45em] overflow-hidden" style={{ minHeight: "6.4em" }}>
+          {named.slice(0, 4).map((s) => (
             <li key={s.id} className="flex items-baseline justify-between gap-[1em]">
-              <span className="min-w-0">
-                <span className="font-mono font-semibold" style={{ fontSize: "1.1em" }}>{s.info.f}</span>
-                <span className="ml-[0.6em] truncate font-light" style={{ color: C.muted, fontSize: "0.85em" }}>{s.info.an ?? s.info.al ?? ""}</span>
+              <span className="min-w-0 truncate">
+                <span className="font-mono font-semibold" style={{ fontSize: "1.05em" }}>{s.info.f}</span>
+                <span className="ml-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.8em" }}>{s.info.an ?? s.info.al ?? ""}</span>
               </span>
-              <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.85em" }}>
-                {s.alt == null ? "" : s.alt === 0 ? "地面" : `${(Math.round(s.alt / 100) * 100).toLocaleString("en-US")} ft`}
+              <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.8em" }}>
+                {s.alt == null ? "" : `${(Math.round(s.alt / 100) * 100).toLocaleString("en-US")} ft`}
               </span>
             </li>
           ))}
         </ul>
-        {frame?.today?.airlines?.length ? (
-          <p className="mt-[0.8em] border-t pt-[0.8em] font-light leading-snug" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
-            今天：{frame.today.airlines.slice(0, 4).map((a) => `${a.name} ${a.n}`).join("　")}
-          </p>
-        ) : null}
+
+        <p className="mt-[0.9em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
+          剛剛經過 · JUST PASSED
+        </p>
+        <ul className="mt-[0.5em] min-h-0 flex-1 space-y-[0.4em] overflow-hidden">
+          {passed.length === 0 ? (
+            <li className="font-light" style={{ color: C.muted, fontSize: "0.85em" }}>還沒有紀錄 · None yet</li>
+          ) : (
+            passed.map((p) => (
+              <li key={`${p.f}-${p.t}`} className="flex items-baseline justify-between gap-[1em]">
+                <span className="min-w-0 truncate">
+                  <span className="font-mono font-semibold" style={{ fontSize: "0.95em" }}>{p.f}</span>
+                  <span className="ml-[0.6em] font-light" style={{ color: C.muted, fontSize: "0.78em" }}>{p.an ?? p.al ?? ""}{p.tn ? ` · ${p.tn}` : ""}</span>
+                </span>
+                <span className="shrink-0 font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{ago(passedAgoMs(frame, p))}</span>
+              </li>
+            ))
+          )}
+        </ul>
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
@@ -453,3 +597,18 @@ export default function RadarLiveScreen() {
     </div>
   );
 }
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt style={{ color: C.muted, fontSize: "0.78em" }}>{label}</dt>
+      <dd className="font-mono">{value}</dd>
+    </div>
+  );
+}
+
+/** 這班「最後被看到」到畫面時間過了多久（毫秒） */
+function passedAgoMs(frame: Frame | null, p: Passed) {
+  return frame ? Math.max(0, frame.now - frame.delayMs - p.t) : 0;
+}
+const ago = (ms: number) => (ms < 90_000 ? "剛剛" : `${Math.round(ms / 60_000)} 分鐘前`);

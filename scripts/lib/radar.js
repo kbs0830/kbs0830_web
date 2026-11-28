@@ -285,7 +285,7 @@ async function pollRadar(host) {
       aircraft: (Array.isArray(a.aircraft) ? a.aircraft : []).map((x) => ({
         hex: x.hex, flight: x.flight, seen: x.seen, alt: x.altitude ?? x.alt_baro,
         // 座標／速度／航向：只給 radar-live.js 的「延遲 5 分鐘直播畫面」用（它自己說明隱私規則），applySample 的彙總不碰
-        lat: x.lat, lon: x.lon, seen_pos: x.seen_pos, speed: x.speed, track: x.track,
+        lat: x.lat, lon: x.lon, seen_pos: x.seen_pos, speed: x.speed, track: x.track, vert_rate: x.vert_rate,
       })),
     };
   } catch {
