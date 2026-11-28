@@ -5,7 +5,7 @@
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
 //   3. 註冊號（rg）、所屬公司（ow）、製造商等「飛機本身」的資料，只給有正常航班代碼的商用航班；沒班號的（私人機、軍機）一個欄位都不帶。
-//   4. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
+//   4. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；座標粗化到約 100 公尺（2026-11-29 使用者要求：1,000 ft 以下、地面、高度不明的位置也顯示，原本的高度過濾拿掉了）；對外沒有 hex、squawk、訊號強度。
 //   5. 畫面的地圖固定在高雄周邊、不以接收器為圓心、不畫距離圈、不標接收器位置（見 RadarLiveScreen.tsx）。
 // 離線／飛機 0 架時照樣記（空的取樣），不然畫面不知道「那段時間沒飛機」還是「沒資料」。
 
@@ -46,15 +46,13 @@ function recordTrack(prev, sample, now) {
   keep.push({ t: now, ok, ac });
   // 「剛剛經過」：每架（有正常呼號、高度夠）最後一次被看到的時間與狀態，留 60 分鐘、最多 40 筆（超過 20 分鐘的取樣已經丟了，這份另外留）
   const recent = Object.fromEntries(Object.entries((prev && prev.recent) || {}).filter(([, e]) => now - e.t <= RECENT_KEEP_MS));
-  // 【刻意的取捨，2026-11-29 使用者問「00:55、00:57 的飛機怎麼沒紀錄」】這份清單沒有任何位置（只有班號、航空公司、機型、時間），
-  // 所以高度不明的有班號飛機也列；地圖上的位置（buildFrame）仍然是 fail closed：高度不明或 1,000 ft 以下一律不放。
-  // 沒解出座標的（只收到部分訊號）也算：有正常班號就列進去，只是畫不到地圖上。高度已知而且太低的仍然不收
+  // 沒解出座標的（只收到部分訊號）也算（使用者問「00:55、00:57 的飛機怎麼沒紀錄」）：有正常班號就列進去，只是畫不到地圖上。
+  // 高度不限（使用者 2026-11-29 要求低空、地面、高度不明的也顯示）
   for (const a of ok ? sample.aircraft || [] : []) {
     if (!a || !a.hex || (a.seen ?? 0) > POS_FRESH_S * 2) continue;
     const f = String(a.flight || "").trim().toUpperCase();
     if (!CALLSIGN.test(f)) continue;
     const al = a.alt === "ground" ? 0 : num(a.alt);
-    if (al != null && al < MIN_ALT_FT) continue;
     recent[String(a.hex).toLowerCase()] = { f, t: now, al, sp: num(a.speed), tr: num(a.track), vr: num(a.vert_rate) };
   }
   const recentKept = Object.fromEntries(Object.entries(recent).sort((x, y) => y[1].t - x[1].t).slice(0, 40));
@@ -76,7 +74,6 @@ function detailOf(d) {
 
 const idOf = (hex, date) => crypto.createHmac("sha256", SECRET).update(`${hex}|${date}`).digest("hex").slice(0, 8);
 
-const MIN_ALT_FT = 1000; // 地面、1,000 ft 以下、高度不明的都不放出去（fail closed）：低空航跡會透露離機場／接收器多近
 const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數（約 100 公尺）
 
 /**
@@ -96,7 +93,7 @@ function buildFrame(track, types, names, now) {
   const out = samples.map((s) => ({
     t: s.t,
     ok: s.ok,
-    p: s.ac.filter((a) => typeof a.al === "number" && a.al >= MIN_ALT_FT).map((a) => {
+    p: s.ac.map((a) => {
       const id = idOf(a.h, date);
       const airline = (a.f.match(/^([A-Z]{3})\d{1,4}[A-Z]{0,2}$/) || [])[1] || null;
       const ty = types && types[a.h] && types[a.h].t ? types[a.h].t : null;
