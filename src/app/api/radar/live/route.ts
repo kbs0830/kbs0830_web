@@ -18,6 +18,11 @@ export async function GET() {
   const now = Date.now();
   const frame = buildFrame(readTrack(path.join(dir, "radar-track.json")), readState(path.join(dir, "aircraft-types.json")), { airlines: AIRLINE_NAMES, types: TYPE_NAMES }, now);
   const d = detail(readState(file), now);
-  const stats = "daily" in d ? { online: Boolean(d.online), today: d.today, week: d.week, lastAircraftAt: d.lastAircraftAt ?? null } : { online: false };
-  return NextResponse.json({ ...frame, ...stats }, { headers: { "cache-control": "no-store" } });
+  // 底部輪播要用的統計：跟 /radar 頁公開的是同一批（只有數字、航空公司、機型、時段，沒有位置）
+  const stats =
+    "daily" in d
+      ? { online: Boolean(d.online), today: d.today, week: d.week, lastAircraftAt: d.lastAircraftAt ?? null, hours: d.hours, weekAirlines: d.weekAirlines.slice(0, 4), weekTypes: d.weekTypes.slice(0, 4), total: d.total }
+      : { online: false };
+  // build：這次部署的 commit。OBS 的瀏覽器來源不會自己刷新，畫面看到 build 變了就自己重新載入（RadarLiveScreen）
+  return NextResponse.json({ ...frame, ...stats, build: process.env.BUILD_COMMIT_SHA ?? null }, { headers: { "cache-control": "no-store" } });
 }

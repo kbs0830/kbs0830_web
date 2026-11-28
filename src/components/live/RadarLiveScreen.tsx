@@ -27,6 +27,11 @@ type Frame = {
   today?: { unique: number; peak: number; airlines: { code: string; name: string; n: number }[] };
   week?: { unique: number; uptime: number | null };
   lastAircraftAt?: number | null;
+  build?: string | null;
+  hours?: (number | null)[];
+  weekAirlines?: { code: string; name: string; n: number }[];
+  weekTypes?: { code: string; name: string; n: number }[];
+  total?: { unique: number; peak: number; days: number };
 };
 type Shown = { id: string; alt: number | null; sp: number | null; tr: number | null; vr: number | null; info: Info };
 type Passed = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; t: number; alt: number | null; sp: number | null; tr: number | null };
@@ -73,6 +78,8 @@ export default function RadarLiveScreen() {
   const [clock, setClock] = useState<string>("");
   const [focusIdx, setFocusIdx] = useState(0);
   const focusRef = useRef<string | null>(null);
+  const buildRef = useRef<string | null>(null);
+  const [tipIdx, setTipIdx] = useState(0);
 
   // 抓資料
   useEffect(() => {
@@ -87,6 +94,13 @@ export default function RadarLiveScreen() {
         if (!res.ok) throw new Error(String(res.status));
         const f: Frame = await res.json();
         if (!alive) return;
+        // 部署了新版：OBS 的瀏覽器來源不會自己刷新，這裡偵測到 build 變了就重新載入（隨機等 0～8 秒，免得同時一起重載）
+        if (f.build) {
+          if (buildRef.current && buildRef.current !== f.build) {
+            setTimeout(() => location.reload(), Math.random() * 8000);
+          }
+          buildRef.current ??= f.build;
+        }
         offsetRef.current = f.now - Date.now();
         frameRef.current = f;
         setFrame(f);
@@ -104,10 +118,14 @@ export default function RadarLiveScreen() {
     };
   }, []);
 
-  // 焦點航班每 8 秒換下一架
+  // 焦點航班每 8 秒換下一架；底部統計輪播每 9 秒換下一則
   useEffect(() => {
     const t = setInterval(() => setFocusIdx((i) => i + 1), 8000);
-    return () => clearInterval(t);
+    const t2 = setInterval(() => setTipIdx((i) => i + 1), 9000);
+    return () => {
+      clearInterval(t);
+      clearInterval(t2);
+    };
   }, []);
 
   // 畫面
@@ -450,6 +468,7 @@ export default function RadarLiveScreen() {
   const named = shown.filter((s) => s.info?.f);
   const focus = named.length ? named[focusIdx % named.length] : null;
   const passed = frame?.recent ?? [];
+  const tips = buildTips(frame);
   const focusId = focus?.id ?? null;
   useEffect(() => {
     focusRef.current = focusId;
@@ -608,6 +627,16 @@ export default function RadarLiveScreen() {
         </p>
       </div>
 
+      {/* 底部輪播：/radar 頁公開的統計（只有數字、航空公司、機型、時段） */}
+      {tips.length > 0 && (
+        <div className="absolute bottom-[2em] left-[30em] w-[38em]">
+          <div key={tipIdx % tips.length} className="enter-fade rounded-sm border px-[1.1em] py-[0.7em]" style={{ background: "rgba(14,26,38,0.6)", borderColor: "rgba(255,255,255,0.08)" }}>
+            <p className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.75em" }}>{tips[tipIdx % tips.length].label}</p>
+            <p className="mt-[0.2em] font-light leading-snug" style={{ fontSize: "1.05em" }}>{tips[tipIdx % tips.length].text}</p>
+          </div>
+        </div>
+      )}
+
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">
         <p className="font-serif font-light tracking-[0.08em]" style={{ fontSize: "1.9em" }}>kbs0830.com/radar</p>
@@ -633,3 +662,18 @@ function passedAgoMs(frame: Frame | null, p: Passed) {
   return frame ? Math.max(0, frame.now - frame.delayMs - p.t) : 0;
 }
 const ago = (ms: number) => (ms < 90_000 ? "剛剛" : `${Math.round(ms / 60_000)} 分鐘前`);
+
+/** 底部輪播的內容：從 API 的統計組出幾則（沒有資料的就不放） */
+function buildTips(f: Frame | null): { label: string; text: string }[] {
+  if (!f) return [];
+  const tips: { label: string; text: string }[] = [];
+  if (f.week) tips.push({ label: "近 7 天 · LAST 7 DAYS", text: `收到 ${f.week.unique.toLocaleString("en-US")} 架次${f.week.uptime != null ? `，接收器在線率 ${f.week.uptime}%` : ""}` });
+  const hours = f.hours ?? [];
+  const max = Math.max(...hours.map((v) => v ?? 0));
+  if (max > 0) tips.push({ label: "一天的節奏 · DAILY RHYTHM", text: `${hours.findIndex((v) => v === max)} 點最忙，近 7 天平均最多同時 ${max} 架；夜間機場有宵禁，凌晨最少` });
+  if (f.weekAirlines?.length) tips.push({ label: "近 7 天航空公司 · AIRLINES", text: f.weekAirlines.slice(0, 3).map((a) => `${a.name} ${a.n}`).join("　") });
+  if (f.weekTypes?.length) tips.push({ label: "近 7 天機型 · AIRCRAFT TYPES", text: f.weekTypes.slice(0, 3).map((a) => `${a.name} ${a.n}`).join("　") });
+  if (f.total) tips.push({ label: "累計 · SINCE START", text: `自己架的接收器已經記錄 ${f.total.days} 天、${f.total.unique.toLocaleString("en-US")} 架次，同時最多 ${f.total.peak} 架` });
+  if (f.today?.airlines?.length) tips.push({ label: "今天 · TODAY", text: f.today.airlines.slice(0, 4).map((a) => `${a.name} ${a.n}`).join("　") });
+  return tips;
+}
