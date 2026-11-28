@@ -16,7 +16,8 @@
 # 用法（Windows PowerShell 5.1）：
 #   powershell -File scripts\cloudflare-config.ps1          只檢查，列出跟預期不同的地方（不改任何東西）
 #   powershell -File scripts\cloudflare-config.ps1 -Apply   把不同的地方改成預期的樣子，改完用 curl 回查
-#   powershell -File scripts\cloudflare-config.ps1 -Purge   清掉 Cloudflare 全部快取（部署後用）
+#   powershell -File scripts\cloudflare-config.ps1 -Purge   清掉會變的頁面的快取（部署後用；不清 /_next/ 靜態檔，TODO W2）
+#   powershell -File scripts\cloudflare-config.ps1 -PurgeAll 清掉 Cloudflare 全部快取
 # deploy.ps1 每次部署帶 -Check -Quiet 呼叫：有設定被改掉（漂移）就寫 log＋寄信，不擋部署。
 #
 # 金鑰：.env.local 的 CLOUDFLARE_CONFIG_TOKEN。沒設就什麼都不做（log 寫 skipped）。
@@ -25,7 +26,7 @@
 # （跟讀流量的 CLOUDFLARE_ANALYTICS_TOKEN 分開：那把只能讀，外洩也改不了設定）
 # 不能用 ??、?.、三元運算子（PS 5.1）。
 
-param([switch]$Apply, [switch]$Check, [switch]$Quiet, [switch]$Purge)
+param([switch]$Apply, [switch]$Check, [switch]$Quiet, [switch]$Purge, [switch]$PurgeAll)
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -109,11 +110,36 @@ $cacheRule = @{
 # 權限不夠時 Cloudflare 回 10000 Authentication error／9109 Unauthorized
 function Test-NoPermission($err) { return "$err" -match "HTTP 403|10000|9109|Authentication error|Unauthorized|not authorized" }
 
-if ($Purge) {
+if ($Purge -or $PurgeAll) {
     try {
-        Cf POST "/purge_cache" @{ purge_everything = $true } | Out-Null
-        Say "已清除 Cloudflare 快取"
-        Write-TimestampedLog -LogFile $logFile -Message "Cloudflare 快取已清除（purge_everything）"
+        # 預設只清「會變的頁面」（2026-11-29，TODO W2）：一天部署 30～47 次，purge_everything 連檔名帶 hash、內容永遠不變的
+        # /_next/static、字型、圖片也一起清，每次部署後 Cloudflare 都是空的。現在照 src/app 的第一層資料夾逐一清（prefix），
+        # 加上首頁跟幾個根目錄檔案；/_next/、/image/ 不清。-PurgeAll 或 prefix 清失敗時退回 purge_everything。
+        $purged = $false
+        if (-not $PurgeAll) {
+            try {
+                $appDir = Join-Path $PSScriptRoot "..\src\app"
+                $dirs = @(Get-ChildItem $appDir -Directory -ErrorAction Stop | Where-Object { $_.Name -notmatch '^[_(\[@]' -and $_.Name -ne "api" } | ForEach-Object { $_.Name })
+                $roots = @("sitemap", "robots", "feed.xml", "llms", "manifest", "site.webmanifest", "sw.js", "offline.html", "icon", "apple-icon", "jump-index", "favicon")
+                $prefixes = @($dirs + $roots | Select-Object -Unique | ForEach-Object { "kbs0830.com/$_" })
+                if ($dirs.Count -lt 5) { throw "src/app 的資料夾只讀到 $($dirs.Count) 個，不像是對的" }
+                Cf POST "/purge_cache" @{ files = @("https://kbs0830.com/", "https://kbs0830.com") } | Out-Null
+                for ($i = 0; $i -lt $prefixes.Count; $i += 30) {
+                    Cf POST "/purge_cache" @{ prefixes = @($prefixes[$i..([Math]::Min($i + 29, $prefixes.Count - 1))]) } | Out-Null
+                }
+                $purged = $true
+                Say "已清除 Cloudflare 快取（首頁＋$($prefixes.Count) 個路徑，不含 /_next/ 靜態檔）"
+                Write-TimestampedLog -LogFile $logFile -Message "Cloudflare 快取已清除（首頁＋$($prefixes.Count) 個路徑 prefix，保留 /_next/static）"
+            } catch {
+                if (Test-NoPermission $_) { Say "skipped：token 沒有 Cache Purge 權限"; exit 0 }
+                Write-TimestampedLog -LogFile $logFile -Message "[WARN] Cloudflare 依路徑清快取失敗，改清全部：$($_.Exception.Message)"
+            }
+        }
+        if (-not $purged) {
+            Cf POST "/purge_cache" @{ purge_everything = $true } | Out-Null
+            Say "已清除 Cloudflare 快取（全部）"
+            Write-TimestampedLog -LogFile $logFile -Message "Cloudflare 快取已清除（purge_everything）"
+        }
         exit 0
     } catch {
         if (Test-NoPermission $_) { Say "skipped：token 沒有 Cache Purge 權限"; exit 0 }

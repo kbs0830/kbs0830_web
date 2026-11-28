@@ -7,7 +7,7 @@ const H = 120;
 
 export default function SeriesChart({ points, unit, warn, min = 0, max, label }: { points: SeriesPoint[]; unit: string; warn?: number; min?: number; max?: number; label: string }) {
   const vals = points.map((p) => p[1]).filter((v): v is number => v !== null);
-  if (vals.length < 2) return <p className="py-6 text-center text-sm font-light text-(--muted)">資料還不夠，每 15 分鐘記一筆。</p>;
+  if (vals.length < 2) return <p className="py-6 text-center text-sm font-light text-(--muted)">資料還不夠，累積幾筆就會畫出來。</p>;
   const t0 = points[0][0];
   const t1 = points.at(-1)![0];
   const top = max ?? Math.max(...vals, warn ?? -Infinity) * 1.05;
@@ -45,7 +45,7 @@ export default function SeriesChart({ points, unit, warn, min = 0, max, label }:
         <span>最高 {fmt(hi)}</span>
         <span>最低 {fmt(lo)}</span>
         {warn !== undefined && <span className="text-(--warn)">--- 告警 {fmt(warn)}</span>}
-        <span className="ml-auto">近 {hours || "<1"} 小時</span>
+        <span className="ml-auto">{hours >= 48 ? `近 ${Math.round(hours / 24)} 天` : `近 ${hours || "<1"} 小時`}</span>
       </figcaption>
     </figure>
   );

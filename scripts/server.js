@@ -16,6 +16,7 @@ const http = require("node:http");
 const next = require("next");
 const { recordRawHit } = require("./lib/raw-traffic");
 const { recordNotFound } = require("./lib/not-found");
+const { createRecorder } = require("./lib/response-times");
 const { startRadarPoller } = require("./lib/radar");
 const { startRadarHealthPoller } = require("./lib/radar-health");
 
@@ -183,6 +184,11 @@ function warmUp(port, log) {
 const port = Number(process.env.PORT) || 3000;
 const app = next({ dev: false, dir: appDir });
 const handle = app.getRequestHandler();
+// 回應時間趨勢（lib/response-times.js，TODO W4）：記憶體累積、每 5 分鐘寫進 data/response-times.json
+process.env.RESPONSE_TIMES_FILE = process.env.RESPONSE_TIMES_FILE || path.join(dataDir, "response-times.json");
+const responseTimes = createRecorder(process.env.RESPONSE_TIMES_FILE);
+setInterval(() => responseTimes.flush(), 5 * 60_000).unref();
+process.on("exit", () => responseTimes.flush());
 
 app
   .prepare()
@@ -193,6 +199,7 @@ app
         log(`${req.method} ${req.url} ${res.statusCode} ${Date.now() - start}ms`);
         recordRawHit(process.env.RAW_TRAFFIC_FILE, req);
         recordNotFound(notFoundFile, req, res.statusCode);
+        responseTimes.record(req, Date.now() - start);
       });
       if (serveMaintenance(req, res)) return;
       try {

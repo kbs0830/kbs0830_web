@@ -4,6 +4,7 @@ import { ALERT_TAGS, DEPLOY_RESULT, MAIL_TAGS, nextReportTimes, readMailState, r
 import { recentLogins } from "@/lib/admin/db";
 import { VIA_LABEL } from "@/lib/admin/login-log";
 import { piHealthLine } from "@/lib/admin/pi-health";
+import { deploySeries, responseSeries } from "@/lib/admin/response-times";
 import { readSiteFacts } from "@/lib/ops/colophon";
 import { readServerErrors } from "@/lib/ops/server-errors";
 import { readDeploys, readRestarts } from "@/lib/ops/status";
@@ -94,6 +95,7 @@ export function opsModel(): ViewModel {
   const restarts = readRestarts().slice(0, 10);
   const alerts = readWatchdog().filter((l) => ALERT_TAGS.has(l.tag)).slice(0, 30);
   const days = Math.floor(facts.processUptime / 86400);
+  const resp = responseSeries();
   return {
     tiles: [
       { label: "線上 build 槽", value: facts.slot, tone: "info" },
@@ -102,6 +104,9 @@ export function opsModel(): ViewModel {
       { label: "90 天部署／退回", value: `${facts.deploys90}／${facts.rollbacks90}`, tone: facts.rollbacks90 > 0 ? "warn" : "ok" },
     ],
     blocks: [
+      // 「是不是越來越慢」（TODO W4）：每天一點，部署花的秒數＋頁面回應 p95
+      { kind: "series", title: "部署花的時間（每天中位數）", en: "Deploy seconds", unit: "秒", min: 0, points: deploySeries(readDeploys(), 60) },
+      { kind: "series", title: "頁面回應時間 p95", en: "Response p95", unit: "ms", min: 0, warn: 500, points: resp.p95 },
       {
         kind: "log",
         title: "部署",

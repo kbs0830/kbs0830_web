@@ -227,6 +227,16 @@ try {
     }
     # tsconfig.deploy.json：Next 會往裡面加 <distDir>/types，用副本才不會弄髒 tsconfig.json（見 next.config.ts）
     Copy-Item (Join-Path $live "tsconfig.json") (Join-Path $live "tsconfig.deploy.json") -Force
+    # 部署的型別檢查不用再檢查測試、e2e、scripts、各種 config（pre-commit 已經用 tsconfig.json 全專案檢查過，
+    # 而且只有 push 上來的程式碼才會部署）。2026-11-29 實測 tsc 10.9 秒 → 8.3 秒；deploy.log 的 Finished TypeScript 是 13.8 秒（TODO W1）。
+    # 失敗就維持原樣（照全專案檢查），不擋部署
+    try {
+        $deployTs = Join-Path $live "tsconfig.deploy.json"
+        $cfg = Get-Content $deployTs -Raw -Encoding UTF8 | ConvertFrom-Json
+        $skip = @("**/*.test.ts", "**/*.test.tsx", "e2e", "scripts", "playwright*.ts", "vitest*.ts")
+        $cfg.exclude = @(@($cfg.exclude) + $skip | Where-Object { $_ } | Select-Object -Unique)
+        [System.IO.File]::WriteAllText($deployTs, ($cfg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
+    } catch { Log "[WARN] tsconfig.deploy.json 排除測試檔失敗，照全專案檢查：$($_.Exception.Message)" }
     # build 時讀到的資料（prerender）跟執行時同一份：正式站資料夾的 data／logs／草稿（server.js 也是設這幾個）
     $env:NEXT_DIST_DIR = $targetName
     $env:DATA_DIR = Join-Path $repo "data"
