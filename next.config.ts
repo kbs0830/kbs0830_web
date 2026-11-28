@@ -127,6 +127,11 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // 直播畫面的塔台音量條（AtcMeter，網址 ?audio=1 才會用到）要讀「音訊輸入」：只有這一頁放行麥克風（只量音量，不錄音不上傳），全站其他頁仍然全關
+      {
+        source: "/radar/live",
+        headers: [{ key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" }],
+      },
       // Service Worker 檔（public/sw.js，TODO B10）：瀏覽器本來就會自己檢查更新，但中間的 Cloudflare 預設會把 .js 快取起來，
       // 改了 sw.js 卻一直拿到舊的。要求每次都回源（不快取）
       {

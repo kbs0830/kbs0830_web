@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import coast from "./radar-coast.json";
 import aviation from "./radar-aviation.json";
 import counties from "./radar-counties.json";
+import AtcMeter from "./AtcMeter";
 
 // /radar/live：給 OBS「瀏覽器來源」直播用的全螢幕雷達動畫（2026-11-27，使用者要直播到 YouTube，說明欄導流到網站）。
 // 資料：/api/radar/live 每 15 秒一次，只有「1 分鐘前」的位置取樣；這裡用取樣之間的內插＋速度／航向外推，
@@ -482,6 +483,9 @@ export default function RadarLiveScreen() {
           自己架的接收器（樹莓派＋SDR）· Self-built receiver
         </p>
       </div>
+
+      {/* 左：塔台無線電音量條（網址有 ?audio=1 才啟動，只量音量，見 AtcMeter.tsx） */}
+      <AtcMeter />
 
       {/* 右：統計、焦點航班詳細資料、航班、剛剛經過 */}
       <aside
