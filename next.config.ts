@@ -82,13 +82,18 @@ const securityHeaders = [
 
 const distDir = process.env.NEXT_DIST_DIR || ".next";
 
-// 在 Claude Code 桌面版的 worktree（<repo>/.claude/worktrees/<名字>）裡 build／dev（TODO C14，2026-11-28）：
-// worktree 沒有自己的 node_modules（套件只在正式站資料夾那份，由 deploy.ps1 維護），Node 會往上層找到它，
-// 但 Turbopack 只在「最近的 lockfile 那層」裡找檔案 → 報 Could not find the Next.js package。
-// 把 root 拉到上面三層的正式站資料夾就找得到；正式站本身的路徑不含 .claude/worktrees，不受影響
-const worktreeRoot = /[\\/]\.claude[\\/]worktrees[\\/][^\\/]+$/.test(process.cwd())
-  ? path.resolve(process.cwd(), "../../..")
-  : undefined;
+// 在正式站資料夾底下的 git worktree 裡 build／dev／執行（2026-11-28）：Claude Code 的 session worktree
+// （.claude/worktrees/<名字>，TODO C14）、部署用的乾淨副本 .live/（TODO C13）。它們沒有自己的 node_modules
+// （套件只在正式站資料夾那份，由 deploy.ps1 維護），Node 會往上層找到，但 Turbopack 只在「最近的 lockfile 那層」裡找檔案
+// → 報 Could not find the Next.js package。這裡沒有 node_modules 就往上找有 next 的那層當 root；正式站資料夾本身有，不受影響
+function findWorktreeRoot(dir: string): string | undefined {
+  if (existsSync(path.join(dir, "node_modules"))) return undefined;
+  for (let d = path.dirname(dir); d !== path.dirname(d); d = path.dirname(d)) {
+    if (existsSync(path.join(d, "node_modules", "next", "package.json"))) return d;
+  }
+  return undefined;
+}
+const worktreeRoot = findWorktreeRoot(process.cwd());
 
 // tsconfig.deploy.json 是 gitignore 的副本，平常由 deploy.ps1 建；新開的 worktree／新 clone 沒有，
 // build 到 .next-test 會報 tsconfig not found → 沒有就先從 tsconfig.json 複製一份

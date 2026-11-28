@@ -26,6 +26,8 @@
 
 # Claude Code 桌面版的 session worktree（每個 session 自己一份工作區，TODO C14，2026-11-28）
 /.claude/worktrees/
+# 部署用的乾淨副本：deploy.ps1 在這裡 checkout origin/main、build、正式站從這裡執行（TODO C13，2026-11-28）
+/.live/
 
 # runtime logs
 /logs/

@@ -11,8 +11,11 @@ import path from "node:path";
 // 寫入一律同步（fs.*Sync）：好幾支 API 是「讀 → 改 → 寫」，中間沒有 await 才不會兩個請求交錯蓋掉（單一 process，見 /api/visitor-stats）。
 
 /** data/ 底下的檔案；envName 有設就用它（例：dataFile("VISITOR_STATS_FILE", "visitor-stats.json")） */
+// DATA_DIR（2026-11-28，TODO C13）：正式站改在乾淨副本 .live/ 裡執行（cwd 是 .live），資料還是在正式站資料夾的 data/ →
+// server.js（跟 deploy 的 build）設 DATA_DIR 指回去，沒有個別環境變數的檔案也不會跑到 .live/data
 export const dataFile = (envName: string | null, fileName: string) =>
-  (envName && process.env[envName]) || path.join(/* turbopackIgnore: true */ process.cwd(), "data", fileName);
+  (envName && process.env[envName]) ||
+  path.join(process.env.DATA_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), "data"), fileName);
 
 /** logs/ 底下的檔案（LOGS_DIR 可以換） */
 export const logFile = (fileName: string) =>

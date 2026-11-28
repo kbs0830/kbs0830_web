@@ -19,13 +19,36 @@ const { recordNotFound } = require("./lib/not-found");
 const { startRadarPoller } = require("./lib/radar");
 const { startRadarHealthPoller } = require("./lib/radar-health");
 
+// projectDir＝正式站資料夾：data/、logs/、node_modules/、.env.local 都在這裡（Task Scheduler 直接跑這支 server.js）。
 const projectDir = path.join(__dirname, "..");
+const dataDir = path.join(projectDir, "data");
+
+// deploy.ps1 輪流 build 到兩個槽，data/next-dist-dir.txt 記著目前上線的是哪一槽（next.config.ts 讀 NEXT_DIST_DIR）。
+// 2026-11-28（TODO C13）起槽放在乾淨副本 .live/ 裡（git worktree，只有已 push 的程式碼）：指標檔寫 ".live/.next-a"
+// → 程式（appDir）在 .live，資料、log 還是用這裡的。舊格式 ".next-a" 就是這個資料夾本身（退回舊版時用得到）。
+// 手動測試（3200）直接設 NEXT_DIST_DIR，同樣可以寫 ".live/.next-test"；沒有指標檔就是預設的 .next。
+const distDirFile = path.join(dataDir, "next-dist-dir.txt");
+const slotSpec = process.env.NEXT_DIST_DIR || (fs.existsSync(distDirFile) ? fs.readFileSync(distDirFile, "utf8").trim() : "");
+const slotMatch = slotSpec.match(/^(.+)[\\/]([^\\/]+)$/);
+const appDir = slotMatch ? path.join(projectDir, slotMatch[1]) : projectDir;
+if (slotSpec) process.env.NEXT_DIST_DIR = slotMatch ? slotMatch[2] : slotSpec;
+
 // Task Scheduler 的工作沒有設「開始位置」，process.cwd() 會是 C:\Windows\System32。
 // src/lib/content/blog.ts 用 process.cwd() 找 content/blog：已 prerender 的文章沒差，但不存在的
 // slug（掃描器亂打的 /blog/.env、/blog/wp-login.php）要即時渲染，readdirSync 找不到資料夾
 // → 500 而不是 404（2026-11-05 才發現，Search Console 的 5xx 也有一部分是這個）。
-process.chdir(projectDir);
+// 切到 appDir：文章、架構圖 SVG、git log（/changelog）都讀乾淨副本裡的
+process.chdir(appDir);
 const logDir = path.join(projectDir, "logs");
+
+// .env.local 在正式站資料夾（不進 git，.live 裡只有部署時複製的一份）：先載入這裡的，改了金鑰重啟就生效、不用等部署。
+// 已經有的環境變數不蓋（Next 自己載入時也不蓋）：手動測試用 RADAR_HOST= 關掉雷達要照樣有效
+const envFile = path.join(projectDir, ".env.local");
+if (appDir !== projectDir && fs.existsSync(envFile)) {
+  for (const [k, v] of Object.entries(require("node:util").parseEnv(fs.readFileSync(envFile, "utf8")))) {
+    if (!(k in process.env)) process.env[k] = v;
+  }
+}
 const logFile = path.join(logDir, "server.log");
 const MAX_LOG_BYTES = 5 * 1024 * 1024; // 5MB，超過就轉存成 .log.1
 
@@ -38,8 +61,10 @@ if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 // Task Scheduler 啟動這個 process 時沒有設定 working directory（process.cwd() 會是
 // C:\Windows\System32 之類的地方，不是專案根目錄），所以把絕對路徑用環境變數傳給
 // 那支 API route，不要讓那邊自己用 process.cwd() 猜路徑。
-const dataDir = path.join(projectDir, "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+// 沒有個別環境變數的資料檔（admin.db 等）：lib/data-file.ts 用 DATA_DIR；草稿（不進 git，.live 裡沒有）用這裡的
+process.env.DATA_DIR = process.env.DATA_DIR || dataDir;
+process.env.BLOG_DRAFTS_DIR = process.env.BLOG_DRAFTS_DIR || path.join(projectDir, "content", "drafts");
 process.env.VISITOR_STATS_FILE = path.join(dataDir, "visitor-stats.json");
 process.env.WEB_VITALS_FILE = path.join(dataDir, "web-vitals.json");
 // 未過濾流量（含 AI 爬蟲／搜尋引擎／掃描器）：跟上面的「造訪」相反，這份就是要在 server 端對每個
@@ -61,13 +86,6 @@ process.env.RADAR_HEALTH_FILE = process.env.RADAR_HEALTH_FILE || path.join(dataD
 // 維運狀態頁 /status（src/lib/ops/status.ts）：watchdog 每 5 分鐘一行的可用率、deploy.log、watchdog.log
 process.env.UPTIME_FILE = process.env.UPTIME_FILE || path.join(dataDir, "uptime.log");
 process.env.LOGS_DIR = process.env.LOGS_DIR || path.join(projectDir, "logs");
-
-// deploy.ps1 輪流 build 到 .next-a / .next-b，這個檔案記著目前上線的是哪一槽
-// （next.config.ts 讀 NEXT_DIST_DIR）。沒有這個檔案就是預設的 .next。
-const distDirFile = path.join(dataDir, "next-dist-dir.txt");
-if (!process.env.NEXT_DIST_DIR && fs.existsSync(distDirFile)) {
-  process.env.NEXT_DIST_DIR = fs.readFileSync(distDirFile, "utf8").trim();
-}
 
 function rotateIfNeeded() {
   try {
@@ -163,7 +181,7 @@ function warmUp(port, log) {
 }
 
 const port = Number(process.env.PORT) || 3000;
-const app = next({ dev: false, dir: projectDir });
+const app = next({ dev: false, dir: appDir });
 const handle = app.getRequestHandler();
 
 app

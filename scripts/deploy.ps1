@@ -19,9 +19,16 @@ function Log($msg) { Write-TimestampedLog -LogFile $logFile -Message $msg }
 # 完全不影響），成功才改 data\next-dist-dir.txt 指過去、重啟；健檢沒過就指回原本那槽再重啟。
 # 不搬資料夾：VS Code 的 TypeScript 服務會鎖住 tsconfig 收進去的 <distDir>/types，
 # 2026-11 第一版用「.next-build 改名成 .next」就是撞到這個鎖（Access denied）。
+#
+# 2026-11-28（TODO C13）起兩個槽都在乾淨副本 .live\ 裡：.live 是 git worktree，每次部署 checkout origin/main（只有已 push 的程式碼）。
+# 以前直接在正式站資料夾 build，好幾個 Claude session 在這裡改到一半、沒 commit 的檔案也會被 build（11/26 兩次 build 失敗；
+# build 得過的話更糟：上線了、git 裡卻沒有）。指標檔寫 ".live/.next-a"，server.js 就從 .live 執行，資料、log、node_modules 還是用這裡的。
+# 舊格式 ".next-a"（這個資料夾本身的槽）照樣認得：第一次切過去健檢沒過，退回的就是它。
+$live = Join-Path $repo ".live"
 $pointerFile = Join-Path $repo "data\next-dist-dir.txt"
 $activeSlot = if (Test-Path $pointerFile) { (Get-Content $pointerFile -Raw).Trim() } else { ".next" }
-$targetSlot = if ($activeSlot -eq ".next-a") { ".next-b" } else { ".next-a" }
+$targetName = if ($activeSlot -eq ".live/.next-a") { ".next-b" } else { ".next-a" }
+$targetSlot = ".live/$targetName"
 
 function Stop-Site {
     Stop-ScheduledTask -TaskName "kbs0830_NextJS" -ErrorAction SilentlyContinue
@@ -147,18 +154,26 @@ Set-Location $repo
 Log "===== Deploy started ====="
 
 try {
-    Log "git pull origin main"
-    git pull origin main 2>&1 | ForEach-Object { Log "  $_" }
-    if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
+    Log "git fetch origin main"
+    git fetch origin main 2>&1 | ForEach-Object { Log "  $_" }
+    if ($LASTEXITCODE -ne 0) { throw "git fetch failed (exit $LASTEXITCODE)" }
 
-    # 這支是在正式站資料夾裡 build，所以「還沒 commit 的改動」會被一起 build（TODO C13，2026-11-27）：好幾個 Claude session 共用這個資料夾時，
-    # 別人改到一半的檔案會讓 build 失敗（11/26 兩次），或更糟——被 build 成功、上線了而 git 裡根本沒有。
-    # 這裡先把它們列進 log（也會附在失敗信裡），至少一看就知道是不是這個原因。真正的解法（在乾淨的副本裡 build）見後台待辦 C13 的評估。
-    $script:dirtySource = @(git status --porcelain -- src content public scripts next.config.ts package.json pnpm-lock.yaml | Where-Object { $_ -notmatch 'src/generated|public/resume\.pdf' })
-    if ($script:dirtySource.Count -gt 0) {
-        Log "[WARN] 工作目錄有 $($script:dirtySource.Count) 個還沒 commit 的程式檔，會被一起 build："
-        $script:dirtySource | Select-Object -First 15 | ForEach-Object { Log "  $_" }
+    # 正式站資料夾是大家的工作區：盡量跟上（只 fast-forward），跟不上也不擋部署——部署只看 .live
+    git merge --ff-only origin/main 2>&1 | ForEach-Object { Log "  $_" }
+    if ($LASTEXITCODE -ne 0) { Log "[WARN] 正式站資料夾沒辦法 fast-forward 到 origin/main（有本機 commit，或沒 commit 的改動擋住）；不影響部署" }
+
+    # 乾淨副本：第一次建 worktree，之後每次強制 checkout origin/main（這裡不會有人改檔案，-f 只會蓋掉上次部署產生的架構圖／PDF）
+    if (-not (Test-Path (Join-Path $live ".git"))) {
+        Log "建立乾淨副本 .live（git worktree add）"
+        git worktree prune
+        git worktree add --detach $live origin/main 2>&1 | ForEach-Object { Log "  $_" }
+    } else {
+        git -C $live checkout -f --detach origin/main 2>&1 | ForEach-Object { Log "  $_" }
     }
+    if ($LASTEXITCODE -ne 0) { throw ".live checkout origin/main failed (exit $LASTEXITCODE)" }
+    Log "build 的是 $((git -C $live log --oneline -1) -join '')（.live：只有已 push 的程式碼，正式站資料夾裡沒 commit 的改動不會進來）"
+    # .env.local 不進 git：複製一份給 build 用（執行時 server.js 會先讀正式站資料夾那份）
+    if (Test-Path (Join-Path $repo ".env.local")) { Copy-Item (Join-Path $repo ".env.local") (Join-Path $live ".env.local") -Force }
 
     # 套件有變才重新安裝，平常部署不多花這一步。比對的是「上次成功 install 時的
     # lockfile 雜湊」（存在 node_modules 裡），不是 pull 前後有沒有變——2026-11 在正式站
@@ -166,10 +181,15 @@ try {
     # 安裝前先停掉正式站：Windows 會鎖住執行中 process 載入的 native .node 檔
     # （@next/swc、sharp 等），不停掉直接裝會 EPERM，或裝出新舊混雜的 node_modules。
     # 代價是套件更新那次部署會有「install + build」這段時間的停機，換來不會裝壞。
-    $lockHash = (Get-FileHash (Join-Path $repo "pnpm-lock.yaml")).Hash
+    # node_modules 只有正式站資料夾一份（.live 往上層找）。要的是 .live 那份 lockfile 的套件，但 pnpm install 是照正式站資料夾的 lockfile 裝：
+    # 兩份不一樣（正式站資料夾沒 fast-forward 成功）就不能裝，直接失敗、線上不動
+    $lockHash = (Get-FileHash (Join-Path $live "pnpm-lock.yaml")).Hash
     $stampFile = Join-Path $repo "node_modules\.deploy-lock-hash"
     $installedHash = if (Test-Path $stampFile) { (Get-Content $stampFile -Raw).Trim() } else { "" }
     if ($lockHash -ne $installedHash) {
+        if ((Get-FileHash (Join-Path $repo "pnpm-lock.yaml")).Hash -ne $lockHash) {
+            throw "套件有更新，但正式站資料夾的 pnpm-lock.yaml 跟 origin/main 不一樣（上面的 fast-forward 沒成功），不能安裝。先讓正式站資料夾跟上 origin/main 再部署"
+        }
         Log "node_modules out of date with pnpm-lock.yaml — stopping Next.js before pnpm install"
         Stop-ScheduledTask -TaskName "kbs0830_NextJS" -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
@@ -189,6 +209,9 @@ try {
 
     # 架構圖預先畫成 SVG（只畫新增／改過的，沒變就秒過）。失敗不擋部署：ArchitectureDiagram
     # 找不到 SVG 會退回瀏覽器端即時渲染，網站照常
+    # 從這裡開始都在 .live 裡做：架構圖、build、之後的 git diff／履歷 PDF／自動 commit 都對著部署的那個版本
+    Set-Location $live
+
     Log "render architecture diagrams"
     node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts\render-diagrams.mjs 2>&1 | ForEach-Object { Log "  $_" }
     if ($LASTEXITCODE -ne 0) { Log "[WARN] 架構圖預先渲染失敗，這次改由瀏覽器端即時畫" }
@@ -196,14 +219,18 @@ try {
     # 有跑 pnpm install 的部署網站已經停了（見上），停站時間 = install + build，2026-11 實測約 35 秒
     $siteState = if ($lockHash -ne $installedHash) { "網站已停（剛裝完套件）" } else { "線上是 $activeSlot，照常服務" }
     Log "next build → $targetSlot（$siteState）"
-    $targetPath = Join-Path $repo $targetSlot
+    $targetPath = Join-Path $live $targetName
     if (Test-Path $targetPath) { Remove-Item $targetPath -Recurse -Force }
     # tsconfig.deploy.json：Next 會往裡面加 <distDir>/types，用副本才不會弄髒 tsconfig.json（見 next.config.ts）
-    Copy-Item (Join-Path $repo "tsconfig.json") (Join-Path $repo "tsconfig.deploy.json") -Force
-    $env:NEXT_DIST_DIR = $targetSlot
-    node node_modules\next\dist\bin\next build 2>&1 | ForEach-Object { Log "  $_" }
+    Copy-Item (Join-Path $live "tsconfig.json") (Join-Path $live "tsconfig.deploy.json") -Force
+    # build 時讀到的資料（prerender）跟執行時同一份：正式站資料夾的 data／logs／草稿（server.js 也是設這幾個）
+    $env:NEXT_DIST_DIR = $targetName
+    $env:DATA_DIR = Join-Path $repo "data"
+    $env:LOGS_DIR = Join-Path $repo "logs"
+    $env:BLOG_DRAFTS_DIR = Join-Path $repo "content\drafts"
+    node (Join-Path $repo "node_modules\next\dist\bin\next") build 2>&1 | ForEach-Object { Log "  $_" }
     $buildExit = $LASTEXITCODE
-    Remove-Item Env:NEXT_DIST_DIR
+    Remove-Item Env:NEXT_DIST_DIR, Env:DATA_DIR, Env:LOGS_DIR, Env:BLOG_DRAFTS_DIR
     if ($buildExit -ne 0) { throw "Build failed (exit $buildExit)，線上沒動、還是 $activeSlot" }
 
     Log "switching $activeSlot → $targetSlot, restarting Next.js (Task Scheduler: kbs0830_NextJS)"
@@ -222,6 +249,16 @@ try {
     }
 
     Log "===== Deploy succeeded — https://kbs0830.com updated ====="
+    # 改用 .live 之前、在正式站資料夾裡的兩個舊槽：上一版也已經在 .live 裡（退回用不到它們）才清掉
+    if ($activeSlot -like ".live/*") {
+        foreach ($old in ".next-a", ".next-b") {
+            $oldPath = Join-Path $repo $old
+            if (Test-Path $oldPath) {
+                try { Remove-Item $oldPath -Recurse -Force -ErrorAction Stop; Log "清掉舊的 $old（改用 .live 之前的 build 槽）" }
+                catch { Log "[WARN] 舊的 $old 沒清掉（可能被 VS Code 鎖住）：$($_.Exception.Message)" }
+            }
+        }
+    }
     Submit-IndexNow
     Update-FeatureRelease
     # Cloudflare 設定有沒有被改掉（www 導向、HTTPS、HSTS、WAF）：只檢查，漂移就寫 log＋寄信，不擋部署
