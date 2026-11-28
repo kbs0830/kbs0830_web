@@ -1,5 +1,6 @@
 "use client";
 
+import Hint from "@/components/ui/Hint";
 import { useEffect, useSyncExternalStore } from "react";
 
 // 「いま N 人」（TODO B4，2026-11-23）：現在正在看網站的人數。
@@ -76,9 +77,13 @@ export function PresenceCount() {
     () => null,
   );
   return (
-    <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap" title="現在正在看這個網站的人數（含你），每 30 秒更新">
+    <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.15em] font-mono whitespace-nowrap">
       <span aria-hidden className="inline-block size-1.5 rounded-full bg-(--accent) mr-2 align-middle -translate-y-px" />
       いま {n ?? "–"} 人
+      {/* 原本是 title（手機看不到），改 Hint：滑過去／長按／點一下都看得到（TODO Q7） */}
+      <Hint id="presence" label="いま N 人">
+        現在正在看這個網站的人數（含你），每 30 秒更新。
+      </Hint>
     </p>
   );
 }

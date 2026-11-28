@@ -1,5 +1,6 @@
 "use client";
 
+import Hint from "@/components/ui/Hint";
 import { useEffect, useState } from "react";
 import type { CloudflareSummary } from "@/lib/stats/cloudflare-analytics";
 
@@ -51,19 +52,17 @@ export default function VisitorStats() {
       {cf && cf.total.pageViews > 0 && (
         // 每一段 whitespace-nowrap：窄螢幕只在「·」之間換行，不會把「2,940 訪客」拆開（2026-11-09：
         // 曾經為了這個在手機整行隱藏，使用者以為 Cloudflare 資料不見了——改成手機顯示精簡版）
-        <p
-          className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.1em] font-mono whitespace-nowrap"
-          title={
-            `${cf.since} 起累計：訪客 ${n(cf.total.uniques)} · 頁面瀏覽 ${n(cf.total.pageViews)} · 請求 ${n(cf.total.requests)}` +
-            "\n訪客＝每天不重複 IP 加總（含機器人），每小時更新"
-          }
-        >
-          {/* 手機一行放精簡版（不隱藏整行：2026-11-09 隱藏過，使用者以為資料不見了），完整數字在 title 跟 /stats */}
+        <p className="text-xs text-(--muted) font-light tracking-wide sm:tracking-[0.1em] font-mono whitespace-nowrap">
+          {/* 手機一行放精簡版（不隱藏整行：2026-11-09 隱藏過，使用者以為資料不見了），完整數字在「?」說明跟 /stats */}
           Cloudflare · 近 30 天 {n(cf.last30.uniques)} 訪客
           <span className="hidden sm:inline">
             {" "}
             · {n(cf.last30.pageViews)} 次瀏覽 · 累計 {n(cf.total.pageViews)} 次瀏覽
           </span>
+          {/* 完整數字原本放 title（手機看不到），改 Hint：滑過去／長按／點一下（TODO Q7） */}
+          <Hint id="cloudflare" label="Cloudflare 訪客數">
+            {cf.since} 起累計：訪客 {n(cf.total.uniques)} · 頁面瀏覽 {n(cf.total.pageViews)} · 請求 {n(cf.total.requests)}。訪客＝每天不重複 IP 加總（含機器人），每小時更新。
+          </Hint>
         </p>
       )}
       {/* 「未過濾」那行 2026-11-09 依使用者要求拿掉（Cloudflare 快取之後它只數得到沒命中快取的請求）；細節在 /stats */}

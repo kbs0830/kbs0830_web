@@ -5,7 +5,12 @@ import type { ReactNode } from "react";
 //   - 點「?」打開、點旁邊或按 Esc 關（popover="auto" 的 light dismiss），鍵盤 Tab 得到、讀屏會唸 aria-label
 //   - 支援 anchor positioning 的瀏覽器：泡泡貼在「?」上方，碰到視窗邊緣自己翻到下方（globals.css .hint-pop）
 //   - 不支援的瀏覽器：退回瀏覽器預設的置中彈出，一樣看得到內容
+// 2026-11-28（TODO Q7）：「?」加 interestfor、泡泡改 popover="hint"——滑鼠移上去、鍵盤 focus、手機長按就自動打開（Chromium 142+，不用寫 JS）；
+// 保留 popoverTarget，所以不支援 interestfor 的瀏覽器（還有手機點一下）一樣點得開。popover="hint" 也有 Esc、點旁邊關閉。
 // id 由呼叫端給（同一頁要唯一），Server Component 不能用 useId 以外的方式保證唯一。
+// React 的型別還不認得 interestfor 這個屬性，用展開傳進去
+const interest = (id: string) => ({ interestfor: id }) as Record<string, string>;
+
 export default function Hint({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   const popId = `hint-${id}`;
   return (
@@ -13,12 +18,13 @@ export default function Hint({ id, label, children }: { id: string; label: strin
       <button
         type="button"
         popoverTarget={popId}
+        {...interest(popId)}
         aria-label={`說明：${label}`}
         className="hint-trigger relative inline-grid place-items-center size-3.5 ml-1 align-[-1px] rounded-full border border-(--border) text-[9px] leading-none text-(--muted) hover:text-(--accent) hover:border-(--accent) transition-colors cursor-help before:absolute before:-inset-1.5 before:content-['']"
       >
         ?
       </button>
-      <span popover="auto" id={popId} className="hint-pop">
+      <span popover="hint" id={popId} className="hint-pop">
         {children}
       </span>
     </>
