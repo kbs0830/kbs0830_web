@@ -7,12 +7,22 @@ import HotelMap from "@/components/content/HotelMap";
 import { GROUP_NAMES, hotelStats, hotelsByPlace, membershipsByKind } from "@/lib/travel/hotels";
 import { nf } from "@/lib/format";
 
+// 搜尋結果的標題跟說明（TODO R3，2026-11-28）：Search Console 看到 /hotels 有曝光、0 點擊，查的人是在找某間飯店或某個城市，
+// 原本那句「只記名稱跟城市，不記日期」是寫給自己的隱私說明，放在搜尋結果浪費了。改成列具體的城市名；隱私說明留在頁面內。
+// 城市名從資料產生（新增城市會跟著變），每間飯店有錨點 #hotel-名稱。
+const hotelCities = hotelsByPlace().flatMap(([, cities]) => cities.map(([city, hotels]) => [city, hotels.length] as const)).toSorted((a, b) => b[1] - a[1]);
+const hotelTotal = hotelCities.reduce((n, [, c]) => n + c, 0);
+const cityNames = hotelCities.slice(0, 6).map(([city]) => city).join("、");
+
 export const metadata: Metadata = withShare({
-  title: "住宿紀錄 · Hotel Log — PINGWEI LI",
-  description: "住過的飯店、城市與飯店集團。只記名稱跟城市，不記日期。",
+  title: `住過的飯店清單：${hotelCities.slice(0, 3).map(([city]) => city).join("、")}… · Hotel Log — PINGWEI LI`,
+  description: `住過的 ${hotelTotal} 間飯店，依城市整理（${cityNames}…），附飯店集團統計與地圖。`,
   alternates: { canonical: "/hotels", types: { "text/markdown": "/hotels.md" } },
 }, { ownImage: true });
 
+
+/** 飯店名稱 → 網址錨點：小寫、空白換成 -，中文保留 */
+const hotelAnchor = (name: string) => name.toLowerCase().replace(/[\s/]+/g, "-");
 
 export default function HotelsPage() {
   const stats = hotelStats();
@@ -98,7 +108,7 @@ export default function HotelsPage() {
                     </p>
                     <ul className="text-[15px] sm:text-sm text-(--text) font-light leading-relaxed">
                       {hotels.map((h) => (
-                        <li key={h}>{h}</li>
+                        <li key={h} id={`hotel-${hotelAnchor(h)}`} className="scroll-mt-24">{h}</li>
                       ))}
                     </ul>
                   </div>

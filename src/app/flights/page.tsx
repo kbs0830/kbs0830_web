@@ -10,8 +10,9 @@ import { formatFlightCode } from "@/lib/travel/aircraft";
 import { nf } from "@/lib/format";
 
 export const metadata: Metadata = withShare({
-  title: "飛行紀錄 · Flight Log — PINGWEI LI",
-  description: "航迷小筆記：搭過的航線、機場與航空公司。只記航班代碼跟起降機場，不記日期。",
+  // 搜尋結果用的標題跟說明（TODO R3，2026-11-28）：具體的機場、航線比抽象描述容易被點；「不記日期」的說明留在頁面內
+  title: "搭過的航線與機場：高雄、福岡、台北、東京… · Flight Log — PINGWEI LI",
+  description: "航迷小筆記：搭過的航線（距離、次數）、機場與航空公司，附航線地圖和機型紀錄。",
   alternates: { canonical: "/flights", types: { "text/markdown": "/flights.md" } },
 }, { ownImage: true });
 
@@ -21,7 +22,7 @@ function RouteList({ items }: { items: Route[] }) {
   return (
     <ul className="divide-y divide-(--border) border-y border-(--border)">
       {items.map((r) => (
-        <li key={`${r.a}-${r.b}`} className="py-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <li key={`${r.a}-${r.b}`} id={`${r.a}-${r.b}`.toLowerCase()} className="scroll-mt-24 py-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="text-[15px] sm:text-sm text-(--text) font-light">
             {AIRPORTS[r.a].name} ↔ {AIRPORTS[r.b].name}
           </span>

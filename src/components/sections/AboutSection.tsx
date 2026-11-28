@@ -2,6 +2,8 @@
 // 需要瀏覽器的只有 <Reveal>/<RevealHeading>（捲動淡入）、<SpotifyNowPlaying>、<Tabs>（只管顯示哪一頁），
 // 技能 accordion 用原生 <details>、時間軸展開用 CSS :hover/:focus，都不需要 JS。
 // 2026-11-05：歷程／技能／活動／足跡原本一路往下排、整區很長，改成分頁（Tabs），面板內容照樣在 server 產生。
+import ContribHeatmap from "@/components/ui/ContribHeatmap";
+import { getContributions } from "@/lib/live/github-contrib";
 import ScrollEnd from "@/components/ui/ScrollEnd";
 import { Fragment } from "react";
 import Image from "next/image";
@@ -141,9 +143,17 @@ function SkillsPanel() {
   );
 }
 
-function ActivityPanel() {
+async function ActivityPanel() {
+  // 自己畫的熱力圖（TODO D1）；抓不到 GitHub 資料時退回舊的 ghchart 圖片（P4：手機先捲到最近）
+  const days = await getContributions("kbs0830").catch(() => null);
   return (
     <>
+      {days ? (
+        <div className="p-4 border border-(--border) rounded-sm bg-(--bg)">
+          <ContribHeatmap user="kbs0830" days={days} />
+        </div>
+      ) : (
+        <>
       {/* 手機放不下整年：先捲到最右邊（最近的月份）、邊緣淡出提示可以滑（TODO P4）；底色跟著主題，不再是寫死的白底 */}
       <ScrollEnd className="p-4 border border-(--border) rounded-sm bg-(--bg) overflow-x-auto">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -156,6 +166,8 @@ function ActivityPanel() {
           loading="lazy"
         />
       </ScrollEnd>
+        </>
+      )}
       <p className="text-[11px] text-(--muted) font-light mt-2 font-mono">github.com/kbs0830 · 公開貢獻紀錄</p>
     </>
   );
