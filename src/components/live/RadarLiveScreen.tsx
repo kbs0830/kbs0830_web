@@ -15,7 +15,7 @@ import counties from "./radar-counties.json";
 //   - 機場、跑道、導航台是公開的航空資料（OurAirports，公有領域），畫出來；文字不寫行政區、不寫接收器離機場多近
 
 type Row = [id: string, lat: number, lon: number, alt: number | null, speed: number | null, track: number | null, vrate: number | null];
-type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null };
+type Info = { f: string; al: string | null; an: string | null; ty: string | null; tn: string | null; rg?: string; mf?: string; ft?: string; ow?: string; cc?: string; yr?: number };
 type Frame = {
   now: number;
   delayMs: number;
@@ -510,11 +510,16 @@ export default function RadarLiveScreen() {
               <span className="font-mono font-semibold" style={{ fontSize: "1.55em" }}>{focus.info.f}</span>
               <span className="truncate font-light" style={{ color: C.muted, fontSize: "0.95em" }}>{focus.info.an ?? focus.info.al ?? ""}</span>
             </p>
-            <p className="font-light" style={{ color: C.muted, fontSize: "0.9em" }}>{focus.info.tn ?? "機型查詢中 · type unknown"}</p>
+            <p className="truncate font-light" style={{ color: C.text, fontSize: "0.95em" }}>{focus.info.ft ?? focus.info.tn ?? "機型查詢中 · type unknown"}</p>
+            <p className="truncate font-mono" style={{ color: C.muted, fontSize: "0.8em" }}>
+              {[focus.info.rg, focus.info.cc, focus.info.ow && focus.info.ow !== focus.info.an ? focus.info.ow : null].filter(Boolean).join(" · ") || "註冊資料查詢中"}
+            </p>
             <dl className="mt-[0.6em] grid grid-cols-2 gap-x-[1em] gap-y-[0.45em]" style={{ fontSize: "0.9em" }}>
               <Stat label="高度 Alt" value={focus.alt == null ? "–" : `${(Math.round(focus.alt / 100) * 100).toLocaleString("en-US")} ft`} />
               <Stat label={`地速 GS${focus.sp == null ? "" : ` · ${Math.round(focus.sp * 1.852)} km/h`}`} value={focus.sp == null ? "–" : `${focus.sp} kt`} />
               <Stat label="航向 Trk" value={focus.tr == null ? "–" : `${Math.round(focus.tr)}° ${compass(focus.tr)}`} />
+              <Stat label="機齡 Age" value={focus.info.yr ? `${new Date(frame?.now ?? 0).getFullYear() - focus.info.yr} 年（${focus.info.yr}）` : "–"} />
+              <Stat label="製造商 Mfr" value={focus.info.mf ? focus.info.mf.replace(/ (Aircraft|Company|Corporation|Industries|Commercial).*$/i, "") : "–"} />
               <Stat label="升降 V/S" value={focus.vr == null ? "–" : Math.abs(focus.vr) < 300 ? "→ 平飛 level" : `${focus.vr > 0 ? "↑ 爬升" : "↓ 下降"} ${Math.abs(Math.round(focus.vr / 50) * 50).toLocaleString("en-US")} ft/min`} />
             </dl>
           </div>
@@ -525,8 +530,8 @@ export default function RadarLiveScreen() {
         <p className="mt-[1.1em] border-t pt-[0.8em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
           航班 · FLIGHTS
         </p>
-        <ul className="mt-[0.5em] space-y-[0.45em] overflow-hidden" style={{ minHeight: "6.4em" }}>
-          {named.slice(0, 4).map((s) => (
+        <ul className="mt-[0.5em] space-y-[0.45em] overflow-hidden" style={{ minHeight: "4.8em" }}>
+          {named.slice(0, 3).map((s) => (
             <li key={s.id} className="flex items-baseline justify-between gap-[1em]">
               <span className="min-w-0 truncate">
                 <span className="font-mono font-semibold" style={{ fontSize: "1.05em" }}>{s.info.f}</span>

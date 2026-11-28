@@ -55,6 +55,18 @@ function recordTrack(prev, sample, now) {
 
 // id：HMAC＋每次啟動隨機產生的金鑰（hex 只有 24 位元，單純雜湊可以暴力還原）；金鑰只在記憶體，重啟後 id 換一批（畫面上的尾跡斷一次，無妨）
 const SECRET = crypto.randomBytes(16);
+/** 飛機本身的公開資料（註冊號、製造商、機型全名、所屬公司、國別、出廠年）。沒有的欄位不出現 */
+function detailOf(d, year) {
+  const o = {};
+  if (d.r) o.rg = d.r;
+  if (d.m) o.mf = d.m;
+  if (d.n) o.ft = d.n;
+  if (d.o) o.ow = d.o;
+  if (d.c) o.cc = d.c;
+  if (Number.isInteger(year) && year > 1950 && year < 2100) o.yr = year;
+  return o;
+}
+
 const idOf = (hex, date) => crypto.createHmac("sha256", SECRET).update(`${hex}|${date}`).digest("hex").slice(0, 8);
 
 const MIN_ALT_FT = 1000; // 地面、1,000 ft 以下、高度不明的都不放出去（fail closed）：低空航跡會透露離機場／接收器多近
@@ -65,8 +77,9 @@ const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數�
  * @param track  readState(radar-track.json)
  * @param types  機型快取（hex → { t }），可 null
  * @param names  { airlines: {CAL:"中華航空"}, types: {A321:"A321"} }（radar.js 的對照表）
+ * @param [ages]   hex → 出廠年份（data/aircraft-age.json，選用；沒有檔案就不顯示機齡）
  */
-function buildFrame(track, types, names, now) {
+function buildFrame(track, types, names, now, ages) {
   const cutoff = now - DELAY_MS;
   const date = twDate(now);
   const samples = (track && Array.isArray(track.samples) ? track.samples : []).filter((s) => s.t <= cutoff && s.t >= cutoff - WINDOW_MS);
@@ -78,12 +91,14 @@ function buildFrame(track, types, names, now) {
       const id = idOf(a.h, date);
       const airline = (a.f.match(/^([A-Z]{3})\d{1,4}[A-Z]{0,2}$/) || [])[1] || null;
       const ty = types && types[a.h] && types[a.h].t ? types[a.h].t : null;
+      const d = (types && types[a.h]) || {};
       info[id] = {
         f: /^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/.test(a.f) ? a.f : "",
         al: airline,
         an: airline ? (names.airlines[airline] || null) : null,
         ty,
         tn: ty ? (names.types[ty] || ty) : null,
+        ...detailOf(d, ages && ages[a.h]),
       };
       return [id, coarse(a.la), coarse(a.lo), a.al, a.sp, a.tr, a.vr ?? null];
     }),
@@ -98,7 +113,7 @@ function buildFrame(track, types, names, now) {
     .map(([hex, e]) => {
       const airline = (e.f.match(/^([A-Z]{3})\d/) || [])[1] || null;
       const ty = types && types[hex] && types[hex].t ? types[hex].t : null;
-      return { f: e.f, al: airline, an: airline ? names.airlines[airline] || null : null, ty, tn: ty ? names.types[ty] || ty : null, t: e.t, alt: e.al, sp: e.sp, tr: e.tr };
+      return { f: e.f, al: airline, an: airline ? names.airlines[airline] || null : null, ty, tn: ty ? names.types[ty] || ty : null, t: e.t, alt: e.al, sp: e.sp, tr: e.tr, ...detailOf((types && types[hex]) || {}, ages && ages[hex]) };
     });
   return { now, delayMs: DELAY_MS, samples: out, info, recent };
 }

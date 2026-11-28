@@ -304,19 +304,34 @@ async function fetchType(hex, now) {
     if (res.status === 404) return { miss: 1, at: now };
     if (!res.ok) return null;
     const j = await res.json();
-    const t = j && j.response && j.response.aircraft && j.response.aircraft.icao_type;
-    return typeof t === "string" && /^[A-Z0-9]{2,4}$/.test(t) ? { t, at: now } : { miss: 1, at: now };
+    const ac = j && j.response && j.response.aircraft;
+    const t = ac && ac.icao_type;
+    if (typeof t !== "string" || !/^[A-Z0-9]{2,4}$/.test(t)) return { miss: 1, at: now };
+    // v: 2＝有留註冊號等詳細資料（舊快取只有機型，會慢慢補查）。這些是「飛機」的公開資料，不含位置
+    const str = (v, max) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
+    return {
+      t, at: now, v: 2,
+      r: str(ac.registration, 12), m: str(ac.manufacturer, 60), n: str(ac.type, 60),
+      o: str(ac.registered_owner, 60), c: /^[A-Z]{2}$/.test(ac.registered_owner_country_iso_name || "") ? ac.registered_owner_country_iso_name : undefined,
+    };
   } catch {
     return null;
   }
 }
 
-/** 今天看過、快取裡還沒有（或很久以前查不到）的識別碼，挑幾個去查。回傳有沒有改到快取 */
+/**
+ * 今天看過、快取裡還沒有（或很久以前查不到）的識別碼，挑幾個去查（舊快取沒有註冊號等詳細資料的排在最後補查）。回傳有沒有改到快取
+ * @param {any} state @param {Record<string, any>} types @param {number} now
+ * @param {(hex: string, now: number) => Promise<object | null>} [fetcher]
+ */
 async function lookupTypes(state, types, now, fetcher = fetchType) {
-  const todo = Object.keys((state && state.today && state.today.seen) || {}).filter((hex) => {
+  const seen = Object.keys((state && state.today && state.today.seen) || {});
+  const todo = seen.filter((hex) => {
     const c = types[hex];
     return !c || (c.miss && now - (c.at || 0) > TYPE_MISS_RETRY_MS);
   });
+  // 排在後面：舊快取（只有機型、沒有註冊號等）慢慢補查，不搶新飛機的查詢名額
+  for (const hex of seen) if (types[hex] && types[hex].t && types[hex].v !== 2) todo.push(hex);
   let changed = false;
   for (const hex of todo.slice(0, TYPE_LOOKUPS_PER_TICK)) {
     const r = await fetcher(hex, now);
