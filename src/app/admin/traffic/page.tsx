@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminView from "@/components/admin/AdminView";
+import NotMeToggle from "@/components/stats/NotMeToggle";
+import SectionHeading from "@/components/ui/SectionHeading";
 import LoadingBlock from "@/components/ui/LoadingBlock";
 import PageShell from "@/components/layout/PageShell";
 import { trafficModel } from "@/lib/admin/views";
@@ -26,6 +28,10 @@ async function AdminTraffic() {
   return (
     <AdminShell title="流量" intro={intro}>
       <AdminView model={trafficModel()} />
+      <section className="mt-12 mb-4">
+        <SectionHeading en="Exclude this browser">不計入自己</SectionHeading>
+        <NotMeToggle />
+      </section>
     </AdminShell>
   );
 }

@@ -13,7 +13,8 @@ const subscribe = (onChange: () => void) => {
   };
 };
 
-// /stats 最下面：「這個瀏覽器不計入真人訪客」開關（lib/client/not-me.ts）。誰都可以按，只影響自己的瀏覽器。
+// /admin/traffic 最下面：「這個瀏覽器不計入真人訪客」開關（lib/client/not-me.ts）。2026-11-28 從公開的 /stats 搬進後台：
+// 打開後台（AdminShell 的 AutoNotMe）就會自動打開，這裡只是看狀態、想測試時手動關掉。
 // server 端還不知道 localStorage → 先不畫（null），hydration 後才出現，不會閃錯的狀態。
 export default function NotMeToggle() {
   const on = useSyncExternalStore(subscribe, isNotMe, () => null);
@@ -23,7 +24,7 @@ export default function NotMeToggle() {
       <p className="text-[15px] sm:text-sm font-light text-(--text)">
         這個瀏覽器{on ? "目前不計入" : "目前會計入"}真人訪客
         <span className="block mt-1 text-xs text-(--muted)">
-          只記在這個瀏覽器裡（換瀏覽器、無痕視窗、手機要各自設定）。不影響「いま N 人」。
+          打開後台的瀏覽器會自動設成不計入（手機、桌機各進一次後台就好；無痕視窗、換瀏覽器要重新進一次）。不影響「いま N 人」。
         </span>
       </p>
       <button

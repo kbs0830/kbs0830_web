@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import PageShell from "@/components/layout/PageShell";
 import AdminNav from "@/components/admin/AdminNav";
+import AutoNotMe from "@/components/admin/AutoNotMe";
 import KeepLoginToggle from "@/components/admin/KeepLoginToggle";
 import { whoIsAdmin, type AdminIdentity } from "@/lib/admin/auth";
 import { logAdminVisit } from "@/lib/admin/login-log";
@@ -18,6 +19,7 @@ export default async function AdminShell({ title, intro, children }: { title: st
   after(() => logAdminVisit(who, h));
   return (
     <PageShell compact backHref="/" backLabel="回網站" eyebrow="站長後台 · Admin" title={title} intro={intro}>
+      <AutoNotMe />
       <LoginBar who={who} />
       {/* 全文搜尋（TODO S4）：純 GET 表單，不用 JS；結果在 /admin/search */}
       <form action="/admin/search" role="search" className="mb-3">

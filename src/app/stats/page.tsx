@@ -5,7 +5,6 @@ import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import VisitorConstellation from "@/components/stats/VisitorConstellation";
 import BulletList from "@/components/ui/BulletList";
-import NotMeToggle from "@/components/stats/NotMeToggle";
 import { BarChart, Share, ShareList, Tiles } from "@/components/ui/StatCharts";
 import { readCloudflareDays, readCloudflareSummary, refreshCloudflareIfStale } from "@/lib/stats/cloudflare-analytics";
 import { countryFlag, readCountryCounts, readCrawlers, readRawTraffic, type BotKind } from "@/lib/stats/site-stats";
@@ -283,10 +282,6 @@ async function StatsContent() {
         />
       </section>
 
-      <section className="mt-12 mb-4">
-        <SectionHeading en="Exclude this browser">不計入自己</SectionHeading>
-        <NotMeToggle />
-      </section>
     </Shell>
   );
 }
