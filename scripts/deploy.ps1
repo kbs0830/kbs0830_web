@@ -144,6 +144,19 @@ function Clear-CloudflareCache {
     } catch { Log "[WARN] Cloudflare 清快取失敗：$($_.Exception.Message)" }
 }
 
+# 新版 server 能回首頁（任何 HTTP 回應）就算好了；逾時不丟例外
+function Wait-SiteReady([int]$MaxSeconds = 30) {
+    $until = (Get-Date).AddSeconds($MaxSeconds)
+    while ((Get-Date) -lt $until) {
+        try { Invoke-WebRequest "http://localhost:3000/" -UseBasicParsing -TimeoutSec 3 | Out-Null; return $true } catch {
+            if ($_.Exception.Response) { return $true }
+            Start-Sleep -Milliseconds 300
+        }
+    }
+    Log "[WARN] 切槽後 $MaxSeconds 秒內 server 沒回應，照樣清快取，交給健檢判斷"
+    return $false
+}
+
 function Test-Deploy {
     & (Join-Path $repo "scripts\verify-deploy.ps1") *>&1 | ForEach-Object { Log "  $_" }
     return $LASTEXITCODE -eq 0
@@ -249,8 +262,10 @@ try {
 
     Log "switching $activeSlot → $targetSlot, restarting Next.js (Task Scheduler: kbs0830_NextJS)"
     Switch-Slot $targetSlot
-    # Cloudflare 快取的是舊版 HTML，裡面引用的是舊版的 JS chunk——新版 server 不再提供那些檔案。
-    # 所以切完槽「馬上」清快取，不能等健檢、IndexNow 跑完（2026-11-10 加 Cloudflare 快取時）
+    # Cloudflare 快取的是舊版 HTML，裡面引用的是舊版的 JS chunk。所以要清，而且不能等健檢、IndexNow 跑完（2026-11-10 加 Cloudflare 快取時）。
+    # 2026-11-29（TODO U1）：改成「新版 server 回得出首頁了才清」，不是切完槽就清。重啟那約 4 秒，Cloudflare 還留著舊 HTML 可以回，
+    # 訪客不會看到 502（/_next/static 不再被清，舊版 HTML 要的 chunk 還在邊緣）。最多等 30 秒，等不到也照清（健檢會抓出問題）
+    Wait-SiteReady
     Clear-CloudflareCache
 
     Log "verifying deployment"
