@@ -22,6 +22,7 @@ const ACTION: Record<string, string> = {
   "todo.import": "匯入",
   "todo.ask": "Claude 提問",
   "todo.say": "Claude 備註",
+  "blog.review": "文章審批",
 };
 
 export const metadata: Metadata = { title: "待辦" };

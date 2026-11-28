@@ -106,6 +106,14 @@ const MIGRATIONS = [
    CREATE TRIGGER search_log_ad AFTER DELETE ON admin_log BEGIN
      DELETE FROM search WHERE src = 'log' AND ref = CAST(old.id AS TEXT);
    END;`,
+  // 6：部落格草稿審批（2026-11-28，使用者：「部落格的審核不要在 todo 裡面，後台要有一個 blog 專區」）。草稿檔還是 content/drafts/<slug>.mdx（不進 git），
+  //    這裡只存審批狀態：pending 待審／approved 核准（Claude 讀到就搬進 content/blog 發布）／rejected 退回，加使用者的備註
+  `CREATE TABLE blog_review (
+     slug       TEXT PRIMARY KEY,
+     status     TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+     note       TEXT NOT NULL DEFAULT '',
+     updated_at INTEGER NOT NULL
+   );`,
 ];
 
 let db: { file: string; conn: DatabaseSync } | null = null;

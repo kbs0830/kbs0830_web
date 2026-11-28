@@ -7,6 +7,7 @@ export const ADMIN_PAGES: { href: Route; label: string; en: string; desc: string
   { href: "/admin/traffic", label: "流量", en: "Traffic", desc: "未過濾流量、爬蟲、404 清單、來源細節" },
   { href: "/admin/ops", label: "維運", en: "Ops", desc: "部署紀錄、排程工作、告警歷史、備份" },
   { href: "/admin/ask", label: "問我", en: "Ask", desc: "訪客在 /ask 問過什麼、小助理怎麼答、哪些沒有來源", private: true },
+  { href: "/admin/blog", label: "部落格", en: "Blog", desc: "Claude 寫好的文章草稿：看全文、核准發布或退回、留備註", private: true },
   { href: "/admin/pi", label: "樹莓派", en: "Pi", desc: "雷達樹莓派的溫度、CPU、記憶體、供電、記憶卡，異常會寄信" },
   { href: "/admin/mail", label: "寄信", en: "Mail", desc: "週報／月報寄送紀錄、預覽、重寄" },
   { href: "/admin/todo", label: "待辦", en: "Todo", desc: "每一項選先做／之後／不做、加備註" },

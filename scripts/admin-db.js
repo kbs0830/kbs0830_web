@@ -24,6 +24,8 @@
 //   node scripts/admin-db.js done search <關鍵字>   標題＋內文搜尋
 //   node scripts/admin-db.js done add --title "…" [--day 2026-11-26] [--detail "…" | --detail-file <檔案>]   新增（放最前面；說明寫完整：使用者原話、做了什麼、怎麼驗證）
 //   node scripts/admin-db.js done import [DONE.md]  只在 done_log 是空的時候，把舊的 DONE.md 一次匯入
+// 部落格草稿（2026-11-28 起審批在後台 /admin/blog，不再放待辦）：
+//   node scripts/admin-db.js blog                 content/drafts/ 的草稿與審批狀態（待審／已核准／已退回＋使用者備註）；已核准的才搬進 content/blog/ 發布
 // id：有編號就是編號（B16），沒有就是 "t:標題"。ADMIN_DB_FILE 可以換檔案（跟網站同一個環境變數）。
 // 資料庫要網站先開過一次後台（建表、從 TODO.md 匯入）；表還沒建會提示。
 const path = require("node:path");
@@ -136,6 +138,21 @@ if (cmd === "search") {
     const code = r.item_id.startsWith("t:") ? "" : `${r.item_id} `;
     console.log(`${(LABEL[r.choice] ?? "備註").padEnd(3, "　")} ${code}${name}${r.note ? `　— ${r.note}` : ""}　(${tw(r.updated_at)})`);
   }
+} else if (cmd === "blog") {
+  const dir = path.join(__dirname, "..", "content", "drafts");
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".mdx")) : [];
+  const rev = version >= 6 ? new Map(db.prepare("SELECT slug, status, note, updated_at FROM blog_review").all().map((r) => [r.slug, r])) : new Map();
+  const LAB = { pending: "待審", approved: "已核准", rejected: "已退回" };
+  const rows = files.map((f) => {
+    const slug = f.slice(0, -4);
+    const title = /^title:\s*"?(.*?)"?\s*$/m.exec(fs.readFileSync(path.join(dir, f), "utf8"))?.[1] ?? slug;
+    return { slug, title, r: rev.get(slug) };
+  });
+  const order = { approved: 0, pending: 1, rejected: 2 };
+  rows.sort((a, b) => order[a.r?.status ?? "pending"] - order[b.r?.status ?? "pending"]);
+  if (rows.length === 0) console.log("沒有草稿（content/drafts/ 是空的）。");
+  for (const { slug, title, r } of rows) console.log(`${LAB[r?.status ?? "pending"].padEnd(4, "　")} ${slug}　${title}${r?.note ? `　— ${r.note}` : ""}${r ? `　(${tw(r.updated_at)})` : ""}`);
+  console.log("\n已核准的：搬進 content/blog/、日期改當天、跑 vitest（lib/content）、push；做完把結果回給使用者。");
 } else if (cmd === "log") {
   for (const r of db.prepare("SELECT at, action, detail FROM admin_log ORDER BY id DESC LIMIT 20").all()) {
     console.log(`${tw(r.at)}  ${r.action}  ${r.detail}`);
