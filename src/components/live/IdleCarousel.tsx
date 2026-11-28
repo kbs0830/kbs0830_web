@@ -21,7 +21,6 @@ type Idle = {
 const C = { muted: "#8aa0b5", line: "rgba(255,255,255,0.06)" };
 // 每張停留多久（毫秒）：看內容多少——時刻表 6 列要掃一遍、METAR 有原文＋8 行翻譯要讀，統計卡最少。淡入 1.2 秒另算
 const DWELL: Record<string, number> = { dep: 14_000, arr: 14_000, wx: 18_000, l3: 12_000 };
-const hmTaipei = () => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(Date.now());
 
 /** 這份資料現在有哪幾張卡（資料不全的略過，例如時刻表抓不到） */
 function slideKeys(d: Idle | null): string[] {
@@ -37,7 +36,6 @@ function slideKeys(d: Idle | null): string[] {
 export default function IdleCarousel() {
   const [data, setData] = useState<Idle | null>(null);
   const [idx, setIdx] = useState(0);
-  const [nowHm, setNowHm] = useState("");
   const keysRef = useRef("");
   const idxRef = useRef(0);
   const keyStr = slideKeys(data).join(",");
@@ -66,14 +64,10 @@ export default function IdleCarousel() {
     keysRef.current = keyStr;
   }, [keyStr]);
 
-  // 換頁：每 0.5 秒看一次，現在這張停夠它的時間（DWELL）才換；順便讓卡片上的「現在 HH:MM」跟著真實時間走
+  // 換頁：每 0.5 秒看一次，現在這張停夠它的時間（DWELL）才換
   useEffect(() => {
     let since = Date.now();
     const t = setInterval(() => {
-      setNowHm((prev) => {
-        const next = hmTaipei();
-        return next === prev ? prev : next;
-      });
       const keys = keysRef.current.split(",").filter(Boolean);
       if (keys.length === 0) return;
       const cur = keys[idxRef.current % keys.length];
@@ -89,8 +83,8 @@ export default function IdleCarousel() {
   if (!data) return null;
   // 資料不全的卡片略過（例如時刻表抓不到）
   const slides: { key: string; label: string; sub: string; body: React.ReactNode }[] = [];
-  if (data.dep?.length) slides.push({ key: "dep", label: "小港機場 · 起飛 DEPARTURES", sub: `現在 ${nowHm || data.nowHm} · 台灣時間`, body: <Board rows={data.dep} /> });
-  if (data.arr?.length) slides.push({ key: "arr", label: "小港機場 · 降落 ARRIVALS", sub: `現在 ${nowHm || data.nowHm} · 台灣時間`, body: <Board rows={data.arr} /> });
+  if (data.dep?.length) slides.push({ key: "dep", label: "小港機場 · 起飛 DEPARTURES", sub: "", body: <Board rows={data.dep} /> });
+  if (data.arr?.length) slides.push({ key: "arr", label: "小港機場 · 降落 ARRIVALS", sub: "", body: <Board rows={data.arr} /> });
   // 「現在天氣」這頁只放完整的 METAR 電報原文，下面接白話翻譯（使用者：「那一頁只顯示完整 METAR，下面給翻譯」）
   if (data.metar) slides.push({ key: "wx", label: "高雄機場天氣 · METAR", sub: obsTime(data.metar.raw), body: <Weather metar={data.metar.raw} /> });
   else if (data.weather || data.aqi) slides.push({ key: "wx", label: "高雄現在天氣 · WEATHER NOW", sub: "", body: <WeatherFallback d={data} /> });
@@ -99,13 +93,13 @@ export default function IdleCarousel() {
   const cur = slides[idx % slides.length];
 
   return (
-    <div className="absolute bottom-[7.5em] w-[38em] rounded-sm border px-[1.3em] pt-[1em] pb-[0.9em]" style={{ left: "35em", translate: "-50% 0", background: "rgba(14,26,38,0.78)", borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="absolute bottom-[7.5em] w-[41em] rounded-sm border px-[1.3em] pt-[1em] pb-[0.9em]" style={{ left: "35em", translate: "-50% 0", fontSize: "1.15em", background: "rgba(14,26,38,0.78)", borderColor: "rgba(255,255,255,0.08)" }}>
       <div key={cur.key} className="enter-fade" style={{ ["--enter-duration" as string]: "1.2s" }}>
         <div className="flex items-baseline justify-between">
           <span className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>{cur.label}</span>
           <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{cur.sub}</span>
         </div>
-        <div className="mt-[0.5em]" style={{ fontSize: "0.95em", minHeight: "13.5em" }}>{cur.body}</div>
+        <div className="mt-[0.5em]" style={{ fontSize: "0.95em", minHeight: "14em" }}>{cur.body}</div>
       </div>
       <div className="mt-[0.5em] flex justify-end gap-[0.45em]" aria-hidden>
         {slides.map((s, i) => (
@@ -119,13 +113,21 @@ export default function IdleCarousel() {
 function Board({ rows }: { rows: Row[] }) {
   return (
     <>
+      {/* 狀態與登機門要看得清楚：用亮色、跟航班同大，不是灰色小字（使用者：「狀態跟登機門不見了」） */}
+      <div className="grid gap-[0.5em]" style={{ gridTemplateColumns: "4.4em 5.4em 1fr 4em 3em", fontSize: "0.72em", color: C.muted, padding: "0 0 0.3em" }}>
+        <span>時間</span>
+        <span>航班</span>
+        <span>目的地</span>
+        <span>狀態</span>
+        <span className="text-right">登機門</span>
+      </div>
       {rows.map((r) => (
-        <div key={`${r.t}-${r.code}`} className="grid items-baseline gap-[0.5em]" style={{ gridTemplateColumns: "4.2em 5.2em 1fr 3.8em 2.4em", padding: "0.28em 0", borderTop: `1px solid ${C.line}` }}>
+        <div key={`${r.t}-${r.code}`} className="grid items-baseline gap-[0.5em]" style={{ gridTemplateColumns: "4.4em 5.4em 1fr 4em 3em", padding: "0.26em 0", borderTop: `1px solid ${C.line}` }}>
           <span className="font-mono">{r.t}</span>
           <span className="font-mono font-semibold">{r.code}</span>
           <span className="truncate">{r.place}</span>
-          <span style={{ color: r.kind === "delayed" || r.kind === "cancelled" ? "#d9a766" : C.muted }}>{r.status}</span>
-          <span className="text-right font-mono" style={{ color: C.muted }}>{r.gate ?? "–"}</span>
+          <span className="font-semibold" style={{ color: r.kind === "delayed" || r.kind === "cancelled" ? "#d9a766" : "#e8f0f8" }}>{r.status}</span>
+          <span className="text-right font-mono font-semibold">{r.gate ?? "–"}</span>
         </div>
       ))}
     </>
