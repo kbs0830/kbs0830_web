@@ -649,20 +649,6 @@ export default function RadarLiveScreen() {
         </ul>
       </aside>
 
-      {/* 中央訊息：離線／安靜 */}
-      <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "35em", opacity: idle ? 1 : 0, filter: idle ? "none" : "blur(8px)", transition: "opacity 1s ease, filter 1s ease" }} aria-hidden={!idle}>
-        <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>
-          {offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
-        </p>
-        <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "1em" }}>
-          {offline
-            ? "會自動重新連線 · Reconnecting automatically"
-            : frame?.lastAircraftAt
-              ? `上一架 ${twHM.format(frame.lastAircraftAt)}（台灣時間）· 夜間機場有宵禁，飛機本來就少`
-              : "夜間機場有宵禁，飛機本來就少"}
-        </p>
-      </div>
-
       {/* 左下：延遲說明＋資料時間 */}
       <div className="absolute bottom-[2em] left-[2.4em] font-mono" style={{ color: C.muted, fontSize: "0.95em" }}>
         <p>
@@ -676,7 +662,17 @@ export default function RadarLiveScreen() {
       </div>
 
       {/* 閒置時的輪播：小港起飛、小港降落、現在天氣、近三天雷達資料 */}
-      <IdleCarousel visible={idle} />
+      <IdleCarousel
+        visible={idle}
+        headline={offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
+        subline={
+          offline
+            ? "會自動重新連線 · Reconnecting automatically"
+            : frame?.lastAircraftAt
+              ? `上一架 ${twHM.format(frame.lastAircraftAt)}（台灣時間）· 夜間機場有宵禁，飛機本來就少`
+              : "夜間機場有宵禁，飛機本來就少"
+        }
+      />
 
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">

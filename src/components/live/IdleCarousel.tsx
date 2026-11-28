@@ -37,11 +37,9 @@ function slideKeys(d: Idle | null): string[] {
   return k;
 }
 
-export default function IdleCarousel({ visible = true }: { visible?: boolean }) {
+export default function IdleCarousel({ visible = true, headline, subline }: { visible?: boolean; headline: string; subline: string }) {
   const [data, setData] = useState<Idle | null>(null);
   const [phase, setPhase] = useState<{ cur: number; prev: number | null }>({ cur: 0, prev: null });
-  const [h, setH] = useState(0); // 目前這張卡內容的高度（px）
-  const roRef = useRef<ResizeObserver | null>(null);
   const keysRef = useRef("");
   const curRef = useRef(0);
   const keyStr = slideKeys(data).join(",");
@@ -70,18 +68,6 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
     keysRef.current = keyStr;
   }, [keyStr]);
 
-  // 量「現在這張」內容的高度：換卡時換觀察對象；內容自己變高（例如資料更新）也會跟著
-  const measureRef = (el: HTMLDivElement | null) => {
-    roRef.current?.disconnect();
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const e = entries[0];
-      if (e) setH(Math.ceil(e.target.getBoundingClientRect().height));
-    });
-    roRef.current = ro;
-    ro.observe(el);
-  };
-
   // 換頁：每 0.5 秒看一次，現在這張停夠它的時間才換
   useEffect(() => {
     let since = Date.now();
@@ -106,74 +92,87 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
   }, []);
 
   const keys = slideKeys(data);
-  if (!data || keys.length === 0) return null;
+  const hasCards = data !== null && keys.length > 0;
   const render = (n: number): { key: string; label: string; sub?: string; body: React.ReactNode } => {
+    const d = data!;
     const key = keys[n % keys.length];
-    if (key === "dep") return { key, label: "小港機場 · 起飛 DEPARTURES", body: <Board rows={data.dep ?? []} /> };
-    if (key === "arr") return { key, label: "小港機場 · 降落 ARRIVALS", body: <Board rows={data.arr ?? []} /> };
+    if (key === "dep") return { key, label: "小港機場 · 起飛 DEPARTURES", body: <Board rows={d.dep ?? []} /> };
+    if (key === "arr") return { key, label: "小港機場 · 降落 ARRIVALS", body: <Board rows={d.arr ?? []} /> };
     if (key === "wx") {
       // 「現在天氣」這頁只放完整的 METAR 電報原文，下面接白話翻譯（使用者：「那一頁只顯示完整 METAR，下面給翻譯」）
-      return data.metar
-        ? { key, label: "高雄機場天氣 · METAR", sub: obsTime(data.metar.raw), body: <Weather metar={data.metar.raw} /> }
-        : { key, label: "高雄現在天氣 · WEATHER NOW", body: <WeatherFallback d={data} /> };
+      return d.metar
+        ? { key, label: "高雄機場天氣 · METAR", sub: obsTime(d.metar.raw), body: <Weather metar={d.metar.raw} /> }
+        : { key, label: "高雄現在天氣 · WEATHER NOW", body: <WeatherFallback d={d} /> };
     }
-    return { key, label: "近三天雷達資料 · LAST 3 DAYS", sub: "自己架的接收器", body: <Last3 d={data.last3!} /> };
+    return { key, label: "近三天雷達資料 · LAST 3 DAYS", sub: "自己架的接收器", body: <Last3 d={d.last3!} /> };
   };
-  const cur = render(phase.cur);
-  const prev = phase.prev != null ? render(phase.prev) : null;
-  const slides = [...(prev ? [{ ...prev, out: true }] : []), { ...cur, out: false }];
+  const cur = hasCards ? render(phase.cur) : null;
+  const prev = hasCards && phase.prev != null ? render(phase.prev) : null;
+  const slides = cur ? [...(prev ? [{ ...prev, out: true }] : []), { ...cur, out: false }] : [];
 
   return (
-    // 外層用「畫面基準的 em」定位：中心放在「螢幕左邊到右欄之間」的正中央（右欄左邊緣在 70em → 中心 35em），寬 48em，左右各留約 11em。
+    // 狀態文字（空域安靜中／接收器離線）跟卡片是「同一組」（使用者：「你跟上面的狀態是一體的，要一起上抬」）：
+    // 放在同一個容器裡、固定間距，整組一起定位、一起淡入淡出；卡片大小固定不變（使用者：「卡片大小不要動」）。
+    // 容器用「畫面基準的 em」定位：中心放在「螢幕左邊到右欄之間」的正中央（右欄左邊緣在 70em → 中心 35em），寬 48em，左右各留約 11em。
     // 卡片放大的字級只加在內層：如果 left 寫在已經放大的元素上，em 會被乘上 1.2，整張卡就偏右、貼近右欄（使用者：「右邊太擠」）
-    <div className="absolute" style={{ left: "35em", bottom: "8em", width: "48em", translate: "-50% 0", pointerEvents: "none" }}>
-      <div
-        className="w-full overflow-hidden rounded-sm border"
-        style={{
-          fontSize: "1.2em",
-          padding: "1.1em", // 上下左右一樣（使用者：「空間四周都要一樣」）
-          background: "rgba(14,26,38,0.78)",
-          borderColor: "rgba(255,255,255,0.08)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "none" : "translate3d(0, 12px, 0)",
-          filter: visible ? "none" : "blur(8px)",
-          transition: "opacity 1s ease, transform 1s ease, filter 1s ease",
-          willChange: "opacity, transform, filter",
-        }}
-      >
-        <style>{`
-          @keyframes idle-in { from { opacity: 0; transform: translate3d(14%, 0, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
-          @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(-14%, 0, 0); filter: blur(8px); } }
-          @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
-        `}</style>
-        {/* 高度 = 目前這張卡內容的高度（量出來的），換卡時高度也平順地變；內容多少就多高，四周留白才會一樣 */}
-        <div className="relative" style={{ height: h ? `${h}px` : "14em", transition: "height 0.9s cubic-bezier(0.22, 0.8, 0.24, 1)" }}>
-          {slides.map((s) => (
-            <div
-              key={s.key + (s.out ? "-out" : "-in")}
-              className="idle-slide absolute inset-x-0 top-0"
-              style={{
-                animation: s.out ? `idle-out ${Math.round(FADE_MS * 0.8)}ms cubic-bezier(0.55, 0, 0.8, 0.4) both` : `idle-in ${FADE_MS}ms cubic-bezier(0.22, 0.8, 0.24, 1) both`,
-                willChange: "transform, opacity, filter",
-              }}
-            >
-              <div ref={s.out ? undefined : measureRef}>
-                <div className="flex items-baseline justify-between">
-                  <span className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>{s.label}</span>
-                  <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{s.sub ?? ""}</span>
+    <div
+      className="absolute"
+      style={{
+        left: "35em",
+        bottom: "9em",
+        width: "48em",
+        translate: "-50% 0",
+        pointerEvents: "none",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "none" : "translate3d(0, 12px, 0)",
+        filter: visible ? "none" : "blur(8px)",
+        transition: "opacity 1s ease, transform 1s ease, filter 1s ease",
+        willChange: "opacity, transform, filter",
+      }}
+      aria-hidden={!visible}
+    >
+      <div className="text-center" style={{ marginBottom: hasCards ? "1.8em" : 0 }}>
+        <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>{headline}</p>
+        <p className="mt-[0.6em] font-light" style={{ color: C.muted, fontSize: "1em" }}>{subline}</p>
+      </div>
+      {hasCards && (
+        <>
+          <div className="w-full overflow-hidden rounded-sm border" style={{ fontSize: "1.2em", padding: "1.1em", background: "rgba(14,26,38,0.78)", borderColor: "rgba(255,255,255,0.08)" }}>
+            <style>{`
+              @keyframes idle-in { from { opacity: 0; transform: translate3d(14%, 0, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+              @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(-14%, 0, 0); filter: blur(8px); } }
+              @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
+            `}</style>
+            {/* 固定大小：以內容最多的那張（METAR）為準；內容比較少的卡在框裡上下置中，四周留白看起來一樣 */}
+            <div className="relative" style={{ height: "15.5em" }}>
+              {slides.map((s) => (
+                <div
+                  key={s.key + (s.out ? "-out" : "-in")}
+                  className="idle-slide absolute inset-0 flex items-center"
+                  style={{
+                    animation: s.out ? `idle-out ${Math.round(FADE_MS * 0.8)}ms cubic-bezier(0.55, 0, 0.8, 0.4) both` : `idle-in ${FADE_MS}ms cubic-bezier(0.22, 0.8, 0.24, 1) both`,
+                    willChange: "transform, opacity, filter",
+                  }}
+                >
+                  <div className="w-full">
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>{s.label}</span>
+                      <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{s.sub ?? ""}</span>
+                    </div>
+                    <div className="mt-[0.5em]" style={{ fontSize: "0.95em" }}>{s.body}</div>
+                  </div>
                 </div>
-                <div className="mt-[0.5em]" style={{ fontSize: "0.95em" }}>{s.body}</div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-      {/* 頁碼的小點放在卡片外面下方：卡片裡面只剩內容與一致的留白 */}
-      <div className="mt-[0.7em] flex justify-center gap-[0.55em]" aria-hidden style={{ opacity: visible ? 1 : 0, transition: "opacity 1s ease" }}>
-        {keys.map((k, i) => (
-          <span key={k} className="inline-block size-[0.5em] rounded-full" style={{ background: i === phase.cur % keys.length ? "#6fa0d8" : "rgba(138,160,181,0.35)", transition: "background 0.6s ease" }} />
-        ))}
-      </div>
+          </div>
+          {/* 頁碼的小點放在卡片外面下方：卡片裡面只剩內容與一致的留白 */}
+          <div className="mt-[0.7em] flex justify-center gap-[0.55em]" aria-hidden>
+            {keys.map((k, i) => (
+              <span key={k} className="inline-block size-[0.5em] rounded-full" style={{ background: i === phase.cur % keys.length ? "#6fa0d8" : "rgba(138,160,181,0.35)", transition: "background 0.6s ease" }} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
