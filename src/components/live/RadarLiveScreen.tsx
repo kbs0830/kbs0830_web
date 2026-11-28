@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import coast from "./radar-coast.json";
 import aviation from "./radar-aviation.json";
+import counties from "./radar-counties.json";
 
 // /radar/live：給 OBS「瀏覽器來源」直播用的全螢幕雷達動畫（2026-11-27，使用者要直播到 YouTube，說明欄導流到網站）。
 // 資料：/api/radar/live 每 15 秒一次，只有「1 分鐘前」的位置取樣；這裡用取樣之間的內插＋速度／航向外推，
@@ -177,6 +178,27 @@ export default function RadarLiveScreen() {
         g.addColorStop(1, "rgba(111,160,216,0.16)");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
+      }
+
+      // 縣市界線（只畫縣市之間的內部界線，海岸線已經有了；虛線、很淡）＋縣市名
+      ctx.strokeStyle = "rgba(138,160,181,0.38)";
+      ctx.lineWidth = 1.4 * k;
+      ctx.setLineDash([7 * k, 5 * k]);
+      ctx.beginPath();
+      for (const line of counties.lines as number[][][]) {
+        line.forEach(([lon, lat], i) => {
+          const [x, y] = proj(lat, lon);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(138,160,181,0.5)";
+      ctx.font = `${18 * k}px ${mono}`;
+      for (const c of counties.labels) {
+        const [x, y] = proj(c.la, c.lo);
+        ctx.fillText(c.n, x - 27 * k, y);
       }
 
       // 飛航設施：機場跑道、導航台（VOR／TACAN 六角形，NDB 空心圓）。公開的航空資料，離線底圖
@@ -417,7 +439,7 @@ export default function RadarLiveScreen() {
         </p>
         <p className="mt-[0.3em]">資料時間 {clock || "--:--:--"}（台灣 UTC+8）</p>
         <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>
-          ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB
+          ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB　┄ 縣市界
         </p>
       </div>
 
