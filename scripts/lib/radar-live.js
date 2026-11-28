@@ -46,6 +46,8 @@ function recordTrack(prev, sample, now) {
   keep.push({ t: now, ok, ac });
   // 「剛剛經過」：每架（有正常呼號、高度夠）最後一次被看到的時間與狀態，留 60 分鐘、最多 40 筆（超過 20 分鐘的取樣已經丟了，這份另外留）
   const recent = Object.fromEntries(Object.entries((prev && prev.recent) || {}).filter(([, e]) => now - e.t <= RECENT_KEEP_MS));
+  // 【刻意的取捨，2026-11-29 使用者問「00:55、00:57 的飛機怎麼沒紀錄」】這份清單沒有任何位置（只有班號、航空公司、機型、時間），
+  // 所以高度不明的有班號飛機也列；地圖上的位置（buildFrame）仍然是 fail closed：高度不明或 1,000 ft 以下一律不放。
   // 沒解出座標的（只收到部分訊號）也算：有正常班號就列進去，只是畫不到地圖上。高度已知而且太低的仍然不收
   for (const a of ok ? sample.aircraft || [] : []) {
     if (!a || !a.hex || (a.seen ?? 0) > POS_FRESH_S * 2) continue;
