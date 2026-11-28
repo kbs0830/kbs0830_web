@@ -196,7 +196,7 @@ app
     if (process.env.RADAR_HOST) {
       startRadarPoller({ host: process.env.RADAR_HOST, file: process.env.RADAR_FILE, log });
       log(`radar poller started (${process.env.RADAR_FILE})`);
-      // 樹莓派本身的健康（溫度、供電、記憶卡），每 5 分鐘 SSH 讀一次，只給後台看（lib/radar-health.js）
+      // 樹莓派本身的健康（溫度、供電、記憶卡），每 15 分鐘 SSH 讀一次，只給後台看（lib/radar-health.js）
       // 順便把樹莓派的系統 log 存一份到 logs/pi/（PI_LOG_DIR 可以改；本機測試不要寫到正式的資料夾）
       const piLogDir = process.env.PI_LOG_DIR || path.join(logDir, "pi");
       const piCursor = process.env.PI_LOG_CURSOR || path.join(dataDir, "pi-journal-cursor.txt");

@@ -4,7 +4,7 @@ import { dataFile, readJsonFile } from "@/lib/data-file";
 import { twDateTime } from "@/lib/format";
 
 // 自家雷達樹莓派的健康（2026-11-26，使用者：「後台可以看到派的記憶體、溫度、使用率，做一個監督派的分頁，溫度太高或其他問題要發 Gmail 給我」）。
-// scripts/lib/radar-health.js 每 5 分鐘 SSH 讀一次寫成 data/radar-health.json（含 24 小時歷史、告警清單）→ /admin/pi。
+// scripts/lib/radar-health.js 每 15 分鐘 SSH 讀一次寫成 data/radar-health.json（含 24 小時歷史、告警清單）→ /admin/pi。
 // 告警信由 watchdog.ps1 讀同一個檔案的 problems 寄出；這裡的顏色門檻跟那邊一致：溫度 70 黃（75 寄信）、空間 85 黃（90 寄信）。
 
 type Flags = { undervoltage: boolean; capped: boolean; throttled: boolean; softTemp: boolean };
@@ -46,7 +46,7 @@ type HealthFile = {
   problems?: Problem[];
 };
 
-const STALE_MS = 15 * 60_000;
+const STALE_MS = 35 * 60_000; // 每 15 分鐘讀一次，漏一次不算
 const TEMP_WARN = 70;
 
 const uptimeText = (s: number) => (s >= 86400 ? `${Math.floor(s / 86400)} 天` : s >= 3600 ? `${Math.floor(s / 3600)} 小時` : `${Math.max(1, Math.floor(s / 60))} 分鐘`);
@@ -156,7 +156,7 @@ export function piModel(now = Date.now()): ViewModel {
           ["CPU 時脈", h?.clockMHz ? `${h.clockMHz} MHz` : "—"],
           ["記憶卡", h?.sd ? `${h.sd.name}${h.sd.date ? `（製造 ${h.sd.date}）` : ""}` : "—"],
           ["接收程式", h?.feedActive == null ? "—" : h.feedActive ? "fr24feed 執行中" : "fr24feed 停了"],
-          ["多久讀一次", "每 5 分鐘（SSH，唯讀）"],
+          ["多久讀一次", "每 15 分鐘（SSH，唯讀）"],
         ],
       },
     ],

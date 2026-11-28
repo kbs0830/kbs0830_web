@@ -145,9 +145,10 @@ export const demoDecisions: Decision[] = [
   { itemId: "D2", choice: "later", note: "等期末後", updatedAt: Date.UTC(2026, 10, 26, 6) },
 ];
 
-// 樹莓派分頁的範例：24 小時、每 5 分鐘一筆，溫度白天高晚上低、CPU 跟著飛機量起伏（數字是編的）
+// 樹莓派分頁的範例：24 小時、每 15 分鐘一筆，溫度白天高晚上低、CPU 跟著飛機量起伏（數字是編的）
 const piStart = Date.UTC(2026, 10, 25, 8); // 11/25 16:00（台灣）
-const piHist = Array.from({ length: 288 }, (_, i) => {
+const piHist = Array.from({ length: 96 }, (_, k) => {
+  const i = k * 3;
   const hour = (16 + i / 12) % 24;
   const day = Math.sin(((hour - 8) / 24) * Math.PI * 2);
   const wobble = Math.sin(i / 7) * 0.6 + Math.sin(i / 2.3) * 0.2;
@@ -180,7 +181,7 @@ export const demoPi: ViewModel = {
         ["CPU 時脈", "1200 MHz"],
         ["記憶卡", "16 GB（範例）"],
         ["接收程式", "fr24feed 執行中"],
-        ["多久讀一次", "每 5 分鐘（SSH，唯讀）"],
+        ["多久讀一次", "每 15 分鐘（SSH，唯讀）"],
       ],
     },
   ],

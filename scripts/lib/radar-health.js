@@ -1,6 +1,6 @@
 // 自家雷達樹莓派的健康狀態（2026-11-26，使用者換完電源：「幫我看派的記憶卡或是溫度什麼的有沒有問題，並寫進網站後台監視」）。
 //
-// scripts/server.js 每 5 分鐘用 SSH（唯讀金鑰 ~/.ssh/pi24_radar，帳號 pi）跑一小段指令，讀：
+// scripts/server.js 每 15 分鐘用 SSH（唯讀金鑰 ~/.ssh/pi24_radar，帳號 pi）跑一小段指令，讀：
 //   溫度、供電／降頻旗標（vcgencmd get_throttled）、開機多久、根目錄用量、是不是變成唯讀、
 //   核心訊息裡的記憶卡／檔案系統錯誤數、檔案系統狀態（tune2fs）、累計寫入量、可用記憶體、Wi-Fi 訊號、fr24feed 有沒有在跑
 // 寫進 data/radar-health.json，只給站長後台（/admin/ops）看，不經公開 API。
@@ -13,7 +13,7 @@ const path = require("node:path");
 const { execFile } = require("node:child_process");
 const { pullJournal } = require("./pi-journal.js");
 
-const POLL_MS = 5 * 60_000;
+const POLL_MS = 15 * 60_000; // 2026-11-28 使用者：「改成 15 分鐘 SSH 進去一次，不要太頻繁」
 const KEEP_MS = 24 * 3600_000; // 溫度歷史留 24 小時（算最高溫用）
 
 // 遠端跑的指令（從 stdin 給 bash -s，避免 Windows 命令列引號問題）。每行一個 key=value

@@ -2,10 +2,10 @@
 // 雷達樹莓派的系統 log 存一份到桌機（2026-11-28，使用者：「這些紀錄 log 都記錄到本機」）。
 //
 // 樹莓派上的 journal 只留 50 MB（約兩天），而且出事時常常是整台不見、要拔電重開。
-// radar-health 每 5 分鐘 SSH 一次時順便跑 journalctl，用 cursor 只拿上次之後的新紀錄，
+// radar-health 每 15 分鐘 SSH 一次時順便跑 journalctl，用 cursor 只拿上次之後的新紀錄，
 // 依台灣日期寫到 logs/pi/YYYY-MM-DD.log，留 90 天。
 //
-// 過濾掉的：我們自己每 5 分鐘 SSH 登入產生的 session／sudo 紀錄、fr24feed 每幾秒一行的心跳。
+// 過濾掉的：我們自己每 15 分鐘 SSH 登入產生的 session／sudo 紀錄、fr24feed 每幾秒一行的心跳。
 // ⚠️ 任何「key=…」的值都會遮掉（fr24feed 的分享金鑰不能落地）。
 
 const fs = require("node:fs");
