@@ -4,7 +4,7 @@ import { getBoards, upcoming, type Flight } from "@/lib/travel/airport-board";
 import { getWeather } from "@/lib/live/weather";
 import { getAirQuality } from "@/lib/live/air-quality";
 import { getMetarRaw } from "@/lib/live/metar";
-import { AIRLINE_NAMES, readState } from "../../../../../scripts/lib/radar.js";
+import { AIRLINE_NAMES, TYPE_NAMES, readState } from "../../../../../scripts/lib/radar.js";
 import { twDate } from "../../../../../scripts/lib/tw-time.js";
 
 // 直播畫面（/radar/live）「沒有飛機時」輪播的四張卡片用的資料：小港起飛、小港降落、現在天氣（含高雄機場 METAR 電報）、近三天雷達資料。
@@ -37,6 +37,9 @@ export async function GET() {
   const perDay = days.map((d) => ({ date: d, unique: state?.days?.[d]?.unique ?? 0, peak: state?.days?.[d]?.peak ?? 0 }));
   const air: Record<string, number> = {};
   for (const d of days) for (const [k, n] of Object.entries((state?.days?.[d]?.airlines ?? {}) as Record<string, number>)) air[k] = (air[k] ?? 0) + n;
+  // 三天的機型：把每天的「機型 → 架數」加起來
+  const typ: Record<string, number> = {};
+  for (const d of days) for (const [k, n] of Object.entries((state?.days?.[d]?.types ?? {}) as Record<string, number>)) typ[k] = (typ[k] ?? 0) + n;
   const last3 = state
     ? {
         unique: perDay.reduce((n, d) => n + d.unique, 0),
@@ -46,6 +49,10 @@ export async function GET() {
           .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
           .slice(0, 3)
           .map(([code, n]) => ({ name: (AIRLINE_NAMES as Record<string, string>)[code] || code, n })),
+        types: Object.entries(typ)
+          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+          .slice(0, 3)
+          .map(([code, n]) => ({ name: (TYPE_NAMES as Record<string, string>)[code] || code, n })),
       }
     : null;
 

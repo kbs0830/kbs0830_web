@@ -18,13 +18,14 @@ type Idle = {
   weather: { temp: number; label: string } | null;
   aqi: { aqi: number; status: string; main: string | null } | null;
   metar: { raw: string; at: number } | null;
-  last3: { unique: number; peak: number; days: { date: string; unique: number }[]; airlines: { name: string; n: number }[] } | null;
+  last3: { unique: number; peak: number; days: { date: string; unique: number; peak: number }[]; airlines: { name: string; n: number }[]; types: { name: string; n: number }[] } | null;
 };
 
 const C = { muted: "#8aa0b5", line: "rgba(255,255,255,0.06)" };
 // 每張停留多久（毫秒）：看內容多少——時刻表 6 列要掃一遍、METAR 有原文＋8 項翻譯要讀，統計卡最少。淡入淡出另外算
 const DWELL: Record<string, number> = { dep: 14_000, arr: 14_000, wx: 18_000, l3: 12_000 };
-const FADE_MS = 1300;
+const SLIDE_MS = 1000; // 換卡動畫的長度（舊卡移出、新卡淡入同一段時間）
+const FADE_MS = SLIDE_MS + 200; // 動畫結束後才把舊卡拿掉
 
 /** 這份資料現在有哪幾張卡（資料不全的略過，例如時刻表抓不到） */
 function slideKeys(d: Idle | null): string[] {
@@ -139,8 +140,9 @@ export default function IdleCarousel({ visible = true, headline, subline }: { vi
         <>
           <div className="w-full overflow-hidden rounded-sm border" style={{ fontSize: "1.2em", padding: "1.1em", background: "rgba(14,26,38,0.78)", borderColor: "rgba(255,255,255,0.08)" }}>
             <style>{`
-              @keyframes idle-in { from { opacity: 0; transform: translate3d(14%, 0, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
-              @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(-14%, 0, 0); filter: blur(8px); } }
+              /* 新卡：留在原位、只淡入（不從右邊移進來）。舊卡：往左移出並淡出。兩者同一段時間、新卡稍晚一點點開始，看起來是舊卡被推開、新卡浮現 */
+              @keyframes idle-in { from { opacity: 0; } to { opacity: 1; } }
+              @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(-16%, 0, 0); filter: blur(5px); } }
               @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
             `}</style>
             {/* 固定大小：以內容最多的那張（METAR）為準；內容比較少的卡在框裡上下置中，四周留白看起來一樣 */}
@@ -150,7 +152,8 @@ export default function IdleCarousel({ visible = true, headline, subline }: { vi
                   key={s.key + (s.out ? "-out" : "-in")}
                   className="idle-slide absolute inset-0 flex items-center"
                   style={{
-                    animation: s.out ? `idle-out ${Math.round(FADE_MS * 0.8)}ms cubic-bezier(0.55, 0, 0.8, 0.4) both` : `idle-in ${FADE_MS}ms cubic-bezier(0.22, 0.8, 0.24, 1) both`,
+                    animation: s.out ? `idle-out ${SLIDE_MS}ms cubic-bezier(0.4, 0, 0.2, 1) both` : `idle-in ${SLIDE_MS}ms ease-out 120ms both`,
+                    zIndex: s.out ? 2 : 1,
                     willChange: "transform, opacity, filter",
                   }}
                 >
@@ -273,34 +276,55 @@ function WeatherFallback({ d }: { d: Idle }) {
   );
 }
 
+/**
+ * 近三天雷達資料（使用者：「三天雷達資料頁面顯示內容重做」）。兩欄、對齊同一條線：
+ *   左：三天總共收到幾架（大數字）＋同時最多，下面三天逐日橫條（日期、星期、橫條、架數、當天最多同時）
+ *   右：航空公司前三、機型前三（各三列，名稱靠左、架數靠右）
+ * 只有數字、航空公司、機型（跟 /radar 頁公開的是同一批），沒有位置。
+ */
+const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+// 台灣日期的中午 12 點 = UTC 04:00，同一天，用 getUTCDay 就是台灣那天的星期
+const dayLabel = (date: string) => `${date.slice(5)}（${WEEKDAY[new Date(`${date}T12:00:00+08:00`).getUTCDay()]}）`;
+
+function NameList({ title, rows }: { title: string; rows: { name: string; n: number }[] }) {
+  return (
+    <div>
+      <div className="font-mono tracking-[0.12em]" style={{ color: C.muted, fontSize: "0.78em", paddingBottom: "0.3em", borderBottom: `1px solid ${C.line}` }}>{title}</div>
+      {rows.map((r) => (
+        <div key={r.name} className="flex items-baseline justify-between gap-[0.8em]" style={{ padding: "0.22em 0" }}>
+          <span className="truncate">{r.name}</span>
+          <span className="font-mono" style={{ color: C.muted }}>{r.n}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Last3({ d }: { d: NonNullable<Idle["last3"]> }) {
   const max = Math.max(1, ...d.days.map((x) => x.unique));
   return (
-    <>
-      <div className="grid gap-[1em]" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-        <Big label="這三天收到" value={`${d.unique.toLocaleString("en-US")} 架次`} />
-        <Big label="同時最多" value={`${d.peak} 架`} />
-        <div>
-          <div style={{ color: C.muted, fontSize: "0.8em" }}>航空公司前三</div>
-          <div className="mt-[0.2em]" style={{ fontSize: "0.9em", lineHeight: 1.45 }}>
-            {d.airlines.map((a) => (
-              <div key={a.name} className="flex justify-between gap-[0.6em]">
-                <span className="truncate">{a.name}</span>
-                <span className="font-mono" style={{ color: C.muted }}>{a.n}</span>
-              </div>
-            ))}
-          </div>
+    <div className="grid gap-[2em]" style={{ gridTemplateColumns: "1.15fr 1fr" }}>
+      <div>
+        <div style={{ color: C.muted, fontSize: "0.8em" }}>這三天收到</div>
+        <div className="flex items-baseline gap-[0.5em]">
+          <span className="font-serif" style={{ fontSize: "2.6em", lineHeight: 1.1 }}>{d.unique.toLocaleString("en-US")}</span>
+          <span style={{ color: C.muted }}>架次</span>
+          <span className="ml-auto font-mono" style={{ color: C.muted, fontSize: "0.85em" }}>同時最多 {d.peak} 架</span>
+        </div>
+        <div className="mt-[0.6em] pt-[0.5em]" style={{ borderTop: `1px solid ${C.line}` }}>
+          {d.days.map((x) => (
+            <div key={x.date} className="grid items-center gap-[0.7em]" style={{ gridTemplateColumns: "5.6em 1fr 2.4em", padding: "0.2em 0" }}>
+              <span className="font-mono" style={{ color: C.muted, fontSize: "0.85em" }}>{dayLabel(x.date)}</span>
+              <span className="block h-[0.65em] rounded-[2px]" style={{ width: `${Math.max(2, (x.unique / max) * 100)}%`, background: "#6fa0d8", opacity: 0.85 }} />
+              <span className="text-right font-mono">{x.unique}</span>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="mt-[0.8em] pt-[0.6em]" style={{ borderTop: `1px solid ${C.line}` }}>
-        {d.days.map((x) => (
-          <div key={x.date} className="grid items-center gap-[0.7em]" style={{ gridTemplateColumns: "3.2em 1fr 3em", padding: "0.18em 0" }}>
-            <span className="font-mono" style={{ color: C.muted, fontSize: "0.85em" }}>{x.date.slice(5)}</span>
-            <span className="block h-[0.7em] rounded-[2px]" style={{ width: `${Math.max(2, (x.unique / max) * 100)}%`, background: "#6fa0d8", opacity: 0.85 }} />
-            <span className="text-right font-mono" style={{ fontSize: "0.85em" }}>{x.unique}</span>
-          </div>
-        ))}
+      <div className="grid gap-[1em] content-start" style={{ fontSize: "0.92em" }}>
+        <NameList title="航空公司前三" rows={d.airlines} />
+        <NameList title="機型前三" rows={d.types} />
       </div>
-    </>
+    </div>
   );
 }
