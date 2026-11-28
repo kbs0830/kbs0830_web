@@ -85,4 +85,11 @@ describe("飛機詳細資料", () => {
     expect(Object.keys((bare.info as Record<string, object>)[id])).not.toContain("yr");
     expect(Object.keys((bare.info as Record<string, object>)[id])).not.toContain("rg");
   });
+  it("沒有正常航班代碼的飛機（私人機、軍機）不帶任何詳細資料", () => {
+    const t = recordTrack(null, ok([plane({ hex: "pr1", flight: "N123AB" })]), T0);
+    const f = buildFrame(t, { pr1: { t: "C172", v: 2, r: "N123AB", o: "John Doe", c: "US" } }, names, T0 + DELAY_MS + 1000, { pr1: 1999 });
+    const id = f.samples[0].p[0][0];
+    expect((f.info as Record<string, object>)[id]).toEqual({ f: "", al: null, an: null, ty: "C172", tn: "C172" });
+    expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB|1999/);
+  });
 });

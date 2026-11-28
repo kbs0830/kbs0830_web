@@ -1,8 +1,10 @@
 name: E2E Tests
 
+# 2026-11-29 使用者：「不要跑 E2E 直接部署」。只有一台 self-hosted runner，E2E（約 5–7 分鐘）會讓部署排在後面等，
+# 所以 push 不再自動跑 E2E，改成手動觸發（GitHub → Actions → E2E Tests → Run workflow；或在桌機 `pnpm test:e2e` 對 3200 跑）。
+# 要恢復自動跑：把下面 workflow_dispatch 換回 `push: { branches: [main] }`。
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 # 只有一台 self-hosted runner，一次只跑一個 job（2026-11-28）：好幾個 session 連續 push 時，每個 commit 各排一個 E2E，
 # 一個卡住後面全部排隊（當天最長排了 1 小時，部署也跟著等）。E2E 只有最新那個 commit 的結果有意義 →

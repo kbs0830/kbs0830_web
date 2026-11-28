@@ -4,8 +4,9 @@
 //   1. 位置一律延遲 DELAY_MS 才放出來（2026-11-27 使用者指定 5 分鐘；2026-11-29 改成 1 分鐘）：公開的畫面是「1 分鐘前的天空」，
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
-//   3. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
-//   4. 畫面的地圖固定在高雄周邊、不以接收器為圓心、不畫距離圈、不標接收器位置（見 RadarLiveScreen.tsx）。
+//   3. 註冊號（rg）、所屬公司（ow）、製造商、出廠年等「飛機本身」的資料，只給有正常航班代碼的商用航班；沒班號的（私人機、軍機）一個欄位都不帶。
+//   4. 對外的 id 是 HMAC（啟動時隨機金鑰）取 8 碼，不是 ICAO hex；地面與 1,000 ft 以下的不放、座標粗化到約 100 公尺；對外沒有 hex、squawk、訊號強度。
+//   5. 畫面的地圖固定在高雄周邊、不以接收器為圓心、不畫距離圈、不標接收器位置（見 RadarLiveScreen.tsx）。
 // 離線／飛機 0 架時照樣記（空的取樣），不然畫面不知道「那段時間沒飛機」還是「沒資料」。
 
 const crypto = require("node:crypto");
@@ -98,7 +99,8 @@ function buildFrame(track, types, names, now, ages) {
         an: airline ? (names.airlines[airline] || null) : null,
         ty,
         tn: ty ? (names.types[ty] || ty) : null,
-        ...detailOf(d, ages && ages[a.h]),
+        // 詳細資料只給「有正常航班代碼」的商用航班：註冊號跟 hex 一樣是飛機的公開識別碼，私人機的所屬人可能是個人姓名，沒班號的一律不帶
+        ...(/^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/.test(a.f) ? detailOf(d, ages && ages[a.h]) : {}),
       };
       return [id, coarse(a.la), coarse(a.lo), a.al, a.sp, a.tr, a.vr ?? null];
     }),
