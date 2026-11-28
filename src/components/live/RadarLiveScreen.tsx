@@ -84,8 +84,21 @@ export default function RadarLiveScreen() {
   useEffect(() => {
     let alive = true;
     let ctrl: AbortController | null = null;
+    let lastOk = Date.now();
+    // 自救：連續 40 秒都抓不到資料（伺服器重啟、頁面卡住、舊版程式檔不見），整頁重新載入；兩次重載至少隔 60 秒，免得伺服器沒回來時一直重載。
+    // 24 小時掛在 OBS 上沒人看著，不能卡在「離線」或舊畫面出不來（2026-11-29，使用者：「03:44:08 就沒有切換回去」）
+    const watchdog = setInterval(() => {
+      if (document.hidden || Date.now() - lastOk < 40_000) return;
+      const last = Number(sessionStorage.getItem("live-reload-at") ?? 0);
+      if (Date.now() - last < 60_000) return;
+      sessionStorage.setItem("live-reload-at", String(Date.now()));
+      location.reload();
+    }, 10_000);
     const load = async () => {
-      if (document.hidden) return;
+      if (document.hidden) {
+        lastOk = Date.now(); // 分頁在背景不抓資料，不算失聯
+        return;
+      }
       ctrl?.abort();
       ctrl = new AbortController();
       try {
@@ -104,6 +117,7 @@ export default function RadarLiveScreen() {
         frameRef.current = f;
         setFrame(f);
         setFailed(false);
+        lastOk = Date.now();
       } catch {
         if (alive && !ctrl?.signal.aborted) setFailed(true);
       }
@@ -113,6 +127,7 @@ export default function RadarLiveScreen() {
     return () => {
       alive = false;
       clearInterval(timer);
+      clearInterval(watchdog);
       ctrl?.abort();
     };
   }, []);

@@ -151,25 +151,34 @@ export const CARDS: { id: string; file: string; title: string; w: number; h: num
   {
     id: "thumb", file: "01-直播縮圖-1280x720", title: "直播縮圖 1280×720", w: 1280, h: 720,
     draw: () => {
-      const P = mkProj({ lat0: 22.75, lon0: 120.55, ppd: 720 / 1.5, cx: 1280 * 0.66, cy: 360 });
+      // 縮圖在手機上只有拇指大：文字少、字大、對比高（白字＋深色描邊），右側一架大飛機＋雷達圈當辨識圖，紅色 LIVE 標籤是 YouTube 直播的慣例
+      const P = mkProj({ lat0: 22.75, lon0: 120.55, ppd: 720 / 1.5, cx: 1280 * 0.7, cy: 360 });
+      const [rx, ry] = [975, 390];
       return (
         <>
           <Grid w={1280} h={720} step={80} />
-          <MapLayer P={P} scale={0.7} />
-          {DECOR.map((d, i) => <Plane key={i} P={P} d={d} k={0.8} />)}
+          <MapLayer P={P} scale={0.7} sweep={false} />
+          <g fill="none" stroke="#8fc1ff" strokeOpacity=".5">
+            {[110, 200, 290, 380].map((r) => <circle key={r} cx={rx} cy={ry} r={r} strokeWidth={r === 380 ? 3 : 2} strokeDasharray={r === 200 ? "10 10" : undefined} />)}
+            <path d={`M${rx - 400},${ry}H${rx + 400}M${rx},${ry - 400}V${ry + 400}`} strokeWidth={1.5} />
+          </g>
           <defs>
             <linearGradient id="thumbFade" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor={C.bg} stopOpacity=".95" />
-              <stop offset=".55" stopColor={C.bg} stopOpacity=".6" />
+              <stop offset="0" stopColor={C.bg} stopOpacity=".97" />
+              <stop offset=".5" stopColor={C.bg} stopOpacity=".8" />
               <stop offset="1" stopColor={C.bg} stopOpacity="0" />
             </linearGradient>
           </defs>
           <rect width={1280} height={720} fill="url(#thumbFade)" />
-          <Badge x={70} y={90} size={30} />
-          <Txt x={70} y={345} size={150} family={SERIF} weight={600}>高雄上空</Txt>
-          <Txt x={70} y={510} size={150} family={SERIF} weight={600} fill={C.acc}>現在幾架？</Txt>
-          <Txt x={74} y={620} size={30} fill={C.muted} family={MONO} spacing={8}>KAOHSIUNG LIVE FLIGHT RADAR</Txt>
-          <Txt x={74} y={668} size={28} fill={C.muted}>自己架的接收器 · 即時飛機雷達</Txt>
+          <g transform={`translate(${rx},${ry}) rotate(38) scale(125)`}>
+            <path d={PLANE} fill="#ffffff" stroke={C.bg} strokeWidth={0.05} />
+          </g>
+          <rect x={56} y={60} width={236} height={78} rx={14} fill="#e5252a" />
+          <circle cx={92} cy={99} r={13} fill="#fff" />
+          <Txt x={116} y={123} size={56} fill="#fff" family={SANS} weight={900} spacing={3}>LIVE</Txt>
+          <text x={52} y={355} fontSize={196} fill="#fff" fontFamily={SERIF} fontWeight={900} stroke={C.bg} strokeWidth={14} paintOrder="stroke" strokeLinejoin="round">高雄上空</text>
+          <text x={52} y={540} fontSize={150} fill="#ffd54a" fontFamily={SERIF} fontWeight={900} stroke={C.bg} strokeWidth={12} paintOrder="stroke" strokeLinejoin="round">飛機雷達</text>
+          <text x={58} y={640} fontSize={44} fill="#fff" fontFamily={SANS} fontWeight={700} stroke={C.bg} strokeWidth={8} paintOrder="stroke">自己架的接收器　24 小時即時</text>
         </>
       );
     },
