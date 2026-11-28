@@ -79,7 +79,7 @@ export default function SiteFooter({
       {/* 右下角固定的 ↑ 按鈕會壓到最後幾行——xl 以下右側多留按鈕的寬度，寬螢幕時按鈕在欄位外面 */}
       <div className={`${box} ${inset === "inner" ? "sm:pr-20 xl:pr-6" : "sm:pr-14 xl:pr-0"} pt-8 sm:pt-0 pb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-x-4 gap-y-2`}>
         {extra && (
-          <div className="flex flex-col items-start gap-y-1.5 sm:flex-row sm:flex-wrap sm:items-center pb-4 mb-2 border-b border-(--border) sm:order-last sm:gap-x-4 sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
+          <div className="flex flex-row flex-wrap items-center gap-x-4 gap-y-1.5 pb-4 mb-2 border-b border-(--border) sm:order-last sm:gap-y-1 sm:p-0 sm:m-0 sm:border-0">
             {extra}
           </div>
         )}
