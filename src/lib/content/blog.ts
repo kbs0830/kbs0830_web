@@ -43,11 +43,9 @@ export function getAllPosts(): BlogPost[] {
     })
     // 同一天的同系列文章，系列號大的在前（跟「新的在前」同方向）。2026-11-26（TODO M10）之前同一天的順序取決於檔名，
     // 列表上「自架網站維運」顯示成 2、5、3、4，上一篇／下一篇也跟著亂跳
-    .sort(
-      (a, b) =>
-        b.date.localeCompare(a.date) ||
-        (a.series && a.series === b.series ? (b.seriesOrder ?? 0) - (a.seriesOrder ?? 0) : 0),
-    );
+    // ⚠️ 比較函式要「處處一致」：以前寫成「同系列才比、其他回 0」，同一天夾著非系列文章時會變成 8、6、7（2026-11-28 測試抓到），
+    //    所以不管同不同系列都比號碼，非系列當 -1（沒有號碼的排在系列文後面，彼此維持原順序）
+    .sort((a, b) => b.date.localeCompare(a.date) || (b.seriesOrder ?? -1) - (a.seriesOrder ?? -1));
 }
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
