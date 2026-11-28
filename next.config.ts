@@ -44,7 +44,7 @@ function gitFeatLog() {
 }
 
 // dev（next dev、CI 的 E2E）多給兩個：React Fast Refresh 要 eval、熱更新要 websocket。正式站沒有
-function contentSecurityPolicy(dev: boolean) {
+function contentSecurityPolicy(dev: boolean, extraConnect = "") {
   return [
     "default-src 'self'",
     // static.cloudflareinsights.com：Cloudflare Web Analytics 的 beacon，Cloudflare 在 edge 只對真的瀏覽器插入，
@@ -55,7 +55,7 @@ function contentSecurityPolicy(dev: boolean) {
     "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
     "font-src 'self' data:",
     // cloudflareinsights.com：上面那支 beacon 把數據送回這裡（/cdn-cgi/rum）
-    `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}`,
+    `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}${extraConnect}`,
     "worker-src 'self' blob:",
     // 文章留言（lib/site/giscus.ts 有設定才開）：giscus 的 iframe
     ...(GISCUS ? ["frame-src https://giscus.app"] : []),
@@ -130,7 +130,11 @@ const nextConfig: NextConfig = {
       // 直播畫面的塔台音量條（AtcMeter，網址 ?audio=1 才會用到）要讀「音訊輸入」：只有這一頁放行麥克風（只量音量，不錄音不上傳），全站其他頁仍然全關
       {
         source: "/radar/live",
-        headers: [{ key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" }],
+        // connect-src 多放行 ws://localhost:*：音量條連 OBS 內建的 WebSocket 伺服器（localhost:4455）讀混音器音量，只有這一頁
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
+          { key: "Content-Security-Policy", value: contentSecurityPolicy(process.env.NODE_ENV !== "production", " ws://localhost:* ws://127.0.0.1:*") },
+        ],
       },
       // Service Worker 檔（public/sw.js，TODO B10）：瀏覽器本來就會自己檢查更新，但中間的 Cloudflare 預設會把 .js 快取起來，
       // 改了 sw.js 卻一直拿到舊的。要求每次都回源（不快取）
