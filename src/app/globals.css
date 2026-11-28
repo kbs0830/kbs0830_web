@@ -819,6 +819,57 @@ details[open]::details-content {
   }
 }
 
+/* ── 首頁「最新記事」手機輪播（LatestPosts，TODO Q10，2026-11-28）──────────────
+   CSS 原生輪播：scroll-snap 橫滑＋::scroll-marker 圓點（點了會捲到那篇、目前那篇是強調色），全部由瀏覽器產生。
+   卡片寬 86%：右邊露一截下一張，看得出可以滑。左右延伸到螢幕邊（-mx-6），捲動時卡片不會被內距切掉。
+   Reveal 的 view() 時間軸在橫向捲動容器裡會找到輪播本身（不會上下捲）→ 卡片可能一直透明，所以輪播裡不做進場動畫 */
+@media (width < 640px) {
+  .post-carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1.5rem;
+    margin-inline: -1.5rem;
+    padding-inline: 1.5rem;
+    scrollbar-width: none;
+    scroll-marker-group: after;
+  }
+  .post-carousel > * {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
+  }
+  .post-carousel [data-reveal] {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    translate: none;
+  }
+  .post-carousel::scroll-marker-group {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 12px;
+  }
+  /* 圓點 6px，可點範圍 24px（WCAG 2.5.8 目標尺寸） */
+  .post-carousel [data-marker]::scroll-marker {
+    content: "" / attr(data-marker);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--border) 3px, transparent 3.5px);
+    transition: background 0.3s var(--ease-ma);
+  }
+  .post-carousel [data-marker]::scroll-marker:target-current {
+    background: radial-gradient(circle, var(--accent) 3px, transparent 3.5px);
+  }
+  .post-carousel [data-marker]::scroll-marker:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: -4px;
+  }
+}
+
 /* ── 連絡先：滿版＋捲動展開（ContactSection，TODO M16，2026-11-27）──────────────
    2026-11-28 使用者：「連絡先太黑了，太突兀了」→ 淺色模式不再整區反白成深墨，改成淡淡的藍灰和紙（藍白），
    跟頁面的暖白底分得出來、又不會一捲到就像換了一個網站；衝擊感留給「卡片推成滿版」的動畫跟放大的標題。

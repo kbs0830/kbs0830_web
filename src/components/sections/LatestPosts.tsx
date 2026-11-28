@@ -29,11 +29,13 @@ export default function LatestPosts() {
           </Link>
         </Reveal>
 
-        {/* 手機只放 2 篇（2026-11-24「重點顯示，剩下收起來」），第 3 篇在 sm 以上才出現；「全部 N 篇 →」照樣在 */}
-        <div className="grid md:grid-cols-3 gap-5">
+        {/* 手機（TODO Q10，2026-11-28）：原本 2 篇直排、第 3 篇藏起來 → 3 篇橫向滑動（一次露 1.15 張，看得出右邊還有）＋下面圓點，
+            高度只剩一張卡、3 篇都看得到。圓點是瀏覽器產生的（CSS 原生輪播 ::scroll-marker，globals.css .post-carousel），零 JS；
+            不支援的瀏覽器就是普通的橫向捲動。sm 以上照舊格線 */}
+        <div className="post-carousel grid md:grid-cols-3 gap-5">
           {posts.map((post, i) => (
-            <Reveal key={post.slug} delay={i * 0.08} distance={20} className={i >= 2 ? "hidden sm:flex" : "flex"}>
-              <div className="flex-1 flex">
+            <Reveal key={post.slug} delay={i * 0.08} distance={20} className="flex">
+              <div className="flex-1 flex" data-marker={`第 ${i + 1} 篇：${post.title}`}>
                 <Link
                   href={`/blog/${post.slug}`}
                   className="group flex-1 flex flex-col border border-(--border) rounded-sm p-5 bg-(--bg) hover:border-(--accent) transition-colors"
