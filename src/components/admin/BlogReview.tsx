@@ -58,8 +58,9 @@ function Item({ d }: { d: Draft }) {
     <li className="py-5">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className={`text-xs font-mono ${TONE[status]}`}>{LABEL[status]}</span>
-        <h2 className="text-base font-light text-(--text) font-serif wrap-anywhere min-w-0 flex-1">{d.title}</h2>
-        <span className="text-[11px] font-mono text-(--muted)">
+        {/* 手機：標題獨佔一行（order-last＋basis-full），不然 flex-1 會被左右兩個小標籤擠成一個字寬、變直排 */}
+        <h2 className="order-last basis-full sm:order-none sm:basis-0 text-base font-light text-(--text) font-serif wrap-anywhere min-w-0 sm:flex-1">{d.title}</h2>
+        <span className="text-[11px] font-mono text-(--muted) break-all">
           {d.slug} · {twDate(d.modifiedAt)} · {[...d.body].length} 字
         </span>
       </div>
@@ -69,7 +70,8 @@ function Item({ d }: { d: Draft }) {
       <details className="mt-3">
         <summary className="cursor-pointer text-xs text-(--accent)">看全文</summary>
         <div className="mt-3 p-4 bg-(--surface) rounded-sm text-sm font-light leading-relaxed">
-          <MiniMarkdown text={d.body} />
+          {/* MiniMarkdown 沒有 # 標題，把「## 小標」整行轉成它支援的整行粗體 */}
+          <MiniMarkdown text={d.body.replace(/^#{1,4}\s+(.+)$/gm, "**$1**")} />
         </div>
       </details>
 
