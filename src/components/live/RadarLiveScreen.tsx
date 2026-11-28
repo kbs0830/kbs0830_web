@@ -694,7 +694,7 @@ export default function RadarLiveScreen() {
 
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">
-        <p className="font-serif font-light tracking-[0.08em]" style={{ fontSize: "1.9em" }}>kbs0830.com/radar</p>
+        <p className="font-serif font-light tracking-[0.08em]" style={{ fontSize: "1.9em" }}>www.kbs0830.com/radar</p>
         <p className="mt-[0.2em] font-light" style={{ color: C.muted, fontSize: "0.85em" }}>
           完整統計與怎麼架的，在說明欄連結 · Details in the description
         </p>
