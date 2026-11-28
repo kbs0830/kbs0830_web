@@ -21,6 +21,7 @@ const path = require("node:path");
 const { recordTrack, readTrack, writeTrack } = require("./radar-live");
 
 const POLL_MS = 30_000;
+const TRACK_POLL_MS = 5_000; // 直播軌跡的取樣間隔
 const KEEP_DAYS = 120;
 const RECENT_SECONDS = 60; // aircraft.json 會留 5 分鐘沒訊號的飛機；60 秒內有收到才算「現在」
 
@@ -364,8 +365,6 @@ function startRadarPoller({ host, file, typesFile, log }) {
       if (await lookupTypes(prev, types, now)) fs.writeFileSync(typesPath, JSON.stringify(types));
       const next = applySample(prev, sample, now, types);
       fs.writeFileSync(file, JSON.stringify(next));
-      // 直播畫面用的位置軌跡（只留 20 分鐘，公開時延遲 5 分鐘；規則見 radar-live.js）
-      writeTrack(trackPath, recordTrack(readTrack(trackPath), sample, now));
     } catch (e) {
       if (log) log(`RADAR poll error: ${e && e.message ? e.message : e}`);
     } finally {
@@ -373,6 +372,22 @@ function startRadarPoller({ host, file, typesFile, log }) {
     }
   };
   tick();
+  // 直播畫面用的位置軌跡：5 秒一次（延遲 0 時動畫才順；規則見 radar-live.js）。只讀接收器、只寫 radar-track.json，不碰統計
+  let fastRunning = false;
+  const fastTick = async () => {
+    if (fastRunning) return;
+    fastRunning = true;
+    try {
+      const sample = await pollRadar(host);
+      writeTrack(trackPath, recordTrack(readTrack(trackPath), sample, Date.now()));
+    } catch (e) {
+      if (log) log(`RADAR track error: ${e && e.message ? e.message : e}`);
+    } finally {
+      fastRunning = false;
+    }
+  };
+  fastTick();
+  setInterval(fastTick, TRACK_POLL_MS).unref();
   return setInterval(tick, POLL_MS).unref();
 }
 

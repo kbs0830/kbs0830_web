@@ -43,7 +43,7 @@ const MAIN_AIRPORTS = new Set(["RCKH", "RCNN", "RCKU", "RCQC", "RCFN"]); // 畫�
 const COMPASS = ["北", "東北", "東", "東南", "南", "西南", "西", "西北"];
 const compass = (deg: number) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 const BUFFER_MS = 10_000; // 播放時間再往前一點；取樣最多比播放時間早 30 秒，這段用速度外推
-const POLL_MS = 15_000;
+const POLL_MS = 5_000;
 const KT_TO_DEG = 1 / 3600 / 60; // 1 節 = 1 海里/小時；1 度緯度 = 60 海里 → 每秒幾度（緯度方向）
 
 const C = {
@@ -600,7 +600,7 @@ export default function RadarLiveScreen() {
       <div className="absolute bottom-[2em] left-[2.4em] font-mono" style={{ color: C.muted, fontSize: "0.95em" }}>
         <p>
           <span className="mr-[0.6em] inline-block size-[0.55em] rounded-full align-middle" style={{ background: offline ? "#8a6d3b" : "#6fa0d8" }} />
-          畫面延遲約 1 分鐘 · Delayed ~1 min
+          {(frame?.delayMs ?? 0) === 0 ? "即時 · Live" : `畫面延遲約 ${Math.round((frame?.delayMs ?? 0) / 60_000)} 分鐘 · Delayed`}
         </p>
         <p className="mt-[0.3em]">資料時間 {clock || "--:--:--"}（台灣 UTC+8）</p>
         <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>

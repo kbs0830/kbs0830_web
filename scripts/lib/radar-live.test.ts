@@ -100,4 +100,13 @@ describe("飛機詳細資料", () => {
     expect(f.recent.map((r: { f: string }) => r.f)).toEqual(["EVA145"]);
     expect(JSON.stringify(f)).not.toMatch(/John Doe|N123AB/);
   });
+
+  it("沒解出座標、但有正常班號的飛機也列進剛剛經過（畫不到地圖上）；沒班號的不列", () => {
+    const noPos = { hex: "np1", flight: "KAL123", seen: 2, alt: 9000 };
+    let t = recordTrack(null, ok([noPos, { hex: "np2", seen: 1 }]), T0);
+    t = recordTrack(t, ok([]), T0 + 30_000);
+    const f = buildFrame(t, null, names, T0 + 30_000 + DELAY_MS + 120_000);
+    expect(f.samples.every((s: { p: unknown[] }) => s.p.length === 0)).toBe(true); // 地圖上沒有
+    expect(f.recent.map((r: { f: string }) => r.f)).toEqual(["KAL123"]);
+  });
 });

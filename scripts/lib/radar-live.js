@@ -1,7 +1,7 @@
 // 自家雷達「直播用」的飛機位置（2026-11-27，使用者要用 OBS 把 /radar/live 直播到 YouTube）。
 //
 // 跟 radar.js 的彙總是兩回事：這裡要存「座標」，所以隱私規則寫在前面——
-//   1. 位置一律延遲 DELAY_MS 才放出來（2026-11-27 使用者指定 5 分鐘；2026-11-29 改成 1 分鐘）：公開的畫面是「1 分鐘前的天空」，
+//   1. 位置延遲 DELAY_MS 才放出來（2026-11-27 使用者指定 5 分鐘；11-29 改 1 分鐘，之後使用者說「沒有隱私問題，延遲應該 = 0」改成 0）。延遲 0 ＝畫面是即時的，
 //      不能拿來即時追蹤，也很難用來反推接收器的覆蓋範圍。
 //   2. 只留最近 KEEP_MS（20 分鐘）的取樣，寫在 data/radar-track.json（不進 git；會進每日備份，內容 20 分鐘就換光）。
 //   3. 註冊號（rg）、所屬公司（ow）、製造商等「飛機本身」的資料，只給有正常航班代碼的商用航班；沒班號的（私人機、軍機）一個欄位都不帶。
@@ -14,11 +14,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { twDate } = require("./tw-time");
 
-const DELAY_MS = 60_000; // 位置延遲（1 分鐘）
+const DELAY_MS = 0; // 位置延遲：2026-11-29 使用者指定 0（原本 5 分鐘 → 1 分鐘 → 0）。常數保留，要延遲再改這裡
 const WINDOW_MS = 8 * 60_000; // 一次給畫面多久的取樣（5 分鐘軌跡＋2～3 分鐘播放緩衝）
 const KEEP_MS = DELAY_MS + WINDOW_MS + 60_000;
 const POS_FRESH_S = 30; // 位置超過 30 秒沒更新的不畫（aircraft.json 會留著舊的）
-const MAX_SAMPLES = 80;
+const MAX_SAMPLES = 300; // 5 秒一筆 × 20 分鐘 = 240
 const RECENT_KEEP_MS = 60 * 60_000;
 const RECENT_GONE_MS = 60_000; // 最後被看到的時間比「畫面時間」早這麼久，才算「剛剛經過」（還在畫面上的不算）
 const CALLSIGN = /^[A-Z]{2,3}\d{1,4}[A-Z]{0,2}$/;
@@ -46,9 +46,14 @@ function recordTrack(prev, sample, now) {
   keep.push({ t: now, ok, ac });
   // 「剛剛經過」：每架（有正常呼號、高度夠）最後一次被看到的時間與狀態，留 60 分鐘、最多 40 筆（超過 20 分鐘的取樣已經丟了，這份另外留）
   const recent = Object.fromEntries(Object.entries((prev && prev.recent) || {}).filter(([, e]) => now - e.t <= RECENT_KEEP_MS));
-  for (const a of ac) {
-    if (!CALLSIGN.test(a.f) || typeof a.al !== "number" || a.al < MIN_ALT_FT) continue;
-    recent[a.h] = { f: a.f, t: now, al: a.al, sp: a.sp, tr: a.tr, vr: a.vr };
+  // 沒解出座標的（只收到部分訊號）也算：有正常班號就列進去，只是畫不到地圖上。高度已知而且太低的仍然不收
+  for (const a of ok ? sample.aircraft || [] : []) {
+    if (!a || !a.hex || (a.seen ?? 0) > POS_FRESH_S * 2) continue;
+    const f = String(a.flight || "").trim().toUpperCase();
+    if (!CALLSIGN.test(f)) continue;
+    const al = a.alt === "ground" ? 0 : num(a.alt);
+    if (al != null && al < MIN_ALT_FT) continue;
+    recent[String(a.hex).toLowerCase()] = { f, t: now, al, sp: num(a.speed), tr: num(a.track), vr: num(a.vert_rate) };
   }
   const recentKept = Object.fromEntries(Object.entries(recent).sort((x, y) => y[1].t - x[1].t).slice(0, 40));
   return { samples: keep.slice(-MAX_SAMPLES), recent: recentKept };
@@ -81,7 +86,10 @@ const coarse = (v) => Math.round(v * 1000) / 1000; // 對外座標 3 位小數�
 function buildFrame(track, types, names, now) {
   const cutoff = now - DELAY_MS;
   const date = twDate(now);
-  const samples = (track && Array.isArray(track.samples) ? track.samples : []).filter((s) => s.t <= cutoff && s.t >= cutoff - WINDOW_MS);
+  // 最近 2 分鐘留完整取樣（5 秒一筆，動畫用），更早的每 3 筆留 1 筆（只拿來畫尾跡）
+  const samples = (track && Array.isArray(track.samples) ? track.samples : [])
+    .filter((s) => s.t <= cutoff && s.t >= cutoff - WINDOW_MS)
+    .filter((s, i) => cutoff - s.t <= 120_000 || i % 3 === 0);
   const info = {};
   const out = samples.map((s) => ({
     t: s.t,
