@@ -40,6 +40,8 @@ function slideKeys(d: Idle | null): string[] {
 export default function IdleCarousel({ visible = true }: { visible?: boolean }) {
   const [data, setData] = useState<Idle | null>(null);
   const [phase, setPhase] = useState<{ cur: number; prev: number | null }>({ cur: 0, prev: null });
+  const [h, setH] = useState(0); // 目前這張卡內容的高度（px）
+  const roRef = useRef<ResizeObserver | null>(null);
   const keysRef = useRef("");
   const curRef = useRef(0);
   const keyStr = slideKeys(data).join(",");
@@ -67,6 +69,18 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
   useEffect(() => {
     keysRef.current = keyStr;
   }, [keyStr]);
+
+  // 量「現在這張」內容的高度：換卡時換觀察對象；內容自己變高（例如資料更新）也會跟著
+  const measureRef = (el: HTMLDivElement | null) => {
+    roRef.current?.disconnect();
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const e = entries[0];
+      if (e) setH(Math.ceil(e.target.getBoundingClientRect().height));
+    });
+    roRef.current = ro;
+    ro.observe(el);
+  };
 
   // 換頁：每 0.5 秒看一次，現在這張停夠它的時間才換
   useEffect(() => {
@@ -112,50 +126,54 @@ export default function IdleCarousel({ visible = true }: { visible?: boolean }) 
   return (
     // 外層用「畫面基準的 em」定位：中心放在「螢幕左邊到右欄之間」的正中央（右欄左邊緣在 70em → 中心 35em），寬 48em，左右各留約 11em。
     // 卡片放大的字級只加在內層：如果 left 寫在已經放大的元素上，em 會被乘上 1.2，整張卡就偏右、貼近右欄（使用者：「右邊太擠」）
-    <div className="absolute" style={{ left: "35em", bottom: "7em", width: "48em", translate: "-50% 0", pointerEvents: "none" }}>
-    <div
-      className="w-full rounded-sm border px-[1.3em] pt-[1em] pb-[0.9em]"
-      style={{
-        fontSize: "1.2em",
-        background: "rgba(14,26,38,0.78)",
-        borderColor: "rgba(255,255,255,0.08)",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "none" : "translate3d(0, 12px, 0)",
-        filter: visible ? "none" : "blur(8px)",
-        transition: "opacity 1s ease, transform 1s ease, filter 1s ease",
-        pointerEvents: "none",
-        willChange: "opacity, transform, filter",
-      }}
-    >
-      <style>{`
-        @keyframes idle-in { from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.985); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
-        @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(0, -16px, 0) scale(1.01); filter: blur(10px); } }
-        @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
-      `}</style>
-      <div className="relative" style={{ height: "16.5em" }}>
-        {slides.map((s) => (
-          <div
-            key={s.key + (s.out ? "-out" : "-in")}
-            className="idle-slide absolute inset-0"
-            style={{
-              animation: s.out ? `idle-out ${Math.round(FADE_MS * 0.7)}ms cubic-bezier(0.4, 0, 1, 1) both` : `idle-in ${FADE_MS}ms cubic-bezier(0.22, 0.8, 0.24, 1) both`,
-              willChange: "transform, opacity, filter",
-            }}
-          >
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>{s.label}</span>
-              <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{s.sub ?? ""}</span>
+    <div className="absolute" style={{ left: "35em", bottom: "8em", width: "48em", translate: "-50% 0", pointerEvents: "none" }}>
+      <div
+        className="w-full overflow-hidden rounded-sm border"
+        style={{
+          fontSize: "1.2em",
+          padding: "1.1em", // 上下左右一樣（使用者：「空間四周都要一樣」）
+          background: "rgba(14,26,38,0.78)",
+          borderColor: "rgba(255,255,255,0.08)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "none" : "translate3d(0, 12px, 0)",
+          filter: visible ? "none" : "blur(8px)",
+          transition: "opacity 1s ease, transform 1s ease, filter 1s ease",
+          willChange: "opacity, transform, filter",
+        }}
+      >
+        <style>{`
+          @keyframes idle-in { from { opacity: 0; transform: translate3d(14%, 0, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+          @keyframes idle-out { from { opacity: 1; transform: none; filter: blur(0); } to { opacity: 0; transform: translate3d(-14%, 0, 0); filter: blur(8px); } }
+          @media (prefers-reduced-motion: reduce) { .idle-slide { animation: none !important; } }
+        `}</style>
+        {/* 高度 = 目前這張卡內容的高度（量出來的），換卡時高度也平順地變；內容多少就多高，四周留白才會一樣 */}
+        <div className="relative" style={{ height: h ? `${h}px` : "14em", transition: "height 0.9s cubic-bezier(0.22, 0.8, 0.24, 1)" }}>
+          {slides.map((s) => (
+            <div
+              key={s.key + (s.out ? "-out" : "-in")}
+              className="idle-slide absolute inset-x-0 top-0"
+              style={{
+                animation: s.out ? `idle-out ${Math.round(FADE_MS * 0.8)}ms cubic-bezier(0.55, 0, 0.8, 0.4) both` : `idle-in ${FADE_MS}ms cubic-bezier(0.22, 0.8, 0.24, 1) both`,
+                willChange: "transform, opacity, filter",
+              }}
+            >
+              <div ref={s.out ? undefined : measureRef}>
+                <div className="flex items-baseline justify-between">
+                  <span className="font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em" }}>{s.label}</span>
+                  <span className="font-mono" style={{ color: C.muted, fontSize: "0.78em" }}>{s.sub ?? ""}</span>
+                </div>
+                <div className="mt-[0.5em]" style={{ fontSize: "0.95em" }}>{s.body}</div>
+              </div>
             </div>
-            <div className="mt-[0.5em]" style={{ fontSize: "0.95em" }}>{s.body}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-      <div className="mt-[0.3em] flex justify-end gap-[0.45em]" aria-hidden>
+      {/* 頁碼的小點放在卡片外面下方：卡片裡面只剩內容與一致的留白 */}
+      <div className="mt-[0.7em] flex justify-center gap-[0.55em]" aria-hidden style={{ opacity: visible ? 1 : 0, transition: "opacity 1s ease" }}>
         {keys.map((k, i) => (
           <span key={k} className="inline-block size-[0.5em] rounded-full" style={{ background: i === phase.cur % keys.length ? "#6fa0d8" : "rgba(138,160,181,0.35)", transition: "background 0.6s ease" }} />
         ))}
       </div>
-    </div>
     </div>
   );
 }
