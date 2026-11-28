@@ -1,3 +1,4 @@
+// @ts-check
 // 404 統計（決策表 C3，2026-11-25）：哪些網址被打了但不存在——壞掉的站外連結、改過的舊網址、打錯字。
 // 日報／週報／月報（src/lib/stats/reports.ts）列前幾名。
 //
@@ -14,7 +15,10 @@ const MAX_PATHS_PER_DAY = 100;
 const SCANNER =
   /\.(?:php\d?|aspx?|jsp|cgi|env|git|sql|bak|old|zip|tar|gz|rar|7z|ini|yml|yaml|xml\.bak|log|swp)(?:$|[/.])|\/(?:wp-|wordpress|xmlrpc|phpmyadmin|pma|cgi-bin|vendor\/|\.git|\.env|\.aws|\.ssh|\.vscode|\.idea|actuator|boaform|owa\/|admin(?:istrator)?(?:\/|$)|manager\/|console\/|hnap1|solr\/|druid\/|telescope|debug\/|_ignition|server-status|config\.json|sftp-config)/i;
 
-/** @param {{ method?: string, url?: string, headers: Record<string, string | string[] | undefined> }} req */
+/**
+ * @param {{ method?: string, url?: string, headers: Record<string, string | string[] | undefined> }} req
+ * @param {number} status
+ */
 function shouldRecord(req, status) {
   if (status !== 404) return false;
   if (req.method !== "GET" && req.method !== "HEAD") return false;
@@ -25,6 +29,7 @@ function shouldRecord(req, status) {
 }
 
 /** 路徑整理：去掉 query、太長截斷；舊版 build 的 chunk 合成一類。回 null＝掃描器 */
+/** @param {string | undefined} url @returns {string | null} */
 function normalizePath(url) {
   let p = String(url || "/").split(/[?#]/)[0] || "/";
   try {
@@ -35,7 +40,14 @@ function normalizePath(url) {
   return p.length > 120 ? p.slice(0, 120) + "…" : p;
 }
 
-/** 純函式：把一次 404 加進統計 */
+/**
+ * 純函式：把一次 404 加進統計
+ * @typedef {{ days: Record<string, Record<string, number>>, scanners: Record<string, number> }} NotFoundStats
+ * @param {NotFoundStats | null | undefined} stats
+ * @param {string | undefined} url
+ * @param {Date} now
+ * @returns {NotFoundStats}
+ */
 function addNotFound(stats, url, now) {
   const s = stats && stats.days ? stats : { days: {}, scanners: {} };
   if (!s.scanners) s.scanners = {};
@@ -55,8 +67,10 @@ function addNotFound(stats, url, now) {
 }
 
 // 同步 read-modify-write：單一 process、中間沒有 await，理由同 raw-traffic.js
+/** @param {string | undefined} file @param {Parameters<typeof shouldRecord>[0]} req @param {number} status @param {Date} [now] */
 function recordNotFound(file, req, status, now = new Date()) {
   if (!file || !shouldRecord(req, status)) return false;
+  /** @type {NotFoundStats | null} */
   let stats = null;
   try {
     stats = JSON.parse(fs.readFileSync(file, "utf8"));

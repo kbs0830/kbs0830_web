@@ -1,3 +1,4 @@
+// @ts-check
 // User-Agent 分類（2026-11-24 從 raw-traffic.js 拆出來）：不碰檔案系統，瀏覽器也能用——
 // /tools/user-agent（TODO J13）直接拿這份在訪客的瀏覽器裡判斷，跟網站自己的未過濾流量統計是同一套規則。
 
@@ -21,12 +22,16 @@ const SEARCH_BOTS = [
 const OTHER_BOT_PATTERN =
   /bot|spider|crawl|slurp|scan|fetch|preview|facebookexternalhit|curl|wget|python|go-http|java\/|okhttp|axios|node-fetch|undici|scrapy|headless|libwww|httpclient|monitor/i;
 
+/** @param {string} ua @param {string[]} list */
 function findName(ua, list) {
   const lower = ua.toLowerCase();
   return list.find((name) => lower.includes(name.toLowerCase()));
 }
 
-/** @returns {{ kind: "ai" | "search" | "bot" | "browser", name?: string }} */
+/**
+ * @param {string | null | undefined} ua
+ * @returns {{ kind: "ai" | "search" | "bot" | "browser", name?: string }}
+ */
 function classify(ua) {
   const s = ua || "";
   const ai = findName(s, AI_BOTS);
@@ -39,6 +44,6 @@ function classify(ua) {
 }
 
 /** 看起來是真人的瀏覽器（統計、Web Vitals、版本回報都只收這種）。2026-11-25 起取代兩支 route 各自的 BOT_UA_PATTERN */
-const isBrowserUA = (ua) => classify(ua).kind === "browser";
+const isBrowserUA = (/** @type {string | null | undefined} */ ua) => classify(ua).kind === "browser";
 
 module.exports = { classify, isBrowserUA, AI_BOTS, SEARCH_BOTS };
