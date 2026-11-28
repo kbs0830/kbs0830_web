@@ -54,7 +54,7 @@ describe("buildFrame（延遲＋不外流識別碼）", () => {
 });
 
 describe("剛剛經過", () => {
-  it("已經離開畫面的才算，最多 5 班、同班號只留最新、時間在延遲之後的不出現", () => {
+  it("已經離開畫面的才算、最多 12 班、同班號只留最新、時間在延遲之後的不出現", () => {
     let t = null as ReturnType<typeof recordTrack> | null;
     // 6 班不同航班，依序只出現在一個取樣；另一班（CAL1）一直在畫面上
     ["CAL11", "CAL12", "CAL13", "CAL14", "CAL15", "CAL16"].forEach((f, i) => {
@@ -64,7 +64,7 @@ describe("剛剛經過", () => {
     const now = T0 + 11 * 30_000 + DELAY_MS;
     const f = buildFrame(t, null, names, now);
     const flights = f.recent.map((r: { f: string }) => r.f);
-    expect(flights).toEqual(["CAL16", "CAL15", "CAL14", "CAL13", "CAL12"]); // 最新的在前、只有 5 班
+    expect(flights).toEqual(["CAL16", "CAL15", "CAL14", "CAL13", "CAL12", "CAL11"]); // 最新的在前、沒有 5 班的上限（最多 12 班）
     expect(flights).not.toContain("CAL1"); // 還在畫面上
     expect(JSON.stringify(f.recent)).not.toMatch(/h\d|stay/); // 沒有 hex
     // 畫面時間之後才離開的不算（還沒「發生」）

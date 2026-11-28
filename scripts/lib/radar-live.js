@@ -110,14 +110,14 @@ function buildFrame(track, types, names, now) {
       return [id, coarse(a.la), coarse(a.lo), a.al, a.sp, a.tr, a.vr ?? null];
     }),
   }));
-  // 剛剛經過（前 5 班）：最後被看到的時間在畫面時間之前 RECENT_GONE_MS 以上；同班號只留最新一筆
+  // 剛剛經過（最多 12 班，畫面放得下幾列就顯示幾列）：最後被看到的時間在畫面時間之前 RECENT_GONE_MS 以上；同班號只留最新一筆
   const seenF = new Set();
   const recent = Object.entries((track && track.recent) || {})
     .filter(([, e]) => e.t <= cutoff - RECENT_GONE_MS)
     .filter(([, e]) => CALLSIGN.test(e.f)) // 輸出端再擋一次（記錄時就只收商用班號，這裡是第二道）
     .sort((x, y) => y[1].t - x[1].t)
     .filter(([, e]) => (seenF.has(e.f) ? false : (seenF.add(e.f), true)))
-    .slice(0, 5)
+    .slice(0, 12)
     .map(([hex, e]) => {
       const airline = (e.f.match(/^([A-Z]{3})\d/) || [])[1] || null;
       const ty = types && types[hex] && types[hex].t ? types[hex].t : null;

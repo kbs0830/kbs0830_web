@@ -74,6 +74,8 @@ export default function RadarLiveScreen() {
   const [clock, setClock] = useState<string>("");
   const [focusIdx, setFocusIdx] = useState(0);
   const focusRef = useRef<string | null>(null);
+  const passedRef = useRef<HTMLUListElement>(null);
+  const [passedFit, setPassedFit] = useState(5);
   const buildRef = useRef<string | null>(null);
 
   // 抓資料
@@ -111,6 +113,18 @@ export default function RadarLiveScreen() {
       clearInterval(timer);
       ctrl?.abort();
     };
+  }, []);
+
+  // 「剛剛經過」沒有上限：依清單區塊的高度算放得下幾列（一列約 2.05em），放不下的不顯示，不會被切一半或擋到別的東西
+  useEffect(() => {
+    const el = passedRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const em = parseFloat(getComputedStyle(el).fontSize) || 20;
+      setPassedFit(Math.max(0, Math.floor(el.clientHeight / (em * 2.05))));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // 焦點航班每 8 秒換下一架
@@ -557,11 +571,11 @@ export default function RadarLiveScreen() {
         <p className="mt-[0.9em] border-t pt-[0.6em] font-mono tracking-[0.18em]" style={{ color: C.muted, fontSize: "0.8em", borderColor: "rgba(255,255,255,0.08)" }}>
           剛剛經過 · JUST PASSED
         </p>
-        <ul className="mt-[0.4em] min-h-0 flex-1 space-y-[0.3em] overflow-hidden">
+        <ul ref={passedRef} className="mt-[0.4em] min-h-0 flex-1 space-y-[0.3em] overflow-hidden">
           {passed.length === 0 ? (
             <li className="font-light" style={{ color: C.muted, fontSize: "0.85em" }}>還沒有紀錄 · None yet</li>
           ) : (
-            passed.map((p) => (
+            passed.slice(0, passedFit).map((p) => (
               <li key={`${p.f}-${p.t}`} className="flex items-baseline justify-between gap-[1em]">
                 <span className="min-w-0 truncate">
                   <span className="font-mono font-semibold" style={{ fontSize: "0.95em" }}>{p.f}</span>

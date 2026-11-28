@@ -44,10 +44,28 @@ export default function AtcMeter() {
     if (request === null) return;
     let stopped = false;
     let raf = 0;
+    let retry: ReturnType<typeof setTimeout> | null = null;
     let stream: MediaStream | null = null;
     let ctx: AudioContext | null = null;
 
-    (async () => {
+    // 連不上、斷掉、被暫停時 10 秒後自己重來（OBS 重開、裝置晚出現、頁面自動重新載入之後都會恢復）
+    const again = () => {
+      if (stopped || retry) return;
+      retry = setTimeout(() => {
+        retry = null;
+        void run();
+      }, 10_000);
+    };
+    const teardown = () => {
+      cancelAnimationFrame(raf);
+      stream?.getTracks().forEach((t) => t.stop());
+      stream = null;
+      ctx?.close().catch(() => {});
+      ctx = null;
+    };
+
+    const run = async () => {
+      teardown();
       try {
         const raw = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
         // 一定要指定裝置名稱（?audio=CABLE）；空的或 "1" 一律不開，避免誤開預設（可能是耳機）麥克風
@@ -64,11 +82,21 @@ export default function AtcMeter() {
         if (!dev) {
           setDiag(`看到 ${inputs.length} 個輸入裝置：${inputs.map((d) => d.label || "(無名稱)").join("；")}`);
           setStatus("nodevice");
+          again();
           return;
         }
         stream = await navigator.mediaDevices.getUserMedia({ audio: { ...raw, deviceId: { exact: dev.deviceId } } });
         if (stopped) return;
         ctx = new AudioContext();
+        // 沒有使用者操作時，瀏覽器可能把 AudioContext 先暫停（量到的永遠是 0）：明確叫它開始，之後每秒檢查
+        await ctx.resume().catch(() => {});
+        const track = stream.getAudioTracks()[0];
+        track.onended = () => {
+          setStatus("error");
+          setDiag("音訊輸入中斷（裝置被拔掉或被別的程式拿走），10 秒後重試");
+          again();
+        };
+        setDiag(`輸入：${track.label}　狀態：${ctx.state}`);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 1024;
         ctx.createMediaStreamSource(stream).connect(analyser); // 只接分析器，不接 destination（不出聲）
@@ -80,8 +108,13 @@ export default function AtcMeter() {
         let shown: Status = "idle";
         setStatus("idle");
 
+        let lastResume = 0;
         const tick = (now: number) => {
           raf = requestAnimationFrame(tick);
+          if (ctx && ctx.state === "suspended" && now - lastResume > 1000) {
+            lastResume = now;
+            void ctx.resume().catch(() => {});
+          }
           analyser.getFloatTimeDomainData(buf);
           let sum = 0;
           for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
@@ -118,15 +151,16 @@ export default function AtcMeter() {
         if (!stopped) {
           setDiag(`${e instanceof Error ? e.name : "錯誤"}：${e instanceof Error ? e.message : String(e)}${navigator.mediaDevices ? "" : "（這個環境沒有 mediaDevices）"}`);
           setStatus("error");
+          again();
         }
       }
-    })();
+    };
+    void run();
 
     return () => {
       stopped = true;
-      cancelAnimationFrame(raf);
-      stream?.getTracks().forEach((t) => t.stop());
-      ctx?.close().catch(() => {});
+      if (retry) clearTimeout(retry);
+      teardown();
     };
   }, [request]);
 
