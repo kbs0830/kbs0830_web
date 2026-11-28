@@ -57,7 +57,7 @@ export interface Project {
   /** 站內的即時展示（例：雷達 → /flights#radar），詳細頁顯示成連結 */
   live?: { href: Route; label: string };
   /** 作品頁上的即時資料區塊（TODO D2／D5：課程作品的「線上版」，資料由伺服器抓外部 API） */
-  liveWidget?: "jpy-rate" | "air-quality";
+  liveWidget?: "jpy-rate" | "air-quality" | "food-detect";
   detail?: ProjectDetail;
 }
 
@@ -82,6 +82,7 @@ const allProjects: Project[] = [
     // 2026-11-25 圖：GitHub main 分支的 web-client 實際跑起來的畫面（只把 BFF 健康檢查回成正常，其他照原樣）。
     // 一開始誤用本機舊分支（Android 版）畫了示意圖，查 origin/main 才發現現在是瀏覽器端版本，已換掉
     image: "/image/projects/foodlens-advisor.jpg",
+    liveWidget: "food-detect", // 作品頁的瀏覽器端試玩（2026-11-28，通用 COCO 模型，原因寫在元件開頭）
     isPersonal: true,
     detail: {
       caseStudy: {

@@ -9,6 +9,7 @@ import { SITE_URL } from "@/lib/site/site";
 import ArchitectureDiagram from "@/components/content/ArchitectureDiagram";
 import JpyRateLive from "@/components/live/JpyRateLive";
 import AirQualityLive from "@/components/live/AirQualityLive";
+import FoodDetectDemo from "@/components/live/FoodDetectDemo";
 import { GitHubIcon } from "@/components/ui/icons";
 import TagBadge from "@/components/ui/TagBadge";
 import Eyebrow from "@/components/ui/Eyebrow";
@@ -143,6 +144,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       {/* 課程作品的「線上版」：client 元件自己跟 /api 要資料（作品頁是預先產生的靜態頁） */}
       {project.liveWidget === "jpy-rate" && <JpyRateLive />}
       {project.liveWidget === "air-quality" && <AirQualityLive />}
+      {project.liveWidget === "food-detect" && <FoodDetectDemo />}
 
       {/* 案例：背景 → 角色 → 關鍵決定 → 取捨 → 成果（TODO B9）；下面的架構圖、條列是技術細節 */}
       {project.detail?.caseStudy && <CaseStudy data={project.detail.caseStudy} />}

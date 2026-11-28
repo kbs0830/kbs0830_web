@@ -47,7 +47,8 @@ function contentSecurityPolicy(dev: boolean) {
     "default-src 'self'",
     // static.cloudflareinsights.com：Cloudflare Web Analytics 的 beacon，Cloudflare 在 edge 只對真的瀏覽器插入，
     // 本機、curl、E2E 都看不到——正式開 CSP 後幾分鐘就從 /api/csp-report 抓到它被擋（2026-11-09）
-    `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${GISCUS ? " https://giscus.app" : ""}${dev ? " 'unsafe-eval'" : ""}`,
+    // 'wasm-unsafe-eval'：只允許編譯 WebAssembly（不開放 eval）。FoodLens 作品頁的瀏覽器端辨識（ONNX Runtime Web）要用
+    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com${GISCUS ? " https://giscus.app" : ""}${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://ghchart.rshah.org https://i.scdn.co",
     "font-src 'self' data:",

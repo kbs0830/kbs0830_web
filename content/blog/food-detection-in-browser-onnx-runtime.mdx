@@ -1,0 +1,74 @@
+---
+title: "在瀏覽器裡認食物：原本的模型幾乎認不出東西，我換了一個，照片不離開你的手機"
+seoTitle: "ONNX Runtime Web 瀏覽器端物件偵測：YOLOX-S 食物辨識、CSP wasm-unsafe-eval 與模型授權"
+titleEn: "Food detection in the browser with ONNX Runtime Web: the original model failed, so I swapped it"
+date: "2026-11-28"
+description: "FoodLens Advisor 作品頁加了「現場試玩」：照片在你的瀏覽器裡用 ONNX Runtime Web 跑 YOLOX-S，不上傳。包含公開版的中亞料理模型實測 4 張照片幾乎一個框都畫不出來、為什麼改用 Apache-2.0 的通用模型、不加 npm 依賴的做法，以及 CSP 要開的 wasm-unsafe-eval。"
+tags: ["ONNX", "AI", "WebAssembly"]
+---
+
+[FoodLens Advisor](/projects/foodlens-advisor) 是我的期末專題：照片在瀏覽器裡辨識，只把食物名稱交給雲端模型。但作品頁一直只有文字和截圖，沒辦法**親手試**。這篇是把「現場試玩」做進作品頁的過程，其中最有用的部分是：我原本想用的模型，實測幾乎不能用。
+
+## 原本的模型在哪
+
+作品用的是一個 46 類中亞料理的 YOLOv8（手抓飯、饅頭、拉麵、烤肉串這類）。它的 43 MB 檔案沒有進 git，我的桌機上也找不到。
+
+後來在 Hugging Face 找到公開版：[UzDataLab/milliy-taomlar-detector](https://huggingface.co/UzDataLab/milliy-taomlar-detector)，46 類、CC BY 4.0（可以再散佈）、權重 22 MB。轉成 ONNX 後約 43 MB，輸出形狀是 `[1, 50, 8400]`，跟作品文件寫的一樣，應該就是同一個模型。
+
+## 實測：4 張照片，一個框都沒有
+
+模型卡自己寫得很清楚：這是測試版，**只用 212 張圖訓練，mAP50 是 29.7%**。我拿 4 張 Wikimedia Commons 的中亞料理照片（手抓飯兩張、拉麵、烤肉串）跑：
+
+| 門檻 | 結果 |
+|---|---|
+| 0.25（作品原本的設定） | 4 張全部沒有任何框 |
+| 0.1 | 只有一張出現兩個框，信心度約 0.12；另一張手抓飯被標成 unknown |
+
+這樣的模型放在作品頁，訪客按下去什麼都看不到，反而像是壞掉。所以我沒有放它。
+
+## 換成通用模型，並在頁面上說清楚
+
+改用 [YOLOX-S](https://github.com/Megvii-BaseDetection/YOLOX)（Megvii，**Apache-2.0**，COCO 80 類），只顯示其中 10 種食物：香蕉、蘋果、柳橙、花椰菜、紅蘿蔔、三明治／漢堡、熱狗、披薩、甜甜圈、蛋糕。
+
+為什麼不用最常見的 Ultralytics YOLOv8n：它的權重是 AGPL-3.0，而這個網站的原始碼是公開的，我不想為了一個示範去處理授權問題。YOLOX 是 Apache-2.0，直接放得進來。
+
+我用 6 張示範照片先在 Python 裡驗過：披薩、甜甜圈、水果、蔬菜、漢堡都辨識得到，蛋糕那張只認出餐桌，所以拿掉了。**這個試玩只認得這 10 種**，台灣小吃、整桌菜大多認不出來，頁面上也寫了。
+
+## 實作
+
+- **推論**：ONNX Runtime Web（WASM），在瀏覽器裡跑，照片不會離開這個分頁。
+- **前處理**：等比例縮到 640×640、右下補灰色 114。YOLOX 吃的是 **BGR、0–255、不除以 255**，這跟 YOLOv8 不一樣，第一次寫很容易順手 `/255`。
+- **解碼**：YOLOX 的輸出是 `[1, 8400, 85]`，座標要用格點加 stride（8、16、32）換算，寬高是 `exp(x) × stride`，分數是 objectness 乘以類別分數。再對同類別做 NMS。
+- **模型 36 MB**：要等訪客按「試試看」才下載，有進度百分比，之後走瀏覽器快取。
+- **不加 npm 依賴**：我把 ONNX Runtime Web 的執行檔（`ort.wasm.min.mjs` 和兩個 WASM 相關檔案，共約 15 MB）直接放在 `public/vendor/ort/`，用動態 `import()` 載入。原因很實際：這個站的規則是依賴只在 CI 部署時安裝，我不想為了一個示範去動 lockfile。代價是 repo 多了約 50 MB 的靜態檔。
+- **單執行緒**：多執行緒的 WASM 需要 cross-origin isolation，這個網站沒有開，所以 `numThreads = 1`。
+
+### CSP 要加 `'wasm-unsafe-eval'`
+
+網站有嚴格的 Content-Security-Policy。瀏覽器編譯 WebAssembly 需要 `'wasm-unsafe-eval'`，加進 `script-src`。它**只允許編譯 WASM，不會開放 `eval()`**，跟 `'unsafe-eval'` 不一樣。這個網站原本就沒有 `unsafe-eval`（只有開發模式有），所以這一條是新增的最小放寬。
+
+## 在瀏覽器裡實際跑的結果
+
+桌機 Chrome，推論一張圖約 0.8～1.2 秒（不含下載模型）：
+
+| 示範圖 | 結果 |
+|---|---|
+| 披薩 | 披薩 ×1 |
+| 甜甜圈 | 甜甜圈 ×14 |
+| 水果 | 蘋果 ×6、柳橙 ×1 |
+| 蔬菜 | 紅蘿蔔 ×24、花椰菜 ×6 |
+| 漢堡 | 三明治／漢堡 ×1 |
+
+跟 Python 的結果一致。我只在桌機的 Chrome 和 390px 寬度的模擬手機上看過，**沒有在真的手機上量過速度**，低階手機的載入時間和記憶體我不知道。
+
+## 這篇學到的
+
+1. **先量再放進頁面**。一個模型卡寫著 mAP50 29.7% 的測試版，我一開始是想直接用的。用 4 張照片跑一遍只要幾分鐘，就能避免放一個壞掉的展示。
+2. **授權要在選模型時就看**。AGPL 的權重放進公開 repo 會讓事情變複雜，同樣效果的 Apache-2.0 模型就在旁邊。
+3. **不要把換掉的東西說成原本的**。頁面上寫明這不是作品裡的模型、為什麼換、只認得哪 10 種。
+
+## 出處
+
+- 模型：[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)（Apache-2.0）、[ONNX Runtime Web](https://github.com/microsoft/onnxruntime)（MIT）
+- 作品原模型：[UzDataLab Milliy Taomlar Detector](https://huggingface.co/UzDataLab/milliy-taomlar-detector)（CC BY 4.0）
+- 示範照片來自 Wikimedia Commons，授權與作者寫在作品頁的「示範照片出處」
