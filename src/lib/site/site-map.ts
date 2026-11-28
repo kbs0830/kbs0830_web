@@ -69,6 +69,7 @@ export const TOOL_PAGES: SitePage[] = [
   { href: "/tools/kanji-jp", zh: "繁體→日文漢字", en: "Kanji", desc: "輸入繁體中文，標出日文寫法不一樣的字（學→学、發→発）" },
   { href: "/tools/vram", zh: "顯存計算機", en: "VRAM", desc: "顯卡跑得動幾 B 模型？選顯存、量化、context 估算本機 LLM 要多少 VRAM" },
   { href: "/tools/csp", zh: "CSP 標頭解讀", en: "CSP", desc: "貼上 Content-Security-Policy，逐條解釋、標出 unsafe-inline 這類風險、給修改建議" },
+  { href: "/tools/metar", zh: "METAR 翻譯機", en: "METAR", desc: "貼上機場天氣電報，逐欄翻成白話：風、能見度、雲底、氣溫、氣壓，還有 VFR／IFR 分類（本地解碼）" },
   { href: "/tools/power-cost", zh: "架站電費", en: "Power", desc: "家裡電腦 24 小時開機一年多少電費、跟租 VPS 比划不划算" },
 ];
 

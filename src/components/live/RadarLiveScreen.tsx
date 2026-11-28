@@ -5,6 +5,7 @@ import coast from "./radar-coast.json";
 import aviation from "./radar-aviation.json";
 import counties from "./radar-counties.json";
 import AtcMeter from "./AtcMeter";
+import IdleCarousel from "./IdleCarousel";
 
 // /radar/live：給 OBS「瀏覽器來源」直播用的全螢幕雷達動畫（2026-11-27，使用者要直播到 YouTube，說明欄導流到網站）。
 // 資料：/api/radar/live 每 15 秒一次，只有「1 分鐘前」的位置取樣；這裡用取樣之間的內插＋速度／航向外推，
@@ -475,6 +476,8 @@ export default function RadarLiveScreen() {
 
   const offline = failed || (frame !== null && !frame.online);
   const quiet = frame !== null && !offline && shown.length === 0;
+  // 閒置（沒有飛機或接收器離線）：背景模糊、拿掉左邊的音量條與圖例，改在中下方輪播四張卡片（見 IdleCarousel）
+  const idle = offline || quiet;
   const named = shown.filter((s) => s.info?.f);
   const focus = named.length ? named[focusIdx % named.length] : null;
   const passed = frame?.recent ?? [];
@@ -492,7 +495,7 @@ export default function RadarLiveScreen() {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          opacity: offline || quiet ? 1 : 0,
+          opacity: idle ? 1 : 0,
           transition: "opacity 1.2s var(--ease-ma, ease)",
           backdropFilter: "blur(9px) brightness(0.72)",
           WebkitBackdropFilter: "blur(9px) brightness(0.72)",
@@ -513,7 +516,7 @@ export default function RadarLiveScreen() {
       </div>
 
       {/* 左：塔台無線電音量條（網址有 ?audio=1 才啟動，只量音量，見 AtcMeter.tsx） */}
-      <AtcMeter />
+      {!idle && <AtcMeter />}
 
       {/* 右：統計、焦點航班詳細資料、航班、剛剛經過 */}
       <aside
@@ -592,8 +595,8 @@ export default function RadarLiveScreen() {
       </aside>
 
       {/* 中央訊息：離線／安靜 */}
-      {(offline || quiet) && (
-        <div className="absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+      {idle && (
+        <div className="absolute top-[30%] -translate-x-1/2 text-center" style={{ left: "35em" }}>
           <p className="font-serif font-light tracking-[0.1em]" style={{ fontSize: "2.4em" }}>
             {offline ? "接收器暫時離線 · Receiver offline" : "空域安靜中 · Quiet skies"}
           </p>
@@ -614,10 +617,15 @@ export default function RadarLiveScreen() {
           {(frame?.delayMs ?? 0) === 0 ? "即時 · Live" : `畫面延遲約 ${Math.round((frame?.delayMs ?? 0) / 60_000)} 分鐘 · Delayed`}
         </p>
         <p className="mt-[0.3em]">資料時間 {clock || "--:--:--"}（台灣 UTC+8）</p>
-        <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>
-          ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB　┄ 縣市界
-        </p>
+        {!idle && (
+          <p className="mt-[0.3em]" style={{ fontSize: "0.85em" }}>
+            ━ 跑道 Runway　⬡ 導航台 VOR/TACAN　◌ NDB　┄ 縣市界
+          </p>
+        )}
       </div>
+
+      {/* 閒置時的輪播：小港起飛、小港降落、現在天氣、近三天雷達資料 */}
+      {idle && <IdleCarousel />}
 
       {/* 右下：導流 */}
       <div className="absolute bottom-[2em] right-[2em] text-right">

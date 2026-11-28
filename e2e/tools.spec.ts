@@ -77,3 +77,12 @@ test("CSP 標頭解讀：預設範例找到高風險、逐條解讀", async ({ p
   await page.getByRole("textbox").fill("script-src 'nonce-abc' 'strict-dynamic'; object-src 'none'; base-uri 'self'");
   await expect(page.getByText("嚴格 CSP")).toBeVisible();
 });
+
+test("METAR 翻譯機：預設範例翻成白話、貼別的電報會重新解碼", async ({ page }) => {
+  await page.goto("/tools/metar");
+  await expect(page.getByText("從西南偏南（200°）吹來").first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("VFR", { exact: true }).first()).toBeVisible();
+  await page.getByRole("textbox").fill("METAR RJTT 010000Z 02005KT 0800 FG VV002 12/12 Q1015");
+  await expect(page.getByText("垂直能見度 200 呎").first()).toBeVisible();
+  await expect(page.getByText("LIFR", { exact: true }).first()).toBeVisible();
+});
