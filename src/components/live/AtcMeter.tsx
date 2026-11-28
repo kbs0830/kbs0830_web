@@ -30,7 +30,13 @@ export default function AtcMeter() {
     () => new URLSearchParams(location.search).get("radio") === "1",
     () => false,
   );
+  const debug = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(location.search).get("debug") === "1",
+    () => false,
+  );
   const [status, setStatus] = useState<Status>("connecting");
+  const [diag, setDiag] = useState(""); // 診斷用（網址加 &debug=1 才顯示）：錯誤類型、瀏覽器看到的音訊輸入裝置名稱
   const segRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dbRef = useRef<HTMLSpanElement>(null);
 
@@ -53,8 +59,10 @@ export default function AtcMeter() {
         // 拿到權限後才讀得到裝置名稱：先開一下預設裝置（立刻關掉），再換成指定的那個
         const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
         probe.getTracks().forEach((t) => t.stop());
-        const dev = (await navigator.mediaDevices.enumerateDevices()).find((d) => d.kind === "audioinput" && d.label.toLowerCase().includes(want));
+        const inputs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
+        const dev = inputs.find((d) => d.label.toLowerCase().includes(want));
         if (!dev) {
+          setDiag(`看到 ${inputs.length} 個輸入裝置：${inputs.map((d) => d.label || "(無名稱)").join("；")}`);
           setStatus("nodevice");
           return;
         }
@@ -106,8 +114,11 @@ export default function AtcMeter() {
           }
         };
         raf = requestAnimationFrame(tick);
-      } catch {
-        if (!stopped) setStatus("error");
+      } catch (e) {
+        if (!stopped) {
+          setDiag(`${e instanceof Error ? e.name : "錯誤"}：${e instanceof Error ? e.message : String(e)}${navigator.mediaDevices ? "" : "（這個環境沒有 mediaDevices）"}`);
+          setStatus("error");
+        }
       }
     })();
 
@@ -167,6 +178,11 @@ export default function AtcMeter() {
       <p className="font-mono" style={{ color: "#8aa0b5", fontSize: "0.75em" }}>
         <span ref={dbRef}>-∞</span> dBFS
       </p>
+      {debug && diag && (
+        <p className="mt-[0.5em] max-w-[22em] font-mono leading-snug" style={{ color: "#8aa0b5", fontSize: "0.7em" }}>
+          {diag}
+        </p>
+      )}
     </div>
   );
 }
